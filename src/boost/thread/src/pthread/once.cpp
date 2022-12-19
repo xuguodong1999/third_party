@@ -5,7 +5,7 @@
 
 #include <boost/thread/detail/config.hpp>
 #ifdef BOOST_THREAD_ONCE_ATOMIC
-#include "./once_atomic.cpp"
+#include "./once_atomic.hpp"
 #else
 #define __STDC_CONSTANT_MACROS
 #include <boost/thread/once.hpp>
