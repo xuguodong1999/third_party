@@ -36,12 +36,12 @@
 #include <string.h>
 #include <limits.h>
 
-#include "../../../../INCHI_BASE/src/mode.h"
-#include "../../../../INCHI_BASE/src/ichierr.h"
-#include "../../../../INCHI_BASE/src/mol_fmt.h"
-#include "../../../../INCHI_BASE/src/inchi_api.h"
+#include "mode.h"
+#include "ichierr.h"
+#include "mol_fmt.h"
+#include "inchi_api.h"
 
-#include "../../../../INCHI_BASE/src/ichi_io.h"
+#include "ichi_io.h"
 
 #include "ixa_mol.h"
 #include "ixa_status.h"
