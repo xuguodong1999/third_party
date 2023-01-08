@@ -5102,7 +5102,7 @@ namespace OpenBabel {
   std::vector<TEditedMolecule *> TemplateRedraw::queryData;
 
   bool TemplateRedraw::loadTemplates() {
-    std::ifstream ifs;
+    std::istringstream ifs;
     string filename("templates.sdf");//("e:\\templates.sdf");
     TEditedMolecule sm;
     TEditedMolecule * em;

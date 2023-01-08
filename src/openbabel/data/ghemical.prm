@@ -45,8 +45,8 @@ atom [I]*        3500 (-*) "general iodine"
 // one is chosen. that is, choose normal parameters if there is any matching
 // one, and take wildcarded one only if there is no better choice...
 //
-// [opt] = Å
-// [fc] = kcal/(mol * Å^2)
+// [opt] = Ã…
+// [fc] = kcal/(mol * Ã…^2)
 
 bond 	0602 0602 T 1.204 1400.0
 bond 	0602 0602 S 1.380  700.0
@@ -415,7 +415,7 @@ torsion	FFFF 1000 1000 FFFF ?S?  4.000 + 3.0
 // lenjon-parameters 09.05.2000 (based on Tripos 5.2 and MMFF94)
 // [id] [r] [k]
 //
-// [r] = Å
+// [r] = Ã…
 // [k] = kcal/mol
 
 vdw	0100 1.50 0.042

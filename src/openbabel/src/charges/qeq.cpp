@@ -125,7 +125,7 @@ namespace OpenBabel
     char buffer[BUFF_SIZE];
 
     // open data/qeq.txt
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, "qeq.txt").length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open qeq.txt", obError);
       return;

@@ -55,7 +55,7 @@ public:
   OBDefine(const char* ID, const char* filename)
     : OBLoader(ID, false), _filename(filename)
   {
-    ifstream ifs;
+    istringstream ifs;
     bool filefound = !OpenDatafile(ifs, filename).empty();
     if(!ifs)
     {

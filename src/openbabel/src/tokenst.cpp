@@ -24,7 +24,7 @@ GNU General Public License for more details.
 #include <limits>
 #include <cstring>
 #include <openbabel/tokenst.h>
-
+#include "text_assets.hpp"
 using namespace std;
 
 namespace OpenBabel
@@ -180,7 +180,7 @@ namespace OpenBabel
      or "BABEL_DATADIR" if @p envvar is not specified, or the compiled-in
      macro BABEL_DATADIR if the environment variable is not set
 
-     \param ifs        Stream to load
+     \param iss        Stream to load
      \param filename   Name of the data file to load
      \param envvar     Name of the environment variable
 
@@ -188,51 +188,15 @@ namespace OpenBabel
      unless it is in current directory
 
   **/
-  std::string OpenDatafile(std::ifstream& ifs, const std::string& filename,
+  std::string OpenDatafile(std::istringstream& iss, const std::string& filename,
                            const std::string& envvar)
   {
-    ios_base::openmode imode = ios_base::in;
-    #ifdef ALL_READS_BINARY //Makes unix files compatible with VC++6
-      imode = ios_base::in|ios_base::binary;
-    #endif
-
-    // check the current directory
-    ifs.close();
-    ifs.clear();
-    ifs.open(filename.c_str(),imode);
-    if(ifs)
-      return filename;
-
-    string file;
-    const char* datadir = getenv(envvar.c_str());
-    if(!datadir)
-      datadir = BABEL_DATADIR;
-
-    // check the subdirectory for this version number
-    file = datadir;
-    file += FILE_SEP_CHAR;
-    file += BABEL_VERSION;
-    file += FILE_SEP_CHAR + filename;
-
-    ifs.clear();
-    ifs.open(file.c_str(),imode);
-    if(ifs)
-      return file;
-
-    // couldn't find it with the version built in, so try the parent
-    file = datadir;
-    file += FILE_SEP_CHAR;
-    file += filename;
-
-    ifs.clear();
-    ifs.open(file.c_str(),imode);
-
-    if (ifs)
-      return file;
-
-    ifs.clear();
-    ifs.close();
-    return(""); // error
+    auto it = openbabel::OPENBABEL_ASSET_MAP.find(filename);
+    if(it==openbabel::OPENBABEL_ASSET_MAP.end()) {
+        return "";
+    }
+    iss.str(it->second);
+    return filename;
   }
 
 

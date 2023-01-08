@@ -726,7 +726,7 @@ bool ChemKinFormat::ReadStdThermo(const string& datafilename)
 
   string missing; // list of molecules which do not have thermodata
   OBConversion StdThermConv;
-  ifstream stdthermo;
+  istringstream stdthermo;
   OpenDatafile(stdthermo, datafilename);
   if(!stdthermo)
   {

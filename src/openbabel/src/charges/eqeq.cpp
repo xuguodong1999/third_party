@@ -52,7 +52,7 @@ namespace OpenBabel
     char buffer[BUFF_SIZE];
 
     // open data/eqeqIonizations.txt
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, "eqeqIonizations.txt").length() == 0)
     {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open eqeqIonizations.txt", obError);

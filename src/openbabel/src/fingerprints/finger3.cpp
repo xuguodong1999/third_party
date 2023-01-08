@@ -159,7 +159,7 @@ public:
   bool ReadPatternFile(string& ver)
   {
     //Reads three types of file. See below
-    ifstream ifs;
+    istringstream ifs;
 	  stringstream errorMsg;
 
     if (OpenDatafile(ifs, _patternsfile).length() == 0)
@@ -238,8 +238,6 @@ public:
       }
     }while(getline(ifs,line));
 
-    if (ifs)
-      ifs.close();
     return true;
   }
 

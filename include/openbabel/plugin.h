@@ -20,7 +20,6 @@ General Public License for more details.
 #define OB_PLUGIN_H
 
 #include <openbabel/babelconfig.h>
-#include <openbabel/dlhandler.h>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -38,7 +37,7 @@ namespace OpenBabel
 ///@{
 
 /// @brief Case insensitive string comparison for PluginMapType key.
-struct OBERROR CharPtrLess : public std::binary_function<const char*,const char*, bool>
+struct OBERROR CharPtrLess
 {
   bool operator()(const char* p1,const char* p2) const
   { return strcasecmp(p1,p2)<0; }
@@ -371,7 +370,7 @@ public:
 
 #define OB_STATIC_PLUGIN(className,instanceName) \
   class className; \
-  OBAPI OB_EXTERN className instanceName;
+  OB_EXTERN className instanceName;
 
   // formats
   OB_STATIC_PLUGIN(ABINITFormat, theABINITFormat)
