@@ -195,6 +195,7 @@ namespace OpenBabel
     if(it==openbabel::OPENBABEL_ASSET_MAP.end()) {
         return "";
     }
+    iss.clear();
     iss.str(it->second);
     return filename;
   }
