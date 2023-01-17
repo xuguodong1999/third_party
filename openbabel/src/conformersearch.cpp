@@ -17,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/conformersearch.h>
 #include <openbabel/math/align.h>
 #include <openbabel/forcefield.h>
@@ -84,7 +85,7 @@ namespace OpenBabel {
         vdwCutoff = m_vdw_factor * (OBElements::GetVdwRad(atom1->GetAtomicNum())
                                     + OBElements::GetVdwRad(atom2->GetAtomicNum()));
         vdwCutoff *= vdwCutoff; // compare squared distances
-        //std::cout << vdwCutoff << " " << m_vdw_factor << " " << m_cutoff << " " << distanceSquared << std::endl;
+        //xgd::sout << vdwCutoff << " " << m_vdw_factor << " " << m_cutoff << " " << distanceSquared << std::endl;
 
         // check distance
         if (distanceSquared < m_cutoff || distanceSquared < vdwCutoff)
@@ -315,7 +316,7 @@ namespace OpenBabel {
     // private variables.
     d = (void*)new OBRandom();
     ((OBRandom*)d)->TimeSeed();
-    m_logstream = &std::cout; 	// Default logging send to standard output
+    m_logstream = &xgd::sout; 	// Default logging send to standard output
     // m_logstream = NULL;
     m_printrotors = false;  // By default, do not print rotors but perform the conformer search
 
@@ -352,23 +353,23 @@ namespace OpenBabel {
       OBRotorIterator end_it = m_rotorList.EndRotors();
       OBRotor* r = m_rotorList.BeginRotor(it);
       int rotcount = 1;
-      std::cout << "Rotors:" << std::endl;
+      xgd::sout << "Rotors:" << std::endl;
       while(r){
         OBBond* b = r->GetBond();
         int at1,at2;
         at1 = b->GetBeginAtomIdx();
         at2 = b->GetEndAtomIdx();
-        std::cout << at1 << "-" << at2 << "  ";
+        xgd::sout << at1 << "-" << at2 << "  ";
         r = m_rotorList.NextRotor(it);
-        if (rotcount%4==0 && r){std::cout << std::endl;}
+        if (rotcount%4==0 && r){xgd::sout << std::endl;}
         ++rotcount;
       }
-      std::cout << std::endl;
+      xgd::sout << std::endl;
       return false;
     }
     // Print those that are fixed
     if (!m_fixedBonds.IsEmpty()){
-      std::cout << "Fixed Rotors: " << std::endl;
+      xgd::sout << "Fixed Rotors: " << std::endl;
       int end_it = m_fixedBonds.EndBit();
       int it = m_fixedBonds.FirstBit();
       int rotcount = 1;
@@ -377,12 +378,12 @@ namespace OpenBabel {
         int at1,at2;
         at1 = b->GetBeginAtomIdx();
         at2 = b->GetEndAtomIdx();
-        std::cout << at1 << "-" << at2 << "  ";
+        xgd::sout << at1 << "-" << at2 << "  ";
         it = m_fixedBonds.NextBit(it);
-        if (rotcount%4==0 && it!=end_it){std::cout << std::endl;}
+        if (rotcount%4==0 && it!=end_it){xgd::sout << std::endl;}
         ++rotcount;
       }
-      std::cout << std::endl;
+      xgd::sout << std::endl;
     }
 
     nb_rotors = m_rotorList.Size();
@@ -698,14 +699,14 @@ namespace OpenBabel {
     rotamers.SetBaseCoordinateSets(mol);
     rotamers.Setup(mol, m_rotorList);
 
-    std::cout << "GetConformers:" << std::endl;
+    xgd::sout << "GetConformers:" << std::endl;
     // Add all (parent + children) unique rotor keys
     for (unsigned int i = 0; i < m_rotorKeys.size(); ++i) {
       rotamers.AddRotamer(m_rotorKeys[i]);
 
       for (unsigned int j = 1; j < m_rotorKeys[i].size(); ++j)
-        std::cout << m_rotorKeys[i][j] << " ";
-      std::cout << std::endl;
+        xgd::sout << m_rotorKeys[i][j] << " ";
+      xgd::sout << std::endl;
     }
 
     // Get conformers for the rotor keys

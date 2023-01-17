@@ -20,6 +20,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 #include <openbabel/mol.h>
@@ -1155,7 +1156,7 @@ namespace OpenBabel
     atom.SetVector(v);
 
     // useful for debugging unknown atom types (e.g., PR#1577238)
-    //    cout << mol.NumAtoms() + 1  << " : '" << element << "'" << " " << OBElements::GetAtomicNum(element.c_str()) << endl;
+    //    xgd::sout << mol.NumAtoms() + 1  << " : '" << element << "'" << " " << OBElements::GetAtomicNum(element.c_str()) << endl;
 
 
     atom.SetAtomicNum(OBElements::GetAtomicNum(element.c_str()));

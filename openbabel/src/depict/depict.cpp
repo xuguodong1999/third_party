@@ -17,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/mol.h>
 #include <openbabel/bond.h>
 #include <openbabel/ring.h>
@@ -270,7 +271,7 @@ namespace OpenBabel
     OBPairData *pd = dynamic_cast<OBPairData*>(atom->GetParent()->GetData("OpenBabel Symmetry Classes"));
     if (pd) {
 
-      cout << "same? = " << pd->GetValue() << endl;
+      xgd::sout << "same? = " << pd->GetValue() << endl;
 
       istringstream iss(pd->GetValue());
       std::vector<unsigned int> symmetry_classes;
@@ -283,7 +284,7 @@ namespace OpenBabel
       vector<unsigned int>::iterator end_pos = unique(copy_sym.begin(), copy_sym.end()); // Requires sorted elements
       int nclasses = end_pos - copy_sym.begin();
 
-      cout << "sym_class[" << atom->GetIndex() << "] = " << symmetry_classes.at(atom->GetIndex()) << endl;
+      xgd::sout << "sym_class[" << atom->GetIndex() << "] = " << symmetry_classes.at(atom->GetIndex()) << endl;
       return symmetry_classes.at(atom->GetIndex());
     }
 
@@ -901,11 +902,11 @@ namespace OpenBabel
   void OBDepictPrivate::DrawAtomLabel(const std::string &label, int alignment, const vector3 &pos)
   {
    /*
-    cout << "FontMetrics(" << label << "):" << endl;
-    cout << "  ascent = " << metrics.ascent << endl;
-    cout << "  descent = " << metrics.descent << endl;
-    cout << "  width = " << metrics.width << endl;
-    cout << "  height = " << metrics.height << endl;
+    xgd::sout << "FontMetrics(" << label << "):" << endl;
+    xgd::sout << "  ascent = " << metrics.ascent << endl;
+    xgd::sout << "  descent = " << metrics.descent << endl;
+    xgd::sout << "  width = " << metrics.width << endl;
+    xgd::sout << "  height = " << metrics.height << endl;
 
     painter->SetFillColor(OBColor("white"));
     painter->SetPenColor(OBColor("white"));

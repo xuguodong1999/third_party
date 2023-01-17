@@ -17,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/mol.h>
@@ -277,9 +278,9 @@ namespace OpenBabel
         size_t old_size = rotor->Size();
         rotor->RemoveSymTorsionValues(N_fold_symmetry);
         if (!_quiet) {
-          cout << "...." << N_fold_symmetry << "-fold symmetry at rotor between " <<
+          xgd::sout << "...." << N_fold_symmetry << "-fold symmetry at rotor between " <<
                  begin->GetIdx() << " and " << end->GetIdx();
-          cout << " - reduced from " << old_size << " to " << rotor->Size() << endl;
+          xgd::sout << " - reduced from " << old_size << " to " << rotor->Size() << endl;
                   }
               }
       }
@@ -947,7 +948,7 @@ namespace OpenBabel
 
             if (!r)
               continue; //unable to find reference heavy atom
-            //			cerr << "r = " << r->GetIdx() << endl;
+            //			xgd::serr << "r = " << r->GetIdx() << endl;
 
             double t1 = mol.GetTorsion(a1,a2,a3,a4);
             double t2 = mol.GetTorsion(r,a2,a3,a4);
@@ -975,9 +976,9 @@ namespace OpenBabel
 
             /*
               mol.SetTorsion(r,a2,a3,a4,vals[0]);
-              cerr << "test = " << (vals[0]-diff)*RAD_TO_DEG << ' ';
-              cerr << mol.GetTorsion(a1,a2,a3,a4) <<  ' ';
-              cerr << mol.GetTorsion(r,a2,a3,a4) << endl;
+              xgd::serr << "test = " << (vals[0]-diff)*RAD_TO_DEG << ' ';
+              xgd::serr << mol.GetTorsion(a1,a2,a3,a4) <<  ' ';
+              xgd::serr << mol.GetTorsion(r,a2,a3,a4) << endl;
             */
           }
 

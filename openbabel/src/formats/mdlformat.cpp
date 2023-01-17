@@ -16,6 +16,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #ifdef _WIN32
@@ -450,7 +451,7 @@ namespace OpenBabel
         patom->SetVector(x, y, z);
         // symbol & isotope
         symbol = line.substr(31, 3);
-        // cout << " atom: " << symbol << endl;
+        // xgd::sout << " atom: " << symbol << endl;
         Trim(symbol);
         if(symbol[0]!='R' || TestForAlias(symbol, patom, aliases))
         {
@@ -1457,8 +1458,8 @@ namespace OpenBabel
           //not currently implemented
         */
       }while(ret && ifs.good());
-    //  if(is3D){mol.SetDimension(3);cout<<"SetDim to 3"<<endl;}
-    //  else if(is2D){mol.SetDimension(2);cout<<"SetDim to 2"<<endl;}
+    //  if(is3D){mol.SetDimension(3);xgd::sout<<"SetDim to 3"<<endl;}
+    //  else if(is2D){mol.SetDimension(2);xgd::sout<<"SetDim to 2"<<endl;}
     return true;
   }
 

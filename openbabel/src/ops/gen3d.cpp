@@ -16,6 +16,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/op.h>
 #include <openbabel/mol.h>
@@ -109,7 +110,7 @@ bool OpGen3D::Do(OBBase* pOb, const char* OptionText, OpMap* pOptions, OBConvers
     OBBuilder builder;
     bool attemptBuild = !useDistGeom;
     if (attemptBuild && !builder.Build(molCopy) ) {
-      std::cerr << "Warning: Stereochemistry is wrong, using the distance geometry method instead" << std::endl;
+      xgd::serr << "Warning: Stereochemistry is wrong, using the distance geometry method instead" << std::endl;
       useDistGeom = true;
     }
 

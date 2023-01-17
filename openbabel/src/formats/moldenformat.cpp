@@ -23,6 +23,7 @@
 // $Revision$
 //
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 // STD
 #include <fstream>
 #include <string>
@@ -161,7 +162,7 @@ bool OBMoldenFormat::ReadMolecule( OBBase* pOb, OBConversion* pConv )
               }
             }
           if (ecpLines!=0){
-              cerr << "WARNING: element number given in 3rd column does not agree with element name on " << ecpLines << " lines." << endl
+              xgd::serr << "WARNING: element number given in 3rd column does not agree with element name on " << ecpLines << " lines." << endl
                    << "         Difference between expected nuclear charge and given element number saved to atom property 'ecp'." << endl;
           }
         } // "[Atoms]" || "[ATOMS]"
@@ -332,7 +333,7 @@ bool OBMoldenFormat::ReadMolecule( OBBase* pOb, OBConversion* pConv )
         double *confCoord = new double [3*pmol->NumAtoms()];
         vector<vector3> coordinates = conformers[i];
         if (coordinates.size() != pmol->NumAtoms())
-          cerr << " Wrong number of coordinates! " << endl;
+          xgd::serr << " Wrong number of coordinates! " << endl;
         for (unsigned int a = 0; a < coordinates.size(); ++a) {
           confCoord[3*a] = coordinates[a].x();
           confCoord[3*a+1] = coordinates[a].y();

@@ -11,6 +11,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 #include <openbabel/mol.h>
@@ -33,10 +34,10 @@ namespace OpenBabel
   template<typename T>
   void print_vector(const std::string &label, const std::vector<T> &v)
   {
-    std::cout << label << ": ";
+    xgd::sout << label << ": ";
     for (std::size_t i = 0; i < v.size(); ++i)
-      std::cout << v[i] << " ";
-    std::cout << std::endl;
+      xgd::sout << v[i] << " ";
+    xgd::sout << std::endl;
   }
 
   /**
@@ -111,7 +112,7 @@ namespace OpenBabel
       // isUp: true if bond is single order up bond '/'
       // isDown: true if bond is single order down bond '\'
 
-      //std::cout << "addBond(" << source << ", " << target << ")" << std::endl;
+      //xgd::sout << "addBond(" << source << ", " << target << ")" << std::endl;
 
       if (isDown)
         upDown.push_back(IsDown);
@@ -122,8 +123,8 @@ namespace OpenBabel
 
       /*
       if (isUp || isDown) {
-        std::cout << "addBond(" << source << ", " << target << ")" << std::endl;
-        std::cout << "isUp: " << isUp << ", isDown: " << isDown << std::endl;
+        xgd::sout << "addBond(" << source << ", " << target << ")" << std::endl;
+        xgd::sout << "isUp: " << isUp << ", isDown: " << isDown << std::endl;
       }
       */
 
@@ -151,8 +152,8 @@ namespace OpenBabel
         else
           refs[i] = indices[chiralNbrs[i + 1]] - 1;
 
-      //std::cout << "center: " << center << std::endl;
-      //std::cout << "from: " << from << std::endl;
+      //xgd::sout << "center: " << center << std::endl;
+      //xgd::sout << "from: " << from << std::endl;
       //print_vector("refs", refs);
 
       switch (chirality) {
@@ -370,16 +371,16 @@ namespace OpenBabel
       parser.parse(smiles);
     } catch (Smiley::Exception &e) {
       if (e.type() == Smiley::Exception::SyntaxError)
-        std::cerr << "Syntax";
+        xgd::serr << "Syntax";
       else
-        std::cerr << "Semantics";
-      std::cerr << "Error: " << e.what() << "." << std::endl;
-      std::cerr << smiles << std::endl;
+        xgd::serr << "Semantics";
+      xgd::serr << "Error: " << e.what() << "." << std::endl;
+      xgd::serr << smiles << std::endl;
       for (std::size_t i = 0; i < e.pos(); ++i)
-        std::cerr << " ";
+        xgd::serr << " ";
       for (std::size_t i = 0; i < e.length(); ++i)
-        std::cerr << "^";
-      std::cerr << std::endl;
+        xgd::serr << "^";
+      xgd::serr << std::endl;
     }
 
     pmol->EndModify();
@@ -406,18 +407,18 @@ namespace OpenBabel
         continue;
 
       OBAtom *nbr = bond->GetNbrAtom(atom);
-      //std::cout << "atom: " << atom->GetIndex() << std::endl;
-      //std::cout << "nbr: " << nbr->GetIndex() << std::endl;
+      //xgd::sout << "atom: " << atom->GetIndex() << std::endl;
+      //xgd::sout << "nbr: " << nbr->GetIndex() << std::endl;
 
       switch (upDown[bond->GetIdx()]) {
         case OpenBabelCallback::IsUp:
           if (nbr->GetIndex() < atom->GetIndex() && bond->GetBeginAtomIdx() < bond->GetEndAtomIdx()) {
-            //std::cout << "below: " << nbr->GetIndex() << std::endl;
+            //xgd::sout << "below: " << nbr->GetIndex() << std::endl;
             if (below)
               return false;
             below = nbr;
           } else {
-            //std::cout << "above: " << nbr->GetIndex() << std::endl;
+            //xgd::sout << "above: " << nbr->GetIndex() << std::endl;
             if (above)
               return false;
             above = nbr;
@@ -435,7 +436,7 @@ namespace OpenBabel
           }
           break;
         case OpenBabelCallback::IsNotUpDown:
-          //std::cout << "unspecified: " << nbr->GetIndex() << std::endl;
+          //xgd::sout << "unspecified: " << nbr->GetIndex() << std::endl;
           unspecified = nbr;
           break;
       }
@@ -465,7 +466,7 @@ namespace OpenBabel
       OBAtom *source = doubleBond->GetBeginAtom();
       OBAtom *target = doubleBond->GetEndAtom();
 
-      //std::cout << "double bond: " << source->GetIndex() << " " << target->GetIndex() << std::endl;
+      //xgd::sout << "double bond: " << source->GetIndex() << " " << target->GetIndex() << std::endl;
 
       // Check that both atoms on the double bond have at least one
       // other neighbor, but not more than two other neighbors;
@@ -477,7 +478,7 @@ namespace OpenBabel
       unsigned long aboveSource = OBStereo::ImplicitRef;
       unsigned long belowSource = OBStereo::ImplicitRef;
       if (!AssignNbrAtoms(upDown, source, aboveSource, belowSource)) {
-        std::cerr << "Invalid cis/trans specification" << std::endl;
+        xgd::serr << "Invalid cis/trans specification" << std::endl;
         continue;
       }
 
@@ -487,14 +488,14 @@ namespace OpenBabel
       unsigned long aboveTarget = OBStereo::ImplicitRef;
       unsigned long belowTarget = OBStereo::ImplicitRef;
       if (!AssignNbrAtoms(upDown, target, aboveTarget, belowTarget)) {
-        std::cerr << "Invalid cis/trans specification" << std::endl;
+        xgd::serr << "Invalid cis/trans specification" << std::endl;
         continue;
       }
 
       if (aboveTarget == OBStereo::ImplicitRef && belowTarget == OBStereo::ImplicitRef)
         continue;
 
-      //std::cout << "refs: " << aboveSource << " " << aboveTarget << " " << belowTarget << " " << belowSource << std::endl;
+      //xgd::sout << "refs: " << aboveSource << " " << aboveTarget << " " << belowTarget << " " << belowSource << std::endl;
 
       OBCisTransStereo *stereo = new OBCisTransStereo(mol);
       stereo->SetConfig(OBCisTransStereo::Config(source->GetId(), target->GetId(),

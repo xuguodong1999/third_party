@@ -16,6 +16,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/mol.h>
@@ -643,11 +644,11 @@ namespace OpenBabel
 
     //for (atom = mol.BeginAtom(i);atom;atom = mol.NextAtom(i))
     //	  if (atom->IsAromatic())
-    //		  cerr << "aro = " <<atom->GetIdx()  << endl;
+    //		  xgd::serr << "aro = " <<atom->GetIdx()  << endl;
 
     //for (bond = mol.BeginBond(j);bond;bond = mol.NextBond(j))
     //if (bond->IsAromatic())
-    //cerr << bond->GetIdx() << ' ' << bond->IsAromatic() << endl;
+    //xgd::serr << bond->GetIdx() << ' ' << bond->IsAromatic() << endl;
   }
 
   /*! \class OBAromaticTyper typer.h <openbabel/typer.h>

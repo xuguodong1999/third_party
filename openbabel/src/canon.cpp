@@ -18,6 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/canon.h>
 #include <openbabel/graphsym.h>
 #include <openbabel/babelconfig.h>
@@ -49,14 +50,14 @@ using namespace std;
 template<typename T>
 void print_vector(const std::string &label, const std::vector<T> &v)
 {
-  std::cout << label << ": ";
+  xgd::sout << label << ": ";
   for (std::size_t i = 0; i < v.size(); ++i)
     if (v[i] < 10)
-      std::cout << " " << v[i] << " ";
+      xgd::sout << " " << v[i] << " ";
     else
-      std::cout << v[i] << " ";
+      xgd::sout << v[i] << " ";
 
-  std::cout << endl;
+  xgd::sout << endl;
 }
 
 
@@ -425,17 +426,17 @@ namespace OpenBabel {
     static void print_orbits(const Orbits &orbits)
     {
       for (std::size_t j = 0; j < orbits.size(); ++j) {
-        cout << "( ";
+        xgd::sout << "( ";
         for (std::size_t k = 0; k < orbits[j].size(); ++k)
-          cout << orbits[j][k]->GetIndex() << " ";
-        cout << ") ";
+          xgd::sout << orbits[j][k]->GetIndex() << " ";
+        xgd::sout << ") ";
       }
     }
     static void print_orbits(const std::string &label, const Orbits &orbits)
     {
-      cout << label << ": ";
+      xgd::sout << label << ": ";
       print_orbits(orbits);
-      cout << endl;
+      xgd::sout << endl;
     }
 
 
@@ -1047,10 +1048,10 @@ namespace OpenBabel {
         unsigned int vi = labels1[i];
         if (vi == labels2[i])
           continue;
-        //cout << "( ";
+        //xgd::sout << "( ";
         std::size_t j = i;
         unsigned int vj = labels2[j];
-        //cout << j << " ";
+        //xgd::sout << j << " ";
         newOrbits.resize(newOrbits.size()+1);
         newOrbits.back().push_back(mol->GetAtom(j+1));
         visited[i] = true;
@@ -1059,16 +1060,16 @@ namespace OpenBabel {
             if (vj == labels1[k]) {
               j = k;
               vj =  labels2[j];
-              //cout << j << " ";
+              //xgd::sout << j << " ";
               newOrbits.back().push_back(mol->GetAtom(j+1));
               visited[j] = true;
               break;
             }
           }
         }
-        //cout << ") ";
+        //xgd::sout << ") ";
       }
-      //cout << endl;
+      //xgd::sout << endl;
 
       //print_orbits("newOrbits", newOrbits);
 
@@ -1168,19 +1169,19 @@ namespace OpenBabel {
       PartialCode &code = state.code;
 
       if (state.backtrackDepth) {
-        //std::cout << "backtrackDepth = " << state.backtrackDepth << std::endl;
+        //xgd::sout << "backtrackDepth = " << state.backtrackDepth << std::endl;
 
         if (code.atoms.size() > state.backtrackDepth) {
-          //std::cout << "BACKTRACKING" << std::endl;
+          //xgd::sout << "BACKTRACKING" << std::endl;
           return;
         }
         if (code.atoms.size() == state.backtrackDepth) {
-          //std::cout << "BACKTRACK DONE 1" << std::endl;
+          //xgd::sout << "BACKTRACK DONE 1" << std::endl;
           state.backtrackDepth = 0;
           return;
         } else
         if (code.atoms.size() < state.backtrackDepth) {
-          //std::cout << "BACKTRACK DONE 2" << std::endl;
+          //xgd::sout << "BACKTRACK DONE 2" << std::endl;
           state.backtrackDepth = 0;
         }
       }
@@ -1378,12 +1379,12 @@ namespace OpenBabel {
         } // while (!nbrs.empty())
 
         if (DEBUG) {
-          cout << "allOrderedNbrs:" << endl;
+          xgd::sout << "allOrderedNbrs:" << endl;
           for (std::size_t i = 0; i < allOrderedNbrs.size(); ++i) {
             for (std::size_t j = 0; j < allOrderedNbrs[i].size(); ++j) {
-              cout << allOrderedNbrs[i][j]->GetIndex() << " ";
+              xgd::sout << allOrderedNbrs[i][j]->GetIndex() << " ";
             }
-            cout << endl;
+            xgd::sout << endl;
           }
         }
 
@@ -1410,7 +1411,7 @@ namespace OpenBabel {
           // Optimization
           if (state.backtrackDepth) {
             if (code.atoms.size() <= state.backtrackDepth) {
-              //std::cout << "BACKTRACK DONE 3" << std::endl;
+              //xgd::sout << "BACKTRACK DONE 3" << std::endl;
               state.backtrackDepth = 0;
             }
           }

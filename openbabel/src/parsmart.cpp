@@ -16,6 +16,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <ctype.h>
@@ -1664,7 +1665,7 @@ namespace OpenBabel
           return SMARTSError(result);
 
         // Here's where we'd handle fragments
-        //        cerr << " conjunction " << LexPtr[0] << endl;
+        //        xgd::serr << " conjunction " << LexPtr[0] << endl;
         LexPtr++;
       }
 
@@ -2078,9 +2079,9 @@ namespace OpenBabel
               smartsConfig.specified = false;
           }
 
-          // cout << "smarts config = " << smartsConfig << endl;
-          // cout << "molecule config = " << ts->GetConfig() << endl;
-          // cout << "match = " << (ts->GetConfig() == smartsConfig) << endl;
+          // xgd::sout << "smarts config = " << smartsConfig << endl;
+          // xgd::sout << "molecule config = " << ts->GetConfig() << endl;
+          // xgd::sout << "match = " << (ts->GetConfig() == smartsConfig) << endl;
 
           // and save the match if the two configurations are the same
           if (ts->GetConfig() != smartsConfig)

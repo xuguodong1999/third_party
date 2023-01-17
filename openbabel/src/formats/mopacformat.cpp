@@ -12,6 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/obmolecformat.h>
@@ -207,7 +208,7 @@ namespace OpenBabel
                   isZ = true;
                   break;
                 default:
-                  cerr << "Reading MOPAC Tv values: unknown coordinate '"
+                  xgd::serr << "Reading MOPAC Tv values: unknown coordinate '"
                        << coord << "', value: " << val << endl;
                   break;
                 }
@@ -675,7 +676,7 @@ namespace OpenBabel
         if (vs.size() > 3) //Only one label allowed per line
           {
             //TODO Replace with correct OBError.ThrowError() call
-            cerr << "Invalid format in geometry specification: There appears to be more than one atom label specified!\n";
+            xgd::serr << "Invalid format in geometry specification: There appears to be more than one atom label specified!\n";
             return false;
           }
         else if (1 < vs.size() && vs.size() <= 3) //There is a label
@@ -698,13 +699,13 @@ namespace OpenBabel
         else if (vs.size() < 6)
           {
             //TODO Replace with correct OBError.ThrowError() call
-            cerr << "Invalid format in geometry specification.\n";
+            xgd::serr << "Invalid format in geometry specification.\n";
             return false;
           }
         else if (vs.size() > 7) //cjh 2011-07-02
           {
             //TODO Replace with correct OBError.ThrowError() call
-            cerr << "Mixed Cartesian and internal coordinates are currently not supported.\n";
+            xgd::serr << "Mixed Cartesian and internal coordinates are currently not supported.\n";
             return false;
           }
         else if (vs.size() == 7)
@@ -937,13 +938,13 @@ namespace OpenBabel
     /*
       vector<OBInternalCoord*>::iterator j;
       for (j = vic.begin(); j != vic.end(); j++) {
-      cout << (*j)->_dst << " " << (*j)->_ang << " " << (*j)->_tor << " ";
+      xgd::sout << (*j)->_dst << " " << (*j)->_ang << " " << (*j)->_tor << " ";
       if ((*j)->_a)
-      cout << (*j)->_a->GetIdx() << " ";
+      xgd::sout << (*j)->_a->GetIdx() << " ";
       if ((*j)->_b)
-      cout << (*j)->_b->GetIdx() << " ";
+      xgd::sout << (*j)->_b->GetIdx() << " ";
       if ((*j)->_c)
-      cout << (*j)->_c->GetIdx() << endl;
+      xgd::sout << (*j)->_c->GetIdx() << endl;
       }
     */
     InternalToCartesian(vic,mol);

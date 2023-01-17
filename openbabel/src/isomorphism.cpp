@@ -1,3 +1,4 @@
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/mol.h>
 #include <openbabel/isomorphism.h>
 #include <openbabel/obiter.h>
@@ -17,14 +18,14 @@ namespace OpenBabel {
   template<typename T>
     void print_vector(const std::string &label, const std::vector<T> &v)
     {
-      std::cout << label << ": ";
+      xgd::sout << label << ": ";
       for (std::size_t i = 0; i < v.size(); ++i)
         if (v[i] < 10)
-          std::cout << " " << v[i] << " ";
+          xgd::sout << " " << v[i] << " ";
         else
-          std::cout << v[i] << " ";
+          xgd::sout << v[i] << " ";
 
-      std::cout << endl;
+      xgd::sout << endl;
     }
 
   static const char *red    = "\033[1;31m";
@@ -157,7 +158,7 @@ namespace OpenBabel {
           return false;
 
         if (DEBUG)
-          std::cout << green << "-----------------> MATCH" << normal << std::endl;
+          xgd::sout << green << "-----------------> MATCH" << normal << std::endl;
 
         // create the map
         Mapping map;
@@ -216,21 +217,21 @@ namespace OpenBabel {
         // check if the bonds match
         if (!checkBonds(state, queryAtom)) {
           if (DEBUG)
-            cout << "    bonds do not match..." << endl;
+            xgd::sout << "    bonds do not match..." << endl;
           Backtrack(state);
           return false;
         }
 
         if (DEBUG) {
-          cout << "FOUND:  " << queryAtom->GetIndex() << " -> " << queriedAtom->GetIndex() << "       " << state.queryPath.size() << endl;
-          cout << "queryDepths:   ";
+          xgd::sout << "FOUND:  " << queryAtom->GetIndex() << " -> " << queriedAtom->GetIndex() << "       " << state.queryPath.size() << endl;
+          xgd::sout << "queryDepths:   ";
           for (unsigned int i = 0; i < state.query->NumAtoms(); ++i)
-            cout << state.queryDepths[i] << " ";
-          cout <<endl;
-          cout << "queriedDepths: ";
+            xgd::sout << state.queryDepths[i] << " ";
+          xgd::sout <<endl;
+          xgd::sout << "queriedDepths: ";
           for (unsigned int i = 0; i < state.queried->NumAtoms(); ++i)
-            cout << state.queriedDepths[i] << " ";
-          cout <<endl;
+            xgd::sout << state.queriedDepths[i] << " ";
+          xgd::sout <<endl;
         }
 
         //
@@ -327,7 +328,7 @@ namespace OpenBabel {
             return;
 
           if (DEBUG)
-            cout << yellow << "candidate: " << candidate.queryAtom->GetIndex() << " -> " << candidate.queriedAtom->GetIndex() << normal << endl;
+            xgd::sout << yellow << "candidate: " << candidate.queryAtom->GetIndex() << " -> " << candidate.queriedAtom->GetIndex() << normal << endl;
 
 
           if (matchCandidate(state, candidate.queryAtom, candidate.queriedAtom)) {
@@ -341,7 +342,7 @@ namespace OpenBabel {
       void Backtrack(State &state)
       {
         if (DEBUG)
-          cout << red << "backtrack... " << normal << state.queryPath.size()-1 << endl;
+          xgd::sout << red << "backtrack... " << normal << state.queryPath.size()-1 << endl;
         // remove last atoms from the mapping
         if (state.queryPath.size()) {
           state.mapping[state.queryPath.back()] = nullptr;
@@ -436,9 +437,9 @@ namespace OpenBabel {
 
         if (DEBUG)
           for (unsigned int i =0; i < maps.size(); ++i) {
-            cout << "mapping:" << endl;
+            xgd::sout << "mapping:" << endl;
             for (Mapping::iterator it = maps[i].begin(); it != maps[i].end(); ++it)
-              cout << "    " << it->first << " -> " << it->second << endl;
+              xgd::sout << "    " << it->first << " -> " << it->second << endl;
           }
       }
 
@@ -458,9 +459,9 @@ namespace OpenBabel {
 
         if (DEBUG)
           for (unsigned int i =0; i < maps.size(); ++i) {
-            cout << "mapping:" << endl;
+            xgd::sout << "mapping:" << endl;
             for (Mapping::iterator it = maps[i].begin(); it != maps[i].end(); ++it)
-              cout << "    " << it->first << " -> " << it->second << endl;
+              xgd::sout << "    " << it->first << " -> " << it->second << endl;
           }
 
       }
@@ -486,7 +487,7 @@ namespace OpenBabel {
             continue;
           }
           if (DEBUG)
-            std::cout << blue << "START: 0 -> " << queriedAtom->GetIndex() << normal << std::endl;
+            xgd::sout << blue << "START: 0 -> " << queriedAtom->GetIndex() << normal << std::endl;
 
           if (m_query->NumAtoms() > 1) {
             if (matchCandidate(state, queryAtom, queriedAtom))
@@ -633,7 +634,7 @@ namespace OpenBabel {
 
     if (DEBUG)
     for (unsigned int i = 0; i < symClasses.size(); ++i)
-      cout << i << ": " << symClasses[i] << endl;
+      xgd::sout << i << ": " << symClasses[i] << endl;
 
     // compute the connected fragments
     OBBitVec visited;

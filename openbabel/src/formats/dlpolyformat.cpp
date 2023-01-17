@@ -10,6 +10,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 #include <openbabel/mol.h>
@@ -176,7 +177,7 @@ namespace OpenBabel
     OBUnitCell * unitcell = new OBUnitCell();
     unitcell->SetData( vx, vy, vz );
     unitcell->SetSpaceGroup(1);
-    //std::cout << "Set unit cell " << vx << vy << vz << std::endl;
+    //xgd::sout << "Set unit cell " << vx << vy << vz << std::endl;
     mol.BeginModify();
     mol.SetData( unitcell );
     mol.EndModify();
@@ -197,7 +198,7 @@ namespace OpenBabel
 
     // Line with AtomLabel, AtomIndex & AtomicNumber - only AtomLabel required
     if ( ! ifs.getline(buffer,BUFF_SIZE) ) return false;
-    //std::cout << "Got Atom line " << buffer << std::endl;
+    //xgd::sout << "Got Atom line " << buffer << std::endl;
 
     tokenize(tokens, buffer, " \t\n");
     AtomLabel = tokens.at(0);
@@ -245,7 +246,7 @@ namespace OpenBabel
         ok =  from_string<double>(y, tokens.at(1), std::dec);
         ok =  from_string<double>(z, tokens.at(2), std::dec);
         forces.push_back( vector3( x,y,z ) );
-        //std::cout << "ADDING FORCE " << x << ":" << y << ":" << z << std::endl;
+        //xgd::sout << "ADDING FORCE " << x << ":" << y << ":" << z << std::endl;
       }
 
     return true;

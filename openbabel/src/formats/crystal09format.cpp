@@ -11,6 +11,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -142,8 +143,8 @@ bool Crystal09Format::ReadMolecule(OBBase* pOb, OBConversion* pConv)
         if ( vs.size() < 6 ){
           if ( vs.size() > 0 ){
             //Implies input is missing for some reason
-            cerr << "Error with line: " << line << endl;
-            cerr << "Structure should be: AtomNumber AtomicNumber Element "
+            xgd::serr << "Error with line: " << line << endl;
+            xgd::serr << "Structure should be: AtomNumber AtomicNumber Element "
                     "XCoord YCoord ZCoord" << endl;
             break; //Missing Input
           }
@@ -213,7 +214,7 @@ bool Crystal09Format::ReadMolecule(OBBase* pOb, OBConversion* pConv)
         if ( vs.size() < 11 ){
           if ( vs.size() > 0 ){
             //Implies input is missing for some reason
-            cerr << "Error with line: " << line << endl;
+            xgd::serr << "Error with line: " << line << endl;
             break; //Missing Input
           }
           else{
@@ -234,7 +235,7 @@ bool Crystal09Format::ReadMolecule(OBBase* pOb, OBConversion* pConv)
         extraIter = numFreq % 6;
       }
       else{
-        cerr << "Couldn't Parse Frequencies, Check Input" << endl;
+        xgd::serr << "Couldn't Parse Frequencies, Check Input" << endl;
         break;
       }
       //Skip two lines to get to displacements
@@ -309,7 +310,7 @@ bool Crystal09Format::ReadMolecule(OBBase* pOb, OBConversion* pConv)
   //Now We have the frequencies, intensities, and a vector of vector3 (Linear
   //Blocks of numAtoms) and we need to set the vibration data for pmol
   if ( checkAtoms != numAtoms ){
-    cerr << "Number of Atoms Specified in Input Does Not Equal Number of "
+    xgd::serr << "Number of Atoms Specified in Input Does Not Equal Number of "
             "Atoms Read From File!" << endl;
     pmol->EndModify();
     return false;

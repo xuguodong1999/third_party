@@ -11,6 +11,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/xml.h>
 
@@ -61,7 +62,7 @@ namespace OpenBabel
 
     if (_reader == nullptr)
       {
-        cerr << "Cannot set up libxml2 reader" << endl;
+        xgd::serr << "Cannot set up libxml2 reader" << endl;
         return false;
       }
     //A new reader immediately reads 4 bytes (presumably to determine
@@ -85,7 +86,7 @@ namespace OpenBabel
 
     if(!_buf || !_writer)
       {
-        cerr << "Error setting up xml writer\n" << endl;
+        xgd::serr << "Error setting up xml writer\n" << endl;
         return false;
       }
 

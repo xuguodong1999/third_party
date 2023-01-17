@@ -17,6 +17,7 @@ GNU General Public License for more details.
 
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/atom.h>
@@ -301,7 +302,7 @@ void UpdateConformersFromTree(OBMol* mol, std::vector<double> &energies, OBDiver
   sort(confs.begin(), confs.end(), sortpred_b);
 
   if(verbose)
-    std::cout << "....tree size = " << divposes->GetSize() <<  " confs = " << confs.size() << "\n";
+    xgd::sout << "....tree size = " << divposes->GetSize() <<  " confs = " << confs.size() << "\n";
 
   typedef std::vector<OBDiversePoses::PosePair> vpp;
 
@@ -314,7 +315,7 @@ void UpdateConformersFromTree(OBMol* mol, std::vector<double> &energies, OBDiver
     }
   }
   if (verbose)
-    std::cout << "....new tree size = " << newtree.GetSize() <<  " confs = " << newconfs.size() << "\n";
+    xgd::sout << "....new tree size = " << newtree.GetSize() <<  " confs = " << newconfs.size() << "\n";
 
   // Add confs to the molecule's conformer data and add the energies to molecules's energies
   for (vpp::iterator chosen = newconfs.begin(); chosen!=newconfs.end(); ++chosen) {
@@ -384,21 +385,21 @@ int OBForceField::DiverseConfGen(double rmsd, unsigned int nconfs, double energy
       combinations *= size;
       rotor_sizes.push_back(size);
       if(verbose) {
-        std::cout << "....rotor " << i << " from " << rotor->GetBond()->GetBeginAtomIdx() << " to "
+        xgd::sout << "....rotor " << i << " from " << rotor->GetBond()->GetBeginAtomIdx() << " to "
              << rotor->GetBond()->GetEndAtomIdx() << " has " << size << " values" << std::endl;
       }
     }
     if (rotor_sizes.size() > 0 && combinations == 0) { // Overflow!
       combinations = UINT_MAX;
     }
-    std::cout << "..tot conformations = " << combinations << "\n";
+    xgd::sout << "..tot conformations = " << combinations << "\n";
 
     if (nconfs == 0)
       nconfs = 1 << 20;
     unsigned int max_combinations = std::min<unsigned int>(nconfs , combinations);
     LFSR lfsr(max_combinations); // Systematic random number generator
     if (verbose && combinations > max_combinations) {
-      std::cout << "....Using a cutoff of "
+      xgd::sout << "....Using a cutoff of "
            << nconfs << " we will only explore " << std::fixed << std::setprecision(1)
            << static_cast<float>(nconfs * 100)/static_cast<float>(combinations) << "% of these\n";
     }
@@ -432,7 +433,7 @@ int OBForceField::DiverseConfGen(double rmsd, unsigned int nconfs, double energy
       }
       counter++;
     } while (combination != 1 && counter < nconfs); // The LFSR always terminates with a 1
-    std::cout << "..tot confs tested = " << counter << "\n..below energy threshold = " << N_low_energy << "\n";
+    xgd::sout << "..tot confs tested = " << counter << "\n..below energy threshold = " << N_low_energy << "\n";
 
     // Reset the coordinates to those of the initial structure
     _mol.SetCoordinates(store_initial);

@@ -22,6 +22,7 @@ GNU General Public License for more details.
 //////////////////////////////////////////////////////////////////////////////
 // File Includes
 //////////////////////////////////////////////////////////////////////////////
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <stdlib.h>
@@ -915,11 +916,11 @@ namespace OpenBabel
       if (buffer[3] == ' ')
         buffer[3] = '\0';
 
-      //cout << "  (2) --> = " << buffer << endl;
+      //xgd::sout << "  (2) --> = " << buffer << endl;
 
       atomid = (buffer[0] == ' ') ? buffer + 1 : buffer;
 
-      //cout << "  (3) --> = " << buffer << endl;
+      //xgd::sout << "  (3) --> = " << buffer << endl;
 
       if (resmap[chains[i]].find(resnos[i]) != resmap[chains[i]].end()) {
         residue = resmap[chains[i]][resnos[i]];

@@ -20,6 +20,7 @@ GNU General Public License for more details.
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -121,7 +122,7 @@ bool extract_thermochemistry(OpenBabel::OBMol  &mol,
                 }
                 else
                 {
-                    std::cerr << "Different T in the input file, found " << T << " before and now " << TT << ". Output maybe inconsistent." << std::endl;
+                    xgd::serr << "Different T in the input file, found " << T << " before and now " << TT << ". Output maybe inconsistent." << std::endl;
                     T = TT;
                 }
             }

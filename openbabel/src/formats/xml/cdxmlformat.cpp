@@ -16,6 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/xml.h>
 #include <openbabel/mol.h>
@@ -138,7 +139,7 @@ bool ChemDrawXMLFormat::DoElement(const string& name)
     {
       if (buf != "Unspecified" && buf != "Element")
       {
-        cerr << "CDXML Format: Node type \"" << buf <<
+        xgd::serr << "CDXML Format: Node type \"" << buf <<
                   "\" is not currently supported." << endl;
         return false; // FIXME: use as many types as possible
 	  }

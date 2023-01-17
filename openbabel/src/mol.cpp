@@ -17,6 +17,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/mol.h>
@@ -3205,7 +3206,7 @@ namespace OpenBabel
       {
         angle = atom->AverageBondAngle();
 
-        //        cout << atom->GetAtomicNum() << " " << angle << endl;
+        //        xgd::sout << atom->GetAtomicNum() << " " << angle << endl;
 
         if (angle > 155.0)
           atom->SetHyb(1);
@@ -3347,7 +3348,7 @@ namespace OpenBabel
             if (!typed)
               for(loop = 0; loop < loopSize; ++loop)
                 {
-                  //    cout << " set aromatic " << path[loop] << endl;
+                  //    xgd::sout << " set aromatic " << path[loop] << endl;
                   (GetBond(path[loop], path[(loop+1) % loopSize]))->SetAromatic();
                   needs_kekulization = true;
                 }
@@ -3418,7 +3419,7 @@ namespace OpenBabel
       {
         atom = sortedAtoms[iter].first;
         // Debugging statement
-        //        cout << " atom->Hyb " << atom->GetAtomicNum() << " " << atom->GetIdx() << " " << atom->GetHyb()
+        //        xgd::sout << " atom->Hyb " << atom->GetAtomicNum() << " " << atom->GetIdx() << " " << atom->GetHyb()
         //             << " BO: " << atom->GetExplicitValence() << endl;
 
         // Possible sp-hybrids

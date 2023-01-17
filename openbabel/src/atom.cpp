@@ -17,6 +17,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/atom.h>
@@ -74,9 +75,9 @@ namespace OpenBabel
 
       FOR_ATOMS_OF_MOL(atom, mol)
       {
-         cout << atom->GetIdx() << ` `;
-         cout << atom->GetAtomicNum() << ` `;
-         cout << atom->GetVector() << endl;
+         xgd::sout << atom->GetIdx() << ` `;
+         xgd::sout << atom->GetAtomicNum() << ` `;
+         xgd::sout << atom->GetVector() << endl;
       }
       \endcode
       A number of the property member functions indicate that atoms
@@ -93,7 +94,7 @@ namespace OpenBabel
       atom = mol.GetAtom(1);
       FOR_NBORS_OF_ATOM(nbr, atom)
       {
-         cout << "atom #" << atom->GetIdx() << " is attached to atom #"
+         xgd::sout << "atom #" << atom->GetIdx() << " is attached to atom #"
               << nbr->GetIdx() << endl;
       }
       \endcode
@@ -686,7 +687,7 @@ namespace OpenBabel
     if (atm->GetAtomicNum() != OBElements::Oxygen)
       return(false);
     if (atm->GetHvyDegree() != 1){
-      //cerr << "sulfone> O valence is not 1\n";
+      //xgd::serr << "sulfone> O valence is not 1\n";
       return(false);
       }
 
@@ -700,23 +701,23 @@ namespace OpenBabel
         { nbr = bond1->GetNbrAtom(atm);
           break; }
     if (!nbr){
-      //cerr << "sulfone> atom null\n" ;
+      //xgd::serr << "sulfone> atom null\n" ;
       return(false); }
 
     // check for sulfate
-    //cerr << "sulfone> If we're here... " << atom->GetAtomicNum() <<"\n" << atom->GetAtomicNum() == OBElements::Sulfur << "\n";
-    //cerr << "sulfone> number of free oxygens:" << atom->CountFreeOxygens() << "\n";
+    //xgd::serr << "sulfone> If we're here... " << atom->GetAtomicNum() <<"\n" << atom->GetAtomicNum() == OBElements::Sulfur << "\n";
+    //xgd::serr << "sulfone> number of free oxygens:" << atom->CountFreeOxygens() << "\n";
     if (nbr->CountFreeOxygens() != 2){
-      //cerr << "sulfone> count of free oxygens not 2" << atom->CountFreeOxygens() << '\n' ;
+      //xgd::serr << "sulfone> count of free oxygens not 2" << atom->CountFreeOxygens() << '\n' ;
       return(false); }
 
     // check for sulfonamide
     for (bond2 = nbr->BeginBond(j);bond2;bond2 = nbr->NextBond(j)){
-      //cerr<<"NEIGH: " << (bond2->GetNbrAtom(atom))->GetAtomicNum()<<"\n";
+      //xgd::serr<<"NEIGH: " << (bond2->GetNbrAtom(atom))->GetAtomicNum()<<"\n";
       if ((bond2->GetNbrAtom(nbr))->GetAtomicNum() == OBElements::Nitrogen){
-        //cerr << "sulfone> sulfonamide null\n" ;
+        //xgd::serr << "sulfone> sulfonamide null\n" ;
         return(false);}}
-    //cerr << "sulfone> none of the above\n";
+    //xgd::serr << "sulfone> none of the above\n";
     return(true); // true sulfone
   }
 

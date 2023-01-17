@@ -10,6 +10,7 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 #include <openbabel/mol.h>
@@ -103,12 +104,12 @@ namespace OpenBabel
     int zmatLineCount=0;
 
     /*
-      cerr << "ReadGeometry got geometry list: \n";
+      xgd::serr << "ReadGeometry got geometry list: \n";
       for (vector<string>::iterator i=geomList.begin(); i !=geomList.end(); i++) {
 
       // Alias the line
       line = *i;
-      cerr << "line: " << line << endl;
+      xgd::serr << "line: " << line << endl;
       }
     */
 
@@ -117,7 +118,7 @@ namespace OpenBabel
       // Alias the line
       line = *i;
 
-      //cerr << "ReadGeometry line is: " << line << endl;
+      //xgd::serr << "ReadGeometry line is: " << line << endl;
 
       // Check for commas & split with that as the separator if necessary
       if (line.find(',')!=string::npos) {
@@ -130,34 +131,34 @@ namespace OpenBabel
       // Set the mode
       if (line.compare(0, 4, "zmat")==0 || line.compare(0, 4, "inte")==0) {
         ReadMode=ZMATRIX;
-        //cout << "ZMATRIX mode " << ReadMode << endl;
-        //cout << "tokens.size()" << tokens.size() << endl;
+        //xgd::sout << "ZMATRIX mode " << ReadMode << endl;
+        //xgd::sout << "tokens.size()" << tokens.size() << endl;
         if (tokens.size()>1) if (IsUnits(tokens[1])) factor=Rescale(tokens[1]);
         ContainsZmatrix=true;
         vic.push_back(nullptr); // OBMol indexed from 1 -- potential atom index problem
       } else if (line.compare(0, 4, "coor")==0 || line.compare(0, 4, "cart")==0 ||line.compare(0, 4, "geom")==0) {
         ReadMode=CARTESIAN;
-        //cout << "CARTESIAN mode " << ReadMode << endl;
+        //xgd::sout << "CARTESIAN mode " << ReadMode << endl;
         if (tokens.size()>1) if (IsUnits(tokens[1])) factor=Rescale(tokens[1]);
 
         /*
           We need to have read the variables first
           } else if (line.compare(0, 4, "vari")==0) {
           ReadMode=VARIABLES;
-          //cout << "VARIABLES mode "<< ReadMode << endl;
+          //xgd::sout << "VARIABLES mode "<< ReadMode << endl;
           if (tokens.size() == 2) factor=Rescale(tokens[1]);
-          //cout << "Factor now " << factor << endl;
+          //xgd::sout << "Factor now " << factor << endl;
           } else if (line.compare(0, 4, "cons")==0) {
           ReadMode=CONSTANTS;
-          //cout << "CONSTANTS mode\n";
+          //xgd::sout << "CONSTANTS mode\n";
           if (tokens.size() == 2)
           factor=Rescale(tokens[1]);
-          //cout << "Factor now " << factor << endl;
+          //xgd::sout << "Factor now " << factor << endl;
           */
 
       } else if (line.compare(0, 3, "end")==0) {
         ReadMode=SKIP;
-        //cout << "SKIP mode " << ReadMode << endl;
+        //xgd::sout << "SKIP mode " << ReadMode << endl;
       } else {
         if (ReadMode==SKIP) continue;
         if (ReadMode==ZMATRIX) {
@@ -476,10 +477,10 @@ namespace OpenBabel
     }
 
     /*
-      cerr << "Got list of variables: " << endl;
+      xgd::serr << "Got list of variables: " << endl;
       for (map<string,double>::iterator i=variables.begin(); i
       != variables.end(); i++) {
-      cerr << "Name: " << i->first << " Value: " << i->second << endl;
+      xgd::serr << "Name: " << i->first << " Value: " << i->second << endl;
       }
     */
 
@@ -801,7 +802,7 @@ namespace OpenBabel
     } catch (std::regex_error ex) {
       iok = false;
     }
-    if (!iok) cerr << "Error compiling regex in GUK OUTPUT!\n";
+    if (!iok) xgd::serr << "Error compiling regex in GUK OUTPUT!\n";
 
     // Read in the coordinates - we process them directly rather
     // then use ReadGeometry as we probably should do...
@@ -811,7 +812,7 @@ namespace OpenBabel
       // End of geometry block
       if (strstr(buffer, "*************************") != nullptr) break;
       if (std::regex_search(buffer, myregex)) {
-          //cerr << "Got Coord line: " << buffer << endl;
+          //xgd::serr << "Got Coord line: " << buffer << endl;
           OBAtom *atom = mol.NewAtom();
           tokenize(tokens,buffer," ");
 
@@ -858,7 +859,7 @@ namespace OpenBabel
         // End of geometry block
         if (strstr(buffer, "*************************") != nullptr) break;
 
-        //cerr << "Got Coord line: " << buffer << endl;
+        //xgd::serr << "Got Coord line: " << buffer << endl;
         OBAtom *atom = mol.NewAtom();
         tokenize(tokens,buffer," ");
 
@@ -903,7 +904,7 @@ namespace OpenBabel
         // End of geometry block
         if (strstr(buffer, "============================================================") != nullptr) break;
 
-        //cerr << "Got Coord line: " << buffer << endl;
+        //xgd::serr << "Got Coord line: " << buffer << endl;
         OBAtom *atom = mol.NewAtom();
         tokenize(tokens,buffer," ");
 
@@ -980,14 +981,14 @@ namespace OpenBabel
               for ( int j=0; j<3; j++ )
                 {
                   ifs.getline(buffer, BUFF_SIZE);
-                  //std::cout << "GOT LINE:" << buffer <<std::endl;
+                  //xgd::sout << "GOT LINE:" << buffer <<std::endl;
                   tokenize(tokens,buffer," \t\n");
                   int start=1;
                   if ( j == 0 )
                     start=3;
                   for ( int k=0; k<mycols; k++ )
                     {
-                      //std::cout << "Lx[ " << root1+k << " ]" <<
+                      //xgd::sout << "Lx[ " << root1+k << " ]" <<
                       //  "][ " << atomcount << " ] [ " << j << " ] = " << tokens.at(start+k) << std::endl;
                       ok = from_string<double>(dtmp, tokens.at(start+k), std::dec);
                       if ( j==0)
@@ -1030,7 +1031,7 @@ namespace OpenBabel
         }
 
       //for (int i=0; i< frequencies.size(); i++ )
-      //  std::cout << "Frequency: " << frequencies.at(i) << " : " << intensities.at(i) << std::endl;
+      //  xgd::sout << "Frequency: " << frequencies.at(i) << " : " << intensities.at(i) << std::endl;
       
       if(frequencies.size()>0)
         {
@@ -1104,14 +1105,14 @@ namespace OpenBabel
               for ( int j=0; j<3; j++ )
                 {
                   ifs.getline(buffer, BUFF_SIZE);
-                  //std::cout << "GOT LINE:" << buffer <<std::endl;
+                  //xgd::sout << "GOT LINE:" << buffer <<std::endl;
                   tokenize(tokens,buffer," \t\n");
                   start=1;
                   if ( j == 0 )
                     start=3;
                   for ( int k=0; k<mycols; k++ )
                     {
-                      // std::cout << "Lx[ " << root1+k << " ]" <<
+                      // xgd::sout << "Lx[ " << root1+k << " ]" <<
                       //  "][ " << atomcount << " ] [ " << j << " ] = " << tokens.at(start+k) << std::endl;
                       ok = from_string<double>(dtmp, tokens.at(start+k), std::dec);
                       if ( j==0)
@@ -1128,7 +1129,7 @@ namespace OpenBabel
 
 
       //for (int i=0; i< frequencies.size(); i++ )
-      //  std::cout << "Frequency: " << frequencies.at(i) << " : " << intensities.at(i) << std::endl;
+      //  xgd::sout << "Frequency: " << frequencies.at(i) << " : " << intensities.at(i) << std::endl;
 
       if(frequencies.size()>0)
         {

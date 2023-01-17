@@ -25,6 +25,7 @@
 // $Revision$
 //
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 // STD
 #include <fstream>
 #include <string>
@@ -868,8 +869,8 @@ bool OBT41Format::ReadASCII( OBBase* pOb, OBConversion* pConv )
 
       string buf;
       // nuuc
-      while( buf != "Geometry" ) ifs >> buf; cout << buf << endl;
-      ifs >> buf; cout << buf << endl;
+      while( buf != "Geometry" ) ifs >> buf; xgd::sout << buf << endl;
+      ifs >> buf; xgd::sout << buf << endl;
       if( buf != "nnuc" )
       {
           obErrorLog.ThrowError( __FUNCTION__, "no 'nuuc' after first Geometry tag" );
@@ -877,12 +878,12 @@ bool OBT41Format::ReadASCII( OBBase* pOb, OBConversion* pConv )
       }
       eol( ifs );
       unsigned int numAtoms = 0;
-      ifs >> numAtoms; cout << numAtoms << endl;
+      ifs >> numAtoms; xgd::sout << numAtoms << endl;
       buf  = "";
 
       // labels
-      while( buf != "Geometry" ) ifs >> buf; cout << buf << endl;
-      ifs >> buf; cout << buf << endl;
+      while( buf != "Geometry" ) ifs >> buf; xgd::sout << buf << endl;
+      ifs >> buf; xgd::sout << buf << endl;
       if( buf != "labels" )
       {
           obErrorLog.ThrowError( __FUNCTION__, "no 'labels' after second Geometry tag" );
@@ -893,7 +894,7 @@ bool OBT41Format::ReadASCII( OBBase* pOb, OBConversion* pConv )
       atoms.reserve( numAtoms );
       for (unsigned int i = 0; i != numAtoms; ++i)
       {
-          ifs >> buf; cout << buf << endl;
+          ifs >> buf; xgd::sout << buf << endl;
           atoms.push_back( OBElements::GetAtomicNum( buf.c_str() ) );
       }
       if( atoms.size() != numAtoms )
@@ -903,8 +904,8 @@ bool OBT41Format::ReadASCII( OBBase* pOb, OBConversion* pConv )
       }
       //coordinates
       buf = "";
-      while( buf != "Geometry" ) ifs >> buf; cout << buf << endl;
-      ifs >> buf; cout << buf << endl;
+      while( buf != "Geometry" ) ifs >> buf; xgd::sout << buf << endl;
+      ifs >> buf; xgd::sout << buf << endl;
       if( buf != "xyznuc" )
       {
           obErrorLog.ThrowError( __FUNCTION__, "no 'xyznuc' after third Geometry tag" );
@@ -914,12 +915,12 @@ bool OBT41Format::ReadASCII( OBBase* pOb, OBConversion* pConv )
       for (unsigned int i = 0; i != numAtoms; ++i)
       {
           ifs >> atoms[ i ].coord[ 0 ] >> atoms[ i ].coord[ 1 ] >> atoms[ i ].coord[ 2 ];
-          cout << atoms[ i ].coord[ 0 ] << ' ' << atoms[ i ].coord[ 1 ] << ' ' << atoms[ i ].coord[ 2 ] << endl;
+          xgd::sout << atoms[ i ].coord[ 0 ] << ' ' << atoms[ i ].coord[ 1 ] << ' ' << atoms[ i ].coord[ 2 ] << endl;
       }
       //charge
       buf = "";
-      while( buf != "Geometry" ) ifs >> buf; cout << buf << endl;
-      ifs >> buf; cout << buf << endl;
+      while( buf != "Geometry" ) ifs >> buf; xgd::sout << buf << endl;
+      ifs >> buf; xgd::sout << buf << endl;
       if( buf != "qtch" )
       {
           obErrorLog.ThrowError( __FUNCTION__, "no 'qtch' after fourth Geometry tag" );
@@ -933,8 +934,8 @@ bool OBT41Format::ReadASCII( OBBase* pOb, OBConversion* pConv )
 
       // unit of length
       buf = "";
-      while( buf != "Geometry" ) ifs >> buf; cout << buf << endl;
-      ifs >> buf >> buf >> buf; cout << buf << endl;
+      while( buf != "Geometry" ) ifs >> buf; xgd::sout << buf << endl;
+      ifs >> buf >> buf >> buf; xgd::sout << buf << endl;
       if( buf != "length" )
       {
           obErrorLog.ThrowError( __FUNCTION__, "no 'unit of length' after fifth Geometry tag" );
@@ -1133,7 +1134,7 @@ bool OBT41Format::ReadSCFOrbitalGrid( istream& is, OBGridData& t41Data ) const
     if( !is ) return false; // eof -> return
     // if we get here it means we are past the orbital number so read
     // read grid values
-    const string label = scf + ' ' + buf; cout << label << endl;
+    const string label = scf + ' ' + buf; xgd::sout << label << endl;
     const int numPoints = t41Data.GetNumberOfPoints();
     vector< double > grid( numPoints );
     eol( is );
@@ -1169,7 +1170,7 @@ bool OBT41Format::ReadSCFGrid( istream& is, OBGridData& t41Data ) const
     // if tag = SCF read next line then skip line and read grid data
     const string scf = buf; // SCF
     is >> buf; // tag on line after SCF
-    const string label = scf + ' ' + buf; cout << label << endl;
+    const string label = scf + ' ' + buf; xgd::sout << label << endl;
     eol( is );
     if( !is ) return false;
     // read grid data
@@ -1206,7 +1207,7 @@ bool OBT41Format::ReadSumFragGrid( istream& is, OBGridData& t41Data ) const
     if( !is ) return false; // not found -> return
     const string sumfrag = buf; // found read next line then skip one line and read data
     is >> buf;
-    const string label = sumfrag + ' ' + buf; cout << label << endl;
+    const string label = sumfrag + ' ' + buf; xgd::sout << label << endl;
     eol( is );
     if( !is ) return false;
     const int numPoints = t41Data.GetNumberOfPoints();

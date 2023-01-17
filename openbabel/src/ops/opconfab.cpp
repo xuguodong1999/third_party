@@ -18,6 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <iostream>
 #include<openbabel/op.h>
@@ -120,11 +121,11 @@ namespace OpenBabel
       if(iter!=pmap->end())
         include_original = true;
 
-      cout << "**Starting Confab " << CONFAB_VER << "\n";
-      cout << "**To support, cite Journal of Cheminformatics, 2011, 3, 8.\n";
+      xgd::sout << "**Starting Confab " << CONFAB_VER << "\n";
+      xgd::sout << "**To support, cite Journal of Cheminformatics, 2011, 3, 8.\n";
       pff = OpenBabel::OBForceField::FindType("mmff94");
       if (!pff) {
-        cout << "!!Cannot find forcefield!" << endl;
+        xgd::sout << "!!Cannot find forcefield!" << endl;
         exit(-1);
       }
       DisplayConfig(pConv);
@@ -140,12 +141,12 @@ namespace OpenBabel
     OBMol mol = *pmol;
     
     N++;
-    cout << "**Molecule " << N << endl << "..title = " << mol.GetTitle() << endl;
-    cout << "..number of rotatable bonds = " << mol.NumRotors() << endl;
+    xgd::sout << "**Molecule " << N << endl << "..title = " << mol.GetTitle() << endl;
+    xgd::sout << "..number of rotatable bonds = " << mol.NumRotors() << endl;
     mol.AddHydrogens();
     bool success = pff->Setup(mol);
     if (!success) {
-      cout << "!!Cannot set up forcefield for this molecule\n"
+      xgd::sout << "!!Cannot set up forcefield for this molecule\n"
            << "!!Skipping\n" << endl;
       return;
     }
@@ -162,27 +163,27 @@ namespace OpenBabel
       c = 0;
     }
 
-    cout << "..generated " << nconfs << " conformers" << endl;
+    xgd::sout << "..generated " << nconfs << " conformers" << endl;
 
     for (; c < mol.NumConformers(); ++c) {
       mol.SetConformer(c);
       if(!pConv->GetOutFormat()->WriteMolecule(&mol, pConv))
         break;
     }
-    cout << endl;
+    xgd::sout << endl;
 
   }
 
   void OpConfab::DisplayConfig(OBConversion* pConv)
   {
-    cout << "..Input format = " << pConv->GetInFormat()->GetID() << endl;
-    cout << "..Output format = " << pConv->GetOutFormat()->GetID() << endl;
-    cout << "..RMSD cutoff = " << rmsd_cutoff << endl;
-    cout << "..Energy cutoff = " << energy_cutoff << endl;
-    cout << "..Conformer cutoff = " << conf_cutoff << endl;
-    cout << "..Write input conformation? " << (include_original ? "True" : "False") << endl;
-    cout << "..Verbose? " << (verbose ? "True" : "False") << endl;
-    cout << endl;
+    xgd::sout << "..Input format = " << pConv->GetInFormat()->GetID() << endl;
+    xgd::sout << "..Output format = " << pConv->GetOutFormat()->GetID() << endl;
+    xgd::sout << "..RMSD cutoff = " << rmsd_cutoff << endl;
+    xgd::sout << "..Energy cutoff = " << energy_cutoff << endl;
+    xgd::sout << "..Conformer cutoff = " << conf_cutoff << endl;
+    xgd::sout << "..Write input conformation? " << (include_original ? "True" : "False") << endl;
+    xgd::sout << "..Verbose? " << (verbose ? "True" : "False") << endl;
+    xgd::sout << endl;
   }
 
 }//namespace

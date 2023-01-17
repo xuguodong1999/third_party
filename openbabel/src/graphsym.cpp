@@ -22,6 +22,7 @@
   02110-1301, USA.
  **********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/graphsym.h>
 #include <openbabel/babelconfig.h>
 #include <openbabel/mol.h>
@@ -50,23 +51,23 @@ using namespace std;
 template<typename T>
 void print_vector(const std::string &label, const std::vector<T> &v)
 {
-  std::cout << label << ": ";
+  xgd::sout << label << ": ";
   for (std::size_t i = 0; i < v.size(); ++i)
     if (v[i] < 10)
-      std::cout << " " << v[i] << " ";
+      xgd::sout << " " << v[i] << " ";
     else
-      std::cout << v[i] << " ";
+      xgd::sout << v[i] << " ";
 
-  std::cout << endl;
+  xgd::sout << endl;
 }
 
 // debug function
 void print_sym_classes(const std::string &label, const std::vector<std::pair<OpenBabel::OBAtom*, unsigned int> > &atom_sym_classes)
 {
-  cout << label << ": ";
+  xgd::sout << label << ": ";
   for (unsigned int i = 0; i < atom_sym_classes.size(); i++)
-    cout << atom_sym_classes[i].second << " ";
-  cout << endl;
+    xgd::sout << atom_sym_classes[i].second << " ";
+  xgd::sout << endl;
 }
 
 namespace OpenBabel {
@@ -352,7 +353,7 @@ namespace OpenBabel {
     vector<pair<OBAtom*,unsigned int> >::iterator vp_iter;
 
 #if DEBUG2
-    cout << "CreateNewClassVector: START\n";
+    xgd::sout << "CreateNewClassVector: START\n";
     //print_vector_pairs("    ", vp1);
 #endif
 
@@ -391,7 +392,7 @@ namespace OpenBabel {
       vp2.push_back(pair<OBAtom*,unsigned int> (atom, id));
     }
 #if DEBUG2
-    cout << "CreateNewClassVector: FINISH\n";
+    xgd::sout << "CreateNewClassVector: FINISH\n";
     //print_vector_pairs("    ", vp2);
 #endif
   }
@@ -406,7 +407,7 @@ namespace OpenBabel {
     vector<pair<OBAtom*,unsigned int> >::iterator vp_iter;
 
 #if DEBUG2
-    cout << "CreateNewClassVector: START\n";
+    xgd::sout << "CreateNewClassVector: START\n";
     //print_vector_pairs("    ", vp1);
 #endif
 
@@ -444,7 +445,7 @@ namespace OpenBabel {
       vp2.push_back(pair<OBAtom*,unsigned int> (atom, id));
     }
 #if DEBUG2
-    cout << "CreateNewClassVector: FINISH\n";
+    xgd::sout << "CreateNewClassVector: FINISH\n";
     //print_vector_pairs("    ", vp2);
 #endif
 

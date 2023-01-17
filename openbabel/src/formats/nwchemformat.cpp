@@ -12,6 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/obmolecformat.h>
@@ -570,9 +571,9 @@ static const char* OPTIMIZATION_END_PATTERN = "  Optimization converged";
     }
     if (energies.size() != molecule->NumConformers())
     {
-        cerr << "Number of read energies (" << energies.size();
-        cerr << ") does not match number of read conformers (";
-        cerr << molecule->NumConformers() << ")!" << endl;
+        xgd::serr << "Number of read energies (" << energies.size();
+        xgd::serr << ") does not match number of read conformers (";
+        xgd::serr << molecule->NumConformers() << ")!" << endl;
         return;
     }
     molecule->SetEnergies(energies);
@@ -818,7 +819,7 @@ static const char* OPTIMIZATION_END_PATTERN = "  Optimization converged";
                 break;
             if (current_bead >= nbeads)
             {
-                cerr << "Current bead out of range: " << current_bead << " of " << nbeads << endl;
+                xgd::serr << "Current bead out of range: " << current_bead << " of " << nbeads << endl;
                 break;
             }
             energies[current_bead] = atof(vs[3].c_str());
@@ -841,7 +842,7 @@ static const char* OPTIMIZATION_END_PATTERN = "  Optimization converged";
                     break;
                 if (current_bead >= nbeads)
                 {
-                    cerr << "Current bead out of range: " << current_bead << " of " << nbeads << endl;
+                    xgd::serr << "Current bead out of range: " << current_bead << " of " << nbeads << endl;
                     break;
                 }
                 beads[current_bead][i*3] = atof(vs[2].c_str())*AU_TO_ANGSTROM;
@@ -872,7 +873,7 @@ static const char* OPTIMIZATION_END_PATTERN = "  Optimization converged";
             return;
         }
     }
-    cerr << "Failed to read NEB calculation!" << endl;
+    xgd::serr << "Failed to read NEB calculation!" << endl;
     for(unsigned int i = 0; i < beads.size();i++)
         delete beads[i];
   }

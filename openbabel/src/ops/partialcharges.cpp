@@ -15,6 +15,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include<openbabel/op.h>
@@ -87,9 +88,9 @@ bool OpPartialCharge::Do(OBBase* pOb, const char* OptionText, OpMap* pmap, OBCon
   if (print) {
     // print them on stdout
     FOR_ATOMS_OF_MOL(atom, pmol) {
-      std::cout << atom->GetPartialCharge() << '\n';
+      xgd::sout << atom->GetPartialCharge() << '\n';
     }
-    std::cout << std::endl; // extra blank and flush the stream
+    xgd::sout << std::endl; // extra blank and flush the stream
   }
 
   return success;

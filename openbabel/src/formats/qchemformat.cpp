@@ -12,6 +12,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <iostream>
 
@@ -193,7 +194,7 @@ namespace OpenBabel
               }
             if (nbAtomRead != mol.NumAtoms())
             {
-              std::cerr << "Error: a Standard Nuclear Orientation paragraph contains " << mol.NumAtoms()
+              xgd::serr << "Error: a Standard Nuclear Orientation paragraph contains " << mol.NumAtoms()
                  << " whereas the following Mulliken paragraph contains " << nbAtomRead << " atoms\n";
               return false;
             }

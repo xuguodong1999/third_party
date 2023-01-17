@@ -18,6 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <iostream>
@@ -70,7 +71,7 @@ namespace OpenBabel
 #ifdef OB_OLD_MATH_CHECKS
     if (i > 2)
       {
-        cerr << "ERROR in OpenBabel::vector3::operator[]" << endl
+        xgd::serr << "ERROR in OpenBabel::vector3::operator[]" << endl
              << "The method has been called with an illegal index i=" << i << "." << endl
              << "Please contact the author of the offending program immediately." << endl;
         return 0.0;

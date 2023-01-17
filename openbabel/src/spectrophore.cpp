@@ -22,10 +22,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/spectrophore.h>
 #include <openbabel/mol.h>
 #include <openbabel/atom.h>
 #include <openbabel/obiter.h>
+#include <openbabel/oberror.h>
 
 namespace OpenBabel
 {
@@ -229,7 +231,7 @@ OBSpectrophore::GetSpectrophore(OpenBabel::OBMol* mol)
    _nAtoms = mol->NumAtoms();
    if (_nAtoms < 3)
    {
-      std::cerr << "OBSpectrophore::GetSpectrophore() error: not enough atoms in molecule" << std::endl;;
+      xgd::serr << "OBSpectrophore::GetSpectrophore() error: not enough atoms in molecule" << std::endl;;
       return _spectro;
    }
 
@@ -1825,7 +1827,7 @@ OBSpectrophore::_luDecompose(double** A, std::vector<int>& I, unsigned int dim)
       }
       if (maxVal == 0)
       {
-         std::cerr << "OBSpectrophore: Warning singular matrix..." << std::endl;
+         xgd::serr << "OBSpectrophore: Warning singular matrix..." << std::endl;
       }
 
       vScales[i] = 1.0 / maxVal;
@@ -1863,7 +1865,7 @@ OBSpectrophore::_luDecompose(double** A, std::vector<int>& I, unsigned int dim)
       // check if we need to interchange rows
       if (j != iMax) // if current column index is not the maximal row index we need to interchange
       {
-         // std::cerr << "Swap rows: " << iMax << " <-> " << j << std::endl;
+         // xgd::serr << "Swap rows: " << iMax << " <-> " << j << std::endl;
          _swapRows(A, iMax, j, dim);
          vScales[iMax] = vScales[j];
       }
