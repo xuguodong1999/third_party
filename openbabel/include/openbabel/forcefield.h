@@ -1022,7 +1022,7 @@ const double GAS_CONSTANT = 8.31446261815324e-3 / KCAL_TO_KJ;  //!< kcal mol^-1 
       if (!_logos)
         return;
 
-      *_logos << msg;
+      *_logos << msg << std::endl;
     }
     /*! Print msg to the logfile.
      *  \param msg The message to print.
@@ -1032,7 +1032,7 @@ const double GAS_CONSTANT = 8.31446261815324e-3 / KCAL_TO_KJ;  //!< kcal mol^-1 
       if (!_logos)
         return;
 
-      *_logos << msg;
+      *_logos << msg << std::endl;
     }
     //@}
 
