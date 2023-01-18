@@ -354,6 +354,8 @@ std::vector<std::string> EnableStaticPlugins()
 #endif
 #ifdef HAVE_STATIC_INCHI
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChIFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChICompareFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChIKeyFormat)->GetID());
 #endif
 #ifdef HAVE_RPC_XDR_H
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theXTCFormat)->GetID());

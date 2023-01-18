@@ -501,6 +501,8 @@ public:
 #endif
 #ifdef HAVE_STATIC_INCHI
   OB_STATIC_PLUGIN(InChIFormat, theInChIFormat)
+  OB_STATIC_PLUGIN(InChICompareFormat, theInChICompareFormat)
+  OB_STATIC_PLUGIN(InChIKeyFormat, theInChIKeyFormat)
 #endif
 #ifdef HAVE_REGEX_H
   OB_STATIC_PLUGIN(GAMESSUKInputFormat, theGAMESSUKInputFormat)
