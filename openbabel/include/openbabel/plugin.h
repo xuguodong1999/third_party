@@ -563,6 +563,7 @@ public:
   OB_STATIC_PLUGIN(OpFillUC, theOpFillUC)
   OB_STATIC_PLUGIN(OpEnergy, theOpEnergy)
   OB_STATIC_PLUGIN(OpMinimize, theOpMinimize)
+  OB_STATIC_PLUGIN(Op2D, theOp2D)
   OB_STATIC_PLUGIN(OpGen2D, theOpGen2D)
   OB_STATIC_PLUGIN(OpGen3D, theOpGen3D)
   OB_STATIC_PLUGIN(OpNewS, theOpNewS)

@@ -417,6 +417,7 @@ std::vector<std::string> EnableStaticPlugins()
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpFillUC)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpEnergy)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpMinimize)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOp2D)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpGen2D)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpGen3D)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpNewS)->GetID());
