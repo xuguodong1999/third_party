@@ -1,7 +1,7 @@
 #pragma once
 
 #include <rdkit_export.hpp>
-#include <RDConfig.h>
+#include <RDGeneral/RDConfig.h>
 
 #define RDKIT_ABBREVIATIONS_EXPORT RDKIT_EXPORT
 #define RDKIT_ALIGNMENT_EXPORT RDKIT_EXPORT

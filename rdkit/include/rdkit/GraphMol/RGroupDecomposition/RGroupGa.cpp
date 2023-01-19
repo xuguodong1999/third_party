@@ -7,7 +7,7 @@
 //  which is included in the file license.txt, found at the root
 //  of the RDKit source tree.
 //
-
+#include <RDGeneral/export.h>
 #include <ctime>
 #include <limits>
 #ifdef RDK_BUILD_THREADSAFE_SSS
@@ -18,7 +18,7 @@
 #include "RGroupDecompData.h"
 #include "RGroupDecomp.h"
 #include "RGroupFingerprintScore.h"
-#include "../../../External/GA/util/Util.h"
+#include "GA/util/Util.h"
 
 // #define DEBUG
 
