@@ -429,6 +429,8 @@ public:
   OB_STATIC_PLUGIN(HINFormat, theHINFormat)
   OB_STATIC_PLUGIN(JaguarOutputFormat, theJaguarOutputFormat)
   OB_STATIC_PLUGIN(JaguarInputFormat, theJaguarInputFormat)
+  OB_STATIC_PLUGIN(ChemDoodleJSONFormat, theChemDoodleJSONFormat)
+  OB_STATIC_PLUGIN(PubChemJSONFormat, thePubChemJSONFormat)
   OB_STATIC_PLUGIN(LMPDATFormat, theLMPDATFormat)
   OB_STATIC_PLUGIN(MCDLFormat, theMCDLFormat)
   OB_STATIC_PLUGIN(MOLFormat, theMOLFormat)

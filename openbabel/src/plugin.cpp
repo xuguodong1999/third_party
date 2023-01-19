@@ -285,6 +285,8 @@ std::vector<std::string> EnableStaticPlugins()
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theHINFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theJaguarOutputFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theJaguarInputFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theChemDoodleJSONFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&thePubChemJSONFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theLMPDATFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theMCDLFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theMOLFormat)->GetID());
