@@ -105,6 +105,22 @@
 /* have struct clock_t */
 #cmakedefine HAVE_CLOCK_T 1
 
+#cmakedefine HAVE_REGEX_H 1
+
+#cmakedefine HAVE_SHARED_POINTER 1
+
+#cmakedefine HAVE_EIGEN 1
+
+#cmakedefine HAVE_EIGEN3 1
+
+#cmakedefine HAVE_STATIC_INCHI 1
+
+#cmakedefine HAVE_LIBZ 1
+
+#cmakedefine HAVE_STATIC_LIBXML 1
+
+#cmakedefine HAVE_RPC_XDR_H 1
+
 /* shared pointer implementation to be used */
 #cmakedefine OB_SHARED_PTR_IMPLEMENTATION @OB_SHARED_PTR_IMPLEMENTATION@
 
