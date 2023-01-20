@@ -348,7 +348,7 @@ void MaximumCommonSubgraph::makeInitialSeeds() {
          ms != matching_substructs.end(); ms++) {
       Seed seed;
       seed.ExcludedBonds = excludedBonds;
-      seed.MatchResult.resize(Targets.size());
+      seed.resizeMatchResult(Targets.size());
 #ifdef VERBOSE_STATISTICS_ON
       {
         ++VerboseStatistics.Seed;
@@ -417,7 +417,7 @@ void MaximumCommonSubgraph::makeInitialSeeds() {
       // if(excludedBonds[(*bi)->getIdx()])
       //    continue;
       Seed seed;
-      seed.MatchResult.resize(Targets.size());
+      seed.resizeMatchResult(Targets.size());
 
 #ifdef VERBOSE_STATISTICS_ON
       {
@@ -1266,7 +1266,7 @@ bool MaximumCommonSubgraph::match(Seed& seed) {
     { ++VerboseStatistics.MatchCall; }
 #endif
     bool target_matched = false;
-    if (!seed.MatchResult.empty() && !seed.MatchResult[itarget].empty()) {
+    if (!seed.MatchResult.empty() && !seed.MatchResult[itarget]->empty()) {
       target_matched = matchIncrementalFast(seed, itarget);
     }
     if (!target_matched) {  // slow full match
@@ -1277,11 +1277,11 @@ bool MaximumCommonSubgraph::match(Seed& seed) {
       // save current match info
       if (target_matched) {
         if (seed.MatchResult.empty()) {
-          seed.MatchResult.resize(Targets.size());
+          seed.resizeMatchResult(Targets.size());
         }
-        seed.MatchResult[itarget].init(seed, match, *QueryMolecule, *tag);
+        seed.MatchResult[itarget]->init(seed, match, *QueryMolecule, *tag);
       } else if (!seed.MatchResult.empty()) {
-        seed.MatchResult[itarget].clear();  //.Empty = true; // == fast clear();
+        seed.MatchResult[itarget]->clear();  //.Empty = true; // == fast clear();
       }
 #ifdef VERBOSE_STATISTICS_ON
       if (target_matched) {
@@ -1316,7 +1316,7 @@ bool MaximumCommonSubgraph::matchIncrementalFast(Seed& seed, unsigned itarget) {
   { ++VerboseStatistics.FastMatchCall; }
 #endif
   const Target& target = Targets[itarget];
-  TargetMatch& match = seed.MatchResult[itarget];
+  TargetMatch& match = *(seed.MatchResult[itarget]);
   if (match.empty()) {
     return false;
   }
