@@ -17,7 +17,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <string.h>
 
 #include <openbabel/babelconfig.h>
@@ -371,7 +370,7 @@ namespace OpenBabel
             if(conv.Read(&mol))
             {
                //  ...manipulate molecule
-               xgd::serr << " Molecule has: " << mol.NumAtoms()
+               cerr << " Molecule has: " << mol.NumAtoms()
                     << " atoms." << endl;
             }
 

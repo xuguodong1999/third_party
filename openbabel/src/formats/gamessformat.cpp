@@ -14,7 +14,6 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
  ***********************************************************************/
- #include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/obmolecformat.h>
@@ -190,7 +189,7 @@ namespace OpenBabel {
 
    if(attr == "IGAUSS") { attr = "NGAUSS"; }
 
-   // xgd::sout << attr << "/" << value << endl;
+   // cout << attr << "/" << value << endl;
 
    OBPairData *data = new OBPairData();
    data = new OBPairData();

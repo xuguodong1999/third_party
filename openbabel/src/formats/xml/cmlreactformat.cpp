@@ -11,7 +11,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include "openbabel/babelconfig.h"
 #include <openbabel/mol.h>
 #include <openbabel/atom.h>
@@ -191,7 +190,7 @@ bool CMLReactFormat::DoElement(const string& name)
       pmol = _spmol.get();
       if(!pmol)
       {
-        xgd::serr << " Molecule reference \"" << reference <<"\" not found" << endl;
+        cerr << " Molecule reference \"" << reference <<"\" not found" << endl;
         return false;
       }
     }

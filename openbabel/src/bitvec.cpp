@@ -16,7 +16,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/bitvec.h>
@@ -45,13 +44,13 @@ namespace OpenBabel
     bv1 = bv1 & bv2;
     if (bv1.IsEmpty()) // IsEmpty() returns true if no bits are set on
     {
-       xgd::sout << "bv1 = " << bv1 << std::endl;
+       std::cout << "bv1 = " << bv1 << std::endl;
     }
 
     int bit;
     for (bit = bv1.NextBit(0);bit != bv1.EndBit();bit = bv1.NextBit(bit))
     {
-       xgd::sout << "the next bit turned on is " << bit << endl;
+       cout << "the next bit turned on is " << bit << endl;
     }
     \endcode
   */

@@ -22,7 +22,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <sstream>
 #include <cstdlib>
 
@@ -179,7 +178,7 @@ bool OBGaussianCubeFormat::ReadMolecule( OBBase* pOb, OBConversion* pConv )
       negAtoms = true;
       nAtoms *= -1;
     }
-//    xgd::serr << "Number of atoms: " << nAtoms << " Orig: " << vs.at(0) << endl;
+//    cerr << "Number of atoms: " << nAtoms << " Orig: " << vs.at(0) << endl;
     double x = strtod(static_cast<const char*>(vs.at(1).c_str()), &endptr);
     if (endptr == static_cast<const char*>(vs.at(1).c_str()))
     {

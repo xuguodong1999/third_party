@@ -19,7 +19,6 @@ GNU General Public License for more details.
 #include <openbabel/babelconfig.h>
 #ifdef HAVE_EIGEN
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/distgeom.h>
 #include <openbabel/mol.h>
 #include <openbabel/atom.h>
@@ -150,13 +149,13 @@ namespace OpenBabel {
     // Do we use the current geometry for default 1-2 and 1-3 bounds?
     Set12Bounds(useCurrentGeometry);
     if (_d->debug) {
-      xgd::serr << endl << " 1-2 Matrix\n";
-      xgd::serr << _d->bounds << endl;
+      cerr << endl << " 1-2 Matrix\n";
+      cerr << _d->bounds << endl;
     }
     Set13Bounds(useCurrentGeometry);
     if (_d->debug) {
-      xgd::serr << endl << " 1-3 Matrix\n";
-      xgd::serr << _d->bounds << endl;
+      cerr << endl << " 1-3 Matrix\n";
+      cerr << _d->bounds << endl;
     }
 
     vector<OBRing*> rlist = _mol.GetSSSR();
@@ -165,16 +164,16 @@ namespace OpenBabel {
 
     Set14Bounds();
     if (_d->debug) {
-      xgd::serr << endl << " 1-4 Matrix\n";
-      xgd::serr << _d->bounds << endl;
+      cerr << endl << " 1-4 Matrix\n";
+      cerr << _d->bounds << endl;
     }
     Set15Bounds();
     SetLowerBounds();
     TriangleSmooth();
     _d->preMet = _d->bounds; // make a copy before metrization
     if (_d->debug) {
-      xgd::serr << endl << " Smoothed Matrix\n";
-      xgd::serr << _d->bounds << endl;
+      cerr << endl << " Smoothed Matrix\n";
+      cerr << _d->bounds << endl;
     }
 
     // RDKit: Code/DistGeom/ChiralViolationContrib.cpp
@@ -1089,7 +1088,7 @@ namespace OpenBabel {
       for (size_t j=0; j<N; j++) {
         double lb = _d->GetLowerBounds(i, j);
         double ub = _d->GetUpperBounds(i, j);
-        //xgd::sout << "(" << i << ", " << j << ")" << lb << " < " << distMat2(i, j) << " (" << distMat(i, j) << ")" << " < " << ub << endl;
+        //cout << "(" << i << ", " << j << ")" << lb << " < " << distMat2(i, j) << " (" << distMat(i, j) << ")" << " < " << ub << endl;
       }
     }
     return true;
@@ -1114,8 +1113,8 @@ namespace OpenBabel {
 
     double fx;
     int niter = solver.minimize(fun, _coord, fx);
-    //xgd::sout << niter << " iterations" << std::endl;
-    //xgd::sout << "f(x) = " << fx << std::endl;
+    //std::cout << niter << " iterations" << std::endl;
+    //std::cout << "f(x) = " << fx << std::endl;
 
     for(size_t i=0; i<N; ++i) {
       vector3 v(_coord(i*dim), _coord(i*dim+1), _coord(i*dim+2));
@@ -1136,7 +1135,7 @@ namespace OpenBabel {
       for (size_t j=0; j<N; j++) {
         double lb = _d->GetLowerBounds(i, j);
         double ub = _d->GetUpperBounds(i, j);
-        //xgd::sout << "(" << i << ", " << j << ")" << lb << " < " << distMat2(i, j) << " < " << ub << endl;
+        //cout << "(" << i << ", " << j << ")" << lb << " < " << distMat2(i, j) << " < " << ub << endl;
       }
     }
     return true;
@@ -1159,8 +1158,8 @@ namespace OpenBabel {
 
     double fx;
     int niter = solver.minimize(fun, _coord, fx);
-    //xgd::sout << niter << " iterations" << std::endl;
-    //xgd::sout << "f(x) = " << fx << std::endl;
+    //std::cout << niter << " iterations" << std::endl;
+    //std::cout << "f(x) = " << fx << std::endl;
 
     for(size_t i=0; i<N; ++i) {
       vector3 v(_coord(i*dim), _coord(i*dim+1), _coord(i*dim+2));
@@ -1181,7 +1180,7 @@ namespace OpenBabel {
     generator.TimeSeed();
 
     if (_d->debug) {
-      xgd::serr << " max box size: " << _d->maxBoxSize << endl;
+      cerr << " max box size: " << _d->maxBoxSize << endl;
     }
 
     _d->success = false;
@@ -1195,7 +1194,7 @@ namespace OpenBabel {
         break;
       }
       if (_d->debug && !_d->success)
-        xgd::serr << "Stereo unsatisfied, trying again" << endl;
+        cerr << "Stereo unsatisfied, trying again" << endl;
     }
   }
 
@@ -1222,7 +1221,7 @@ namespace OpenBabel {
           uBounds = _d->GetUpperBounds(i - 1, j - 1);
           if (dist - uBounds > 2.5) {
                 if (_d->debug) {
-                  xgd::serr << " upper violation " << dist << " " << uBounds << endl;
+                  cerr << " upper violation " << dist << " " << uBounds << endl;
                 }
             return false;
           }
@@ -1239,7 +1238,7 @@ namespace OpenBabel {
           dist = a->GetDistance(b);
           if (dist < minDist) {
             if (_d->debug) {
-                  xgd::serr << " lower violation " << dist << " " << minDist << endl;
+                  cerr << " lower violation " << dist << " " << minDist << endl;
             }
             return false;
           }

@@ -17,7 +17,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/mol.h>
 #include <openbabel/bond.h>
@@ -1385,11 +1384,11 @@ namespace OpenBabel
     //       a = bond->GetBeginAtom();
     //       b = bond->GetEndAtom();
     //       BO = bond->GetBondOrder();
-    //       xgd::sout << "Bond between: " << a->GetType() << " and " << b->GetType() << " with bondorder " << BO << endl;
+    //       cout << "Bond between: " << a->GetType() << " and " << b->GetType() << " with bondorder " << BO << endl;
     //     }
     // DEBUG (validation)
     //    FOR_ATOMS_OF_MOL (a, _mol)
-    //      xgd::sout << "ATOMTYPE " << a->GetType() << endl;
+    //      cout << "ATOMTYPE " << a->GetType() << endl;
 
     IF_OBFF_LOGLVL_LOW {
       OBFFLog("\nA T O M   T Y P E S\n\n");

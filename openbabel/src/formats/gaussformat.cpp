@@ -12,7 +12,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/data.h>
@@ -772,7 +771,7 @@ namespace OpenBabel
             }
             else
             {
-                xgd::sout << "Read " << MPA_q.size() << " Mulliken charges for " << mol.NumAtoms() << " atoms\n";
+                cout << "Read " << MPA_q.size() << " Mulliken charges for " << mol.NumAtoms() << " atoms\n";
             }
           }
         else if (strstr(buffer, "Hirshfeld charges") != nullptr &&
@@ -826,7 +825,7 @@ namespace OpenBabel
             }
             else
             {
-                xgd::sout << "Read " << HPA_q.size() << " Hirshfeld charges for " << mol.NumAtoms() << " atoms\n";
+                cout << "Read " << HPA_q.size() << " Hirshfeld charges for " << mol.NumAtoms() << " atoms\n";
             }
           }
         else if (strstr(buffer, "Electrostatic Properties Using The SCF Density") != nullptr)
@@ -908,7 +907,7 @@ namespace OpenBabel
                   }
                 else
                   {
-                    xgd::sout << "Read " << esp->NumPoints() << " ESP points i = " << i << "\n";
+                    cout << "Read " << esp->NumPoints() << " ESP points i = " << i << "\n";
                   }
               }
             else if (!ESPisAdded)
@@ -950,7 +949,7 @@ namespace OpenBabel
             }
             else
             {
-                xgd::sout << "Read " << ESP_q.size() << " ESP charges for " << mol.NumAtoms() << " atoms\n";
+                cout << "Read " << ESP_q.size() << " ESP charges for " << mol.NumAtoms() << " atoms\n";
             }
           }
         else if (strstr(buffer, "Natural Population") != nullptr)
@@ -1308,7 +1307,7 @@ namespace OpenBabel
           unsigned int symmSize = symmetries.size();
           if (initialSize != symmSize || betaStart == -1)
             {
-              xgd::serr << "Inconsistency: orbitals have " << initialSize << " elements while symmetries have " << symmSize << endl;
+              cerr << "Inconsistency: orbitals have " << initialSize << " elements while symmetries have " << symmSize << endl;
             }
           else
             {

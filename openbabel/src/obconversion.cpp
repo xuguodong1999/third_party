@@ -16,7 +16,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 // Definition of OBConversion routines
 #include <openbabel/babelconfig.h>
 
@@ -1732,7 +1731,7 @@ Additional options :
     pos = objectname.rfind(' ');
     if(pos==std::string::npos)
       pos=0;
-    xgd::slog << count << objectname.substr(pos) << " converted" << endl;
+    std::clog << count << objectname.substr(pos) << " converted" << endl;
   }
 
   void OBConversion::CopyOptions(OBConversion* pSourceConv, Option_type typ)

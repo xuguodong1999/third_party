@@ -19,7 +19,6 @@ GNU General Public License for more details.
 // but replaces the SMILES export with Craig James canonical smiles
 // (For regular SMILES, the canonical order is not computed and ignored)
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 
@@ -643,7 +642,7 @@ namespace OpenBabel {
           }
         }
 
-        // xgd::sout << "*ts = " << *ts << endl;
+        // cout << "*ts = " << *ts << endl;
         OBTetrahedralStereo *obts = new OBTetrahedralStereo(&mol);
         obts->SetConfig(*ts);
         mol.SetData(obts);
@@ -663,7 +662,7 @@ namespace OpenBabel {
         if (sp->refs.size() != 4)
           continue;
 
-        // xgd::sout << "*ts = " << *ts << endl;
+        // cout << "*ts = " << *ts << endl;
         OBSquarePlanarStereo *obsp = new OBSquarePlanarStereo(&mol);
         obsp->SetConfig(*sp);
         mol.SetData(obsp);
@@ -878,13 +877,13 @@ namespace OpenBabel {
           obErrorLog.ThrowError(__FUNCTION__, "Warning: Overwriting previous from reference id.", obWarning);
 
         (ChiralSearch->second)->from = id;
-        // xgd::serr << "Adding " << id << " at Config.from to " << ChiralSearch->second << endl;
+        // cerr << "Adding " << id << " at Config.from to " << ChiralSearch->second << endl;
       } else {
         if (ChiralSearch->second->refs[insertpos] != OBStereo::NoRef)
           obErrorLog.ThrowError(__FUNCTION__, "Warning: Overwriting previously set reference id.", obWarning);
 
         (ChiralSearch->second)->refs[insertpos] = id;
-        // xgd::serr << "Adding " << id << " at " << insertpos << " to " << ChiralSearch->second << endl;
+        // cerr << "Adding " << id << " at " << insertpos << " to " << ChiralSearch->second << endl;
       }
     }
   }
@@ -1880,11 +1879,11 @@ namespace OpenBabel {
           if (CanHaveLonePair(element)) // Handle chiral lone pair as in X[S@@](Y)Z
             _chiralLonePair[mol.NumAtoms()] = 1; // First of the refs
 
-          //xgd::serr <<"NB7: line 1622: Added atom ref "<<_prev<<" at " << 0 << " to "<<_mapcd[atom]<<endl;
+          //cerr <<"NB7: line 1622: Added atom ref "<<_prev<<" at " << 0 << " to "<<_mapcd[atom]<<endl;
         }
         if (squarePlanarWatch) { // if squareplanar atom, set previous atom as first ref
           _squarePlanarMap[atom]->refs[0] = mol.GetAtom(_prev)->GetId();
-          //xgd::serr <<"TV7: line 1748: Added atom ref " << mol.GetAtom(_prev)->GetId()
+          //cerr <<"TV7: line 1748: Added atom ref " << mol.GetAtom(_prev)->GetId()
           //     << " at " << 0 << " to " << _squarePlanarMap[atom] << endl;
         }
         InsertTetrahedralRef(mol, atom->GetId());
@@ -3107,7 +3106,7 @@ namespace OpenBabel {
     atom = node->GetAtom();
 
 #if DEBUG
-    xgd::sout << "BuildCanonTree: " << OBElements::GetSymbol(atom->GetAtomicNum()) << ", " << atom->GetIdx() << ", canorder " << canonical_order[atom->GetIdx()-1] << "\n";
+    cout << "BuildCanonTree: " << OBElements::GetSymbol(atom->GetAtomicNum()) << ", " << atom->GetIdx() << ", canorder " << canonical_order[atom->GetIdx()-1] << "\n";
 #endif
 
     // Create a vector of neighbors sorted by canonical order, but favor
@@ -3802,7 +3801,7 @@ namespace OpenBabel {
 
   void OBMol2Cansmi::CreateFragCansmiString(OBMol &mol, OBBitVec &frag_atoms, std::string &buffer)
   {
-    //xgd::sout << "CreateFragCansmiString()" << endl;
+    //cout << "CreateFragCansmiString()" << endl;
     OBAtom *atom;
     OBCanSmiNode *root;
     buffer[0] = '\0';
@@ -4145,7 +4144,7 @@ namespace OpenBabel {
   //////////////////////////////////////////////////
   bool SMIBaseFormat::WriteMolecule(OBBase* pOb,OBConversion* pConv)
   {
-    //xgd::sout << "SMIBaseFromat::WriteMolecule()" << endl;
+    //cout << "SMIBaseFromat::WriteMolecule()" << endl;
     OBMol* pmol = dynamic_cast<OBMol*>(pOb);
 
     // Define some references so we can use the old parameter names

@@ -13,7 +13,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/obmolecformat.h>
@@ -223,9 +222,9 @@ namespace OpenBabel
             }
             newMol = false;
             if (geoOptRun){
-//                xgd::sout << confCoords << endl;
+//                cout << confCoords << endl;
 //                for (int j=0;j<3;j++){
-//                    xgd::sout << confCoords[j*3] << " " << confCoords[j*3+1] << " " << confCoords[j*3+2] << endl;
+//                    cout << confCoords[j*3] << " " << confCoords[j*3+1] << " " << confCoords[j*3+2] << endl;
 //                }
 
                 mol.AddConformer(confCoords);
@@ -293,7 +292,7 @@ namespace OpenBabel
             ifs.getline(buffer,BUFF_SIZE);	// skip --------------
             ifs.getline(buffer,BUFF_SIZE);
             tokenize(vs,buffer);
-            //  xgd::sout << "charges "  << buffer << endl;
+            //  std::cout << "charges "  << buffer << endl;
 
             while (vs.size() == 4)
             { // atom number, atomic symbol,:,  charge
@@ -362,20 +361,20 @@ namespace OpenBabel
                         vib[i].push_back(vector3(x[i], y[i], z[i]));
                     }
 
-//                    xgd::sout <<" vib.size = "<< vib.size() << endl;
+//                    std::cout <<" vib.size = "<< vib.size() << endl;
                     ifs.getline(buffer, BUFF_SIZE);
                     str = checkColumns (string(buffer));
                     tokenize(vs,str);
                 } // while
-//                xgd::sout <<" end while vib.size = "<< vib.size() << endl;
+//                std::cout <<" end while vib.size = "<< vib.size() << endl;
 //                for (unsigned int i = iMode; i < iMode+nColumn; i++) {
                 for (unsigned int i = 0; i < nColumn; i++) {
-//                    xgd::sout << "orca i = "  << i << endl;
+//                    std::cout << "orca i = "  << i << endl;
                     if (FrequenciesAll[iMode] > 10.0) { // something higher than 0
-//                        xgd::sout <<" vib[i].size = " <<i << " " << vib[i].size() << endl;
+//                        std::cout <<" vib[i].size = " <<i << " " << vib[i].size() << endl;
                         Lx.push_back(vib[i]);
-//                        xgd::sout << i<< "  " << Lx[i].size() << endl;
-//                        xgd::sout << Lx.size() << endl;
+//                        std::cout << i<< "  " << Lx[i].size() << endl;
+//                        std::cout << Lx.size() << endl;
                     }
                     iMode++;
                 }
@@ -394,8 +393,8 @@ namespace OpenBabel
             tokenize(vs,buffer);
 
             while (vs.size() >= 6) {
-                //                xgd::sout << (atof(vs[1].c_str())) << endl;
-                //                xgd::sout << (atof(vs[2].c_str())) << endl;
+                //                std::cout << (atof(vs[1].c_str())) << endl;
+                //                std::cout << (atof(vs[2].c_str())) << endl;
                 Frequencies.push_back(atof(vs[1].c_str()));
                 Intensities.push_back(atof(vs[2].c_str()));
                 ifs.getline(buffer, BUFF_SIZE);
@@ -483,8 +482,8 @@ namespace OpenBabel
                 ifs.getline(buffer, BUFF_SIZE);
                 tokenize(vs,buffer);
             }
-//            xgd::sout << CDWavelength.size() << endl;
-//            xgd::sout << CDStrengthsLength.size() << endl;
+//            std::cout << CDWavelength.size() << endl;
+//            std::cout << CDStrengthsLength.size() << endl;
         } // if "CD SPECTRUM"
 
         if (checkKeywords.find("UNIT CELL (ANGSTROM)") != notFound) { // file contains unit cell information
@@ -630,8 +629,8 @@ namespace OpenBabel
     mol.EndModify();
 
 
-//    xgd::sout << "num conformers = " << mol.NumConformers() << endl;
-    //xgd::sout << "Atom index 0 = " << mol.GetAtom(0)->GetX() << " " << mol.GetAtom(0)->GetY() << " " << mol.GetAtom(0)->GetZ() << endl;
+//    cout << "num conformers = " << mol.NumConformers() << endl;
+    //cout << "Atom index 0 = " << mol.GetAtom(0)->GetX() << " " << mol.GetAtom(0)->GetY() << " " << mol.GetAtom(0)->GetZ() << endl;
     if (hasPartialCharges)
       mol.SetPartialChargesPerceived();
     mol.SetTitle(title);

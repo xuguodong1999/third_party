@@ -17,7 +17,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <set>
@@ -794,7 +793,7 @@ namespace OpenBabel
     if(pos)
       _logos = pos;
     else
-      _logos = &xgd::sout;
+      _logos = &cout;
 
     return true;
   }
@@ -2418,7 +2417,7 @@ namespace OpenBabel
 
     double scale = sqrt(sum);
     if (IsNearZero(scale)) {
-      //      xgd::sout << "WARNING: too small \"scale\" at Newton2NumLineSearch" << endl;
+      //      cout << "WARNING: too small \"scale\" at Newton2NumLineSearch" << endl;
       scale = 1.0e-70; // try to avoid "division by zero" conditions
     }
 
@@ -2455,7 +2454,7 @@ namespace OpenBabel
       if (denom != 0.0) {
         step = fabs(step - delta * (e_n2 - e_n1) / denom);
         if (step > max_scl) {
-          //          xgd::sout << "WARNING: damped steplength " << step << " to " << max_scl << endl;
+          //          cout << "WARNING: damped steplength " << step << " to " << max_scl << endl;
           step = max_scl;
         }
       } else {
@@ -2480,7 +2479,7 @@ namespace OpenBabel
     // Take optimal step
     LineSearchTakeStep(origCoords, direction, opt_step);
 
-    //    xgd::sout << " scale: " << scale << " step: " << opt_step*scale << " maxstep " << max_scl*scale << endl;
+    //    cout << " scale: " << scale << " step: " << opt_step*scale << " maxstep " << max_scl*scale << endl;
 
     delete [] origCoords;
 
@@ -3416,7 +3415,7 @@ namespace OpenBabel
   // gromacs user manual page 17
   void OBForceField::GenerateVelocities()
   {
-    xgd::sout << "OBForceField::GenerateVelocities()" << endl;
+    cout << "OBForceField::GenerateVelocities()" << endl;
     OBRandom generator;
     generator.TimeSeed();
     _ncoords = _mol.NumAtoms() * 3;
@@ -3472,7 +3471,7 @@ namespace OpenBabel
 
     // E_kin = 0.5 * Ndf * R * T
     E_kin = _ncoords * GAS_CONSTANT * _temp;
-    //xgd::sout << "E_{kin} = Ndf * R * T = " << E_kin << endl;
+    //cout << "E_{kin} = Ndf * R * T = " << E_kin << endl;
 
     // E_kin = 0.5 * sum( m_i * v_i^2 )
     E_kin2 = 0.0;
@@ -3485,7 +3484,7 @@ namespace OpenBabel
 
       E_kin2 += 1000 * a->GetAtomicMass() * velocity * velocity;
     }
-    //xgd::sout << "E_{kin} = sum( m_i * v_i^2 ) = " << E_kin2 << endl;
+    //cout << "E_{kin} = sum( m_i * v_i^2 ) = " << E_kin2 << endl;
 
     // correct
     factor = sqrt(E_kin / E_kin2);
@@ -3507,7 +3506,7 @@ namespace OpenBabel
 
       E_kin2 += 1000 * a->GetAtomicMass() * velocity * velocity;
     }
-    //xgd::sout << "E_{kin_corr} = sum( m_i * v_i^2 ) = " << E_kin2 << endl;
+    //cout << "E_{kin_corr} = sum( m_i * v_i^2 ) = " << E_kin2 << endl;
   }
 
   void OBForceField::MolecularDynamicsTakeNSteps(int n, double T, double timestep, int method)
@@ -4333,7 +4332,7 @@ namespace OpenBabel
 
   OBGridData* OBForceField::GetGrid(double step, double padding, const char* type, double pchg)
   {
-    xgd::sout << "OBForceFieldMMFF94::GetGrid(" << step << ", " << type << ")" << endl;
+    cout << "OBForceFieldMMFF94::GetGrid(" << step << ", " << type << ")" << endl;
     OBFloatGrid fgrid;
     fgrid.Init(_mol, step, padding);
     vector3 min;
@@ -4346,7 +4345,7 @@ namespace OpenBabel
     zDim = fgrid.GetZdim();
     xyzDim = xDim * yDim * zDim;
 
-    xgd::sout << "xDim = " << xDim << ", yDim = " << yDim << ", zDim = " << zDim << endl;
+    cout << "xDim = " << xDim << ", yDim = " << yDim << ", zDim = " << zDim << endl;
 
     // Add the probe atom
     _mol.BeginModify();
@@ -4416,7 +4415,7 @@ namespace OpenBabel
             coord.SetZ(min[2] + k * step);
 
             count++;
-            xgd::sout << "\r" << count << "/" << xyzDim;
+            cout << "\r" << count << "/" << xyzDim;
 
             if (grid->GetValue(i, j, k) == 0.0) {
               pos[0] = coord.x();
@@ -4430,7 +4429,7 @@ namespace OpenBabel
       } // y-axis
     } // x-axis
 
-    xgd::sout << endl;
+    cout << endl;
 
     _mol.BeginModify();
     _mol.DeleteAtom(atom);

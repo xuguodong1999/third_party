@@ -27,7 +27,6 @@ GNU General Public License for more details.
  *
  */
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
@@ -2990,9 +2989,9 @@ namespace OpenBabel
         for (ai = _anglecalculations.begin(); ai != _anglecalculations.end(); ++ai) {
         if ( (((*ai).a)->GetIdx() == a->GetIdx()) && (((*ai).b)->GetIdx() == b->GetIdx()) && (((*ai).c)->GetIdx() == c->GetIdx()) ) {
         strbndcalc.theta = (*ai).theta;
-        xgd::sout << "theta prt       = " << (*ai).theta << endl;
-        xgd::sout << "delta prt       = " << &((*ai).delta) << endl;
-        xgd::sout << "GetThetaPointer = " << ai->GetThetaPointer() << endl;
+        cout << "theta prt       = " << (*ai).theta << endl;
+        cout << "delta prt       = " << &((*ai).delta) << endl;
+        cout << "GetThetaPointer = " << ai->GetThetaPointer() << endl;
         strbndcalc.force_abc_a = (*ai).force_a;
         strbndcalc.force_abc_b = (*ai).force_b;
         strbndcalc.force_abc_c = (*ai).force_c;
@@ -4158,12 +4157,12 @@ namespace OpenBabel
       unsigned int ni;
       bool failed;
 
-      xgd::sout << "--------------------------------------------------------------------------------" << endl;
-      xgd::sout << "                                                                                " << endl;
-      xgd::sout << "  VALIDATE MOLECULE " << c << ": " << _mol.GetTitle() << endl;
-      xgd::sout << "                                                                                " << endl;
-      xgd::sout << "IDX  HYB  AROM  OB_TYPE  LOG_TYPE       RESULT                                  " << endl;
-      xgd::sout << "----------------------------------------------                                  " << endl;
+      cout << "--------------------------------------------------------------------------------" << endl;
+      cout << "                                                                                " << endl;
+      cout << "  VALIDATE MOLECULE " << c << ": " << _mol.GetTitle() << endl;
+      cout << "                                                                                " << endl;
+      cout << "IDX  HYB  AROM  OB_TYPE  LOG_TYPE       RESULT                                  " << endl;
+      cout << "----------------------------------------------                                  " << endl;
 
       ni = 1;
       failed = false;
@@ -4184,21 +4183,21 @@ namespace OpenBabel
           failed = true;
         }
 
-        xgd::sout << _logbuf << endl;
+        cout << _logbuf << endl;
 
         ni++;
       }
 
       if (failed) {
-        xgd::sout << "Could not successfully assign atom types" << endl;
+        cout << "Could not successfully assign atom types" << endl;
         return false;
         //continue;
       }
 
       SetFormalCharges();
-      xgd::sout << endl;
-      xgd::sout << "IDX  OB_FCARGE  LOG_FCHARGE       RESULT" << endl;
-      xgd::sout << "----------------------------------------" << endl;
+      cout << endl;
+      cout << "IDX  OB_FCARGE  LOG_FCHARGE       RESULT" << endl;
+      cout << "----------------------------------------" << endl;
 
       ni = 1;
       for (di = fcharges.begin(); di != fcharges.end(); ++di) {
@@ -4216,21 +4215,21 @@ namespace OpenBabel
           failed = true;
         }
 
-        xgd::sout << _logbuf << endl;
+        cout << _logbuf << endl;
 
         ni++;
       }
 
       if (failed) {
-        xgd::sout << "Could not successfully assign formal charges" << endl;
+        cout << "Could not successfully assign formal charges" << endl;
         //return false;
         continue;
       }
 
       SetPartialCharges();
-      xgd::sout << endl;
-      xgd::sout << "IDX  OB_PCARGE  LOG_PCHARGE       RESULT" << endl;
-      xgd::sout << "----------------------------------------" << endl;
+      cout << endl;
+      cout << "IDX  OB_PCARGE  LOG_PCHARGE       RESULT" << endl;
+      cout << "----------------------------------------" << endl;
 
       ni = 1;
       for (di = pcharges.begin(); di != pcharges.end(); ++di) {
@@ -4248,13 +4247,13 @@ namespace OpenBabel
           failed = true;
         }
 
-        xgd::sout << _logbuf << endl;
+        cout << _logbuf << endl;
 
         ni++;
       }
 
       if (failed) {
-        xgd::sout << "Could not successfully assign partial charges" << endl;
+        cout << "Could not successfully assign partial charges" << endl;
         //return false;
         continue;
       }
@@ -4262,48 +4261,48 @@ namespace OpenBabel
 
 
       if (!SetupCalculations()) {
-        xgd::sout << "Could not setup calculations (missing parameters...)" << endl;
+        cout << "Could not setup calculations (missing parameters...)" << endl;
         return false;
         //continue;
       }
 
       double delta;
-      xgd::sout << endl;
-      xgd::sout << "TERM                     OB ENERGY     LOG ENERGY         DELTA" << endl;
-      xgd::sout << "---------------------------------------------------------------" << endl;
+      cout << endl;
+      cout << "TERM                     OB ENERGY     LOG ENERGY         DELTA" << endl;
+      cout << "---------------------------------------------------------------" << endl;
 
       delta = (E_Bond() - ebond);
       snprintf(_logbuf, BUFF_SIZE, "Bond Stretching        %11.5f    %11.5f   %11.5f", E_Bond(), ebond, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
       delta = (E_Angle() - eangle);
       snprintf(_logbuf, BUFF_SIZE, "Angle Bending          %11.5f    %11.5f   %11.5f", E_Angle(), eangle, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
       delta = (E_StrBnd() - estbn);
       snprintf(_logbuf, BUFF_SIZE, "Stretch-Bending        %11.5f    %11.5f   %11.5f", E_StrBnd(), estbn, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
       delta = (E_OOP() - eoop);
       snprintf(_logbuf, BUFF_SIZE, "Out-Of-Plane Bending   %11.5f    %11.5f   %11.5f", E_OOP(), eoop, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
       delta = (E_Torsion() - etor);
       snprintf(_logbuf, BUFF_SIZE, "Torsional              %11.5f    %11.5f   %11.5f", E_Torsion(), etor, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
       delta = (E_VDW() - evdw);
       snprintf(_logbuf, BUFF_SIZE, "Van der Waals          %11.5f    %11.5f   %11.5f", E_VDW(), evdw, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
       delta = (E_Electrostatic() - eeq);
       snprintf(_logbuf, BUFF_SIZE, "Electrostatic          %11.5f    %11.5f   %11.5f", E_Electrostatic(), eeq, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
-      xgd::sout << endl;
+      cout << endl;
       delta = (Energy() - etot);
       snprintf(_logbuf, BUFF_SIZE, "Total ENERGY           %11.5f    %11.5f   %11.5f", Energy(), etot, delta);
-      xgd::sout << _logbuf << endl;
+      cout << _logbuf << endl;
 
     } // for (unsigned int c;; c++ )
 
@@ -4322,13 +4321,13 @@ namespace OpenBabel
 
     bool passed = true; // set to false if any component fails
 
-    xgd::sout << "----------------------------------------------------------------------------------------" << endl;
-    xgd::sout << "                                                                                        " << endl;
-    xgd::sout << "  VALIDATE GRADIENTS : " << _mol.GetTitle() << endl;
-    xgd::sout << "                                                                                        " << endl;
-    xgd::sout << "                                                                                        " << endl;
-    xgd::sout << "ATOM IDX      NUMERICAL GRADIENT           ANALYTICAL GRADIENT        REL. ERROR (%)   " << endl;
-    xgd::sout << "----------------------------------------------------------------------------------------" << endl;
+    cout << "----------------------------------------------------------------------------------------" << endl;
+    cout << "                                                                                        " << endl;
+    cout << "  VALIDATE GRADIENTS : " << _mol.GetTitle() << endl;
+    cout << "                                                                                        " << endl;
+    cout << "                                                                                        " << endl;
+    cout << "ATOM IDX      NUMERICAL GRADIENT           ANALYTICAL GRADIENT        REL. ERROR (%)   " << endl;
+    cout << "----------------------------------------------------------------------------------------" << endl;
     //     "XX       (000.000, 000.000, 000.000)  (000.000, 000.000, 000.000)  (00.00, 00.00, 00.00)"
 
     FOR_ATOMS_OF_MOL (a, _mol) {
@@ -4615,12 +4614,12 @@ namespace OpenBabel
         unsigned int order1 = GetCXT(0, atoi(d->GetType()), atoi(c->GetType()), atoi(b->GetType()), atoi(a->GetType()));
         unsigned int order2 = GetCXT(0, atoi(a->GetType()), atoi(b->GetType()), atoi(c->GetType()), atoi(d->GetType()));
 
-        xgd::sout << "GetTorsionType(" << a->GetType() << ", " << b->GetType() << ", " << c->GetType() << ", " << d->GetType() << ")" << endl;
-        xgd::sout << "    order1 = " << order1 << endl;
-        xgd::sout << "    order2 = " << order2 << endl;
-        xgd::sout << "    btab = " << btab << endl;
-        xgd::sout << "    btbc = " << btbc << endl;
-        xgd::sout << "    btcd = " << btcd << endl;
+        cout << "GetTorsionType(" << a->GetType() << ", " << b->GetType() << ", " << c->GetType() << ", " << d->GetType() << ")" << endl;
+        cout << "    order1 = " << order1 << endl;
+        cout << "    order2 = " << order2 << endl;
+        cout << "    btab = " << btab << endl;
+        cout << "    btbc = " << btbc << endl;
+        cout << "    btcd = " << btcd << endl;
       */
     }
 
@@ -5057,11 +5056,11 @@ namespace OpenBabel
     }
 
     /*
-      xgd::sout << "Ha=" << Ha << "  Hb=" << Hb << "  BOab=" << BOab << endl;
-      xgd::sout << "r0a=" << r0a << "  Xa=" << Xa << endl;
-      xgd::sout << "r0b=" << r0b << "  Xb=" << Xb << endl;
-      xgd::sout << "r0a + r0b=" << r0a +r0b << endl;
-      xgd::sout << "c=" << c << "  |Xa-Xb|=" << fabs(Xa-Xb) << "  |Xa-Xb|^1.4=" << pow(fabs(Xa-Xb), 1.4) << endl;
+      cout << "Ha=" << Ha << "  Hb=" << Hb << "  BOab=" << BOab << endl;
+      cout << "r0a=" << r0a << "  Xa=" << Xa << endl;
+      cout << "r0b=" << r0b << "  Xb=" << Xb << endl;
+      cout << "r0a + r0b=" << r0a +r0b << endl;
+      cout << "c=" << c << "  |Xa-Xb|=" << fabs(Xa-Xb) << "  |Xa-Xb|^1.4=" << pow(fabs(Xa-Xb), 1.4) << endl;
     */
     r0ab = r0a + r0b - c * pow(fabs(Xa - Xb), 1.4) - 0.008;
 

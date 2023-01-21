@@ -11,7 +11,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/obmolecformat.h>
@@ -310,7 +309,7 @@ namespace OpenBabel
 			  if (vs.size() >= 2) {
           variables[vs[0]] = atof(vs[1].c_str());
           foundVariables = true;
-          //          xgd::serr << "var: " << vs[0] << " " << vs[1] << endl;
+          //          cerr << "var: " << vs[0] << " " << vs[1] << endl;
         }
 			}
 			else {

@@ -12,7 +12,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 #include <openbabel/mol.h>
@@ -165,7 +164,7 @@ namespace OpenBabel
       // WARNING: Atom index issue here
       a->SetPartialCharge(charges[a->GetIdx() - 1]);
 
-      xgd::serr << " charge : " << charges[a->GetIdx() - 1] << endl;
+      cerr << " charge : " << charges[a->GetIdx() - 1] << endl;
 
       if (!a->HasData("Radius")) {
         std::ostringstream s;
@@ -176,7 +175,7 @@ namespace OpenBabel
         a->SetData(p);
       }
 
-      xgd::serr << " radius : " << radii[a->GetIdx() - 1] << endl;
+      cerr << " radius : " << radii[a->GetIdx() - 1] << endl;
 
     }
     mol.SetPartialChargesPerceived();
@@ -392,7 +391,7 @@ namespace OpenBabel
     atom.SetVector(v);
 
     // useful for debugging unknown atom types (e.g., PR#1577238)
-    //    xgd::sout << mol.NumAtoms() + 1 << " " << atmid << " type: " << type << endl;
+    //    cout << mol.NumAtoms() + 1 << " " << atmid << " type: " << type << endl;
     atom.SetAtomicNum(OBElements::GetAtomicNum(type.c_str()));
 
     /* residue sequence number */

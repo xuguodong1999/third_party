@@ -16,7 +16,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/tautomer.h>
 #include <openbabel/mol.h>
 #include <openbabel/atom.h>
@@ -52,12 +51,12 @@ namespace OpenBabel {
       public:
         explicit EnterExit(const std::string &function, int indent = 0) : m_function(function), m_indent(indent)
         {
-          xgd::sout << ::OpenBabel::TautomerImpl::indentation(m_indent) << "Enter " << m_function << "()..." << std::endl;
+          std::cout << ::OpenBabel::TautomerImpl::indentation(m_indent) << "Enter " << m_function << "()..." << std::endl;
         }
 
         ~EnterExit()
         {
-          xgd::sout << ::OpenBabel::TautomerImpl::indentation(m_indent) << "Exit " << m_function << "()..." << std::endl;
+          std::cout << ::OpenBabel::TautomerImpl::indentation(m_indent) << "Exit " << m_function << "()..." << std::endl;
         }
 
         std::string indentation() const
@@ -122,7 +121,7 @@ namespace OpenBabel {
         void redo(OBAtom *atom)
         {
 #ifdef DEBUG
-          xgd::sout << "AssignDonorRAII::redo(" << atom->GetIndex() << ")" << std::endl;
+          std::cout << "AssignDonorRAII::redo(" << atom->GetIndex() << ")" << std::endl;
 #endif
           assert(m_hydrogenCounter >= 1);
           m_atom = atom;
@@ -136,7 +135,7 @@ namespace OpenBabel {
           if (!m_atom)
             return;
 #ifdef DEBUG
-          xgd::sout << "AssignDonorRAII::undo(" << m_atom->GetIndex() << ")" << std::endl;
+          std::cout << "AssignDonorRAII::undo(" << m_atom->GetIndex() << ")" << std::endl;
 #endif
           m_atomTypes[m_atom->GetIndex()] = Unassigned;
           m_atom->SetImplicitHCount(m_atom->GetImplicitHCount() - 1);
@@ -180,7 +179,7 @@ namespace OpenBabel {
         void redo(OBAtom *atom)
         {
 #ifdef DEBUG
-          xgd::sout << "AssignAcceptorRAII::redo(" << atom->GetIndex() << ")" << std::endl;
+          std::cout << "AssignAcceptorRAII::redo(" << atom->GetIndex() << ")" << std::endl;
 #endif
           m_atom = atom;
           m_atomTypes[m_atom->GetIndex()] = Acceptor;
@@ -191,7 +190,7 @@ namespace OpenBabel {
           if (!m_atom)
             return;
 #ifdef DEBUG
-          xgd::sout << "AssignAcceptorRAII::undo(" << m_atom->GetIndex() << ")" << std::endl;
+          std::cout << "AssignAcceptorRAII::undo(" << m_atom->GetIndex() << ")" << std::endl;
 #endif
           m_atomTypes[m_atom->GetIndex()] = Unassigned;
           m_atom = nullptr;
@@ -273,71 +272,71 @@ namespace OpenBabel {
 #ifdef DEBUG
     void PrintAtomTypes(const std::vector<Type> &atomTypes, int indent = 0)
     {
-      xgd::sout << indentation(indent);
+      std::cout << indentation(indent);
       for(std::size_t i = 0; i < atomTypes.size(); ++i) {
-        xgd::sout << i;
+        std::cout << i;
         switch (atomTypes[i]) {
           case Donor:
-            xgd::sout << "D ";
+            std::cout << "D ";
             break;
           case Acceptor:
-            xgd::sout << "A ";
+            std::cout << "A ";
             break;
           case Hybridized:
-            xgd::sout << "H ";
+            std::cout << "H ";
             break;
           case Other:
-            xgd::sout << "O ";
+            std::cout << "O ";
             break;
           case Unassigned:
-            xgd::sout << "? ";
+            std::cout << "? ";
             break;
           default:
             assert(0);
         }
       }
-      xgd::sout << std::endl;
+      std::cout << std::endl;
     }
 
     void PrintBondTypes(OBMol *mol, const std::vector<Type> &bondTypes, int indent = 0)
     {
-      xgd::sout << indentation(indent);
+      std::cout << indentation(indent);
       for(std::size_t i = 0; i < bondTypes.size(); ++i) {
         OBBond *bond = mol->GetBond(i);
-        xgd::sout << bond->GetBeginAtomIdx() - 1;
+        std::cout << bond->GetBeginAtomIdx() - 1;
 
         switch (bondTypes[i]) {
           case Assigned:
             switch (bond->GetBondOrder()) {
               case 1:
-                xgd::sout << "-";
+                std::cout << "-";
                 break;
               case 2:
-                xgd::sout << "=";
+                std::cout << "=";
                 break;
               case 3:
-                xgd::sout << "#";
+                std::cout << "#";
                 break;
               default:
                 assert(0);
             }
             break;
           case Single:
-            xgd::sout << "-";
+            std::cout << "-";
             break;
           case Double:
-            xgd::sout << "=";
+            std::cout << "=";
             break;
           case Unassigned:
-            xgd::sout << "?";
+            std::cout << "?";
             break;
           default:
             assert(0);
         }
 
-        xgd::sout << bond->GetEndAtomIdx() - 1 << " ";
+        std::cout << bond->GetEndAtomIdx() - 1 << " ";
       }
-      xgd::sout << std::endl;
+      std::cout << std::endl;
     }
 #endif
 
@@ -418,7 +417,7 @@ namespace OpenBabel {
         if (atomTypes[atom->GetIndex()] == Donor)
           if (numDoubleBond) {
 #ifdef DEBUG
-            xgd::sout << indentation(depth) << "invalid Donor" << std::endl;
+            std::cout << indentation(depth) << "invalid Donor" << std::endl;
 #endif
             return false;
           }
@@ -428,14 +427,14 @@ namespace OpenBabel {
           // have at least one unassigned or double bond
           if (!numUnassigned && !numDoubleBond) {
 #ifdef DEBUG
-            xgd::sout << indentation(depth) << "invalid Acceptor/Hybridized [no unassigned/double bond] for atom " << atom->GetIndex() << std::endl;
+            std::cout << indentation(depth) << "invalid Acceptor/Hybridized [no unassigned/double bond] for atom " << atom->GetIndex() << std::endl;
 #endif
             return false;
           }
           // have no more than one double bond
           if (numDoubleBond > 1) {
 #ifdef DEBUG
-            xgd::sout << indentation(depth) << "invalid Acceptor/Hybridized [multiple double bonds] for atom " << atom->GetIndex() << std::endl;
+            std::cout << indentation(depth) << "invalid Acceptor/Hybridized [multiple double bonds] for atom " << atom->GetIndex() << std::endl;
 #endif
             return false;
           }
@@ -474,7 +473,7 @@ namespace OpenBabel {
                 propagation.assignBond(&*bond, Single);
                 changed = true;
 #ifdef DEBUG
-                xgd::sout << ee.indentation() << "-> Rule 1: Assign " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Single" << std::endl;
+                std::cout << ee.indentation() << "-> Rule 1: Assign " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Single" << std::endl;
 #endif
               }
             }
@@ -498,7 +497,7 @@ namespace OpenBabel {
               propagation.assignDonor(&*atom);
               changed = true;
 #ifdef DEBUG
-              xgd::sout << ee.indentation() << "-> Rule 2: Assign " << atom->GetIndex() << " Donor" << std::endl;
+              std::cout << ee.indentation() << "-> Rule 2: Assign " << atom->GetIndex() << " Donor" << std::endl;
 #endif
             }
           }
@@ -520,7 +519,7 @@ namespace OpenBabel {
             propagation.assignAcceptor(&*atom);
             changed = true;
 #ifdef DEBUG
-            xgd::sout << ee.indentation() << "-> Rule 3: Assign " << atom->GetIndex() << " Acceptor" << std::endl;
+            std::cout << ee.indentation() << "-> Rule 3: Assign " << atom->GetIndex() << " Acceptor" << std::endl;
 #endif
           }
         }
@@ -543,7 +542,7 @@ namespace OpenBabel {
                 propagation.assignBond(&*bond, Single);
                 changed = true;
 #ifdef DEBUG
-                xgd::sout << ee.indentation() << "-> Rule 4: Assign " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Single" << std::endl;
+                std::cout << ee.indentation() << "-> Rule 4: Assign " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Single" << std::endl;
 #endif
               }
             }
@@ -570,7 +569,7 @@ namespace OpenBabel {
                 propagation.assignBond(&*bond, Double);
                 changed = true;
 #ifdef DEBUG
-                xgd::sout << ee.indentation() << "-> Rule 5: Assign " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Double" << std::endl;
+                std::cout << ee.indentation() << "-> Rule 5: Assign " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Double" << std::endl;
 #endif
               }
             }
@@ -596,7 +595,7 @@ namespace OpenBabel {
             OBBond *bond = mol->GetBond(i);
             propagation.assignBond(bond, Single);
 #ifdef DEBUG
-            xgd::sout << ee.indentation() << "-> Unasigned bonds remaining, assigning " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Single" << std::endl;
+            std::cout << ee.indentation() << "-> Unasigned bonds remaining, assigning " << bond->GetBeginAtomIdx()-1 << "-" << bond->GetEndAtomIdx()-1 << " Single" << std::endl;
 #endif
             break;
           }
@@ -613,7 +612,7 @@ namespace OpenBabel {
           m_foundLeafNode = true;
 
 #ifdef DEBUG
-          xgd::sout << ee.indentation() << "  --> LeafNode reached..." << std::endl;
+          std::cout << ee.indentation() << "  --> LeafNode reached..." << std::endl;
 #endif
           // Copy information to mol and reset aromaticity
           FOR_ATOMS_OF_MOL (atom, mol)
@@ -662,14 +661,14 @@ namespace OpenBabel {
 #ifdef DEBUG
       EnterExit ee("EnumerateRecursive", depth);
 
-      xgd::sout << ee.indentation() << numHydrogens << " hydrogens left [1]..." << std::endl;
+      std::cout << ee.indentation() << numHydrogens << " hydrogens left [1]..." << std::endl;
       PrintAtomTypes(atomTypes, depth+1);
       PrintBondTypes(mol, bondTypes, depth+1);
 #endif
 
       if (m_canonical && m_foundLeafNode) {
 #ifdef DEBUG
-        xgd::sout << ee.indentation() << "--> Canonical and leaf node found, backtracking..." << std::endl;
+        std::cout << ee.indentation() << "--> Canonical and leaf node found, backtracking..." << std::endl;
 #endif
         return;
       }
@@ -678,7 +677,7 @@ namespace OpenBabel {
       OBAtom *nextAtom = SelectNextAtom(atomTypes);
       if (!nextAtom) {
 #ifdef DEBUG
-        xgd::sout << ee.indentation() << "--> No unassigned atoms left, backtracking..." << std::endl;
+        std::cout << ee.indentation() << "--> No unassigned atoms left, backtracking..." << std::endl;
 #endif
         return;
       }
@@ -687,14 +686,14 @@ namespace OpenBabel {
       if (numHydrogens) {
         AssignDonorRAII donor(atomTypes, numHydrogens, nextAtom);
 #ifdef DEBUG
-        xgd::sout << ee.indentation() << "-> Assign atom " << nextAtom->GetIndex() << " Donor" << std::endl;
+        std::cout << ee.indentation() << "-> Assign atom " << nextAtom->GetIndex() << " Donor" << std::endl;
 #endif
 
         // Propagate...
         AssignmentPropagation(mol, atomTypes, bondTypes, numHydrogens, functor, depth + 1);
 
 #ifdef DEBUG
-        xgd::sout << ee.indentation() << numHydrogens << " hydrogens left [1b]..." << std::endl;
+        std::cout << ee.indentation() << numHydrogens << " hydrogens left [1b]..." << std::endl;
         PrintAtomTypes(atomTypes, depth+1);
         PrintBondTypes(mol, bondTypes, depth+1);
 #endif
@@ -706,7 +705,7 @@ namespace OpenBabel {
       }
 
 #ifdef DEBUG
-      xgd::sout << ee.indentation() << numHydrogens << " hydrogens left [2]..." << std::endl;
+      std::cout << ee.indentation() << numHydrogens << " hydrogens left [2]..." << std::endl;
       PrintAtomTypes(atomTypes, depth+1);
       PrintBondTypes(mol, bondTypes, depth+1);
 #endif
@@ -714,7 +713,7 @@ namespace OpenBabel {
       // Assign it acceptor after backtracking
       AssignAcceptorRAII acceptor(atomTypes, nextAtom);
 #ifdef DEBUG
-      xgd::sout << ee.indentation() << "-> Assign atom " << nextAtom->GetIndex() << " Acceptor" << std::endl;
+      std::cout << ee.indentation() << "-> Assign atom " << nextAtom->GetIndex() << " Acceptor" << std::endl;
 #endif
 
       // Check to ensure there are at least enough unassigned atoms left to assign hydrogens to
@@ -723,7 +722,7 @@ namespace OpenBabel {
         AssignmentPropagation(mol, atomTypes, bondTypes, numHydrogens, functor, depth + 1);
       } else {
 #ifdef DEBUG
-        xgd::sout << ee.indentation() << "--> Too many hydrogens left, backtracking..." << std::endl;
+        std::cout << ee.indentation() << "--> Too many hydrogens left, backtracking..." << std::endl;
 #endif
       }
     }
@@ -736,7 +735,7 @@ namespace OpenBabel {
       FOR_ATOMS_OF_MOL(atm, mol) {
         totH += atm->GetImplicitHCount();
       }
-      xgd::sout << indentation(indent) << "Total no. of hydrogens in molecule: " << totH << std::endl;
+      std::cout << indentation(indent) << "Total no. of hydrogens in molecule: " << totH << std::endl;
     }
 #endif
 
@@ -744,7 +743,7 @@ namespace OpenBabel {
     {
       atom->SetImplicitHCount(atom->GetImplicitHCount() - 1);
 #ifdef DEBUG
-      xgd::sout << indentation(indent) << "Decremented " << atom->GetIndex() << " (" << atom->GetAtomicNum() << ") to " << atom->GetImplicitHCount() << std::endl;
+      std::cout << indentation(indent) << "Decremented " << atom->GetIndex() << " (" << atom->GetAtomicNum() << ") to " << atom->GetImplicitHCount() << std::endl;
       SanityCheckHydrogens(atom, indent);
 #endif
     }

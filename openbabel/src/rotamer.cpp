@@ -16,7 +16,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/mol.h>
@@ -420,10 +419,10 @@ namespace OpenBabel
 
         // if the sum of the ring torsions is not ~0, bad move
         if (fabs(torsionSum) > 45.0) {
-          //          xgd::serr << " Bad move! " << fabs(torsionSum) << endl;
+          //          cerr << " Bad move! " << fabs(torsionSum) << endl;
           return; // don't make the move
         }
-        //        xgd::serr << " Good move!" << endl;
+        //        cerr << " Good move!" << endl;
       }
     }
 
@@ -553,7 +552,7 @@ namespace OpenBabel
 
         // if the sum of the ring torsions is not ~0, bad move
         if (fabs(torsionSum) > 45.0) {
-          //          xgd::serr << " Bad move!" << endl;
+          //          cerr << " Bad move!" << endl;
           return false; // don't make the move
         }
       }

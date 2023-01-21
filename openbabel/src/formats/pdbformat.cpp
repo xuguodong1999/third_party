@@ -13,7 +13,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 #include <openbabel/obfunctions.h>
@@ -1092,7 +1091,7 @@ namespace OpenBabel
     atom.SetData(occup);
 
     // useful for debugging unknown atom types (e.g., PR#1577238)
-    //    xgd::sout << mol.NumAtoms() + 1  << " : '" << element << "'" << " " << OBElements::GetAtomicNum(element.c_str()) << endl;
+    //    cout << mol.NumAtoms() + 1  << " : '" << element << "'" << " " << OBElements::GetAtomicNum(element.c_str()) << endl;
     if (elementFound)
       atom.SetAtomicNum(OBElements::GetAtomicNum(element.c_str()));
     else { // use our old-style guess from athe atom type

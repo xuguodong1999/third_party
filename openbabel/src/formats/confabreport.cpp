@@ -30,7 +30,6 @@ For XML formats, extra support for the parsing is provided, see pubchem.cpp
 as an example.
 */
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/obmolecformat.h>
 #include <openbabel/math/align.h>
@@ -158,20 +157,20 @@ bool ConfabReport::WriteMolecule(OBBase* pOb, OBConversion* pConv)
   if(firstMol) {
     rfilename = pConv->IsOption("f");
     if (!rfilename) {
-      xgd::serr << "Need to specify a reference file\n";
+      cerr << "Need to specify a reference file\n";
       return false;
     }
     OBFormat *prFormat = nullptr;
     if (!prFormat) {
       prFormat = rconv.FormatFromExt(rfilename);
       if (!prFormat) {
-        xgd::serr << "Cannot read reference format!" << endl;
+        cerr << "Cannot read reference format!" << endl;
         return false;
       }
     }
     rfs.open(rfilename);
     if (!rfs) {
-      xgd::serr << "Cannot read reference file!" << endl;
+      cerr << "Cannot read reference file!" << endl;
       return false;
     }
     const char* pp = pConv->IsOption("r");

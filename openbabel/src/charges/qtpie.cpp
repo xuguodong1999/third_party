@@ -19,7 +19,6 @@ GNU General Public License for more details.
 #ifdef HAVE_EIGEN
 
 #include "qtpie.h"
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/locale.h>
 #include <openbabel/oberror.h>
 #include <openbabel/generic.h>
@@ -318,12 +317,12 @@ QTPIECharges theQTPIECharges("qtpie"); //Global instance
 
 //For debugging purposes only
 #if 0
-    xgd::sout << "Ready to solve QTPIE problem" << endl << endl;
-    xgd::sout << "Hardness matrix:" << endl << Hardness << endl << endl;
-    xgd::sout << "Voltage vector:" << endl << Voltage << endl << endl;
-    xgd::sout << "Overlap matrix:" << endl << Overlap << endl << endl;
-    xgd::sout << "Overlap norm:" << endl << OvNorm << endl << endl;
-    xgd::sout << "Charge vector:" << endl << Charge << endl << endl;
+    cout << "Ready to solve QTPIE problem" << endl << endl;
+    cout << "Hardness matrix:" << endl << Hardness << endl << endl;
+    cout << "Voltage vector:" << endl << Voltage << endl << endl;
+    cout << "Overlap matrix:" << endl << Overlap << endl << endl;
+    cout << "Overlap norm:" << endl << OvNorm << endl << endl;
+    cout << "Charge vector:" << endl << Charge << endl << endl;
 #endif
 
     //Now we are done calculating, pass all this back to OpenBabel molecule

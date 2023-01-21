@@ -16,7 +16,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/mol.h>
@@ -170,11 +169,11 @@ namespace OpenBabel
         // > 1 : [HA] > [A-]
         // < 1 : [HA] < [A-]
         if (_vtsfm[i]->IsAcid()) {
-          //xgd::sout << "IsAcid == " << _vtsfm[i]->IsAcid() << endl;
-          //xgd::sout << "pKa == " << _vpKa[i] << endl;
-          //xgd::sout << "pow(10, _vpKa[i] - pH) == " << pow(10, _vpKa[i] - pH) << endl;
+          //cout << "IsAcid == " << _vtsfm[i]->IsAcid() << endl;
+          //cout << "pKa == " << _vpKa[i] << endl;
+          //cout << "pow(10, _vpKa[i] - pH) == " << pow(10, _vpKa[i] - pH) << endl;
           if (pow(10, _vpKa[i] - pH) < 1.0) {
-            //xgd::sout << "APPLY!!" << endl;
+            //cout << "APPLY!!" << endl;
             _vtsfm[i]->Apply(mol);
           }
         }
@@ -184,11 +183,11 @@ namespace OpenBabel
         // > 1 : [BH+] > [B:]
         // < 1 : [BH+] < [B:]
         if (_vtsfm[i]->IsBase()) {
-          //xgd::sout << "IsBase == " << _vtsfm[i]->IsBase() << endl;
-          //xgd::sout << "pKa == " << _vpKa[i] << endl;
-          //xgd::sout << "pow(10, _vpKa[i] - pH) == " << pow(10, _vpKa[i] - pH) << endl;
+          //cout << "IsBase == " << _vtsfm[i]->IsBase() << endl;
+          //cout << "pKa == " << _vpKa[i] << endl;
+          //cout << "pow(10, _vpKa[i] - pH) == " << pow(10, _vpKa[i] - pH) << endl;
           if (pow(10, _vpKa[i] - pH) > 1.0) {
-            //xgd::sout << "APPLY!!" << endl;
+            //cout << "APPLY!!" << endl;
             _vtsfm[i]->Apply(mol);
           }
         }

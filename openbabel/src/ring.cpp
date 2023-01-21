@@ -18,7 +18,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/mol.h> // implements some OBMol methods
@@ -494,7 +493,7 @@ namespace OpenBabel
     vector<OBRing*>::iterator i;
 
     for (i = _rlist.begin();i != _rlist.end();++i)
-      xgd::sout << (*i)->_pathset << endl;
+      cout << (*i)->_pathset << endl;
   }
 
   /* A recursive O(N) traversal of the molecule */

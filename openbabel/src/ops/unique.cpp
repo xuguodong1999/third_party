@@ -15,7 +15,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/op.h>
 #include <openbabel/mol.h>
@@ -110,7 +109,7 @@ bool OpUnique::Do(OBBase* pOb, const char* OptionText, OpMap* pmap, OBConversion
     _trunc.clear();
     _inv = OptionText[0]=='~';   //has the parameter a leading ~ ?
     if(_inv)
-      xgd::slog << "The output has the duplicate structures" << endl;
+      clog << "The output has the duplicate structures" << endl;
 
     if(OptionText[0+_inv]=='/')  //is parameter is /x?
       _trunc = OptionText+_inv;
@@ -144,7 +143,7 @@ bool OpUnique::Do(OBBase* pOb, const char* OptionText, OpMap* pmap, OBConversion
     // InChI is already present in set
     ++_ndups;
     if(_reportDup)
-      xgd::slog << "Removed " << pmol->GetTitle() << " - a duplicate of " << result.first->second
+      clog << "Removed " << pmol->GetTitle() << " - a duplicate of " << result.first->second
          << " (#" << _ndups << ")" << endl;
     //delete pOb;
     ret = false; //filtered out

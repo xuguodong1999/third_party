@@ -20,7 +20,6 @@ GNU General Public License for more details.
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <cstdlib>
 #include <openbabel/babelconfig.h>
 #include <openbabel/data.h>
@@ -215,7 +214,7 @@ namespace OpenBabel
       {
          src = atom->GetType();
          ttab.Translate(dst,src);
-         xgd::sout << "atom number " << atom->GetIdx() << "has mol2 type " << dst << endl;
+         cout << "atom number " << atom->GetIdx() << "has mol2 type " << dst << endl;
       }
       \endcode
 

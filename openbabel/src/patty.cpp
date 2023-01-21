@@ -17,7 +17,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/mol.h>
@@ -103,7 +102,7 @@ namespace OpenBabel
         ifsP= &ifs1;
         //     if (!ifs1)
         //    {
-        //     xgd::serr << "Could not open " << patty_dir << endl;
+        //     cerr << "Could not open " << patty_dir << endl;
         //    exit(0);
         // }
       }

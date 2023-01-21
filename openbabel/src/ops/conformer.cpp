@@ -25,7 +25,6 @@ Compile with tools/obabel.cpp rather than tools/babel.cpp
 
 *******************************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <iostream>
 #include <vector>
@@ -158,6 +157,7 @@ namespace OpenBabel
       OBForceField* pFF = OBForceField::FindForceField(ff);
 
       // set some force field variables
+      pFF->SetLogFile(&clog);
       pFF->SetLogLevel(log ? OBFF_LOGLVL_MEDIUM : OBFF_LOGLVL_NONE);
 
       // Add cut-offs for faster conformer searching
@@ -285,17 +285,17 @@ namespace OpenBabel
           int converted = sscanf(segment.c_str(), "%d-%d%c", &p1, &p2, &additional);
           if (converted==2 && p1>0 && p2>0){
             if (p1>pmol->NumAtoms() || p2>pmol->NumAtoms()){
-              xgd::serr << "ERROR at least one of the atom indices " << p1 << " or " << p2
+              std::cerr << "ERROR at least one of the atom indices " << p1 << " or " << p2 
                         << " is greater than the number of atoms " << pmol->NumAtoms() << "." << std::endl << std::flush;
               return false;
             }
             OBBond* b = pmol->GetBond(p1,p2);
             if (!b){
-              xgd::serr << "ERROR atoms " << p1 << " and " << p2 << " form no bond." << std::endl << std::flush;
+              std::cerr << "ERROR atoms " << p1 << " and " << p2 << " form no bond." << std::endl << std::flush;
               return false;
             }
             if (!(b->IsRotor())){
-                xgd::serr << "ERROR bond formed by atoms " << p1 << " and " << p2 << " is not rotable." << std::endl << std::flush;
+                std::cerr << "ERROR bond formed by atoms " << p1 << " and " << p2 << " is not rotable." << std::endl << std::flush;
                 return false;
             }
             int idx = b->GetIdx();
@@ -305,7 +305,7 @@ namespace OpenBabel
               fixbonds.SetBitOff(idx);
             }
           }else{
-              xgd::serr << "ERROR parsing '" << segment << "' as rotor (must be i-j where i and j are indices >0)" << std::endl << std::flush;
+              std::cerr << "ERROR parsing '" << segment << "' as rotor (must be i-j where i and j are indices >0)" << std::endl << std::flush;
               return false;
           }
         }

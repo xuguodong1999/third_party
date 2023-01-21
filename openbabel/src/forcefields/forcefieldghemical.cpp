@@ -16,7 +16,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 #include <openbabel/mol.h>
 #include <openbabel/locale.h>
@@ -1021,9 +1020,9 @@ namespace OpenBabel
     // DEBUG (validation)
     //FOR_ATOMS_OF_MOL (a, _mol)
     //  if (atoi(a->GetType()) != 0)
-    //    xgd::sout << "ATOMTYPE " << atoi(a->GetType()) << endl;
+    //    cout << "ATOMTYPE " << atoi(a->GetType()) << endl;
     //  else
-    //    xgd::sout << "ATOMTYPE " << a->GetType() << endl;
+    //    cout << "ATOMTYPE " << a->GetType() << endl;
 
 
     // return the locale to the original one

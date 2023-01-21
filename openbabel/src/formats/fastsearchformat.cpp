@@ -11,7 +11,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <sstream>
@@ -312,7 +311,7 @@ virtual const char* Description() //required
         vector<OBMol>::iterator iter;
         for(iter=patternMols.begin();iter!=patternMols.end();++iter)
           fs.Find(&*iter, SeekPositions, MaxCandidates);
-        xgd::slog << SeekPositions.size() << " candidates from fingerprint search phase" << endl;
+        clog << SeekPositions.size() << " candidates from fingerprint search phase" << endl;
       }
 
       vector<unsigned long>::iterator seekitr,
@@ -365,7 +364,7 @@ virtual const char* Description() //required
         string mes("prepare an");
         if(update)
           mes = "update the";
-        xgd::slog << "This will " << mes << " index of " << pConv->GetInFilename()
+        clog << "This will " << mes << " index of " << pConv->GetInFilename()
              <<  " and may take some time..." << flush;
 
         if(!pConv->IsLastFile())
@@ -460,7 +459,7 @@ virtual const char* Description() //required
 
         nmols = pConv->NumInputObjects();
         if(nmols>0)
-          xgd::slog << "\nIt contains " << nmols << " molecules" << flush;
+          clog << "\nIt contains " << nmols << " molecules" << flush;
         if(nmols>500000)
         {
           istream* is = pConv->GetInStream();
@@ -502,12 +501,12 @@ virtual const char* Description() //required
       fsi->Add(pOb, seekpos );
       if(pConv->GetOutputIndex()==400 && nmols>1000)
       {
-        xgd::slog << " Estimated completion time ";
+        clog << " Estimated completion time ";
         double secs = sw.Elapsed() * nmols / 400; //
         if(secs>150)
-          xgd::slog << secs/60 << " minutes" << endl;
+          clog << secs/60 << " minutes" << endl;
     else
-          xgd::slog << secs << " seconds" << endl;
+          clog << secs << " seconds" << endl;
       }
     }
     else
@@ -528,9 +527,9 @@ virtual const char* Description() //required
 
         double secs = sw.Elapsed();
         if(secs>150)
-          xgd::slog << "\n It took " << secs/60 << " minutes" << endl;
+          clog << "\n It took " << secs/60 << " minutes" << endl;
         else
-          xgd::slog << "\n It took " << secs << " seconds" << endl;
+          clog << "\n It took " << secs << " seconds" << endl;
       }
     delete pOb;
     return true;
@@ -667,7 +666,7 @@ virtual const char* Description() //required
       string id(header.fpid);
       if(id.empty())
         id = "default";
-      xgd::slog << indexname << " is an index of\n " << header.datafilename
+      clog << indexname << " is an index of\n " << header.datafilename
            << ".\n It contains " << header.nEntries
            << " molecules. The fingerprint type is " << id << " with "
            << OBFingerprint::Getbitsperint() * header.words << " bits.\n"

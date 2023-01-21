@@ -10,7 +10,6 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
  ***********************************************************************/
- #include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/obmolecformat.h>
@@ -158,7 +157,7 @@ namespace OpenBabel
       if (strstr(buffer, "INTGRL") != nullptr)
       {
         basisformat = INTGRL;
-        xgd::sout << "Cannot read INTGRL format" << endl;
+        cout << "Cannot read INTGRL format" << endl;
         return(false);
       }
       if (strstr(buffer, "ATOMBASIS") != nullptr)
@@ -186,14 +185,14 @@ namespace OpenBabel
       }
       else
       {
-        xgd::sout << "AtomTypes not specified in file." << endl;
+        cout << "AtomTypes not specified in file." << endl;
         return(false);
       }
 
       // then check if there is a NoSymmetry line. otherwise bail out
       if (strstr(buffer, "NoSymmetry") == nullptr)
       {
-        xgd::sout << "Only molecules with NoSymmetry can be read" << endl;
+        cout << "Only molecules with NoSymmetry can be read" << endl;
         return(false);
       }
 
@@ -220,7 +219,7 @@ namespace OpenBabel
         }
         if (strstr(buffer, "ZMAT") != nullptr)
         {
-           xgd::sout << "ZMAT format not supported" << endl;
+           cout << "ZMAT format not supported" << endl;
            return(false);
         }
         tokenize(vs,buffer);
@@ -375,7 +374,7 @@ namespace OpenBabel
     {
       if (strstr(buffer, "Cartesian Coordinates (a.u.)") != nullptr)
       {
-        xgd::sout << "Reading coordinates." << endl;
+        cout << "Reading coordinates." << endl;
         ifs.getline(buffer,BUFF_SIZE); // ---
         ifs.getline(buffer,BUFF_SIZE); // whitespace
         ifs.getline(buffer,BUFF_SIZE); // number of coordinates
@@ -386,7 +385,7 @@ namespace OpenBabel
           atomcount --;
           ifs.getline(buffer,BUFF_SIZE); // line with data
           tokenize(vs,buffer);
-          xgd::sout << vs.size() << endl;
+          cout << vs.size() << endl;
           if(vs.size() == 11)
           {
             atom = mol.NewAtom();

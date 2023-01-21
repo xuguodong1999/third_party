@@ -16,8 +16,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include "xgd/spdlogstream/spdlogstream.hpp"
-
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -246,7 +244,7 @@ namespace OpenBabel
           }
         if (maxVal == 0)
           {
-            xgd::serr << "EEMCharges: Warning singular matrix..." << std::endl;
+            std::cerr << "EEMCharges: Warning singular matrix..." << std::endl;
           }
 
         vScales[i] = 1.0 / maxVal;
@@ -284,7 +282,7 @@ namespace OpenBabel
         // check if we need to interchange rows
         if (j != iMax) // if current column index is not the maximal row index we need to interchange
           {
-            // xgd::serr << "Swap rows: " << iMax << " <-> " << j << std::endl;
+            // std::cerr << "Swap rows: " << iMax << " <-> " << j << std::endl;
             _swapRows(A, iMax, j, dim);
             vScales[iMax] = vScales[j];
           }

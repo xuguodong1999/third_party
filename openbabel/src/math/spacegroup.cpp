@@ -16,7 +16,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include "xgd/spdlogstream/spdlogstream.hpp"
 #include <openbabel/babelconfig.h>
 
 #include <openbabel/math/spacegroup.h>
@@ -496,7 +495,7 @@ namespace OpenBabel
       {
         if (T.find((*i)->DescribeAsString()) != T.end())
           {
-            xgd::serr << "Duplicated transform: " << (*i)->DescribeAsString() << endl;
+            cerr << "Duplicated transform: " << (*i)->DescribeAsString() << endl;
             return false;
           }
         T[(*i)->DescribeAsString()] = *i;
@@ -513,7 +512,7 @@ namespace OpenBabel
             s = (*(*j).second * *(*k).second).DescribeAsString();
             if (T.find(s) == end)
               {
-                xgd::serr << "Invalid transform: " << (*j).first << " * " << (*k).first << " = " << s << endl;
+                cerr << "Invalid transform: " << (*j).first << " * " << (*k).first << " = " << s << endl;
                 return false;
               }
             if (!has_inverse && s == "x,y,z")
@@ -521,7 +520,7 @@ namespace OpenBabel
           }
         if (!has_inverse)
           {
-            xgd::serr << "Transform with no inverse: " << (*j).first << endl;
+            cerr << "Transform with no inverse: " << (*j).first << endl;
             return false;
           }
       }
