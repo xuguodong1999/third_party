@@ -25,11 +25,6 @@ GNU General Public License for more details.
 using namespace std;
 namespace OpenBabel
 {
-#if defined(__CYGWIN__) || defined(__MINGW32__)
-  // macro to implement static OBPlugin::PluginMapType& Map()
-  PLUGIN_CPP_FILE(OBDescriptor)
-#endif
-
 /**
      Compare() is a virtual function and can be overridden to allow different
      comparison behaviour.
