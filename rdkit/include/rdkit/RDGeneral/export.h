@@ -36,7 +36,6 @@
 #include <MolCatalog/rdkit_export.hpp>
 #include <MolChemicalFeatures/rdkit_export.hpp>
 #include <MolDraw2D/rdkit_export.hpp>
-#include <MolDraw2DQt/rdkit_export.hpp>
 #include <MolEnumerator/rdkit_export.hpp>
 #include <MolHash/rdkit_export.hpp>
 #include <MolInterchange/rdkit_export.hpp>
