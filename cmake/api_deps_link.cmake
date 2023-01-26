@@ -243,7 +243,9 @@ endfunction()
 
 # openmp
 function(xgd_link_omp TARGET)
-    if (OpenMP_CXX_FOUND)
+    if(ANDROID)
+        target_link_libraries(${TARGET} PRIVATE -static-openmp)
+    elseif (OpenMP_CXX_FOUND)
         target_link_libraries(${TARGET} PRIVATE OpenMP::OpenMP_CXX)
     else ()
         message(STATUS "openmp: OpenMP_CXX not found for ${TARGET}")

@@ -205,7 +205,9 @@ function(xgd_add_library TARGET)
             PUBLIC ${param_INCLUDE_DIRS}
             PRIVATE ${param_PRIVATE_INCLUDE_DIRS}
     )
-    set_target_properties(${TARGET} PROPERTIES DEBUG_POSTFIX ${XGD_DEBUG_POSTFIX})
+    if (XGD_DEBUG_POSTFIX)
+        set_target_properties(${TARGET} PROPERTIES DEBUG_POSTFIX ${XGD_DEBUG_POSTFIX})
+    endif ()
 endfunction()
 
 # global init static library
