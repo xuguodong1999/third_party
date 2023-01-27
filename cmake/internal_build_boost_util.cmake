@@ -48,7 +48,10 @@ function(xgd_internal_build_boost BOOST_COMPONENT)
                 BOOST_THREAD_USE_LIB
         )
     endif ()
-    xgd_exclude_from_all(boost_${BOOST_COMPONENT})
+    if (NOT TARGET boost_all)
+        add_custom_target(boost_all COMMAND "echo" "Building boost_all done.")
+    endif ()
+    add_dependencies(boost_all boost_${BOOST_COMPONENT})
 endfunction()
 
 function(xgd_build_boost_atomic)

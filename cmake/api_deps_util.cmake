@@ -5,12 +5,12 @@ endfunction()
 
 # disable compiler warning ! only for 3rdparty libs
 function(xgd_disable_warnings TARGET)
-    target_compile_options(
-            ${TARGET}
-            PRIVATE
-            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-w>
-            $<$<CXX_COMPILER_ID:MSVC>:/w>
-    )
+#    target_compile_options(
+#            ${TARGET}
+#            PRIVATE
+#            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-w>
+#            $<$<CXX_COMPILER_ID:MSVC>:/w>
+#    )
 endfunction()
 
 function(xgd_add_global_compiler_flag FLAGS)
@@ -199,7 +199,7 @@ function(xgd_add_library TARGET)
     else ()
         add_library(${TARGET} ${${TARGET}_SOURCES})
     endif ()
-    xgd_production_build_library(${TARGET})
+    xgd_lib_apply_release_info(${TARGET})
     target_include_directories(
             ${TARGET}
             PUBLIC ${param_INCLUDE_DIRS}
@@ -208,6 +208,7 @@ function(xgd_add_library TARGET)
     if (XGD_DEBUG_POSTFIX)
         set_target_properties(${TARGET} PROPERTIES DEBUG_POSTFIX ${XGD_DEBUG_POSTFIX})
     endif ()
+    xgd_exclude_from_all(${TARGET})
 endfunction()
 
 # global init static library
@@ -253,8 +254,8 @@ function(xgd_generate_export_header_modules TARGET BASE_NAME MODULE_NAME EXT)
     )
 endfunction()
 
-function(xgd_production_build_library TARGET)
-    if (NOT XGD_PRODUCTION_BUILD)
+function(xgd_lib_apply_release_info TARGET)
+    if (NOT XGD_PRODUCTION_BUILD OR NOT EXISTS ${XGD_ASSET_DIR})
         return()
     endif ()
     get_target_property(TARGET_TYPE ${TARGET} TYPE)
@@ -265,7 +266,16 @@ endfunction()
 
 # remove unused 3rdparty lib from cmake "all" target
 function(xgd_exclude_from_all TARGET)
-    set_target_properties(${TARGET} PROPERTIES EXCLUDE_FROM_ALL ${XGD_EXCLUDE_FROM_ALL})
+    cmake_parse_arguments(param "DISABLE" "" "" ${ARGN})
+    if (NOT param_DISABLE)
+        set_target_properties(${TARGET} PROPERTIES EXCLUDE_FROM_ALL ON)
+    else ()
+        set_target_properties(${TARGET} PROPERTIES EXCLUDE_FROM_ALL OFF)
+    endif ()
+    if (NOT TARGET xgd_all)
+        add_custom_target(xgd_all COMMAND "echo" "Building xgd_all done.")
+    endif ()
+    add_dependencies(xgd_all ${TARGET})
 endfunction()
 
 function(xgd_generate_text_assets TARGET BASE_NAME)

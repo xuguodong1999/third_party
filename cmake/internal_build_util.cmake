@@ -15,7 +15,6 @@ function(xgd_build_yoga_library)
         target_compile_definitions(yoga PRIVATE _WINDLL)
     endif ()
     target_link_libraries(yoga PRIVATE $<$<BOOL:${ANDROID}>:log>)
-    xgd_exclude_from_all(yoga)
 endfunction()
 
 # spdlog
@@ -37,7 +36,6 @@ function(xgd_build_spdlog_library)
     endif ()
     xgd_link_threads(spdlog)
     target_link_libraries(spdlog PUBLIC $<$<BOOL:${ANDROID}>:log>)
-    xgd_exclude_from_all(spdlog)
 endfunction()
 
 # gtest
@@ -57,7 +55,6 @@ function(xgd_build_gtest_library)
         )
     endif ()
     xgd_link_threads(gtest)
-    xgd_exclude_from_all(gtest)
 endfunction()
 
 # benchmark
@@ -80,7 +77,6 @@ function(xgd_build_benchmark_library)
         )
     endif ()
     xgd_link_threads(benchmark)
-    xgd_exclude_from_all(benchmark)
 endfunction()
 
 # zlib
@@ -96,7 +92,6 @@ function(xgd_build_zlib_library)
 
     # zlib uses extern to declare functions
     xgd_disable_warnings(zlib)
-    xgd_exclude_from_all(zlib)
 endfunction()
 
 # inchi
@@ -112,7 +107,6 @@ function(xgd_build_inchi_library)
     xgd_generate_export_header(inchi "inchi" ".h")
     target_compile_definitions(inchi PRIVATE TARGET_API_LIB)
     xgd_disable_warnings(inchi)
-    xgd_exclude_from_all(inchi)
 endfunction()
 
 # maeparser
@@ -128,7 +122,6 @@ function(xgd_build_maeparser_library)
     xgd_link_boost(maeparser PRIVATE iostreams)
     xgd_use_header(maeparser PUBLIC boost)
     xgd_generate_export_header(maeparser "maeparser" ".hpp")
-    xgd_exclude_from_all(maeparser)
 endfunction()
 
 # coordgenlibs
@@ -143,7 +136,6 @@ function(xgd_build_coordgenlibs_library)
     )
     xgd_link_maeparser(coordgenlibs)
     xgd_generate_export_header(coordgenlibs "coordgenlibs" ".hpp")
-    xgd_exclude_from_all(coordgenlibs)
 endfunction()
 
 
@@ -161,7 +153,6 @@ function(xgd_build_yaehmop_library)
     )
     target_compile_definitions(yaehmop PUBLIC UNDERSCORE_FORTRAN PRIVATE NEED_DSIGN)
     xgd_disable_warnings(yaehmop)
-    xgd_exclude_from_all(yaehmop)
 endfunction()
 
 # avalontoolkit
@@ -177,7 +168,6 @@ function(xgd_build_avalontoolkit_library)
             ${INC_DIR}
     )
     xgd_disable_warnings(avalontoolkit)
-    xgd_exclude_from_all(avalontoolkit)
 endfunction()
 
 # ringdecomposerlib
@@ -192,7 +182,6 @@ function(xgd_build_ringdecomposerlib_library)
             ${INC_DIR}
     )
     xgd_generate_export_header(ringdecomposerlib "ringdecomposerlib" ".h")
-    xgd_exclude_from_all(ringdecomposerlib)
 endfunction()
 
 # freesasa
@@ -208,5 +197,4 @@ function(xgd_build_freesasa_library)
             ${INC_DIR}
     )
     xgd_disable_warnings(freesasa)
-    xgd_exclude_from_all(freesasa)
 endfunction()

@@ -74,7 +74,5 @@ function(xgd_build_openbabel_library)
 
     file(GLOB_RECURSE OB_DATA_FILES ${OB_DATA_DIR}/*)
     xgd_generate_text_assets(openbabel openbabel SRC_FILES ${OB_DATA_FILES})
-
     xgd_disable_warnings(openbabel)
-    xgd_exclude_from_all(openbabel)
 endfunction()

@@ -14,11 +14,11 @@ function(xgd_build_rdkit_library)
             endif ()
         endif ()
 
-        # string(TOLOWER ${RDKIT_COMPONENT} LIB_NAME)
-        set(LIB_NAME ${RDKIT_COMPONENT})
-        set(LIB_NAME rdkit_${LIB_NAME})
+        # string(TOLOWER ${RDKIT_COMPONENT} RDKIT_COMPONENT_TARGET)
+        set(RDKIT_COMPONENT_TARGET ${RDKIT_COMPONENT})
+        set(RDKIT_COMPONENT_TARGET rdkit_${RDKIT_COMPONENT_TARGET})
         xgd_add_library(
-                ${LIB_NAME}
+                ${RDKIT_COMPONENT_TARGET}
                 SRC_DIRS
                 ${RD_SRC_DIRS}
 
@@ -35,10 +35,14 @@ function(xgd_build_rdkit_library)
                 EXCLUDE_SRC_FILES
                 ${param_EXCLUDE_SRC_FILES}
         )
-        xgd_generate_export_header_modules(${LIB_NAME} "rdkit" "${RDKIT_COMPONENT}" ".hpp")
-        xgd_link_boost(${LIB_NAME} PRIVATE serialization)
-        xgd_use_header(${LIB_NAME} PUBLIC boost)
-        xgd_exclude_from_all(${LIB_NAME})
+        xgd_generate_export_header_modules(${RDKIT_COMPONENT_TARGET} "rdkit" "${RDKIT_COMPONENT}" ".hpp")
+        xgd_link_boost(${RDKIT_COMPONENT_TARGET} PRIVATE serialization)
+        xgd_use_header(${RDKIT_COMPONENT_TARGET} PUBLIC boost)
+        if (NOT TARGET rdkit_all)
+            add_custom_target(rdkit_all COMMAND "echo" "Building rdkit_all done.")
+        endif ()
+        add_dependencies(rdkit_all ${RDKIT_COMPONENT_TARGET})
+        xgd_disable_warnings(${RDKIT_COMPONENT_TARGET})
     endfunction()
 
     function(xgd_build_rdkit_RDGeneral)

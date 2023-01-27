@@ -50,5 +50,4 @@ function(xgd_build_png_library)
     endforeach ()
 
     xgd_link_zlib(png PUBLIC)
-    xgd_exclude_from_all(png)
 endfunction()
