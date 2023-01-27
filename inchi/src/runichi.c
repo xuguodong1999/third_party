@@ -3083,7 +3083,11 @@ int mark_atoms_to_delete_or_renumber( ORIG_ATOM_DATA *orig_at_data,
         (i.e., delete a whole connected component(s) comprising original atoms)
         */
         int natnums = 0;
-        atnums = (int *)inchi_calloc(max_atoms, sizeof(int));
+        if (max_atoms > 0) {
+            atnums = (int *) inchi_calloc(max_atoms, sizeof(int));
+        } else {
+            atnums = NULL;
+        }
         if (!atnums)
         {
             return _IS_ERROR;
