@@ -176,8 +176,7 @@ std::streamsize basic_zip_streambuf<charT, traits>::flush(void)
     }
     while(_err == Z_OK);
 
-    if(&_ostream)
-			_ostream.flush();
+    _ostream.flush();
 
     return total_written_byte_size;
 }
