@@ -39,12 +39,20 @@ function(xgd_build_rdkit_library)
         xgd_link_boost(${RDKIT_COMPONENT_TARGET} PRIVATE serialization)
         xgd_use_header(${RDKIT_COMPONENT_TARGET} PUBLIC boost)
         if (NOT TARGET rdkit_all)
-            add_custom_target(rdkit_all COMMAND "echo" "Building rdkit_all done.")
+            add_custom_target(rdkit_all)
         endif ()
         add_dependencies(rdkit_all ${RDKIT_COMPONENT_TARGET})
-        xgd_disable_warnings(${RDKIT_COMPONENT_TARGET})
     endfunction()
 
+    function(xgd_build_rdkit_hc)
+        xgd_add_library(
+                rdkit_hc STATIC
+                SRC_FILES
+                ${RD_SRC_DIR}/ML/Cluster/Murtagh/hc.c
+                ${RD_SRC_DIR}/ML/Cluster/Murtagh/hcdriver.c
+        )
+        xgd_disable_warnings(rdkit_hc)
+    endfunction()
     function(xgd_build_rdkit_RDGeneral)
         set(RDK_USE_BOOST_SERIALIZATION ON)
         set(RDK_USE_BOOST_IOSTREAMS ON)
@@ -119,12 +127,8 @@ function(xgd_build_rdkit_library)
     xgd_build_rdkit_internal(EHTLIB SRC_DIRS ${RD_SRC_DIR}/YAeHMOP)
     xgd_build_rdkit_internal(RDInchiLib SRC_DIRS ${RD_SRC_DIR}/INCHI-API)
     xgd_build_rdkit_internal(PBF)
-    xgd_build_rdkit_internal(
-            SimDivPickers
-            SRC_DIRS
-            ${RD_SRC_DIR}/SimDivPickers
-            ${RD_SRC_DIR}/ML/Cluster/Murtagh
-    )
+    xgd_build_rdkit_hc()
+    xgd_build_rdkit_internal(SimDivPickers SRC_DIRS ${RD_SRC_DIR}/SimDivPickers)
     xgd_build_rdkit_internal(ga SRC_DIRS ${RD_SRC_DIR}/GA/ga ${RD_SRC_DIR}/GA/util)
 
     xgd_build_rdkit_internal(
@@ -372,7 +376,7 @@ function(xgd_build_rdkit_library)
     xgd_link_rdkit(rdkit_RGroupDecomposition PUBLIC FMCS Fingerprints ga ChemTransforms SubstructMatch SmilesParse GraphMol RDGeometryLib RDGeneral)
     xgd_link_rdkit(rdkit_ScaffoldNetwork PUBLIC MolStandardize ChemReactions ChemTransforms SmilesParse GraphMol RDGeneral)
     xgd_link_rdkit(rdkit_ShapeHelpers PUBLIC MolTransforms GraphMol RDGeometryLib DataStructs)
-    xgd_link_rdkit(rdkit_SimDivPickers PUBLIC RDGeneral)
+    xgd_link_rdkit(rdkit_SimDivPickers PUBLIC RDGeneral hc)
     xgd_link_rdkit(rdkit_SLNParse PUBLIC GraphMol RDGeneral)
     xgd_link_rdkit(rdkit_SmilesParse PUBLIC GraphMol RDGeometryLib RDGeneral)
     xgd_link_rdkit(rdkit_Subgraphs PUBLIC GraphMol RDGeneral)

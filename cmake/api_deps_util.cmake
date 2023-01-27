@@ -5,12 +5,13 @@ endfunction()
 
 # disable compiler warning ! only for 3rdparty libs
 function(xgd_disable_warnings TARGET)
-#    target_compile_options(
-#            ${TARGET}
-#            PRIVATE
-#            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-w>
-#            $<$<CXX_COMPILER_ID:MSVC>:/w>
-#    )
+    target_compile_options(
+            ${TARGET}
+            PRIVATE
+            # $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wno-deprecated-non-prototype -Wno-parentheses -Wno-comment -Wno-constant-logical-operand -Wno-unsequenced -Wno-pointer-bool-conversion -Wno-unused-value -Wno-switch>
+            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-w>
+            $<$<CXX_COMPILER_ID:MSVC>:/w>
+    )
 endfunction()
 
 function(xgd_add_global_compiler_flag FLAGS)
@@ -208,7 +209,6 @@ function(xgd_add_library TARGET)
     if (XGD_DEBUG_POSTFIX)
         set_target_properties(${TARGET} PROPERTIES DEBUG_POSTFIX ${XGD_DEBUG_POSTFIX})
     endif ()
-    xgd_exclude_from_all(${TARGET})
 endfunction()
 
 # global init static library
@@ -272,10 +272,6 @@ function(xgd_exclude_from_all TARGET)
     else ()
         set_target_properties(${TARGET} PROPERTIES EXCLUDE_FROM_ALL OFF)
     endif ()
-    if (NOT TARGET xgd_all)
-        add_custom_target(xgd_all COMMAND "echo" "Building xgd_all done.")
-    endif ()
-    add_dependencies(xgd_all ${TARGET})
 endfunction()
 
 function(xgd_generate_text_assets TARGET BASE_NAME)
