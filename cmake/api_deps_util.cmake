@@ -183,7 +183,7 @@ function(xgd_add_library TARGET)
     # xgd_add_library(your-awesome-target SRC_DIRS [...] SRC_FILES [...] INCLUDE_DIRS [...] PRIVATE_INCLUDE_DIRS [...])
     cmake_parse_arguments(
             param
-            "STATIC"
+            "STATIC;SHARED"
             ""
             "SRC_DIRS;SRC_FILES;INCLUDE_DIRS;PRIVATE_INCLUDE_DIRS;EXCLUDE_SRC_FILES"
             ${ARGN}
@@ -195,8 +195,11 @@ function(xgd_add_library TARGET)
     foreach (EXCLUDE_SRC_FILE ${param_EXCLUDE_SRC_FILES})
         list(REMOVE_ITEM ${TARGET}_SOURCES ${EXCLUDE_SRC_FILE})
     endforeach ()
+
     if (param_STATIC)
         add_library(${TARGET} STATIC ${${TARGET}_SOURCES})
+    elseif (param_SHARED)
+        add_library(${TARGET} SHARED ${${TARGET}_SOURCES})
     else ()
         add_library(${TARGET} ${${TARGET}_SOURCES})
     endif ()

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 project(xgd-deps VERSION 0.0.0)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/api_deps_util.cmake)
