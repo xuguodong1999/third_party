@@ -136,16 +136,6 @@ function(xgd_link_qt TARGET)
     )
     xgd_add_global_init_unit(${TARGET} qt)
     set_target_properties(${TARGET} PROPERTIES AUTOUIC ON AUTOMOC ON AUTORCC ON)
-
-    get_target_property(TARGET_TYPE ${TARGET} TYPE)
-    if (EMSCRIPTEN AND TARGET_TYPE STREQUAL "EXECUTABLE")
-        # FIXME: hack to remove link options from Qt${QT_VERSION_MAJOR}::Platform, and re-add as we need
-        target_link_options(
-                ${TARGET}
-                PRIVATE
-                "SHELL:-s ERROR_ON_UNDEFINED_SYMBOLS=1;SHELL:-s MAX_WEBGL_VERSION=2;SHELL:-s FETCH=1;SHELL:-s WASM_BIGINT=1;SHELL:-s DISABLE_EXCEPTION_CATCHING=1;SHELL:-pthread;\$<\$<CONFIG:Debug>:;SHELL:-s DEMANGLE_SUPPORT=1;SHELL:-s GL_DEBUG=1;--profiling-funcs>;SHELL:-sASYNCIFY_IMPORTS=qt_asyncify_suspend_js,qt_asyncify_resume_js"
-        )
-    endif ()
 endfunction()
 
 # vulkan

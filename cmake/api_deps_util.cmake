@@ -130,49 +130,50 @@ macro(xgd_setup_compile_options)
     set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-    if (MSVC)
-        add_compile_options(
-                $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/MP> # multi processor build
-                $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/utf-8> # correct msvc charset
-        )
-        add_link_options(
-                /manifest:no # do not generate manifest
-        )
+    if (NOT MINGW) # mxe heavily dependent on it
+        set(CMAKE_CXX_EXTENSIONS OFF)
+    endif ()
+    if (XGD_DEBUG_POSTFIX)
+        set(CMAKE_DEBUG_POSTFIX ${XGD_DEBUG_POSTFIX})
+    endif ()
+
+
+    if (WIN32)
+        if (MSVC)
+            # multi processor build
+            add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/MP>)
+            # correct msvc charset
+            add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/utf-8>)
+            # do not generate manifest
+            add_link_options(/manifest:no)
+            # crt
+            # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+        endif ()
         # for M_PI macro
         add_compile_definitions(_USE_MATH_DEFINES)
-        # crt
-        # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     elseif (EMSCRIPTEN)
-        set(N 8)
-        if (NOT XGD_PRODUCTION_BUILD)
+        add_compile_options(-frtti)
+        add_compile_options(-fexceptions)
+        add_compile_options(-sUSE_PTHREADS=1)
+
+        add_link_options(-frtti)
+        add_link_options(-fexceptions)
+        add_link_options(-sUSE_PTHREADS=1)
+        add_link_options(-sTOTAL_MEMORY=1024MB)
+        add_link_options(-sTOTAL_STACK=1MB)
+        add_link_options(-sSAFE_HEAP=1)
+        add_link_options(-sASSERTIONS=1)
+        add_link_options(-sEXIT_RUNTIME=1)
+        if (XGD_WASM_NODE)
             include(ProcessorCount)
             ProcessorCount(N)
-            message(STATUS "cpu procs: ${N}")
-            if (N LESS 6)
-                set(N 6)
-            endif ()
-            math(EXPR N "${N}-2")
-        endif ()
-        add_compile_options(
-                -frtti -fexceptions
-                -sUSE_PTHREADS=1
-        )
-        # PTHREAD_POOL_SIZE not work for qt_add_executable
-        add_link_options(
-                -frtti -fexceptions
-                -sUSE_PTHREADS=1 -sPTHREAD_POOL_SIZE=${N}
-
-                -sTOTAL_MEMORY=1024MB
-                -sTOTAL_STACK=1MB
-
-                -sSAFE_HEAP=1
-                -sASSERTIONS=1
-        )
-        # FIXME: hack to remove link options from Qt${QT_VERSION_MAJOR}::Platform, and re-add as we need
-        # reason: if we just use Qt as a library, global var "createQtAppInstance" will mess up everything
-        # it is needed only when we construct a QCoreApplication
-        if (TARGET Qt${QT_VERSION_MAJOR}::Platform)
-            set_target_properties(Qt${QT_VERSION_MAJOR}::Platform PROPERTIES INTERFACE_LINK_OPTIONS "")
+            add_link_options(-sPTHREAD_POOL_SIZE=${N})
+            add_link_options(-sENVIRONMENT=node)
+        else ()
+            # ignore
+            # add_link_options(-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency)
+            add_link_options(-sPTHREAD_POOL_SIZE=4)
+            # add_link_options(-sENVIRONMENT=web,worker)
         endif ()
     endif ()
 endmacro()
@@ -209,9 +210,6 @@ function(xgd_add_library TARGET)
             PUBLIC ${param_INCLUDE_DIRS}
             PRIVATE ${param_PRIVATE_INCLUDE_DIRS}
     )
-    if (XGD_DEBUG_POSTFIX)
-        set_target_properties(${TARGET} PROPERTIES DEBUG_POSTFIX ${XGD_DEBUG_POSTFIX})
-    endif ()
 endfunction()
 
 # global init static library
@@ -221,8 +219,8 @@ function(xgd_add_global_init_unit TARGET LIBRARY)
         message(FATAL_ERROR "${GLOBAL_INIT_SRC} not exist for target ${LIBRARY}")
     endif ()
     get_target_property(TARGET_TYPE ${TARGET} TYPE)
-    get_target_property(IS_JNI_LIB ${TARGET} IS_JNI_LIB)
-    if (TARGET_TYPE STREQUAL "EXECUTABLE" OR IS_JNI_LIB)
+    get_target_property(BUNDLE_JNI_LIB ${TARGET} BUNDLE_JNI_LIB)
+    if (TARGET_TYPE STREQUAL "EXECUTABLE" OR BUNDLE_JNI_LIB)
         target_sources(${TARGET} PRIVATE ${GLOBAL_INIT_SRC})
     endif ()
 endfunction()
