@@ -10,8 +10,9 @@ const bool SPDLOG_INIT = []() {
 #ifdef __ANDROID__
     auto default_logger = spdlog::android_logger_mt("spdlog");
     spdlog::set_default_logger(default_logger);
-#endif
+#else
     spdlog::set_pattern("[%Y-%m-%d %T.%e] [%l] [thread %-6t] %v");
     spdlog::info("spdlog init done.");
+#endif
     return true;
 }();
