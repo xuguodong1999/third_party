@@ -1,0 +1,7 @@
+add_subdirectory(INCHI-API)
+add_subdirectory(AvalonTools)
+add_subdirectory(FreeSASA)
+add_subdirectory(CoordGen)
+add_subdirectory(YAeHMOP)
+add_subdirectory(RingFamilies)
+add_subdirectory(GA)

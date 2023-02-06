@@ -51,6 +51,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 |gtest|https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz|
 |inchi|https://www.inchi-trust.org/wp/download/106/INCHI-1-SRC.zip|
 |libpng|https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.tar.gz|
+|libxml|https://github.com/GNOME/libxml2/archive/refs/tags/v2.10.3.tar.gz|
 |maeparser|https://github.com/schrodinger/maeparser/archive/refs/tags/v1.3.0.tar.gz|
 |ncnn|https://github.com/Tencent/ncnn/archive/refs/tags/20221128.tar.gz|
 |openbabel|https://github.com/openbabel/openbabel/releases/download/openbabel-3-1-1/openbabel-3.1.1-source.tar.bz2|
@@ -83,8 +84,30 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 | rdkit | Fuzz |
 | rdkit | PgSQL |
 | rdkit | RDBoost |
-| openbabel | xml-format |
 
+## C++ Source copy
+```shell
+find . -type f -empty > empty.log
+grep -rIL . | xargs -I {} rm -rf "{}"
+cat empty.log | xargs -I {} touch "{}" && rm -rf empty.log
+
+# openbabel
+pushd ./openbabel/include && rm -rf inchi LBFGS libxml iconv.h inchi_api.h LBFGS.h zconf.h zlib.h && popd
+rm -rf ./openbabel/test/pdb_ligands_sdf ./openbabel/external ./openbabel/scripts
+# boost
+rm -rf ./boost/libs/json/bench/data ./boost/doc ./boost/status ./boost/libs/graph/test/weighted_matching.dat
+find . -type d -wholename ./boost/*/doc | xargs -I {} rm -rf "{}"
+# libxml2
+rm -rf ./libxml2/doc ./libxml2/result ./libxml2/test
+# others
+rm -rf ./taskflow/3rd-party taskflow/docs ./cutlass/docs ./freesasa/tests/data
+
+rm -rf ./rdkit/Docs/Notebooks
+find . -type d -wholename ./rdkit/*/*testdata -o -wholename ./rdkit/*/*test_data -o -wholename ./rdkit/*/*testData | xargs -I {} rm -rf "{}"
+
+# ls * -d | xargs -I {} zip -r {}.zip -9 {}
+# find . -type f -size +3M
+```
 ## API reference
 
 ```cmake
