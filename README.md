@@ -50,6 +50,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 |freesasa|https://github.com/mittinatten/freesasa/releases/download/2.1.2/freesasa-2.1.2.zip|
 |gtest|https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz|
 |inchi|https://www.inchi-trust.org/wp/download/106/INCHI-1-SRC.zip|
+|lbfgs|https://github.com/yixuan/LBFGSpp/archive/refs/tags/v0.2.0.tar.gz|
 |libpng|https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.tar.gz|
 |libxml|https://github.com/GNOME/libxml2/archive/refs/tags/v2.10.3.tar.gz|
 |maeparser|https://github.com/schrodinger/maeparser/archive/refs/tags/v1.3.0.tar.gz|
