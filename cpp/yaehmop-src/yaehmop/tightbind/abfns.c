@@ -2,7 +2,15 @@
 Produced by gmFortran V30.59(10/26/17) on 9/17/18 at 9:45:37
 */
 #define LPROTOTYPE
-#include "fortran.h"
+#include <math.h>
+#include <stdlib.h>
+#ifndef min
+#define min(x, y) ({				\
+	typeof(x) _min1 = (x);			\
+	typeof(y) _min2 = (y);			\
+	(void) (&_min1 == &_min2);		\
+	_min1 < _min2 ? _min1 : _min2; })
+#endif
 /*
 */
 void abfns(double *a,double *b,double *sk1,double *sk2,double *rr,int *l1,
@@ -55,7 +63,7 @@ static double tr;
     }
     ix = j;
     ir = fabs(2.e0*rho2);
-    is = fifmin0(ir+1,19);
+    is = min(ir+1,19);
     if(rho2 == 0) goto S35;
     d = exp(rho2);
     h = 1.e0/d;

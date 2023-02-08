@@ -2,7 +2,7 @@
 Produced by gmFortran V30.59(10/26/17) on 9/17/18 at 9:45:37
 */
 #define LPROTOTYPE
-#include "fortran.h"
+#include <math.h>
 /*
 */
 void lovlap(double *strad,double *a,double *b,double *sk1,double *sk2,double *r,
