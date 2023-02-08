@@ -36,10 +36,7 @@ RDKIT_MOLSTANDARDIZE_EXPORT extern const TautomerTransformDefs
 class RDKIT_MOLSTANDARDIZE_EXPORT TautomerCatalogParams
     : public RDCatalog::CatalogParams {
  public:
-  TautomerCatalogParams() {
-    d_typeStr = "Tautomer Catalog Parameters";
-    d_transforms.clear();
-  }
+  TautomerCatalogParams();
 
   TautomerCatalogParams(const std::string &tautomerFile);
   TautomerCatalogParams(const TautomerTransformDefs &data);

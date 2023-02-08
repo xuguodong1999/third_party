@@ -77,11 +77,13 @@ class RDKIT_FMCS_EXPORT Seed {
 #ifdef DUP_SUBSTRUCT_CACHE
   DuplicatedSeedCache::TKey DupCacheKey;
 #endif
-  std::vector<TargetMatch> MatchResult;  // for each target
+  std::vector<std::shared_ptr<TargetMatch>> MatchResult;  // for each target
  public:
   Seed()
 
   {}
+
+  void resizeMatchResult(const std::size_t& size);
 
   void setMoleculeFragment(const Seed& src) {
     MoleculeFragment = src.MoleculeFragment;
