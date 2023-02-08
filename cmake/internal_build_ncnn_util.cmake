@@ -1,14 +1,8 @@
 function(xgd_build_ncnn_library)
-    set(NCNN_INC_DIR ${XGD_DEPS_DIR}/ncnn/include)
-    set(NCNN_SRC_DIR ${XGD_DEPS_DIR}/ncnn/src)
-    set(NCNN_CMAKE_DIR ${XGD_DEPS_DIR}/ncnn/cmake)
-    xgd_add_library(
-            ncnn
-            SRC_DIRS
-            ${NCNN_SRC_DIR}
-            PRIVATE_INCLUDE_DIRS ${NCNN_SRC_DIR} ${NCNN_INC_DIR}/ncnn
-            INCLUDE_DIRS ${NCNN_INC_DIR}
-    )
+    set(NCNN_INC_DIR ${XGD_DEPS_DIR}/cpp/ncnn-src/ncnn/src)
+    set(NCNN_SRC_DIR ${NCNN_INC_DIR})
+    set(NCNN_CMAKE_DIR ${XGD_DEPS_DIR}/cpp/ncnn-src/ncnn/cmake)
+    xgd_add_library(ncnn SRC_DIRS ${NCNN_SRC_DIR} INCLUDE_DIRS ${NCNN_INC_DIR})
     if (XGD_ENABLE_VULKAN_COMP)
         set(NCNN_VULKAN ON)
         set(NCNN_SYSTEM_GLSLANG ON)

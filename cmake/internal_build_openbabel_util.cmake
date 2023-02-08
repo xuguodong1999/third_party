@@ -1,9 +1,8 @@
 # openbabel
 function(xgd_build_openbabel_library)
-    set(OB_INC_DIR ${XGD_DEPS_DIR}/openbabel/include)
-    set(OB_SRC_DIR ${XGD_DEPS_DIR}/openbabel/src)
-    set(OB_DATA_DIR ${XGD_DEPS_DIR}/openbabel/data)
-    set(OB_P_INC_DIR ${XGD_DEPS_DIR}/openbabel/p-inc)
+    set(OB_INC_DIR ${XGD_DEPS_DIR}/cpp/openbabel-src/openbabel/include)
+    set(OB_SRC_DIR ${XGD_DEPS_DIR}/cpp/openbabel-src/openbabel/src)
+    set(OB_DATA_DIR ${XGD_DEPS_DIR}/cpp/openbabel-src/openbabel/data)
     xgd_add_library(
             openbabel
             SRC_DIRS
@@ -26,11 +25,10 @@ function(xgd_build_openbabel_library)
             ${OB_SRC_DIR}/formats/xtcformat.cpp
             ${OB_SRC_DIR}/formats/exampleformat.cpp
             ${OB_SRC_DIR}/depict/cairopainter.cpp
-            PRIVATE_INCLUDE_DIRS ${OB_P_INC_DIR}
             INCLUDE_DIRS ${OB_INC_DIR}
     )
 
-    xgd_use_header(openbabel PUBLIC eigen PRIVATE rapidjson)
+    xgd_use_header(openbabel PUBLIC eigen PRIVATE rapidjson lbfgs)
 
     xgd_link_omp(openbabel)
     xgd_link_zlib(openbabel)

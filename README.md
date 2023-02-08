@@ -94,7 +94,7 @@ cat empty.log | xargs -I {} touch "{}" && rm -rf empty.log
 
 # openbabel
 pushd ./openbabel/include && rm -rf inchi LBFGS libxml iconv.h inchi_api.h LBFGS.h zconf.h zlib.h && popd
-rm -rf ./openbabel/test/pdb_ligands_sdf ./openbabel/external ./openbabel/scripts
+rm -rf ./openbabel/test/pdb_ligands_sdf ./openbabel/external ./openbabel/scripts ./openbabel/src/formats/libinchi
 # boost
 rm -rf ./boost/libs/json/bench/data ./boost/doc ./boost/status ./boost/libs/graph/test/weighted_matching.dat
 find . -type d -wholename ./boost/*/doc | xargs -I {} rm -rf "{}"
@@ -108,6 +108,8 @@ find . -type d -wholename ./rdkit/*/*testdata -o -wholename ./rdkit/*/*test_data
 
 # ls * -d | xargs -I {} zip -r {}.zip -9 {}
 # find . -type f -size +3M
+# find . -type f -name *.c -o -name *.cpp -o -name *.cc -o -name *.h -o -name *.hh -o -name *.hpp | xargs dos2unix
+# pushd ./openbabel/data && find . -type f | xargs dos2unix && popd
 ```
 ## API reference
 

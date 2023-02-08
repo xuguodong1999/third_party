@@ -1,7 +1,7 @@
 # libpng
 function(xgd_build_png_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/png/include)
-    set(SRC_DIR ${XGD_DEPS_DIR}/png/src)
+    set(INC_DIR ${XGD_DEPS_DIR}/cpp/libpng-src/libpng)
+    set(SRC_DIR ${INC_DIR})
     xgd_add_library(
             png
             SRC_DIRS ${SRC_DIR}
@@ -48,6 +48,12 @@ function(xgd_build_png_library)
     foreach (SRC_FILE ${LIBPNG_ARM_SOURCES} ${LIBPNG_INTEL_SOURCES} ${LIBPNG_MIPS_SOURCES} ${LIBPNG_POWERPC_SOURCES})
         target_sources(png PRIVATE ${SRC_DIR}/${SRC_FILE})
     endforeach ()
-
+    set(PNG_CONF_DIR ${XGD_GENERATED_DIR}/png/include/png)
+    configure_file(
+            ${SRC_DIR}/scripts/pnglibconf.h.prebuilt
+            ${PNG_CONF_DIR}/pnglibconf.h
+            COPYONLY
+    )
+    target_include_directories(png PUBLIC ${PNG_CONF_DIR})
     xgd_link_zlib(png PUBLIC)
 endfunction()

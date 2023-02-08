@@ -1,7 +1,7 @@
 # boost
 function(xgd_internal_build_boost BOOST_COMPONENT)
-    set(BOOST_INC_DIR ${XGD_DEPS_DIR}/boost/include)
-    set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/boost/src)
+    set(BOOST_INC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost)
+    set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs)
     cmake_parse_arguments(param "STATIC" "" "SRC_FILES;SRC_DIRS" ${ARGN})
     set(${BOOST_COMPONENT}_SRC_DIR ${BOOST_SRC_DIR}/${BOOST_COMPONENT}/src)
     if (NOT param_SRC_FILES)
@@ -55,20 +55,21 @@ function(xgd_internal_build_boost BOOST_COMPONENT)
 endfunction()
 
 function(xgd_build_boost_atomic)
+    set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs)
     set(BOOST_ATOMIC_SRC_FILES lock_pool.cpp)
     if (WIN32)
         list(APPEND BOOST_ATOMIC_SRC_FILES wait_on_address.cpp)
     endif ()
     if (XGD_ARCH_X86)
         check_cxx_source_compiles(
-                "#include <${XGD_DEPS_DIR}/boost/src/atomic/config/has_sse2.cpp>"
+                "#include <${BOOST_SRC_DIR}/atomic/config/has_sse2.cpp>"
                 BOOST_ATOMIC_COMPILER_HAS_SSE2
         )
         if (BOOST_ATOMIC_COMPILER_HAS_SSE2)
             list(APPEND BOOST_ATOMIC_SRC_FILES find_address_sse2.cpp)
         endif ()
         check_cxx_source_compiles(
-                "#include <${XGD_DEPS_DIR}/boost/src/atomic/config/has_sse41.cpp>"
+                "#include <${BOOST_SRC_DIR}/atomic/config/has_sse41.cpp>"
                 BOOST_ATOMIC_COMPILER_HAS_SSE41
         )
         if (BOOST_ATOMIC_COMPILER_HAS_SSE41)
@@ -80,60 +81,61 @@ function(xgd_build_boost_atomic)
 endfunction()
 
 function(xgd_build_boost_filesystem)
+    set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs)
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_attribute_init_priority.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_attribute_init_priority.cpp>"
             BOOST_FILESYSTEM_HAS_INIT_PRIORITY
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_cxx20_atomic_ref.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_cxx20_atomic_ref.cpp>"
             BOOST_FILESYSTEM_HAS_CXX20_ATOMIC_REF
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_stat_st_blksize.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_blksize.cpp>"
             BOOST_FILESYSTEM_HAS_STAT_ST_BLKSIZE
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_stat_st_mtim.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_mtim.cpp>"
             BOOST_FILESYSTEM_HAS_STAT_ST_MTIM
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_stat_st_mtimensec.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_mtimensec.cpp>"
             BOOST_FILESYSTEM_HAS_STAT_ST_MTIMENSEC
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_stat_st_mtimespec.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_mtimespec.cpp>"
             BOOST_FILESYSTEM_HAS_STAT_ST_MTIMESPEC
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_stat_st_birthtimensec.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_birthtimensec.cpp>"
             BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMENSEC
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_stat_st_birthtimespec.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_birthtimespec.cpp>"
             BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMESPEC
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_statx.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_statx.cpp>"
             BOOST_FILESYSTEM_HAS_STATX
     )
     if (NOT BOOST_FILESYSTEM_HAS_STATX)
         check_cxx_source_compiles(
-                "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_statx_syscall.cpp>"
+                "#include <${BOOST_SRC_DIR}/filesystem/config/has_statx_syscall.cpp>"
                 BOOST_FILESYSTEM_HAS_STATX_SYSCALL
         )
     endif ()
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_fdopendir_nofollow.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_fdopendir_nofollow.cpp>"
             BOOST_FILESYSTEM_HAS_FDOPENDIR_NOFOLLOW
     )
     check_cxx_source_compiles(
-            "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_posix_at_apis.cpp>"
+            "#include <${BOOST_SRC_DIR}/filesystem/config/has_posix_at_apis.cpp>"
             BOOST_FILESYSTEM_HAS_POSIX_AT_APIS
     )
     if (WIN32)
         find_package(bcrypt QUIET)
         check_cxx_source_compiles(
-                "#include <${XGD_DEPS_DIR}/boost/src/filesystem/config/has_bcrypt.cpp>"
+                "#include <${BOOST_SRC_DIR}/filesystem/config/has_bcrypt.cpp>"
                 BOOST_FILESYSTEM_HAS_BCRYPT
         )
     endif ()
@@ -229,15 +231,11 @@ endfunction()
 
 function(xgd_build_boost_thread)
     if (WIN32 OR CYGWIN)
-        set(BOOST_THREAD_BACKEND win32)
+        set(BOOST_THREAD_BACKENDS win32/thread.cpp win32/thread_primitives.cpp win32/tss_dll.cpp win32/tss_pe.cpp)
     else ()
-        set(BOOST_THREAD_BACKEND pthread)
+        set(BOOST_THREAD_BACKENDS pthread/once.cpp pthread/thread.cpp)
     endif ()
-    message(STATUS "boost_thread: use ${BOOST_THREAD_BACKEND} backend")
-    xgd_internal_build_boost(
-            thread
-            SRC_DIRS ${BOOST_THREAD_BACKEND}
-    )
+    xgd_internal_build_boost(thread SRC_FILES ${BOOST_THREAD_BACKENDS})
     target_compile_definitions(boost_thread PRIVATE BOOST_THREAD_SOURCE)
     if (BUILD_SHARED_LIBS)
         target_compile_definitions(boost_thread PUBLIC BOOST_THREAD_BUILD_DLL)
