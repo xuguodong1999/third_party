@@ -25,7 +25,6 @@ GNU General Public License for more details.
 #include <vector>
 #include <sstream>
 #include <string>
-#include <fstream>
 
 namespace OpenBabel
 {
@@ -56,7 +55,7 @@ namespace OpenBabel
 
   //! Opens a datafile in a directory where OpenBabel expects to find it.
   // full documentation in tokenst.cpp
-  OBERROR std::string OpenDatafile(std::ifstream& fs,
+  OBERROR std::string OpenDatafile(std::istringstream& iss,
                                  const std::string& filename,
                                  const std::string& envvar = "BABEL_DATADIR");
 

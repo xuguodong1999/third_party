@@ -532,7 +532,7 @@ namespace OpenBabel {
             for (size_t natom = 0; natom < pmol->NumAtoms(); ++natom) {
               const vector3 dxyz = currXyz[natom] - prevXyz[natom];
               vector3::const_iterator iter = std::find_if(dxyz.begin(), dxyz.end(),
-                      std::bind2nd(std::not_equal_to<double>(), 0.0));
+                      std::bind(std::not_equal_to<double>(), std::placeholders::_1, 0.0));
               if (iter != dxyz.end()) dipGrad[natom].SetRow(iter - dxyz.begin(),
                                                             (currDm - prevDm) / *iter);
             }
@@ -586,7 +586,7 @@ namespace OpenBabel {
       if (max != 0.0) {
         // Normalize
         std::transform(Intensities.begin(), Intensities.end(), Intensities.begin(),
-                       std::bind2nd(std::divides<double>(), max / 100.0));
+                       std::bind(std::divides<double>(), std::placeholders::_1, max / 100.0));
       } else {
         Intensities.clear();
       }

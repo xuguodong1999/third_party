@@ -40,9 +40,7 @@ bool OpTransform::Initialize()
 {
   _dataLoaded=true;
   _transforms.clear();
-  ifstream ifs;
-  if(ifs.is_open())
-    ifs.close();
+  istringstream ifs;
   char charBuffer[BUFF_SIZE];
 
   // Set the locale for number parsing to avoid locale issues: PR#1785463

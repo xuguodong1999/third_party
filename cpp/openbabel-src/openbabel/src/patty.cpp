@@ -25,6 +25,7 @@ GNU General Public License for more details.
 
 #include <cstring>
 #include <cstdlib>
+#include <fstream>
 
 // Simple programmable atom typer
 // WPW - 070199

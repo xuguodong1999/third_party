@@ -92,7 +92,7 @@ namespace OpenBabel
 
   void EEMCharges::_loadParameters()
   {
-    std::ifstream ifs;
+    std::istringstream ifs;
     if (!OpenDatafile(ifs, _parameters_file).length()) {
       obErrorLog.ThrowError(__FUNCTION__, std::string("Cannot open file with parameters: ").append(_parameters_file), obError);
       return;
