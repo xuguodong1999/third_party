@@ -29,35 +29,35 @@ function(xgd_check_compiler_arch)
             break()
         endif ()
         check_cxx_source_compiles("
-                #include <${XGD_DEPS_DIR}/cpp/boost/src/config/checks/architecture/x86.cpp>
+                #include <${XGD_DEPS_DIR}/cpp/boost-src/boost/libs/config/checks/architecture/x86.cpp>
                 int main() {}" XGD_ARCH_X86)
         if (XGD_ARCH_X86)
             break()
         endif ()
         check_cxx_source_compiles("
-                #include <${XGD_DEPS_DIR}/cpp/boost/src/config/checks/architecture/mips.cpp>
+                #include <${XGD_DEPS_DIR}/cpp/boost-src/boost/libs/config/checks/architecture/mips.cpp>
                 int main() {}" XGD_ARCH_MIPS)
         if (XGD_ARCH_MIPS)
             break()
         endif ()
         check_cxx_source_compiles("
-                #include <${XGD_DEPS_DIR}/cpp/boost/src/config/checks/architecture/power.cpp>
+                #include <${XGD_DEPS_DIR}/cpp/boost-src/boost/libs/config/checks/architecture/power.cpp>
                 int main() {}" XGD_ARCH_POWER)
         if (XGD_ARCH_POWER)
             break()
         endif ()
         check_cxx_source_compiles("
-                #include <${XGD_DEPS_DIR}/cpp/boost/src/config/checks/architecture/arm.cpp>
+                #include <${XGD_DEPS_DIR}/cpp/boost-src/boost/libs/config/checks/architecture/arm.cpp>
                 int main() {}" XGD_ARCH_ARM)
         break()
     endwhile ()
 
     if (XGD_ARCH_ARM)
         check_cxx_source_compiles("
-            #include <${XGD_DEPS_DIR}/cpp/boost/src/config/checks/architecture/32.cpp>
+            #include <${XGD_DEPS_DIR}/cpp/boost-src/boost/libs/config/checks/architecture/32.cpp>
             int main() {}" XGD_ARCH_ARM32)
         check_cxx_source_compiles("
-            #include <${XGD_DEPS_DIR}/cpp/boost/src/config/checks/architecture/64.cpp>
+            #include <${XGD_DEPS_DIR}/cpp/boost-src/boost/libs/config/checks/architecture/64.cpp>
             int main() {}" XGD_ARCH_ARM64)
     endif ()
 
