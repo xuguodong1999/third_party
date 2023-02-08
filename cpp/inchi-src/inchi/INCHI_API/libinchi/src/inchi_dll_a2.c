@@ -43,31 +43,31 @@
 
 /*  */
 
-#include "../../../INCHI_BASE/src/mode.h"
-#include "../../../INCHI_BASE/src/ichitime.h"
-#include "../../../INCHI_BASE/src/incomdef.h"
-#include "../../../INCHI_BASE/src/ichidrp.h"
-#include "../../../INCHI_BASE/src/inpdef.h"
-#include "../../../INCHI_BASE/src/ichi.h"
-#include "../../../INCHI_BASE/src/strutil.h"
-#include "../../../INCHI_BASE/src/util.h"
-#include "../../../INCHI_BASE/src/ichidrp.h"
-#include "../../../INCHI_BASE/src/ichierr.h"
-#include "../../../INCHI_BASE/src/ichimain.h"
-#include "../../../INCHI_BASE/src/extr_ct.h"
-#include "../../../INCHI_BASE/src/ichitaut.h"
-#include "../../../INCHI_BASE/src/ichi_io.h"
-#include "../../../INCHI_BASE/src/ichinorm.h"
-#include "../../../INCHI_BASE/src/ichicant.h"
-#include "../../../INCHI_BASE/src/ichicano.h"
-#include "../../../INCHI_BASE/src/ichicomn.h"
-#include "../../../INCHI_BASE/src/ichimake.h"
-#include "../../../INCHI_BASE/src/ichister.h"
+#include "mode.h"
+#include "ichitime.h"
+#include "incomdef.h"
+#include "ichidrp.h"
+#include "inpdef.h"
+#include "ichi.h"
+#include "strutil.h"
+#include "util.h"
+#include "ichidrp.h"
+#include "ichierr.h"
+#include "ichimain.h"
+#include "extr_ct.h"
+#include "ichitaut.h"
+#include "ichi_io.h"
+#include "ichinorm.h"
+#include "ichicant.h"
+#include "ichicano.h"
+#include "ichicomn.h"
+#include "ichimake.h"
+#include "ichister.h"
 /* */
 #ifdef INCHI_LIB
 #include "ichi_lib.h"
 #endif
-#include "../../../INCHI_BASE/src/ichicomp.h"
+#include "ichicomp.h"
 
 /* for DisplayTheWholeStructure() */
 #define COMP_ORIG_0_MAIN  0x0001
@@ -77,9 +77,9 @@
 #define COMP_ORIG_1_MAIN  0x0010
 #define COMP_ORIG_1_RECN  0x0020
 
-#include "../../../INCHI_BASE/src/ichisize.h"
-#include "../../../INCHI_BASE/src/mode.h"
-#include "../../../INCHI_BASE/src/inchi_api.h"
+#include "ichisize.h"
+#include "mode.h"
+#include "inchi_api.h"
 #include "inchi_dll_a.h" /* not inchi_api.h as it hides internal data types */
 
 

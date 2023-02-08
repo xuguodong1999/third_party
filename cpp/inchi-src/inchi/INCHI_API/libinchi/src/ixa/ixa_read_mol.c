@@ -38,12 +38,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../../INCHI_BASE/src/mode.h"
-#include "../../../../INCHI_BASE/src/inchi_api.h"
-#include "../../../../INCHI_BASE/src/ichicomp.h"
-#include "../../../../INCHI_BASE/src/util.h"
-#include "../../../../INCHI_BASE/src/mol_fmt.h"
-#include "../../../../INCHI_BASE/src/ichi_io.h"
+#include "mode.h"
+#include "inchi_api.h"
+#include "ichicomp.h"
+#include "util.h"
+#include "mol_fmt.h"
+#include "ichi_io.h"
 
 #include "ixa_status.h"
 #include "ixa_mol.h"
