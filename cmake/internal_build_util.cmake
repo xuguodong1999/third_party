@@ -170,6 +170,8 @@ function(xgd_build_avalontoolkit_library)
             ${SRC_DIR}
             INCLUDE_DIRS
             ${INC_DIR}
+            EXCLUDE_REGEXES
+            "^(.*)test(.*)\\.c"
     )
     xgd_disable_warnings(avalontoolkit)
 endfunction()

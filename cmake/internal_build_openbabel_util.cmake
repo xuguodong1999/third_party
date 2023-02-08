@@ -15,6 +15,7 @@ function(xgd_build_openbabel_library)
             ${OB_SRC_DIR}/fingerprints
             ${OB_SRC_DIR}/formats
             ${OB_SRC_DIR}/formats/json
+            ${OB_SRC_DIR}/formats/xml
             ${OB_SRC_DIR}/math
             ${OB_SRC_DIR}/stereo
             EXCLUDE_SRC_FILES
@@ -32,6 +33,7 @@ function(xgd_build_openbabel_library)
 
     xgd_link_omp(openbabel)
     xgd_link_zlib(openbabel)
+    xgd_link_xml2(openbabel)
     xgd_link_inchi(openbabel)
     xgd_link_maeparser(openbabel)
     xgd_link_rdkit(openbabel PRIVATE Depictor GraphMol RDGeometryLib)
@@ -48,7 +50,7 @@ function(xgd_build_openbabel_library)
     check_symbol_exists(strcasecmp "string.h" HAVE_STRCASECMP)
     check_symbol_exists(strncasecmp "string.h" HAVE_STRNCASECMP)
     set(HAVE_CONIO_H OFF)
-    set(HAVE_STATIC_LIBXML OFF)
+    set(HAVE_STATIC_LIBXML ON)
     set(HAVE_STRINGS_H ON)
     set(HAVE_TIME_H ON)
     set(HAVE_REGEX_H ON)

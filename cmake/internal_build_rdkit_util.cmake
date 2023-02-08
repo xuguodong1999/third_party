@@ -32,6 +32,9 @@ function(xgd_build_rdkit_library)
                 "^(.*)bench(.*)\\.cpp"
                 "^(.*)cmd(.*)\\.cpp"
                 "^(.*)main(.*)\\.cpp"
+                "^(.*)CLI(.*)\\.cpp"
+                "^(.*)demo(.*)\\.cpp"
+                "^(.*)Example(.*)\\.cpp"
         )
         xgd_generate_export_header_modules(${RDKIT_COMPONENT_TARGET} "rdkit" "${RDKIT_COMPONENT}" ".hpp")
         xgd_link_boost(${RDKIT_COMPONENT_TARGET} PRIVATE serialization)
