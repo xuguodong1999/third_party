@@ -6,6 +6,8 @@
 
 #define BOOST_STACKTRACE_INTERNAL_BUILD_LIBS
 #define BOOST_STACKTRACE_LINK
+#ifndef BOOST_STACKTRACE_USE_NOOP
 #define BOOST_STACKTRACE_USE_NOOP
+#endif
 #include <boost/stacktrace/detail/frame_noop.ipp>
 #include <boost/stacktrace/detail/safe_dump_noop.ipp>
