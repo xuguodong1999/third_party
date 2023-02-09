@@ -88,28 +88,92 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 
 ## C++ Source copy
 ```shell
+# unzip all downloads
+mkdir -p ../tmp/avalontoolkit/
+tar -xvf AvalonToolkit_1.2.0.source.tar -C ../tmp/avalontoolkit/
+tar -xvf maeparser-1.3.0.tar.gz -C ../tmp/
+tar -xvf benchmark-1.7.1.tar.gz -C ../tmp/
+tar -xvf ncnn-20221128.tar.gz -C ../tmp/
+tar -xvf boost_1_81_0.tar.gz -C ../tmp/
+tar -xvf openbabel-3.1.1-source.tar.bz2 -C ../tmp/
+tar -xvf coordgenlibs-3.0.1.tar.gz -C ../tmp/
+tar -xvf rapidjson-1.1.0.tar.gz -C ../tmp/
+tar -xvf cutlass-2.10.0.tar.gz -C ../tmp/
+tar -xvf rdkit-Release_2022_09_4.tar.gz -C ../tmp/
+tar -xvf eigen-3.4.0.tar.gz -C ../tmp/
+tar -xvf RingDecomposerLib-1.1.3_rdkit.tar.gz -C ../tmp/
+tar -xvf RxCpp-4.1.1.tar.gz -C ../tmp/
+tar -xvf googletest-release-1.12.1.tar.gz -C ../tmp/
+tar -xvf spdlog-1.11.0.tar.gz -C ../tmp/
+tar -xvf taskflow-3.4.0.tar.gz -C ../tmp/
+tar -xvf LBFGSpp-0.2.0.tar.gz -C ../tmp/
+tar -xvf yaehmop-2022.09.1.tar.gz -C ../tmp/
+tar -xvf libpng-1.6.39.tar.gz -C ../tmp/
+tar -xvf yoga-1.19.0.tar.gz -C ../tmp/
+tar -xvf libxml2-2.10.3.tar.gz -C ../tmp/
+tar -xvf zlib-1.2.13.tar.gz -C ../tmp/
+unzip freesasa-2.1.2.zip -d ../tmp/
+unzip INCHI-1-SRC.zip -d ../tmp/
+
+# rename dir
+mv benchmark-1.7.1 benchmark
+mv boost_1_81_0 boost
+mv coordgenlibs-3.0.1 coordgen
+mv cutlass-2.10.0 cutlass
+mv eigen-3.4.0 eigen
+mv freesasa-2.1.2 freesasa
+mv googletest-release-1.12.1 gtest
+mv INCHI-1-SRC inchi
+mv LBFGSpp-0.2.0 lbfgs
+mv libpng-1.6.39 libpng
+mv libxml2-2.10.3 libxml2
+mv maeparser-1.3.0 maeparser
+mv ncnn-20221128 ncnn
+mv openbabel-3.1.1 openbabel
+mv rapidjson-1.1.0 rapidjson
+mv rdkit-Release_2022_09_4 rdkit
+mv RingDecomposerLib-1.1.3_rdkit ringdecomposerlib
+mv RxCpp-4.1.1 rxcpp
+mv spdlog-1.11.0 spdlog
+mv taskflow-3.4.0 taskflow
+mv yaehmop-2022.09.1 yaehmop
+mv yoga-1.19.0 yoga
+mv zlib-1.2.13 zlib
+
+# remove large files
 find . -type f -empty > empty.log
 grep -rIL . | xargs -I {} rm -rf "{}"
 cat empty.log | xargs -I {} touch "{}" && rm -rf empty.log
 
-# openbabel
+## openbabel
 pushd ./openbabel/include && rm -rf inchi LBFGS libxml iconv.h inchi_api.h LBFGS.h zconf.h zlib.h && popd
 rm -rf ./openbabel/test/pdb_ligands_sdf ./openbabel/external ./openbabel/scripts ./openbabel/src/formats/libinchi
-# boost
+## boost
 rm -rf ./boost/libs/json/bench/data ./boost/doc ./boost/status ./boost/libs/graph/test/weighted_matching.dat
 find . -type d -wholename ./boost/*/doc | xargs -I {} rm -rf "{}"
-# libxml2
+## libxml2
 rm -rf ./libxml2/doc ./libxml2/result ./libxml2/test
-# others
+## rdkit
+rm -rf ./rdkit/Docs/Notebooks ./rdkit/Contrib/NIBRSubstructureFilters/FilterSet_NIBR2019_wPubChemExamples.html
+find . -type d -wholename ./rdkit/*/*testdata -o -wholename ./rdkit/*/*test_data -o -wholename ./rdkit/*/*testData | xargs -I {} rm -rf "{}"
+## others
 rm -rf ./taskflow/3rd-party taskflow/docs ./cutlass/docs ./freesasa/tests/data
 
-rm -rf ./rdkit/Docs/Notebooks
-find . -type d -wholename ./rdkit/*/*testdata -o -wholename ./rdkit/*/*test_data -o -wholename ./rdkit/*/*testData | xargs -I {} rm -rf "{}"
+# encoding
+find . -type f -name *.c -o -name *.cpp -o -name *.cc -o -name *.h -o -name *.hh -o -name *.hpp | xargs dos2unix
+## TODO: using VSCode, change ./openbabel/data/ghemical.prm from windows 1252 to UTF-8
+pushd ./openbabel/data && find . -type f | xargs dos2unix && popd
 
+# rename dir
+ls * -d | xargs -I{} mkdir {}-src
+ls !(*-src) -d | xargs -I{} mv {} {}-src/
+
+# debug only
+# tree -L 2
 # ls * -d | xargs -I {} zip -r {}.zip -9 {}
 # find . -type f -size +3M
-# find . -type f -name *.c -o -name *.cpp -o -name *.cc -o -name *.h -o -name *.hh -o -name *.hpp | xargs dos2unix
 # pushd ./openbabel/data && find . -type f | xargs dos2unix && popd
+
 ```
 ## API reference
 

@@ -83,62 +83,10 @@ endfunction()
 function(xgd_build_boost_filesystem)
     set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs)
     check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_attribute_init_priority.cpp>"
-            BOOST_FILESYSTEM_HAS_INIT_PRIORITY
-    )
-    check_cxx_source_compiles(
             "#include <${BOOST_SRC_DIR}/filesystem/config/has_cxx20_atomic_ref.cpp>"
             BOOST_FILESYSTEM_HAS_CXX20_ATOMIC_REF
     )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_blksize.cpp>"
-            BOOST_FILESYSTEM_HAS_STAT_ST_BLKSIZE
-    )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_mtim.cpp>"
-            BOOST_FILESYSTEM_HAS_STAT_ST_MTIM
-    )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_mtimensec.cpp>"
-            BOOST_FILESYSTEM_HAS_STAT_ST_MTIMENSEC
-    )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_mtimespec.cpp>"
-            BOOST_FILESYSTEM_HAS_STAT_ST_MTIMESPEC
-    )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_birthtimensec.cpp>"
-            BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMENSEC
-    )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_stat_st_birthtimespec.cpp>"
-            BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMESPEC
-    )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_statx.cpp>"
-            BOOST_FILESYSTEM_HAS_STATX
-    )
-    if (NOT BOOST_FILESYSTEM_HAS_STATX)
-        check_cxx_source_compiles(
-                "#include <${BOOST_SRC_DIR}/filesystem/config/has_statx_syscall.cpp>"
-                BOOST_FILESYSTEM_HAS_STATX_SYSCALL
-        )
-    endif ()
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_fdopendir_nofollow.cpp>"
-            BOOST_FILESYSTEM_HAS_FDOPENDIR_NOFOLLOW
-    )
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_posix_at_apis.cpp>"
-            BOOST_FILESYSTEM_HAS_POSIX_AT_APIS
-    )
-    if (WIN32)
-        find_package(bcrypt QUIET)
-        check_cxx_source_compiles(
-                "#include <${BOOST_SRC_DIR}/filesystem/config/has_bcrypt.cpp>"
-                BOOST_FILESYSTEM_HAS_BCRYPT
-        )
-    endif ()
+
     set(BOOST_FILESYSTEM_SOURCES
             codecvt_error_category.cpp
             exception.cpp
@@ -157,74 +105,25 @@ function(xgd_build_boost_filesystem)
     )
     target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_SOURCE)
     if (WIN32)
-        target_compile_definitions(
-                boost_filesystem PRIVATE
-                _SCL_SECURE_NO_WARNINGS
-                _SCL_SECURE_NO_DEPRECATE
-                _CRT_SECURE_NO_WARNINGS
-                _CRT_SECURE_NO_DEPRECATE
-        )
+        target_compile_definitions(boost_filesystem PRIVATE
+                _SCL_SECURE_NO_WARNINGS _SCL_SECURE_NO_DEPRECATE _CRT_SECURE_NO_WARNINGS _CRT_SECURE_NO_DEPRECATE)
     endif ()
     if (WIN32 OR CYGWIN)
-        target_compile_definitions(
-                boost_filesystem PRIVATE
-                BOOST_USE_WINDOWS_H
-                WIN32_LEAN_AND_MEAN
-                NOMINMAX
-        )
+        target_compile_definitions(boost_filesystem PRIVATE BOOST_USE_WINDOWS_H WIN32_LEAN_AND_MEAN NOMINMAX)
     endif ()
 
     target_compile_definitions(boost_filesystem PUBLIC BOOST_FILESYSTEM_NO_DEPRECATED)
-    if (BOOST_FILESYSTEM_HAS_INIT_PRIORITY)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_INIT_PRIORITY)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STAT_ST_BLKSIZE)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STAT_ST_BLKSIZE)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STAT_ST_MTIM)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STAT_ST_MTIM)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STAT_ST_MTIMENSEC)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STAT_ST_MTIMENSEC)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STAT_ST_MTIMESPEC)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STAT_ST_MTIMESPEC)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMENSEC)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMENSEC)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMESPEC)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STAT_ST_BIRTHTIMESPEC)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STATX)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STATX)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_STATX_SYSCALL)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_STATX_SYSCALL)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_FDOPENDIR_NOFOLLOW)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_FDOPENDIR_NOFOLLOW)
-    endif ()
-    if (BOOST_FILESYSTEM_HAS_POSIX_AT_APIS)
-        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_POSIX_AT_APIS)
-    endif ()
-
     if (NOT BOOST_FILESYSTEM_HAS_CXX20_ATOMIC_REF)
         target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF)
         xgd_link_boost(boost_filesystem PRIVATE atomic)
     endif ()
 
     if (WIN32)
-        if (BOOST_FILESYSTEM_HAS_BCRYPT)
-            target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_BCRYPT)
-            target_link_libraries(boost_filesystem PRIVATE bcrypt)
+        target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_WINCRYPT)
+        if (NOT WINCE)
+            target_link_libraries(boost_filesystem PRIVATE advapi32)
         else ()
-            target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_HAS_WINCRYPT)
-            if (NOT WINCE)
-                target_link_libraries(boost_filesystem PRIVATE advapi32)
-            else ()
-                target_link_libraries(boost_filesystem PRIVATE coredll)
-            endif ()
+            target_link_libraries(boost_filesystem PRIVATE coredll)
         endif ()
     endif ()
 endfunction()
