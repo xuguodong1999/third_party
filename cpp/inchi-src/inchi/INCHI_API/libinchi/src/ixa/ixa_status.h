@@ -35,7 +35,7 @@
 #ifndef __IXA_STATUS_H__
 #define __IXA_STATUS_H__
 
-#include "../../../../INCHI_BASE/src/ixa.h"
+#include "ixa.h"
 
 void STATUS_PushMessage( IXA_STATUS_HANDLE hStatus,
                         IXA_STATUS        vSeverity,

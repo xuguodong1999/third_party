@@ -5033,7 +5033,7 @@ namespace OpenBabel {
 
     if (bondLabel != nullptr && nBonds() > 0) {
       bondLabel->resize(molecule1->nBonds());
-      if (test2) for (j=0; j<molecule1->nBonds(); j++) if (bSTested[j]>=0) (*bondLabel)[j]=1; else (*bondLabel)[j]=0;
+      if (test2) for (j=0; j<molecule1->nBonds(); j++) { if (bSTested[j]>=0) (*bondLabel)[j]=1; else (*bondLabel)[j]=0; }
     };
     result=test2;
 
@@ -5102,7 +5102,7 @@ namespace OpenBabel {
   std::vector<TEditedMolecule *> TemplateRedraw::queryData;
 
   bool TemplateRedraw::loadTemplates() {
-    std::ifstream ifs;
+    std::istringstream ifs;
     string filename("templates.sdf");//("e:\\templates.sdf");
     TEditedMolecule sm;
     TEditedMolecule * em;

@@ -32,8 +32,8 @@
  */
 
 
-#include "../../../../INCHI_BASE/src/mode.h"
-#include "../../../../INCHI_BASE/src/inchi_api.h"
+#include "mode.h"
+#include "inchi_api.h"
 #include "ixa_status.h"
 #include <string.h>
 #include <stdarg.h>

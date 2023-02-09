@@ -131,7 +131,7 @@ namespace OpenBabel
 
     const double arr[] = {3.0, 2.0, 1.5, 1.0, 0.5, 0.25};
     std::vector<double> vec (arr, arr + sizeof(arr) / sizeof(arr[0]) );
-    vec.erase(std::remove_if(vec.begin(), vec.end(), std::bind2nd(std::less<double>(), (cutoff + 0.1) )), vec.end());
+    vec.erase(std::remove_if(vec.begin(), vec.end(), std::bind(std::less<double>(), std::placeholders::_1, (cutoff + 0.1) )), vec.end());
     vec.push_back(cutoff);
 
     levels = vec;
@@ -293,7 +293,7 @@ void UpdateConformersFromTree(OBMol* mol, std::vector<double> &energies, OBDiver
   std::vector <OBDiversePoses::PosePair> confs, newconfs;
 
   // The leaf iterator will (in effect) iterate over the nodes just at the loweset level
-  for (OBDiversePoses::Tree::leaf_iterator node = poses->begin(); node != poses->end(); ++node)
+  for (auto node = poses->begin(); node != poses->end(); ++node)
     if (node->first.size() > 0) // Don't include the dummy head node
       confs.push_back(*node);
 
@@ -441,7 +441,7 @@ int OBForceField::DiverseConfGen(double rmsd, unsigned int nconfs, double energy
     UpdateConformersFromTree(&_mol, _energies, &divposes, verbose);
 
     // Add back the energy offset
-    transform(_energies.begin(), _energies.end(), _energies.begin(), bind2nd(std::plus<double>(), energy_offset));
+    transform(_energies.begin(), _energies.end(), _energies.begin(), std::bind(std::plus<double>(), std::placeholders::_1, energy_offset));
 
     // Clean up
     delete [] store_initial;

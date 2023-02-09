@@ -42,16 +42,16 @@
 
 /* for use in the InChI library */
 
-#include "../../../INCHI_BASE/src/mode.h"
+#include "mode.h"
 
-#include "../../../INCHI_BASE/src/incomdef.h"
-#include "../../../INCHI_BASE/src/ichidrp.h"
-#include "../../../INCHI_BASE/src/inpdef.h"
-#include "../../../INCHI_BASE/src/util.h"
-#include "../../../INCHI_BASE/src/ichierr.h"
-#include "../../../INCHI_BASE/src/ichicomp.h"
-#include "../../../INCHI_BASE/src/ichi_io.h"
-#include "../../../INCHI_BASE/src/inchi_api.h"
+#include "incomdef.h"
+#include "ichidrp.h"
+#include "inpdef.h"
+#include "util.h"
+#include "ichierr.h"
+#include "ichicomp.h"
+#include "ichi_io.h"
+#include "inchi_api.h"
 
 #include "inchi_dll_b.h"
 
@@ -63,7 +63,7 @@ int InchiToInchi_Input( INCHI_IOSTREAM *inp_molfile, inchi_Input *orig_at_data, 
                        int *err, char *pStrErr );
 
 /* This contains executable code. Included in lReadAux.c, e_ReadINCH.c, ReadINCH.c,  */
-#include "../../../INCHI_BASE/src/readinch.h"
+#include "readinch.h"
 
 
 

@@ -14,6 +14,7 @@
 #error "wide char i/o not supported on this platform"
 #else
 
+#define BOOST_ARCHIVE_SOURCE
 #define BOOST_WARCHIVE_SOURCE
 #include <boost/archive/binary_wiarchive.hpp>
 #include <boost/archive/detail/archive_serializer_map.hpp>

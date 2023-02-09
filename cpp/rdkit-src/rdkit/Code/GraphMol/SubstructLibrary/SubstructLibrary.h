@@ -412,7 +412,7 @@ class RDKIT_SUBSTRUCTLIBRARY_EXPORT KeyFromPropHolder : public KeyHolderBase {
       const std::vector<unsigned int> &indices) const override {
     std::vector<std::string> res;
     std::transform(indices.begin(), indices.end(), std::back_inserter(res),
-                   [=](unsigned idx) { return keys.at(idx); });
+                   [=, this](unsigned idx) { return keys.at(idx); });
     return res;
   }
   unsigned int size() const override { return keys.size(); }

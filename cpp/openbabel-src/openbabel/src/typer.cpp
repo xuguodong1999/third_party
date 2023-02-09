@@ -27,8 +27,6 @@ GNU General Public License for more details.
 #include <openbabel/typer.h>
 #include <openbabel/elements.h>
 
-// private data headers with default parameters
-#include "atomtyp.h"
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -64,7 +62,7 @@ namespace OpenBabel
     _envvar = "BABEL_DATADIR";
     _filename = "atomtyp.txt";
     _subdir = "data";
-    _dataptr = AtomTypeData;
+    _dataptr = nullptr;
   }
 
   void OBAtomTyper::ParseLine(const char *buffer)

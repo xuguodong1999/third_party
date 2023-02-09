@@ -30,11 +30,6 @@ GNU General Public License for more details.
 using namespace std;
 namespace OpenBabel
 {
-#if defined(__CYGWIN__) || defined(__MINGW32__)
-  // macro to implement static OBPlugin::PluginMapType& Map()
-  PLUGIN_CPP_FILE(OBFingerprint)
-#endif
-
   const unsigned int OBFingerprint::bitsperint = 8 * sizeof(unsigned int);
 
   void OBFingerprint::SetBit(vector<unsigned int>& vec, const unsigned int n)

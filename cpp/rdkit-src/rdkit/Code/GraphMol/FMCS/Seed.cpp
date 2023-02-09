@@ -19,6 +19,14 @@
 namespace RDKit {
 namespace FMCS {
 
+void Seed::resizeMatchResult(const std::size_t& size) {
+  MatchResult.clear();
+  MatchResult.resize(size);
+  for(auto&p : MatchResult) {
+    p = std::make_shared<TargetMatch>();
+  }
+}
+
 unsigned Seed::addAtom(const Atom* atom) {
   unsigned i = MoleculeFragment.AtomsIdx.size();
   unsigned aqi = atom->getIdx();

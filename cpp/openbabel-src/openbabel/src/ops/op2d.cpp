@@ -25,12 +25,13 @@ This code calls C++ routines in RDKit which are
 #include <openbabel/babelconfig.h>
 #include <iostream>
 #include<openbabel/op.h>
+#include<openbabel/atom.h>
 #include<openbabel/mol.h>
+#include<openbabel/oberror.h>
 #include <RDKitConv.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <Geometry/point.h>
-#include <GraphMol/conformer.h>
-#include <GraphMol/molops.h>
+#include <GraphMol/MolOps.h>
 
 #ifndef OBERROR
  #define OBERROR
@@ -48,14 +49,13 @@ public:
       "Uses RDKit http://www.rdkit.org";
   }
   virtual bool WorksWith(OBBase* pOb)const{ return dynamic_cast<OBMol*>(pOb)!=NULL; }
-
-  virtual bool Do(OBBase* pOb, OpMap*, const char* OptionText);
+  virtual bool Do(OBBase* pOb, const char*, OpMap*, OBConversion*);
 };
 
 Op2D theOp2D("2D"); //Global instance
 
 /////////////////////////////////////////////////////////////////
-bool Op2D::Do(OBBase* pOb, OpMap*, const char* OptionText)
+bool Op2D::Do(OBBase* pOb, const char*, OpMap*, OBConversion*)
 {
   OBMol* pmol = dynamic_cast<OBMol*>(pOb);
   if(!pmol)

@@ -7,7 +7,7 @@
 //  which is included in the file license.txt, found at the root
 //  of the RDKit source tree.
 //
-#ifdef WIN32
+#if defined(WIN32) && !defined(_USE_MATH_DEFINES)
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>

@@ -34,9 +34,9 @@
 
 #include "string.h"
 
-#include "../../../../INCHI_BASE/src/mode.h"
-#include "../../../../INCHI_BASE/src/inchi_api.h"
-#include "../../../../INCHI_BASE/src/util.h"
+#include "mode.h"
+#include "inchi_api.h"
+#include "util.h"
 #include "ixa_mol.h"
 #include "ixa_status.h"
 
