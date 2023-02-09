@@ -27,7 +27,7 @@
 
 namespace RDKit {
 namespace MolAlign {
-struct RDKIT_O3AALIGN_EXPORT O3AFuncData {
+struct RDKIT_MOLALIGN_EXPORT O3AFuncData {
   const Conformer *prbConf;
   const Conformer *refConf;
   void *prbProp;
@@ -46,7 +46,7 @@ class O3AConstraintVect;
 //! is defined by a pair of atom indexes (one for the probe,
 //! one for the reference) and a weight. Constraints can
 //! can be added via the O3AConstraintVect class.
-class RDKIT_O3AALIGN_EXPORT O3AConstraint {
+class RDKIT_MOLALIGN_EXPORT O3AConstraint {
   friend class O3AConstraintVect;
 
  public:
@@ -66,7 +66,7 @@ class RDKIT_O3AALIGN_EXPORT O3AConstraint {
 //! method is invoked, the vector is sorted to make lookup faster.
 //! Hence, constraints are not necessarily stored in the same order
 //! they were appended.
-class RDKIT_O3AALIGN_EXPORT O3AConstraintVect {
+class RDKIT_MOLALIGN_EXPORT O3AConstraintVect {
  public:
   O3AConstraintVect() {}
   ~O3AConstraintVect() = default;
@@ -128,7 +128,7 @@ enum {
   O3_LOCAL_ONLY = (1 << 2)
 };
 
-class RDKIT_O3AALIGN_EXPORT MolHistogram {
+class RDKIT_MOLALIGN_EXPORT MolHistogram {
  public:
   MolHistogram(const ROMol &mol, const double *dmat, bool cleanupDmat = false);
   ~MolHistogram() = default;
@@ -142,7 +142,7 @@ class RDKIT_O3AALIGN_EXPORT MolHistogram {
   boost::multi_array<int, 2> d_h;
 };
 
-class RDKIT_O3AALIGN_EXPORT LAP {
+class RDKIT_MOLALIGN_EXPORT LAP {
  public:
   LAP(unsigned int dim)
       : d_rowSol(dim),
@@ -184,7 +184,7 @@ class RDKIT_O3AALIGN_EXPORT LAP {
   boost::multi_array<int, 2> d_cost;
 };
 
-class RDKIT_O3AALIGN_EXPORT SDM {
+class RDKIT_MOLALIGN_EXPORT SDM {
  public:
   // constructor
   SDM(const Conformer *prbConf = nullptr, const Conformer *refConf = nullptr,
@@ -271,7 +271,7 @@ class RDKIT_O3AALIGN_EXPORT SDM {
   }
 };
 
-class RDKIT_O3AALIGN_EXPORT O3A {
+class RDKIT_MOLALIGN_EXPORT O3A {
  public:
   //! pre-defined atom typing schemes
   typedef enum { MMFF94 = 0, CRIPPEN } AtomTypeScheme;
@@ -319,30 +319,30 @@ class RDKIT_O3AALIGN_EXPORT O3A {
   double d_o3aScore;
 };
 
-RDKIT_O3AALIGN_EXPORT void randomTransform(ROMol &mol, const int cid = -1,
+RDKIT_MOLALIGN_EXPORT void randomTransform(ROMol &mol, const int cid = -1,
                                            const int seed = -1);
-RDKIT_O3AALIGN_EXPORT const RDGeom::POINT3D_VECT *reflect(
+RDKIT_MOLALIGN_EXPORT const RDGeom::POINT3D_VECT *reflect(
     const Conformer &conf);
-RDKIT_O3AALIGN_EXPORT int o3aMMFFCostFunc(const unsigned int prbIdx,
+RDKIT_MOLALIGN_EXPORT int o3aMMFFCostFunc(const unsigned int prbIdx,
                                           const unsigned int refIdx,
                                           double hSum, void *data);
-RDKIT_O3AALIGN_EXPORT double o3aMMFFWeightFunc(const unsigned int prbIdx,
+RDKIT_MOLALIGN_EXPORT double o3aMMFFWeightFunc(const unsigned int prbIdx,
                                                const unsigned int refIdx,
                                                void *data);
-RDKIT_O3AALIGN_EXPORT double o3aMMFFScoringFunc(const unsigned int prbIdx,
+RDKIT_MOLALIGN_EXPORT double o3aMMFFScoringFunc(const unsigned int prbIdx,
                                                 const unsigned int refIdx,
                                                 void *data);
-RDKIT_O3AALIGN_EXPORT int o3aCrippenCostFunc(const unsigned int prbIdx,
+RDKIT_MOLALIGN_EXPORT int o3aCrippenCostFunc(const unsigned int prbIdx,
                                              const unsigned int refIdx,
                                              double hSum, void *data);
-RDKIT_O3AALIGN_EXPORT double o3aCrippenWeightFunc(const unsigned int prbIdx,
+RDKIT_MOLALIGN_EXPORT double o3aCrippenWeightFunc(const unsigned int prbIdx,
                                                   const unsigned int refIdx,
                                                   void *data);
-RDKIT_O3AALIGN_EXPORT double o3aCrippenScoringFunc(const unsigned int prbIdx,
+RDKIT_MOLALIGN_EXPORT double o3aCrippenScoringFunc(const unsigned int prbIdx,
                                                    const unsigned int refIdx,
                                                    void *data);
 
-RDKIT_O3AALIGN_EXPORT void getO3AForProbeConfs(
+RDKIT_MOLALIGN_EXPORT void getO3AForProbeConfs(
     ROMol &prbMol, const ROMol &refMol, void *prbProp, void *refProp,
     std::vector<boost::shared_ptr<O3A>> &res, int numThreads = 1,
     O3A::AtomTypeScheme atomTypes = O3A::MMFF94, const int refCid = -1,

@@ -513,7 +513,7 @@ return ret;
 //returns true if the file "svgformat.script" was inserted into the output
 bool SVGFormat::EmbedScript(ostream& ofs)
 {
-  istringstream ifs;
+  ifstream ifs;
   if(!ifs || OpenDatafile(ifs, "svgformat.script").empty())
     return false;
   ofs << ifs.rdbuf(); //copy whole file

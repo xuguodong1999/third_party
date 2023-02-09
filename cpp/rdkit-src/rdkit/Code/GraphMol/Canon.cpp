@@ -79,7 +79,7 @@ bool chiralAtomNeedsTagInversion(const RDKit::ROMol &mol,
            !details::isUnsaturated(atom, mol)));
 }
 
-const auto _possibleCompare = [](const PossibleType &arg1, const PossibleType &arg2) {
+auto _possibleCompare = [](const PossibleType &arg1, const PossibleType &arg2) {
   return (arg1.get<0>() < arg2.get<0>());
 };
 

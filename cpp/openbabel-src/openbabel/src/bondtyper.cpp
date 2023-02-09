@@ -24,6 +24,8 @@ GNU General Public License for more details.
 #include <openbabel/bondtyper.h>
 #include <openbabel/elements.h>
 
+// data header with default parameters
+#include "bondtyp.h"
 
 using namespace std;
 
@@ -52,7 +54,7 @@ namespace OpenBabel
     _envvar = "BABEL_DATADIR";
     _filename = "bondtyp.txt";
     _subdir = "data";
-    _dataptr = nullptr;
+    _dataptr = BondTypeData;
   }
 
   void OBBondTyper::ParseLine(const char *buffer)

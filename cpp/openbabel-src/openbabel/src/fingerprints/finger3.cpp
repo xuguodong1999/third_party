@@ -159,7 +159,7 @@ public:
   bool ReadPatternFile(string& ver)
   {
     //Reads three types of file. See below
-    istringstream ifs;
+    ifstream ifs;
 	  stringstream errorMsg;
 
     if (OpenDatafile(ifs, _patternsfile).length() == 0)
@@ -238,6 +238,8 @@ public:
       }
     }while(getline(ifs,line));
 
+    if (ifs)
+      ifs.close();
     return true;
   }
 
@@ -253,8 +255,7 @@ public:
       int num =  ppat->numbits, div = ppat->numoccurrences+1, ngrp;
       while(num) //for each group of bits
       {
-        ngrp = (num + div -1)/div; //rounds up
-        div--;
+        ngrp = (num + div -1)/div--; //rounds up
         num -= ngrp;
         if(GetBit(fp, n) == bSet)
         {

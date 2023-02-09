@@ -15,7 +15,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
-#include <openbabel/babelconfig.h>
+
 #ifdef HAVE_EIGEN3
 
 #include "eqeq.h"
@@ -52,7 +52,7 @@ namespace OpenBabel
     char buffer[BUFF_SIZE];
 
     // open data/eqeqIonizations.txt
-    istringstream ifs;
+    ifstream ifs;
     if (OpenDatafile(ifs, "eqeqIonizations.txt").length() == 0)
     {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open eqeqIonizations.txt", obError);

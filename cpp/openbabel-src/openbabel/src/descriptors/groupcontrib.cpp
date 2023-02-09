@@ -55,7 +55,7 @@ namespace OpenBabel
     OBSmartsPattern *sp;
 
     // open data file
-    istringstream ifs;
+    ifstream ifs;
 
     if (OpenDatafile(ifs, _filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, " Could not find contribution data file.", obError);

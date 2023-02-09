@@ -20,7 +20,6 @@
 #  pragma warning (disable : 4786) // too long name, harmless warning
 #endif
 
-#define BOOST_ARCHIVE_SOURCE
 #define BOOST_WARCHIVE_SOURCE
 #include <boost/serialization/config.hpp>
 #include <boost/archive/detail/auto_link_warchive.hpp>

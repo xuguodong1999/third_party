@@ -15,7 +15,6 @@
 #define TF_OS_HURD 0
 #define TF_OS_SOLARIS 0
 #define TF_OS_UNIX 0
-#define TF_OS_WASM 0
 
 #ifdef _WIN32
 #undef TF_OS_WINDOWS
@@ -77,15 +76,10 @@
 #define TF_OS_SOLARIS 1
 #endif
 
-#if (defined __EMSCRIPTEN__)
-#undef TF_OS_WASM
-#define TF_OS_WASM 1
-#endif
-
 #if (1 !=                                                                  \
      TF_OS_LINUX + TF_OS_DRAGONFLY + TF_OS_FREEBSD + TF_OS_NETBSD +        \
      TF_OS_OPENBSD + TF_OS_DARWIN + TF_OS_WINDOWS + TF_OS_HURD +           \
-     TF_OS_SOLARIS + TF_OS_WASM)
+     TF_OS_SOLARIS)
 #error Unknown OS
 #endif
 

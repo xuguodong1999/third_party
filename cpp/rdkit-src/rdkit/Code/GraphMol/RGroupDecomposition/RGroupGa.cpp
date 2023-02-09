@@ -7,7 +7,7 @@
 //  which is included in the file license.txt, found at the root
 //  of the RDKit source tree.
 //
-#include <RDGeneral/export.h>
+
 #include <ctime>
 #include <limits>
 #ifdef RDK_BUILD_THREADSAFE_SSS
@@ -18,7 +18,7 @@
 #include "RGroupDecompData.h"
 #include "RGroupDecomp.h"
 #include "RGroupFingerprintScore.h"
-#include "GA/util/Util.h"
+#include "../../../External/GA/util/Util.h"
 
 // #define DEBUG
 
@@ -326,7 +326,7 @@ vector<GaResult> RGroupGa::runBatch() {
     tasks.reserve(numberRuns);
     for (int n = 0; n < numberRuns; n++) {
       auto future = async(launch::async, &RDKit::RGroupGa::run, this, n + 1);
-      tasks.push_back(std::move(future));
+      tasks.push_back(move(future));
     }
 
     std::transform(tasks.begin(), tasks.end(), back_inserter(results),

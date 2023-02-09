@@ -133,7 +133,7 @@ namespace OpenBabel {
     //    path = buffer;
     string full_path = pConv->GetInFilename();
     size_t found = full_path.rfind("/");
-    string path = (found == string::npos) ? "" : full_path.substr(0, found);
+    string path = (found == string::npos) ? "" : path.substr(0, found);
     string short_fn = full_path.substr(path.length(), string::npos);
 
     // Open files

@@ -35,6 +35,11 @@ public:
   const char* TypeID(){return "loaders";};
 };
 
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+// macro to implement static OBPlugin::PluginMapType& Map()
+PLUGIN_CPP_FILE(OBLoader)
+#endif
+
 //*********************************************************
 ///Class which makes instances of plugin classes from information in text file.
 ///This allows the commandline and GUI interfaces to be extended without recompiling.
@@ -50,7 +55,7 @@ public:
   OBDefine(const char* ID, const char* filename)
     : OBLoader(ID, false), _filename(filename)
   {
-    istringstream ifs;
+    ifstream ifs;
     bool filefound = !OpenDatafile(ifs, filename).empty();
     if(!ifs)
     {

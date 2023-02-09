@@ -40,14 +40,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "shortcut.h"
 #include "smi2mol.h"
 #include "utilities.h"
 #include "ssmatch.h"
 #include "stereo.h"
-#include "perceive.h"
+
 struct aa_class_string_t
 {
     char *class_string;         // identifier of this atom environment
@@ -243,7 +242,7 @@ static struct shortcut_input_t shortcut_input[] =
          "AMINO_C",	"",	        ""},
     };
 
-static void StripRAtoms(struct reaccs_molecule_t *mp, char *code)
+static int StripRAtoms(struct reaccs_molecule_t *mp, char *code)
 /*
  * Removes the R-atoms from the query molecule mp and color the attached atoms with their mass if any.
  * This trick is used to remember the attachment position.

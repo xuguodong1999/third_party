@@ -29,7 +29,7 @@
 #include <vector>
 
 #define MAXID 20
-#define MAXABS float(INT_MAX-2)
+#define MAXABS INT_MAX-2
 
 #ifndef MIN
 #define MIN(x,y) ((x) < (y) ? (x):(y))

@@ -60,7 +60,6 @@ int find_atom(atoms,num_atoms,which)
   sprintf(err_string,"Can't find atom %d (of %d) in find_atom.\n",
           which,num_atoms);
   FATAL_BUG(err_string);
-  return -1;
 }
 
 

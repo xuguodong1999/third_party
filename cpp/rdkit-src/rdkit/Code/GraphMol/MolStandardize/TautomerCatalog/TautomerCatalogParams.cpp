@@ -45,11 +45,6 @@ TautomerCatalogParams::TautomerCatalogParams(
 
 TautomerCatalogParams::~TautomerCatalogParams() {}
 
-TautomerCatalogParams::TautomerCatalogParams() {
-    d_typeStr = "Tautomer Catalog Parameters";
-    d_transforms.clear();
-}
-
 const std::vector<TautomerTransform> &TautomerCatalogParams::getTransforms()
     const {
   return d_transforms;

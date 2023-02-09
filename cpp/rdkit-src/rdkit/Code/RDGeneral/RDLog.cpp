@@ -25,7 +25,9 @@ RDLogger rdStatusLog = nullptr;
 namespace RDLog {
 
 namespace {
-std::vector<RDLogger *> allLogs;
+const std::vector<RDLogger *> allLogs = {&rdAppLog,     &rdDebugLog,
+                                         &rdInfoLog,    &rdErrorLog,
+                                         &rdWarningLog, &rdStatusLog};
 }
 
 LogStateSetter::LogStateSetter() {
@@ -145,11 +147,6 @@ void InitLogs() {
   rdInfoLog->df_enabled = false;
   rdWarningLog = std::make_shared<boost::logging::rdLogger>(&std::cerr);
   rdErrorLog = std::make_shared<boost::logging::rdLogger>(&std::cerr);
-  rdAppLog = rdInfoLog;
-  rdStatusLog = rdInfoLog;
-  allLogs = {&rdAppLog,     &rdDebugLog,
-             &rdInfoLog,    &rdErrorLog,
-             &rdWarningLog, &rdStatusLog};
 }
 
 std::ostream &toStream(std::ostream &logstrm) {

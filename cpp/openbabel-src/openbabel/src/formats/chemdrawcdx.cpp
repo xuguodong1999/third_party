@@ -810,7 +810,7 @@ OBText* CDXReader::WriteTree(const string& filename, unsigned wtoptions)
 ///////////////////////////////////////////////////////////////////////
 bool CDXReader::ParseEnums(map<CDXTag, string>& enummap, const string& filename)
 {
-  istringstream ihs;
+  ifstream ihs;
   if(OpenDatafile(ihs, filename).empty())
   {
     obErrorLog.ThrowError(__FUNCTION__, 

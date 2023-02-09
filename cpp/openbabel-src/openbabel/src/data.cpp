@@ -31,6 +31,9 @@ GNU General Public License for more details.
 #include <openbabel/oberror.h>
 #include <openbabel/elements.h>
 
+// data headers with default parameters
+#include "types.h"
+#include "resdata.h"
 
 
 #if !HAVE_STRNCASECMP
@@ -247,7 +250,7 @@ namespace OpenBabel
     _envvar = "BABEL_DATADIR";
     _filename = "types.txt";
     _subdir = "data";
-    _dataptr = nullptr;
+    _dataptr = TypesData;
     _linecount = 0;
     _from = _to = -1;
   }
@@ -431,7 +434,7 @@ namespace OpenBabel
     _envvar = "BABEL_DATADIR";
     _filename = "resdata.txt";
     _subdir = "data";
-    _dataptr = nullptr;
+    _dataptr = ResidueData;
   }
 
   bool OBResidueData::AssignBonds(OBMol &mol)
@@ -666,7 +669,7 @@ namespace OpenBabel
       return;
     _init = true;
 
-    istringstream ifs;
+    ifstream ifs;
     char charBuffer[BUFF_SIZE];
 
     // Set the locale for number parsing to avoid locale issues: PR#1785463
@@ -713,6 +716,8 @@ namespace OpenBabel
     // return the locale to the original one
     obLocale.RestoreLocale();
 
+    if (ifs)
+      ifs.close();
 
     if (GetSize() == 0)
       {

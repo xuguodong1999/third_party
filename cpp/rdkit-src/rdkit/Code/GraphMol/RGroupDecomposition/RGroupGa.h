@@ -16,11 +16,11 @@
 #include <map>
 #include <chrono>
 
-#include "GA/ga/StringChromosome.h"
-#include "GA/ga/GaBase.h"
-#include "GA/ga/GaOperation.h"
-#include "GA/ga/LinkedPopLinearSel.h"
-#include "GA/ga/IntegerStringChromosomePolicy.h"
+#include "../../../External/GA/ga/StringChromosome.h"
+#include "../../../External/GA/ga/GaBase.h"
+#include "../../../External/GA/ga/GaOperation.h"
+#include "../../../External/GA/ga/LinkedPopLinearSel.h"
+#include "../../../External/GA/ga/IntegerStringChromosomePolicy.h"
 #include "RGroupFingerprintScore.h"
 #include "RGroupScore.h"
 

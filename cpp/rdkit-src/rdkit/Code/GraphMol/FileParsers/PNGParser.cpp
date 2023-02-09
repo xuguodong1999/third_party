@@ -22,6 +22,7 @@
 
 #include "FileParsers.h"
 #ifdef RDK_USE_BOOST_IOSTREAMS
+#include <zlib.h>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>

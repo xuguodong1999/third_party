@@ -40,7 +40,18 @@ bool startsWith(string str, string prefix) {
 }
 
 string getUserName() {
-    return "unimplemented";
+#ifdef WIN32
+  return "UNKNOWN";
+#else
+  const int bufsize = 100;
+  char buffer[bufsize];
+
+  if (!getlogin_r(buffer, bufsize)) {
+    return string(buffer);
+  } else {
+    return string("");
+  }
+#endif
 }
 
 string &removeTrailingLF(string &line) {

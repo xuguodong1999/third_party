@@ -681,17 +681,23 @@ void FreeInChIExtInput( inchi_Input_Polymer    *polymer, inchi_Input_V3000 *v300
  *************************************************/
 
 
-#include <inchi_export.h>
-
-#ifdef _MSC_VER
-#define EXPIMP_TEMPLATE extern
-#else
+#if (defined( _WIN32 ) && defined( _MSC_VER ) && defined(BUILD_LINK_AS_DLL) )
+    /* Win32 & MS VC ++, compile and link as a DLL */
+#ifdef _USRDLL
+    /* InChI library dll */
+#define INCHI_API __declspec(dllexport)
 #define EXPIMP_TEMPLATE
+#define INCHI_DECL
+#else
+   /* calling the InChI dll program */
+#define INCHI_API __declspec(dllimport)
+#define EXPIMP_TEMPLATE extern
+#define INCHI_DECL
 #endif
-#ifndef INCHI_API
-#define INCHI_API INCHI_EXPORT
-#endif
-#ifndef INCHI_DECL
+#else
+    /* create a statically linked InChI library or link to an executable */
+#define INCHI_API
+#define EXPIMP_TEMPLATE
 #define INCHI_DECL
 #endif
 

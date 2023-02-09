@@ -133,7 +133,7 @@ S=[#8,#16;X1]                                   OTH     # dative sulfoxides
 # diaminopyrimidine (ring Ns are POL)
 #
 #        *==*
-#       /    \
+#       /    \  
 #     :N      C--NH2            (aromatic)
 #      \\    #  
 #        C--N:
@@ -186,7 +186,7 @@ O=C-*:[#6](*)[OH]                 POL
 [#8,#16,#34;D1]C=[#8,#16,#34]           ANI
 [#8,#16,#34]=C[#8,#16,#34;D1]           ANI
 #        *==*
-#       /    \
+#       /    \  
 #      *      C==O              (aromatic)
 #      \\    /
 #        C--C                   And 4 Cs away

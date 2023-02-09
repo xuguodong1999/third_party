@@ -42,25 +42,25 @@
 #include <float.h>
 #include <math.h>
 
-#include "mode.h"
+#include "../../../INCHI_BASE/src/mode.h"
 
-#include "incomdef.h"
-#include "ichidrp.h"
-#include "inpdef.h"
-#include "ichi.h"
-#include "strutil.h"
-#include "util.h"
-#include "ichierr.h"
-#include "ichimain.h"
-#include "extr_ct.h"
-#include "ichi_io.h"
-#include "ichicomp.h"
-#include "inchi_api.h"
-#include "readinch.h"
+#include "../../../INCHI_BASE/src/incomdef.h"
+#include "../../../INCHI_BASE/src/ichidrp.h"
+#include "../../../INCHI_BASE/src/inpdef.h"
+#include "../../../INCHI_BASE/src/ichi.h"
+#include "../../../INCHI_BASE/src/strutil.h"
+#include "../../../INCHI_BASE/src/util.h"
+#include "../../../INCHI_BASE/src/ichierr.h"
+#include "../../../INCHI_BASE/src/ichimain.h"
+#include "../../../INCHI_BASE/src/extr_ct.h"
+#include "../../../INCHI_BASE/src/ichi_io.h"
+#include "../../../INCHI_BASE/src/ichicomp.h"
+#include "../../../INCHI_BASE/src/inchi_api.h"
+#include "../../../INCHI_BASE/src/readinch.h"
 
-#include "ichitaut.h"
-#include "ichicant.h"
-#include "ichitime.h"
+#include "../../../INCHI_BASE/src/ichitaut.h"
+#include "../../../INCHI_BASE/src/ichicant.h"
+#include "../../../INCHI_BASE/src/ichitime.h"
 
 #include "inchi_dll.h"
 

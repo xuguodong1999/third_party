@@ -20,6 +20,7 @@ General Public License for more details.
 #define OB_PLUGIN_H
 
 #include <openbabel/babelconfig.h>
+#include <openbabel/dlhandler.h>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -37,7 +38,7 @@ namespace OpenBabel
 ///@{
 
 /// @brief Case insensitive string comparison for PluginMapType key.
-struct OBERROR CharPtrLess
+struct OBERROR CharPtrLess : public std::binary_function<const char*,const char*, bool>
 {
   bool operator()(const char* p1,const char* p2) const
   { return strcasecmp(p1,p2)<0; }
@@ -149,13 +150,53 @@ protected:
   const char* _id;
 };
 
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+
 //Macro to be added to definition of the base class
 #define MAKE_PLUGIN(BaseClass)\
-private:\
-   inline static PluginMapType mPluginMapHolder;\
+protected:\
+  static PluginMapType& Map();\
+  virtual PluginMapType& GetMap() const {\
+    return Map();\
+  }\
+public:\
+  static BaseClass*& Default() {\
+    static BaseClass* d;\
+    return d;\
+  }\
+  BaseClass(const char* ID, bool IsDefault=false) {\
+    _id=ID;\
+    if (ID&&*ID) {\
+      if (IsDefault || Map().empty()) {\
+        Default() = this;\
+      }\
+      if (Map().count(ID) == 0) {\
+        Map()[ID] = this;\
+        PluginMap()[TypeID()] = this;\
+      }\
+    }\
+  }\
+  static BaseClass* FindType(const char* ID) {\
+    if (!ID || *ID==0 || *ID==' ') {\
+      return Default();\
+    }\
+    return static_cast<BaseClass*>(BaseFindType(Map(),ID));\
+  }
+
+#define PLUGIN_CPP_FILE(BaseClass)\
+OBPlugin::PluginMapType& BaseClass::Map() {\
+  static OBPlugin::PluginMapType map;\
+  return map;\
+}
+
+#else // __CYGWIN__ || __MINGW32__
+
+//Macro to be added to definition of the base class
+#define MAKE_PLUGIN(BaseClass)\
 protected:\
   static PluginMapType& Map() {\
-    return mPluginMapHolder;\
+    static PluginMapType m;\
+    return m;\
   }\
   virtual PluginMapType& GetMap() const {\
     return Map();\
@@ -182,8 +223,9 @@ public:\
       return Default();\
     }\
     return static_cast<BaseClass*>(BaseFindType(Map(),ID));\
-  }\
-  private:
+  }
+
+#endif // __CYGWIN__ || __MINGW32__
 
 /** \file plugin.h
    \brief Simplify 'plugin' classes to be discovered and/or loaded at runtime.
@@ -329,7 +371,7 @@ public:
 
 #define OB_STATIC_PLUGIN(className,instanceName) \
   class className; \
-  OB_EXTERN className instanceName;
+  OBAPI OB_EXTERN className instanceName;
 
   // formats
   OB_STATIC_PLUGIN(ABINITFormat, theABINITFormat)
@@ -388,8 +430,6 @@ public:
   OB_STATIC_PLUGIN(HINFormat, theHINFormat)
   OB_STATIC_PLUGIN(JaguarOutputFormat, theJaguarOutputFormat)
   OB_STATIC_PLUGIN(JaguarInputFormat, theJaguarInputFormat)
-  OB_STATIC_PLUGIN(ChemDoodleJSONFormat, theChemDoodleJSONFormat)
-  OB_STATIC_PLUGIN(PubChemJSONFormat, thePubChemJSONFormat)
   OB_STATIC_PLUGIN(LMPDATFormat, theLMPDATFormat)
   OB_STATIC_PLUGIN(MCDLFormat, theMCDLFormat)
   OB_STATIC_PLUGIN(MOLFormat, theMOLFormat)
@@ -462,8 +502,6 @@ public:
 #endif
 #ifdef HAVE_STATIC_INCHI
   OB_STATIC_PLUGIN(InChIFormat, theInChIFormat)
-  OB_STATIC_PLUGIN(InChICompareFormat, theInChICompareFormat)
-  OB_STATIC_PLUGIN(InChIKeyFormat, theInChIKeyFormat)
 #endif
 #ifdef HAVE_REGEX_H
   OB_STATIC_PLUGIN(GAMESSUKInputFormat, theGAMESSUKInputFormat)
@@ -522,7 +560,6 @@ public:
   OB_STATIC_PLUGIN(OpFillUC, theOpFillUC)
   OB_STATIC_PLUGIN(OpEnergy, theOpEnergy)
   OB_STATIC_PLUGIN(OpMinimize, theOpMinimize)
-  OB_STATIC_PLUGIN(Op2D, theOp2D)
   OB_STATIC_PLUGIN(OpGen2D, theOpGen2D)
   OB_STATIC_PLUGIN(OpGen3D, theOpGen3D)
   OB_STATIC_PLUGIN(OpNewS, theOpNewS)

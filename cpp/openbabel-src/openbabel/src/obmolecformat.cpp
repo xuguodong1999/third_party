@@ -500,12 +500,12 @@ namespace OpenBabel
 
     NameIndexType::iterator itr;
 
-    istringstream indexstream;
+    ifstream indexstream;
     OpenDatafile(indexstream, datafilename + ".obindx");
     if(!indexstream)
       {
         //Need to prepare the index
-        istringstream datastream;
+        ifstream datastream;
         string datafilepath = OpenDatafile(datastream, datafilename);
         if(!datastream)
           {

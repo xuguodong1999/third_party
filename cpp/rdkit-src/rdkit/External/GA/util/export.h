@@ -10,6 +10,6 @@
 
 #pragma once
 
-#include <RDGeneral/export.h>
+#include <RDGeneral/RDExportMacros.h>
 
-#define  GA_EXPORT RDKIT_GA_EXPORT
+#define  GA_EXPORT RDKIT_EXPORT_API

@@ -1235,7 +1235,7 @@ OBBitVec& drawnBonds)
                       end.x() - offset.x(), end.y() - offset.y());
 
     static const float dashpattern[] = {5., 5.};
-    static const vector<double> pat = vector<double>(dashpattern, dashpattern + sizeof(dashpattern)/sizeof(float));
+    static const vector<double> pat = vector<double>(dashpattern,dashpattern + sizeof(dashpattern)/sizeof(double));
     painter->DrawLine(begin.x() + offset.x(), begin.y() + offset.y(),
                       end.x() + offset.x(), end.y() + offset.y(), pat);
   }

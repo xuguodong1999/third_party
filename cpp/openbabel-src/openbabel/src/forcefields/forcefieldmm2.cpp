@@ -18,10 +18,6 @@ GNU General Public License for more details.
 #include <openbabel/babelconfig.h>
 #include <openbabel/mol.h>
 #include <openbabel/locale.h>
-#include <openbabel/obiter.h>
-#include <openbabel/bond.h>
-#include <openbabel/oberror.h>
-#include <openbabel/data.h>
 #include "forcefieldmm2.h"
 
 using namespace std;
@@ -502,8 +498,8 @@ namespace OpenBabel
     {
       _mol = src._mol;
       _init = src._init;
+      return *this;
     }
-    return *this;
   }
 
   bool OBForceFieldMM2::Setup(OBMol &mol)
@@ -526,7 +522,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mm2.prm
-    istringstream ifs;
+    ifstream ifs;
     if (OpenDatafile(ifs, "mm2.prm").length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mm2.prm", obError);
       return false;
@@ -671,6 +667,8 @@ namespace OpenBabel
       }
     }
 
+    if (ifs)
+      ifs.close();
 
     // return the locale to the original one
     obLocale.RestoreLocale();

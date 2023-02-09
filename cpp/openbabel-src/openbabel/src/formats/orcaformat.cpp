@@ -24,7 +24,11 @@ GNU General Public License for more details.
 #include <openbabel/generic.h>
 #include <cstdlib>
 
+#ifdef _MSC_VER
 #include <regex>
+#else
+#include <regex.h>
+#endif
 
 #include <iomanip>
 
@@ -692,22 +696,38 @@ namespace OpenBabel
 
 // small function to avoid wrong parsing
 // if there is no whitespace between the numbers in the column structure
+#ifdef _MSC_VER
   string OrcaOutputFormat::checkColumns(string checkBuffer)
   {
     string pattern ("[0-9]-");
-    std::regex myregex;
-    std::smatch pm;
+    std::tr1::regex myregex;
+    std::tr1::smatch pm;
     try {
       myregex.assign(pattern,
-                     std::regex_constants::extended);
+                     std::tr1::regex_constants::extended);
       //iok = true;
-    } catch (std::regex_error ex) {
+    } catch (std::tr1::regex_error ex) {
         return (checkBuffer); // do nothing
       //iok = false;
     }
-    while (std::regex_search (checkBuffer,pm,myregex)) {
+    while (std::tr1::regex_search (checkBuffer,pm,myregex)) {
         checkBuffer.insert(pm.position(0)+1, " ");
     }
     return (checkBuffer);
   }
+#else
+  string OrcaOutputFormat::checkColumns(string checkBuffer)
+  {
+      string pattern ("[0-9]-");
+      regmatch_t pm;
+      regex_t myregex;
+      int pos = regcomp(&myregex, pattern.c_str(), REG_EXTENDED);
+      if (pos !=0) return (checkBuffer); // do nothing
+
+      while (regexec(&myregex, checkBuffer.c_str(), 1, &pm, REG_EXTENDED) == 0) {
+          checkBuffer.insert(pm.rm_eo-1, " ");  // insert whitespace to separate the columns
+      }
+      return (checkBuffer);
+  }
+#endif
 } //namespace OpenBabel

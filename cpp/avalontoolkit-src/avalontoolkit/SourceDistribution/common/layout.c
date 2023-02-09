@@ -68,12 +68,6 @@
 
 typedef double point[2];
 
-int FloodInvertColor(struct reaccs_molecule_t *mp,
-                     neighbourhood_t          *nbp,
-                     int start_index,
-                     int fragmentColor,
-                     struct reaccs_bond_t *flipBond);
-int ChangeAtomColors(struct reaccs_molecule_t *mp, int fromColor, int toColor);
 static void LogString(char *message)
 {
    FILE *fp;
