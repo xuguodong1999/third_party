@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.22)
 project(xgd-deps VERSION 0.0.0)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/api_deps_util.cmake)
-xgd_setup_compile_options()
-xgd_check_compiler_arch()
-
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/api_deps_link.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal_build_util.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal_build_boost_util.cmake)

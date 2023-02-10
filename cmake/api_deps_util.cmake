@@ -174,7 +174,6 @@ macro(xgd_setup_compile_options)
             # ignore
             # add_link_options(-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency)
             add_link_options(-sPTHREAD_POOL_SIZE=4)
-            # add_link_options(-sENVIRONMENT=web,worker)
         endif ()
     endif ()
 endmacro()
