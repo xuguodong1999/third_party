@@ -41,12 +41,15 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 
 | Library | Source |
 | ---- | --- |
+|armadillo|http://sourceforge.net/projects/arma/files/armadillo-11.4.4.tar.xz|
 |avalontoolkit|http://sourceforge.net/projects/avalontoolkit/files/AvalonToolkit_1.2/AvalonToolkit_1.2.0.source.tar|
 |benchmark|https://github.com/google/benchmark/archive/refs/tags/v1.7.1.tar.gz|
 |boost|https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.7z|
+|cereal|https://github.com/USCiLab/cereal/archive/refs/tags/v1.3.2.tar.gz|
 |coordgenlibs|https://github.com/schrodinger/coordgenlibs/archive/refs/tags/v3.0.1.tar.gz|
 |cutlass|https://github.com/nvidia/cutlass/archive/refs/tags/v2.10.0.tar.gz|
 |eigen3|https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz|
+|ensmallen|https://ensmallen.org/files/ensmallen-2.19.1.tar.gz|
 |freesasa|https://github.com/mittinatten/freesasa/releases/download/2.1.2/freesasa-2.1.2.zip|
 |gtest|https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz|
 |inchi|https://www.inchi-trust.org/wp/download/106/INCHI-1-SRC.zip|
@@ -54,6 +57,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 |libpng|https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.tar.gz|
 |libxml|https://github.com/GNOME/libxml2/archive/refs/tags/v2.10.3.tar.gz|
 |maeparser|https://github.com/schrodinger/maeparser/archive/refs/tags/v1.3.0.tar.gz|
+|mlpack|https://github.com/mlpack/mlpack/archive/refs/tags/4.0.1.tar.gz|
 |ncnn|https://github.com/Tencent/ncnn/archive/refs/tags/20221128.tar.gz|
 |openbabel|https://github.com/openbabel/openbabel/releases/download/openbabel-3-1-1/openbabel-3.1.1-source.tar.bz2|
 |rapidjson|https://github.com/Tencent/rapidjson/archive/refs/tags/v1.1.0.tar.gz|
@@ -61,6 +65,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 |RingDecomposerLib|https://github.com/rareylab/RingDecomposerLib/archive/refs/tags/v1.1.3_rdkit.tar.gz|
 |rxcpp|https://github.com/ReactiveX/RxCpp/archive/refs/tags/v4.1.1.tar.gz|
 |spdlog|https://github.com/gabime/spdlog/archive/refs/tags/v1.11.0.tar.gz|
+|stb|https://github.com/nothings/stb/archive/5736b15f7ea0ffb08dd38af21067c314d6a3aae9.zip|
 |taskflow|https://github.com/taskflow/taskflow/archive/refs/tags/v3.4.0.tar.gz|
 |yaehmop|https://github.com/greglandrum/yaehmop/archive/refs/tags/v2022.09.1.tar.gz|
 |yoga|https://github.com/facebook/yoga/archive/refs/tags/v1.19.0.tar.gz|
