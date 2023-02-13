@@ -13,7 +13,7 @@ function(xgd_build_opencv_library)
     if (XGD_FLAG_NEON)
         list(APPEND CPU_DISPATCH_FINAL NEON_DOTPROD)
     endif ()
-    unset(CPU_DISPATCH_FINAL)
+    set(CPU_BASELINE_FINAL ${CPU_DISPATCH_FINAL})
 
     set(OCV_ROOT ${XGD_DEPS_DIR}/cpp/opencv-src/opencv)
     set(OCV_MODULE_DIR ${OCV_ROOT}/modules)
@@ -21,7 +21,7 @@ function(xgd_build_opencv_library)
     set(OCV_GENERATED_SRC_DIR ${XGD_GENERATED_DIR}/opencv/src)
 
     set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "")
-    foreach (m CORE IMGPROC)
+    foreach (m opencv_core opencv_imgproc)
         string(TOUPPER "${m}" m)
         set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "${OPENCV_MODULE_DEFINITIONS_CONFIGMAKE}#define HAVE_${m}\n")
     endforeach ()
@@ -36,8 +36,47 @@ function(xgd_build_opencv_library)
     configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
             ${OCV_GENERATED_INC_DIR}/opencv2/cvconfig.h)
 
-    # set(OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE ${CPU_DISPATCH_FINAL})
-    # set(OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE ${CPU_DISPATCH_FINAL})
+    set(OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE "")
+    set(OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE "")
+
+    foreach (OPT ${CPU_BASELINE_FINAL})
+        set(OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE}
+#define CV_CPU_COMPILE_${OPT} 1
+#define CV_CPU_BASELINE_COMPILE_${OPT} 1
+")
+    endforeach ()
+
+
+    set(OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE}
+#define CV_CPU_BASELINE_FEATURES 0 \\")
+    foreach (OPT ${CPU_BASELINE_FINAL})
+        if (NOT DEFINED CPU_${OPT}_FEATURE_ALIAS OR NOT "x${CPU_${OPT}_FEATURE_ALIAS}" STREQUAL "x")
+            set(OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE}
+    , CV_CPU_${OPT} \\")
+        endif ()
+    endforeach ()
+    set(OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE}\n")
+
+    set(__dispatch_modes "")
+    foreach (OPT ${CPU_DISPATCH_FINAL})
+        list(APPEND __dispatch_modes ${CPU_DISPATCH_${OPT}_FORCE} ${OPT})
+    endforeach ()
+    list(REMOVE_DUPLICATES __dispatch_modes)
+    foreach (OPT ${__dispatch_modes})
+        set(OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE}
+#define CV_CPU_DISPATCH_COMPILE_${OPT} 1")
+    endforeach ()
+
+    set(OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE}
+\n\n#define CV_CPU_DISPATCH_FEATURES 0 \\")
+    foreach (OPT ${__dispatch_modes})
+        if (NOT DEFINED CPU_${OPT}_FEATURE_ALIAS OR NOT "x${CPU_${OPT}_FEATURE_ALIAS}" STREQUAL "x")
+            set(OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE}
+    , CV_CPU_${OPT} \\")
+        endif ()
+    endforeach ()
+    set(OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE "${OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE}\n")
+
     configure_file(${OCV_ROOT}/cmake/templates/cv_cpu_config.h.in
             ${OCV_GENERATED_INC_DIR}/cv_cpu_config.h)
 
@@ -113,14 +152,15 @@ function(xgd_build_opencv_library)
         if (NOT EXISTS ${OCV_COMPONENT_DIR})
             message(FATAL_ERROR "${OCV_COMPONENT_DIR} not exist for ${OCV_COMPONENT}")
         endif ()
-        cmake_parse_arguments(param "" "" "SRC_DIRS" ${ARGN})
+        cmake_parse_arguments(param "" "" "SRC_FILES;SRC_DIRS" ${ARGN})
         set(OCV_COMPONENT_INC_DIR ${OCV_COMPONENT_DIR}/include)
         set(OCV_COMPONENT_SRC_DIR ${OCV_COMPONENT_DIR}/src)
+        set(OCV_COMPONENT_GEN_DIR ${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT})
 
         file(GLOB cl_kernels ${OCV_COMPONENT_SRC_DIR}/opencl/*.cl)
         if (cl_kernels)
             set(OCL_NAME opencl_kernels_${OCV_COMPONENT})
-            set(OUTPUT_SRC ${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT}/${OCL_NAME}.cpp)
+            set(OUTPUT_SRC ${OCV_COMPONENT_GEN_DIR}/${OCL_NAME}.cpp)
             add_custom_command(
                     OUTPUT ${OUTPUT_SRC}
                     COMMAND
@@ -141,16 +181,26 @@ function(xgd_build_opencv_library)
                 SRC_DIRS
                 ${param_SRC_DIRS}
                 ${OCV_COMPONENT_SRC_DIR}
+
                 SRC_FILES
                 ${OUTPUT_SRC}
+
                 INCLUDE_DIRS
                 ${OCV_COMPONENT_INC_DIR}
                 ${OCV_GENERATED_INC_DIR}
+                ${OCV_ROOT}/include
                 PRIVATE_INCLUDE_DIRS
                 ${OCV_GENERATED_SRC_DIR}
-                EXCLUDE_SRC_FILES
+                ${OCV_COMPONENT_GEN_DIR}
+                EXCLUDE_REGEXES
+                "^(.*)\\.avx(.*)\\.cpp"
+                "^(.*)\\.sse(.*)\\.cpp"
+                "^(.*)\\.lasx(.*)\\.cpp"
         )
-        target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE __OPENCV_BUILD)
+        xgd_use_header(opencv_${OCV_COMPONENT} PRIVATE eigen)
+        xgd_link_png(opencv_${OCV_COMPONENT})
+        xgd_link_zlib(opencv_${OCV_COMPONENT})
+        target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE __OPENCV_BUILD CVAPI_EXPORTS)
 
         if (NOT TARGET opencv_all)
             add_custom_target(opencv_all)
@@ -172,15 +222,29 @@ function(xgd_build_opencv_library)
         ocv_add_dispatched_file(merge SSE2 AVX2)
         ocv_add_dispatched_file(split SSE2 AVX2)
         ocv_add_dispatched_file(sum SSE2 AVX2)
+
+        set(OPENCV_BUILD_INFO_STR "\"Build from ${PROJECT_NAME}\"")
+        set(OPENCV_BUILD_INFO_FILE "${OCV_GENERATED_SRC_DIR}/version_string.inc")
+        if (EXISTS "${OPENCV_BUILD_INFO_FILE}")
+            file(READ "${OPENCV_BUILD_INFO_FILE}" __content)
+        else ()
+            set(__content "")
+        endif ()
+        if ("${__content}" STREQUAL "${OPENCV_BUILD_INFO_STR}")
+            # message(STATUS "${OPENCV_BUILD_INFO_FILE} contains the same content")
+        else ()
+            file(WRITE "${OPENCV_BUILD_INFO_FILE}" "${OPENCV_BUILD_INFO_STR}")
+        endif ()
+
         xgd_internal_build_opencv(
                 core
                 SRC_DIRS
                 ${OCV_MODULE_DIR}/core/src/utils
                 ${OCV_MODULE_DIR}/core/src/parallel
+
                 SRC_FILES
                 ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
         )
-        xgd_use_header(opencv_core PRIVATE eigen)
     endfunction()
     xgd_build_opencv_core()
     function(xgd_build_opencv_imgproc)
