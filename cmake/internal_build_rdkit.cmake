@@ -108,6 +108,7 @@ function(xgd_build_rdkit_library)
             ${RD_ROOT_DIR}/External/FreeSASA
             EXCLUDE_SRC_FILES
             ${RD_ROOT_DIR}/External/FreeSASA/getline.c
+            ${RD_ROOT_DIR}/External/FreeSASA/freesasa2.c
     )
     xgd_build_rdkit_internal(RDGeometryLib SRC_DIRS ${RD_ROOT_DIR}/Code/Geometry)
 
