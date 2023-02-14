@@ -150,6 +150,8 @@ macro(xgd_setup_compile_options)
             add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/MP>)
             # correct msvc charset
             add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/utf-8>)
+            # big obj
+            add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/bigobj>)
             # do not generate manifest
             add_link_options(/manifest:no)
             # crt
