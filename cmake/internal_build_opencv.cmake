@@ -1,8 +1,24 @@
 # opencv
 function(xgd_build_opencv_library)
+    set(SUPPORTED_MODULES
+            opencv_calib3d
+            opencv_features2d
+            opencv_flann
+            opencv_gapi
+            opencv_imgcodecs
+            opencv_imgproc
+            opencv_ml
+            opencv_objdetect
+            opencv_photo
+            opencv_stitching
+            opencv_video)
+
     set(CPU_DISPATCH_FINAL "")
     if (XGD_FLAG_SSE)
-        list(APPEND CPU_DISPATCH_FINAL SSE2 SSE4_1)
+        list(APPEND CPU_DISPATCH_FINAL SSE2)
+        if (NOT EMSCRIPTEN)
+            list(APPEND CPU_DISPATCH_FINAL SSE4_1)
+        endif ()
     endif ()
     if (XGD_FLAG_AVX)
         list(APPEND CPU_DISPATCH_FINAL AVX)
@@ -11,7 +27,7 @@ function(xgd_build_opencv_library)
         list(APPEND CPU_DISPATCH_FINAL AVX2)
     endif ()
     if (XGD_FLAG_NEON)
-        list(APPEND CPU_DISPATCH_FINAL NEON_DOTPROD)
+        list(APPEND CPU_DISPATCH_FINAL NEON)
     endif ()
     set(CPU_BASELINE_FINAL ${CPU_DISPATCH_FINAL})
 
@@ -19,22 +35,6 @@ function(xgd_build_opencv_library)
     set(OCV_MODULE_DIR ${OCV_ROOT}/modules)
     set(OCV_GENERATED_INC_DIR ${XGD_GENERATED_DIR}/opencv/include)
     set(OCV_GENERATED_SRC_DIR ${XGD_GENERATED_DIR}/opencv/src)
-
-    set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "")
-    foreach (m opencv_core opencv_imgproc)
-        string(TOUPPER "${m}" m)
-        set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "${OPENCV_MODULE_DEFINITIONS_CONFIGMAKE}#define HAVE_${m}\n")
-    endforeach ()
-    set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "${OPENCV_MODULE_DEFINITIONS_CONFIGMAKE}\n")
-    configure_file(${OCV_ROOT}/cmake/templates/opencv_modules.hpp.in
-            ${OCV_GENERATED_INC_DIR}/opencv2/opencv_modules.hpp)
-
-    set(HAVE_PNG ON)
-    set(HAVE_EIGEN ON)
-    configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
-            ${OCV_GENERATED_INC_DIR}/cvconfig.h)
-    configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
-            ${OCV_GENERATED_INC_DIR}/opencv2/cvconfig.h)
 
     set(OPENCV_CPU_DISPATCH_DEFINITIONS_CONFIGMAKE "")
     set(OPENCV_CPU_BASELINE_DEFINITIONS_CONFIGMAKE "")
@@ -85,79 +85,18 @@ function(xgd_build_opencv_library)
     configure_file(${XGD_DEPS_DIR}/cmake/opencv_data_config.hpp.in
             ${OCV_GENERATED_SRC_DIR}/opencv_data_config.hpp @ONLY)
 
-    # reference: opencv/cmake/OpenCVCompilerOptimizations.cmake
-    macro(__ocv_add_dispatched_file filename target_src_var src_directory dst_directory precomp_hpp optimizations_var)
-        set(__codestr "
-            #include \"${src_directory}/${precomp_hpp}\"
-            #include \"${src_directory}/${filename}.simd.hpp\"")
-
-        set(__declarations_str "#define CV_CPU_SIMD_FILENAME \"${src_directory}/${filename}.simd.hpp\"")
-        set(__dispatch_modes "BASELINE")
-
-        set(__optimizations "${${optimizations_var}}")
-#        set(__optimizations "")
-        foreach (OPT ${__optimizations})
-            string(TOLOWER "${OPT}" OPT_LOWER)
-            set(__file "${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT}/${dst_directory}${filename}.${OPT_LOWER}.cpp")
-            if (EXISTS "${__file}")
-                file(READ "${__file}" __content)
-            else ()
-                set(__content "")
-            endif ()
-            if (__content STREQUAL __codestr)
-                # message(STATUS "${__file} contains up-to-date content")
-            else ()
-                file(WRITE "${__file}" "${__codestr}")
-            endif ()
-
-            if (";${CPU_DISPATCH_FINAL};" MATCHES "${OPT}" OR __CPU_DISPATCH_INCLUDE_ALL)
-                if (EXISTS "${src_directory}/${filename}.${OPT_LOWER}.cpp")
-                    message(STATUS "Using overridden ${OPT} source: ${src_directory}/${filename}.${OPT_LOWER}.cpp")
-                else ()
-                    list(APPEND ${target_src_var} "${__file}")
-                    xgd_mark_generated("${__file}")
-                endif ()
-                set(__declarations_str "${__declarations_str}
-                #define CV_CPU_DISPATCH_MODE ${OPT}
-                #include \"opencv2/core/private/cv_cpu_include_simd_declarations.hpp\"")
-                set(__dispatch_modes "${OPT}, ${__dispatch_modes}")
-            endif ()
-        endforeach ()
-
-        set(__declarations_str "${__declarations_str}
-            #define CV_CPU_DISPATCH_MODES_ALL ${__dispatch_modes}
-            #undef CV_CPU_SIMD_FILENAME")
-
-        set(__file "${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT}/${dst_directory}${filename}.simd_declarations.hpp")
-        if (EXISTS "${__file}")
-            file(READ "${__file}" __content)
-        endif ()
-        if (__content STREQUAL __declarations_str)
-            # message(STATUS "${__file} contains up-to-date content")
-        else ()
-            file(WRITE "${__file}" "${__declarations_str}")
-        endif ()
-    endmacro()
-
-    macro(ocv_add_dispatched_file filename)
-        set(__optimizations "${ARGN}")
-        __ocv_add_dispatched_file(
-                "${filename}" "OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED"
-                "${OCV_MODULE_DIR}/${OCV_COMPONENT}/src" "" "precomp.hpp" __optimizations
-        )
-    endmacro()
-
     function(xgd_internal_build_opencv OCV_COMPONENT)
         set(OCV_COMPONENT_DIR ${OCV_MODULE_DIR}/${OCV_COMPONENT})
         if (NOT EXISTS ${OCV_COMPONENT_DIR})
             message(FATAL_ERROR "${OCV_COMPONENT_DIR} not exist for ${OCV_COMPONENT}")
         endif ()
-        cmake_parse_arguments(param "" "" "SRC_FILES;SRC_DIRS" ${ARGN})
+        cmake_parse_arguments(param "" "" "SRC_FILES;SRC_DIRS;EXCLUDE_SRC_FILES" ${ARGN})
         set(OCV_COMPONENT_INC_DIR ${OCV_COMPONENT_DIR}/include)
         set(OCV_COMPONENT_SRC_DIR ${OCV_COMPONENT_DIR}/src)
         set(OCV_COMPONENT_GEN_DIR ${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT})
 
         file(GLOB cl_kernels ${OCV_COMPONENT_SRC_DIR}/opencl/*.cl)
+        set(OUTPUT_SRC "")
         if (cl_kernels)
             set(OCL_NAME opencl_kernels_${OCV_COMPONENT})
             set(OUTPUT_SRC ${OCV_COMPONENT_GEN_DIR}/${OCL_NAME}.cpp)
@@ -176,6 +115,16 @@ function(xgd_build_opencv_library)
             xgd_mark_generated(${OUTPUT_SRC} ${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT}/${OCL_NAME}.hpp)
         endif ()
 
+        set(IGNORE_FILE_REGEXES "^(.*)\\.lasx(.*)\\.cpp$" "^(.*)\\.mm$")
+        if (EMSCRIPTEN OR NOT XGD_FLAG_SSE)
+            list(APPEND IGNORE_FILE_REGEXES "^(.*)\\.sse4_1(.*)\\.cpp$")
+        endif ()
+        if (NOT XGD_FLAG_AVX)
+            list(APPEND IGNORE_FILE_REGEXES "^(.*)\\.avx(.*)\\.cpp$")
+        endif ()
+        if (NOT XGD_FLAG_AVX2)
+            list(APPEND IGNORE_FILE_REGEXES "^(.*)\\.avx2(.*)\\.cpp$")
+        endif ()
         xgd_add_library(
                 opencv_${OCV_COMPONENT}
                 SRC_DIRS
@@ -189,17 +138,28 @@ function(xgd_build_opencv_library)
                 ${OCV_COMPONENT_INC_DIR}
                 ${OCV_GENERATED_INC_DIR}
                 ${OCV_ROOT}/include
+
                 PRIVATE_INCLUDE_DIRS
                 ${OCV_GENERATED_SRC_DIR}
                 ${OCV_COMPONENT_GEN_DIR}
+                ${OCV_COMPONENT_SRC_DIR} # for gapi
+
+                EXCLUDE_SRC_FILES
+                ${param_EXCLUDE_SRC_FILES}
+
                 EXCLUDE_REGEXES
-                "^(.*)\\.avx(.*)\\.cpp"
-                "^(.*)\\.sse(.*)\\.cpp"
-                "^(.*)\\.lasx(.*)\\.cpp"
+                ${IGNORE_FILE_REGEXES}
         )
+        xgd_disable_warnings(opencv_${OCV_COMPONENT})
         xgd_use_header(opencv_${OCV_COMPONENT} PRIVATE eigen)
         xgd_link_png(opencv_${OCV_COMPONENT})
         xgd_link_zlib(opencv_${OCV_COMPONENT})
+        xgd_link_omp(opencv_${OCV_COMPONENT})
+        if (ANDROID)
+            target_link_libraries(opencv_${OCV_COMPONENT} PRIVATE log)
+        elseif (EMSCRIPTEN)
+            target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE CV_FORCE_SIMD128_CPP)
+        endif ()
         target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE __OPENCV_BUILD CVAPI_EXPORTS)
 
         if (NOT TARGET opencv_all)
@@ -247,6 +207,7 @@ function(xgd_build_opencv_library)
         )
     endfunction()
     xgd_build_opencv_core()
+
     function(xgd_build_opencv_imgproc)
         set(OCV_COMPONENT imgproc)
         set(the_module opencv_${OCV_COMPONENT})
@@ -263,11 +224,341 @@ function(xgd_build_opencv_library)
         ocv_add_dispatched_file(sumpixels SSE2 AVX2 AVX512_SKX)
         xgd_internal_build_opencv(
                 imgproc
-                SRC_DIRS
                 SRC_FILES
                 ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
         )
     endfunction()
     xgd_build_opencv_imgproc()
+
+    function(xgd_build_opencv_imgcodecs)
+        set(OCV_COMPONENT imgcodecs)
+        set(the_module opencv_${OCV_COMPONENT})
+        set(_OCV_COMPONENT_DIR ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src)
+        xgd_internal_build_opencv(
+                imgcodecs
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+        # set(EXTRA_SRC_FILES)
+        # set(EXTRA_LIBS)
+        # if (APPLE OR APPLE_FRAMEWORK)
+        #     list(APPEND EXTRA_SRC_FILES ${_OCV_COMPONENT_DIR}/apple_conversions.h)
+        #     list(APPEND EXTRA_SRC_FILES ${_OCV_COMPONENT_DIR}/apple_conversions.mm)
+        # endif ()
+        # if (IOS)
+        #     list(APPEND EXTRA_SRC_FILES ${_OCV_COMPONENT_DIR}/ios_conversions.mm)
+        #     list(APPEND EXTRA_LIBS "-framework UIKit")
+        # endif ()
+        # if (APPLE AND (NOT IOS))
+        #     list(APPEND EXTRA_SRC_FILES ${_OCV_COMPONENT_DIR}/macosx_conversions.mm)
+        #     list(APPEND EXTRA_LIBS "-framework AppKit")
+        # endif ()
+        # if (APPLE_FRAMEWORK)
+        #     list(APPEND EXTRA_LIBS "-framework Accelerate" "-framework CoreGraphics" "-framework QuartzCore")
+        # endif ()
+        # if (EXTRA_SRC_FILES)
+        #     target_sources(opencv_imgcodecs PRIVATE ${EXTRA_SRC_FILES})
+        # endif ()
+        # if (EXTRA_LIBS)
+        #     target_link_libraries(opencv_imgcodecs PRIVATE ${EXTRA_LIBS})
+        # endif ()
+    endfunction()
+    xgd_build_opencv_imgcodecs()
+
+    function(xgd_build_opencv_calib3d)
+        set(OCV_COMPONENT calib3d)
+        set(the_module opencv_${OCV_COMPONENT})
+        ocv_add_dispatched_file(undistort SSE2 AVX2)
+        xgd_internal_build_opencv(
+                calib3d
+                SRC_DIRS
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/usac
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_calib3d()
+
+    function(xgd_build_opencv_features2d)
+        set(OCV_COMPONENT features2d)
+        set(the_module opencv_${OCV_COMPONENT})
+        ocv_add_dispatched_file(sift SSE4_1 AVX2 AVX512_SKX)
+        xgd_internal_build_opencv(
+                features2d
+                SRC_DIRS
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/kaze
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_features2d()
+
+    function(xgd_build_opencv_flann)
+        set(OCV_COMPONENT flann)
+        set(the_module opencv_${OCV_COMPONENT})
+        xgd_internal_build_opencv(
+                flann
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_flann()
+
+
+    function(xgd_build_opencv_gapi)
+        set(OCV_COMPONENT gapi)
+        set(the_module opencv_${OCV_COMPONENT})
+        ocv_add_dispatched_file(backends/fluid/gfluidimgproc_func SSE4_1 AVX2)
+        ocv_add_dispatched_file(backends/fluid/gfluidcore_func SSE4_1 AVX2)
+        xgd_internal_build_opencv(
+                gapi
+                SRC_DIRS
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/api
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/common
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/cpu
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/cpu
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/fluid
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/ie
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/oak
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/onnx
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/plaidml
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/python
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/render
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/backends/streaming
+
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/compiler
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/compiler/passes
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/executor
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/streaming/gstreamer
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/streaming/onevpl
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/streaming/onevpl/asseletators
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/streaming/onevpl/asseletators/surface
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/streaming/onevpl/asseletators/utils
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/streaming/onevpl/demux
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/engine
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/engine/decode
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/engine/precode
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/engine/transcode
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/utils
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+        xgd_link_ade(opencv_gapi)
+    endfunction()
+    xgd_build_opencv_gapi()
+
+    function(xgd_build_opencv_ml)
+        set(OCV_COMPONENT ml)
+        set(the_module opencv_${OCV_COMPONENT})
+        xgd_internal_build_opencv(
+                ml
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_ml()
+
+    function(xgd_build_opencv_objdetect)
+        set(OCV_COMPONENT objdetect)
+        set(the_module opencv_${OCV_COMPONENT})
+        ocv_add_dispatched_file(accum SSE4_1 AVX AVX2)
+        xgd_internal_build_opencv(
+                objdetect
+                SRC_DIRS
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/aruco
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/aruco/apriltag
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_objdetect()
+
+    function(xgd_build_opencv_photo)
+        set(OCV_COMPONENT photo)
+        set(the_module opencv_${OCV_COMPONENT})
+        xgd_internal_build_opencv(
+                photo
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_photo()
+
+    function(xgd_build_opencv_stitching)
+        set(OCV_COMPONENT stitching)
+        set(the_module opencv_${OCV_COMPONENT})
+        xgd_internal_build_opencv(
+                stitching
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_stitching()
+
+    function(xgd_build_opencv_video)
+        set(OCV_COMPONENT video)
+        set(the_module opencv_${OCV_COMPONENT})
+        ocv_add_dispatched_file(accum SSE4_1 AVX AVX2)
+        xgd_internal_build_opencv(
+                video
+                SRC_DIRS
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/tracking
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/tracking/detail
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+        )
+    endfunction()
+    xgd_build_opencv_video()
+
+    function(xgd_build_opencv_highgui)
+        set(OCV_COMPONENT highgui)
+        set(the_module opencv_${OCV_COMPONENT})
+        xgd_internal_build_opencv(
+                highgui
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+                EXCLUDE_SRC_FILES
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_winrt.cpp
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_winrt_bridge.cpp
+        )
+        target_compile_definitions(opencv_highgui PRIVATE HAVE_QT)
+        qt_add_resources(opencv_highgui ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_QT.qrc PREFIX /)
+        xgd_link_qt(opencv_highgui PRIVATE Core Widgets Test)
+
+        set(OPENCV_HIGHGUI_BUILTIN_BACKEND "QT")
+        set(CONFIG_STR "// Auto-generated file
+#define OPENCV_HIGHGUI_BUILTIN_BACKEND_STR \"${OPENCV_HIGHGUI_BUILTIN_BACKEND}\"
+")
+        if(OPENCV_HIGHGUI_BUILTIN_BACKEND STREQUAL "NONE")
+            set(CONFIG_STR "${CONFIG_STR}
+#define OPENCV_HIGHGUI_WITHOUT_BUILTIN_BACKEND 1
+")
+        endif()
+        ocv_update_file("${OCV_GENERATED_SRC_DIR}/highgui/opencv_highgui_config.hpp" "${CONFIG_STR}")
+    endfunction()
+
+    if (XGD_ENABLE_QT)
+        message(STATUS "opencv: enable highgui Qt")
+        set(HAVE_QT ON)
+        set(HAVE_QT6 ON)
+        list(APPEND SUPPORTED_MODULES opencv_highgui)
+        xgd_build_opencv_highgui()
+        xgd_link_opencv(opencv_highgui PUBLIC imgproc imgcodecs) # optional videoio
+    endif ()
+
+    xgd_link_opencv(opencv_calib3d PUBLIC imgproc features2d flann) # optional highgui on debug
+    xgd_link_opencv(opencv_features2d PUBLIC imgproc flann) # optional highgui on debug
+    xgd_link_opencv(opencv_flann PUBLIC core)
+    xgd_link_opencv(opencv_gapi PUBLIC imgproc video calib3d)
+    xgd_link_opencv(opencv_imgcodecs PUBLIC imgproc)
     xgd_link_opencv(opencv_imgproc PUBLIC core)
+    xgd_link_opencv(opencv_ml PUBLIC core)
+    xgd_link_opencv(opencv_objdetect PUBLIC core imgproc calib3d) # optional dnn
+    xgd_link_opencv(opencv_photo PUBLIC imgproc)
+    xgd_link_opencv(opencv_stitching PUBLIC imgproc features2d calib3d flann)
+    xgd_link_opencv(opencv_video PUBLIC imgproc calib3d) # optional dnn
+
+    # xgd_link_opencv(opencv_dnn PUBLIC core imgproc)
+    # xgd_link_opencv(opencv_videoio PUBLIC imgproc imgcodecs)
+
+    set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "")
+    foreach (m ${SUPPORTED_MODULES})
+        string(TOUPPER "${m}" m)
+        set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "${OPENCV_MODULE_DEFINITIONS_CONFIGMAKE}#define HAVE_${m}\n")
+    endforeach ()
+    set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "${OPENCV_MODULE_DEFINITIONS_CONFIGMAKE}\n")
+    configure_file(${OCV_ROOT}/cmake/templates/opencv_modules.hpp.in
+            ${OCV_GENERATED_INC_DIR}/opencv2/opencv_modules.hpp)
+
+    set(HAVE_PNG ON)
+    set(HAVE_EIGEN ON)
+    set(CV_ENABLE_INTRINSICS ON)
+    configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
+            ${OCV_GENERATED_INC_DIR}/cvconfig.h)
+    configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
+            ${OCV_GENERATED_INC_DIR}/opencv2/cvconfig.h)
+endfunction()
+
+# reference: opencv/cmake/OpenCVCompilerOptimizations.cmake
+macro(__ocv_add_dispatched_file filename target_src_var src_directory dst_directory precomp_hpp optimizations_var)
+    set(__codestr "
+            #include \"${src_directory}/${precomp_hpp}\"
+            #include \"${src_directory}/${filename}.simd.hpp\"")
+
+    set(__declarations_str "#define CV_CPU_SIMD_FILENAME \"${src_directory}/${filename}.simd.hpp\"")
+    set(__dispatch_modes "BASELINE")
+
+    set(__optimizations "${${optimizations_var}}")
+    #        set(__optimizations "")
+    foreach (OPT ${__optimizations})
+        string(TOLOWER "${OPT}" OPT_LOWER)
+        set(__file "${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT}/${dst_directory}${filename}.${OPT_LOWER}.cpp")
+        if (EXISTS "${__file}")
+            file(READ "${__file}" __content)
+        else ()
+            set(__content "")
+        endif ()
+        if (__content STREQUAL __codestr)
+            # message(STATUS "${__file} contains up-to-date content")
+        else ()
+            file(WRITE "${__file}" "${__codestr}")
+        endif ()
+
+        if (";${CPU_DISPATCH_FINAL};" MATCHES "${OPT}" OR __CPU_DISPATCH_INCLUDE_ALL)
+            if (EXISTS "${src_directory}/${filename}.${OPT_LOWER}.cpp")
+                message(STATUS "Using overridden ${OPT} source: ${src_directory}/${filename}.${OPT_LOWER}.cpp")
+            else ()
+                list(APPEND ${target_src_var} "${__file}")
+                xgd_mark_generated("${__file}")
+            endif ()
+            set(__declarations_str "${__declarations_str}
+                #define CV_CPU_DISPATCH_MODE ${OPT}
+                #include \"opencv2/core/private/cv_cpu_include_simd_declarations.hpp\"")
+            set(__dispatch_modes "${OPT}, ${__dispatch_modes}")
+        endif ()
+    endforeach ()
+
+    set(__declarations_str "${__declarations_str}
+            #define CV_CPU_DISPATCH_MODES_ALL ${__dispatch_modes}
+            #undef CV_CPU_SIMD_FILENAME")
+
+    set(__file "${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT}/${dst_directory}${filename}.simd_declarations.hpp")
+    if (EXISTS "${__file}")
+        file(READ "${__file}" __content)
+    endif ()
+    if (__content STREQUAL __declarations_str)
+        # message(STATUS "${__file} contains up-to-date content")
+    else ()
+        file(WRITE "${__file}" "${__declarations_str}")
+    endif ()
+endmacro()
+
+macro(ocv_add_dispatched_file filename)
+    set(__optimizations "${ARGN}")
+    __ocv_add_dispatched_file(
+            "${filename}" "OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED"
+            "${OCV_MODULE_DIR}/${OCV_COMPONENT}/src" "" "precomp.hpp" __optimizations
+    )
+endmacro()
+
+macro(ocv_add_dispatched_file_force_all)
+    set(__CPU_DISPATCH_INCLUDE_ALL 1)
+    ocv_add_dispatched_file(${ARGN})
+    unset(__CPU_DISPATCH_INCLUDE_ALL)
+endmacro()
+
+# reference: opencv/cmake/OpenCVUtils.cmake
+function(ocv_update_file filepath content)
+    if(EXISTS "${filepath}")
+        file(READ "${filepath}" actual_content)
+    else()
+        set(actual_content "")
+    endif()
+    if("${actual_content}" STREQUAL "${content}")
+        if(";${ARGN};" MATCHES ";VERBOSE;")
+            message(STATUS "${filepath} contains the same content")
+        endif()
+    else()
+        file(WRITE "${filepath}" "${content}")
+    endif()
 endfunction()

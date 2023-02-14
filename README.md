@@ -45,6 +45,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 
 | Library           | Source                                                                                                  |
 |-------------------|---------------------------------------------------------------------------------------------------------|
+| ade               | https://github.com/opencv/ade/archive/refs/tags/v0.1.2a.tar.gz                                          |
 | armadillo         | http://sourceforge.net/projects/arma/files/armadillo-11.4.4.tar.xz                                      |
 | avalontoolkit     | http://sourceforge.net/projects/avalontoolkit/files/AvalonToolkit_1.2/AvalonToolkit_1.2.0.source.tar    |
 | benchmark         | https://github.com/google/benchmark/archive/refs/tags/v1.7.1.tar.gz                                     |
@@ -65,7 +66,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 | ncnn              | https://github.com/Tencent/ncnn/archive/refs/tags/20221128.tar.gz                                       |
 | openbabel         | https://github.com/openbabel/openbabel/releases/download/openbabel-3-1-1/openbabel-3.1.1-source.tar.bz2 |
 | opencv            | https://github.com/opencv/opencv/archive/refs/tags/4.7.0.tar.gz                                         |
-| rapidjson         | https://github.com/Tencent/rapidjson/archive/012be8528783cdbf4b7a9e64f78bd8f056b97e24.zip                                    |
+| rapidjson         | https://github.com/Tencent/rapidjson/archive/012be8528783cdbf4b7a9e64f78bd8f056b97e24.zip               |
 | rdkit             | https://github.com/rdkit/rdkit/archive/refs/tags/Release_2022_09_4.tar.gz                               |
 | RingDecomposerLib | https://github.com/rareylab/RingDecomposerLib/archive/refs/tags/v1.1.3_rdkit.tar.gz                     |
 | rxcpp             | https://github.com/ReactiveX/RxCpp/archive/refs/tags/v4.1.1.tar.gz                                      |
@@ -78,28 +79,32 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 
 ## Not Supported Modules
 
-| Library | Module |
-|---------| --- |
-| boost   | context |
-| boost   | coroutine |
-| boost   | fiber |
+| Library | Module         |
+|---------|----------------|
+| boost   | context        |
+| boost   | coroutine      |
+| boost   | fiber          |
 | boost   | graph_parallel |
-| boost   | locale |
-| boost   | log |
-| boost   | mpi |
-| boost   | python |
-| boost   | test |
-| ncnn    | loongarch |
-| ncnn    | mips |
-| ncnn    | riscv |
-| rdkit   | Fuzz |
-| rdkit   | PgSQL |
-| rdkit   | RDBoost |
+| boost   | locale         |
+| boost   | log            |
+| boost   | mpi            |
+| boost   | python         |
+| boost   | test           |
+| ncnn    | loongarch      |
+| ncnn    | mips           |
+| ncnn    | riscv          |
+| opencv  | dnn            |
+| opencv  | highgui        |
+| opencv  | videoio        |
+| rdkit   | Fuzz           |
+| rdkit   | PgSQL          |
+| rdkit   | RDBoost        |
 
 ## C++ Source copy
 ```shell
 # unzip all downloads
 mkdir -p ../tmp/avalontoolkit/
+tar -xvf ade-0.1.2a.tar.gz -C ../tmp
 tar -xvf armadillo-11.4.4.tar.xz -C ../tmp/
 tar -xvf AvalonToolkit_1.2.0.source.tar -C ../tmp/avalontoolkit/
 tar -xvf benchmark-1.7.1.tar.gz -C ../tmp/
@@ -132,6 +137,7 @@ unzip rapidjson-012be8528783cdbf4b7a9e64f78bd8f056b97e24.zip -d ../tmp/
 unzip stb-5736b15f7ea0ffb08dd38af21067c314d6a3aae9.zip -d ../tmp/
 
 # rename dir
+mv ade-0.1.2a ade
 mv armadillo-11.4.4 armadillo
 mv benchmark-1.7.1 benchmark
 mv boost_1_81_0 boost
@@ -164,7 +170,7 @@ mv zlib-1.2.13 zlib
 
 # remove large files
 find . -type f -empty > empty.log
-grep -rIL . | xargs -I {} rm -rf "{}"
+grep -rIL . --exclude-dir=Material | xargs -I {} rm -rf "{}"
 cat empty.log | xargs -I {} touch "{}" && rm -rf empty.log
 
 ## openbabel

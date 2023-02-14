@@ -139,6 +139,12 @@ function(xgd_build_coordgenlibs_library)
     xgd_generate_export_header(coordgenlibs "coordgenlibs" ".hpp")
 endfunction()
 
+# ade
+function(xgd_build_ade_library)
+    set(INC_DIR ${XGD_DEPS_DIR}/cpp/ade-src/ade/sources/ade/include)
+    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/ade-src/ade/sources/ade/source)
+    xgd_add_library(ade STATIC SRC_DIRS ${SRC_DIR} INCLUDE_DIRS ${INC_DIR})
+endfunction()
 
 # yaehmop
 function(xgd_build_yaehmop_library)

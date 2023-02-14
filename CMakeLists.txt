@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(xgd-deps VERSION 0.0.0)
+project(xgd-deps LANGUAGES C CXX)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/api_deps_util.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/api_deps_link.cmake)
@@ -12,6 +12,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal_build_png.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal_build_libxml2.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal_build_rdkit.cmake)
 
+xgd_build_ade_library()
 xgd_build_avalontoolkit_library()
 xgd_build_benchmark_library()
 xgd_build_boost_library()

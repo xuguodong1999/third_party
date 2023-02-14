@@ -137,6 +137,7 @@ function(xgd_link_opencv TARGET)
     endforeach ()
 endfunction()
 
+
 # qt
 function(xgd_link_qt TARGET)
     # usage: xgd_link_qt(your-awesome-target COMPONENTS [Core Widgets ...])
@@ -199,6 +200,12 @@ function(xgd_link_openbabel TARGET)
     add_dependencies(${TARGET} openbabel)
     target_link_libraries(${TARGET} PRIVATE openbabel)
     xgd_add_global_init_unit(${TARGET} openbabel)
+endfunction()
+
+# ade
+function(xgd_link_ade TARGET)
+    add_dependencies(${TARGET} ade)
+    target_link_libraries(${TARGET} PRIVATE ade)
 endfunction()
 
 # yaehmop

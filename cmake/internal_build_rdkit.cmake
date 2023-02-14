@@ -267,7 +267,7 @@ function(xgd_build_rdkit_library)
             ${RD_ROOT_DIR}/Code/GraphMol/MolDraw2D/MolDraw2DCairo.cpp
     )
 
-    if (${Qt${QT_VERSION_MAJOR}Gui_FOUND})
+    if (XGD_ENABLE_QT)
         message(STATUS "rdkit: enable MolDraw2D Qt")
         xgd_build_rdkit_internal(
                 MolDraw2DQt
