@@ -126,11 +126,6 @@ macro(xgd_setup_compile_options)
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-    # OBJC 20
-    set(CMAKE_OBJC_STANDARD 17)
-    set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
-
-
     # Export only public symbols
     set(CMAKE_CXX_VISIBILITY_PRESET hidden)
     set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
@@ -152,6 +147,8 @@ macro(xgd_setup_compile_options)
             add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/utf-8>)
             # big obj
             add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/bigobj>)
+            # get correct __cplusplus macro
+            add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:/Zc:__cplusplus>)
             # do not generate manifest
             add_link_options(/manifest:no)
             # crt
