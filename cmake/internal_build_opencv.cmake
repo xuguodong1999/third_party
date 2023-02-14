@@ -344,6 +344,9 @@ function(xgd_build_opencv_library)
                 ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
         )
         xgd_link_ade(opencv_gapi)
+        if (WIN32)
+            target_link_libraries(opencv_gapi PRIVATE wsock32 ws2_32)
+        endif ()
     endfunction()
     xgd_build_opencv_gapi()
 
