@@ -10,7 +10,7 @@ macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CF
 
         add_custom_command(
                 OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER}
-                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${XGD_DEPS_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
                 DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_HEADER}
                 COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h"
                 VERBATIM
@@ -19,7 +19,7 @@ macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CF
 
         add_custom_command(
                 OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE}
-                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${XGD_DEPS_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
                 DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE}
                 COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp"
                 VERBATIM
