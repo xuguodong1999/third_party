@@ -15,8 +15,8 @@ function(xgd_build_opencv_library)
 
     set(CPU_DISPATCH_FINAL "")
     if (XGD_FLAG_SSE)
-        list(APPEND CPU_DISPATCH_FINAL SSE2)
         if (NOT EMSCRIPTEN)
+            list(APPEND CPU_DISPATCH_FINAL SSE2)
             list(APPEND CPU_DISPATCH_FINAL SSE4_1)
         endif ()
     endif ()
@@ -29,7 +29,8 @@ function(xgd_build_opencv_library)
     if (XGD_FLAG_NEON)
         list(APPEND CPU_DISPATCH_FINAL NEON)
     endif ()
-    set(CPU_BASELINE_FINAL ${CPU_DISPATCH_FINAL})
+
+    set(CPU_BASELINE_FINAL "")
 
     set(OCV_ROOT ${XGD_EXTERNAL_DIR}/cpp/opencv-src/opencv)
     set(OCV_MODULE_DIR ${OCV_ROOT}/modules)
@@ -159,6 +160,9 @@ function(xgd_build_opencv_library)
                 opencv_${OCV_COMPONENT} PUBLIC
                 $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:${CXX20_NO_WARNING_FLAGS}>
         )
+        if (MSVC)
+            target_compile_options(opencv_${OCV_COMPONENT} PUBLIC /wd5055)
+        endif ()
         xgd_use_header(opencv_${OCV_COMPONENT} PRIVATE eigen)
         xgd_link_png(opencv_${OCV_COMPONENT})
         xgd_link_zlib(opencv_${OCV_COMPONENT})
@@ -434,7 +438,6 @@ function(xgd_build_opencv_library)
                 ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_winrt_bridge.cpp
         )
         target_compile_definitions(opencv_highgui PRIVATE HAVE_QT)
-        qt_add_resources(opencv_highgui ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_QT.qrc PREFIX /)
         xgd_link_qt(opencv_highgui PRIVATE Core Widgets Test)
 
         set(OPENCV_HIGHGUI_BUILTIN_BACKEND "QT")
