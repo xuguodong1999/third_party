@@ -30,8 +30,12 @@ GNU General Public License for more details.
 #include <algorithm>
 
 #ifdef _MSC_VER
+#ifndef INFINITY
 #define INFINITY (DBL_MAX+DBL_MAX)
+#endif
+#ifndef NAN
 #define NAN (INFINITY-INFINITY)
+#endif
 #endif
 
 using namespace std;
