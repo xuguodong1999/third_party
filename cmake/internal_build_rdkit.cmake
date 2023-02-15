@@ -1,5 +1,5 @@
 function(xgd_build_rdkit_library)
-    set(RD_ROOT_DIR ${XGD_DEPS_DIR}/cpp/rdkit-src/rdkit)
+    set(RD_ROOT_DIR ${XGD_EXTERNAL_DIR}/cpp/rdkit-src/rdkit)
     set(RD_GEN_DIR ${XGD_GENERATED_DIR}/rdkit/include/rdkit)
     function(xgd_build_rdkit_internal RDKIT_COMPONENT)
         cmake_parse_arguments(param "" "" "SRC_DIRS;EXCLUDE_SRC_FILES;SRC_FILES" ${ARGN})

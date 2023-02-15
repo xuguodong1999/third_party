@@ -1,7 +1,7 @@
 # boost
 function(xgd_internal_build_boost BOOST_COMPONENT)
-    set(BOOST_INC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost)
-    set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs)
+    set(BOOST_INC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost)
+    set(BOOST_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs)
     cmake_parse_arguments(param "STATIC" "" "SRC_FILES;SRC_DIRS" ${ARGN})
     set(${BOOST_COMPONENT}_SRC_DIR ${BOOST_SRC_DIR}/${BOOST_COMPONENT}/src)
     if (NOT param_SRC_FILES)
@@ -55,7 +55,7 @@ function(xgd_internal_build_boost BOOST_COMPONENT)
 endfunction()
 
 function(xgd_build_boost_atomic)
-    set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs)
+    set(BOOST_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs)
     set(BOOST_ATOMIC_SRC_FILES lock_pool.cpp)
     if (WIN32)
         list(APPEND BOOST_ATOMIC_SRC_FILES wait_on_address.cpp)
@@ -81,7 +81,7 @@ function(xgd_build_boost_atomic)
 endfunction()
 
 function(xgd_build_boost_filesystem)
-    set(BOOST_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs)
+    set(BOOST_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs)
     check_cxx_source_compiles(
             "#include <${BOOST_SRC_DIR}/filesystem/config/has_cxx20_atomic_ref.cpp>"
             BOOST_FILESYSTEM_HAS_CXX20_ATOMIC_REF

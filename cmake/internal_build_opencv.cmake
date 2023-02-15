@@ -31,7 +31,7 @@ function(xgd_build_opencv_library)
     endif ()
     set(CPU_BASELINE_FINAL ${CPU_DISPATCH_FINAL})
 
-    set(OCV_ROOT ${XGD_DEPS_DIR}/cpp/opencv-src/opencv)
+    set(OCV_ROOT ${XGD_EXTERNAL_DIR}/cpp/opencv-src/opencv)
     set(OCV_MODULE_DIR ${OCV_ROOT}/modules)
     set(OCV_GENERATED_INC_DIR ${XGD_GENERATED_DIR}/opencv/include)
     set(OCV_GENERATED_SRC_DIR ${XGD_GENERATED_DIR}/opencv/src)
@@ -82,7 +82,7 @@ function(xgd_build_opencv_library)
 
     configure_file(${OCV_ROOT}/cmake/templates/custom_hal.hpp.in
             ${OCV_GENERATED_INC_DIR}/custom_hal.hpp @ONLY)
-    configure_file(${XGD_DEPS_DIR}/cmake/opencv_data_config.hpp.in
+    configure_file(${XGD_EXTERNAL_DIR}/cmake/opencv_data_config.hpp.in
             ${OCV_GENERATED_SRC_DIR}/opencv_data_config.hpp @ONLY)
 
     function(xgd_internal_build_opencv OCV_COMPONENT)
@@ -150,11 +150,20 @@ function(xgd_build_opencv_library)
                 EXCLUDE_REGEXES
                 ${IGNORE_FILE_REGEXES}
         )
-        xgd_disable_warnings(opencv_${OCV_COMPONENT})
+        set(CXX20_NO_WARNING_FLAGS -Wno-deprecated-enum-enum-conversion)
+        list(APPEND CXX20_NO_WARNING_FLAGS -Wno-deprecated-enum-float-conversion)
+        if (NOT WIN32)
+            list(APPEND CXX20_NO_WARNING_FLAGS -Wno-deprecated-anon-enum-enum-conversion)
+        endif ()
+        target_compile_options(
+                opencv_${OCV_COMPONENT} PUBLIC
+                $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:${CXX20_NO_WARNING_FLAGS}>
+        )
         xgd_use_header(opencv_${OCV_COMPONENT} PRIVATE eigen)
         xgd_link_png(opencv_${OCV_COMPONENT})
         xgd_link_zlib(opencv_${OCV_COMPONENT})
-        xgd_link_omp(opencv_${OCV_COMPONENT})
+        # use header eigen already add it
+        # xgd_link_omp(opencv_${OCV_COMPONENT})
         if (ANDROID)
             target_link_libraries(opencv_${OCV_COMPONENT} PRIVATE log)
         elseif (EMSCRIPTEN)

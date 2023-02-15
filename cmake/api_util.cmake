@@ -28,7 +28,7 @@ function(xgd_check_compiler_arch)
             set(XGD_ARCH_X86 ON CACHE INTERNAL "")
             break()
         endif ()
-        set(CHECK_SRC_DIR ${XGD_DEPS_DIR}/cpp/boost-src/boost/libs/config/checks/architecture)
+        set(CHECK_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs/config/checks/architecture)
         check_cxx_source_compiles("
                 #include <${CHECK_SRC_DIR}/x86.cpp>
                 int main() {}" XGD_ARCH_X86)
@@ -227,7 +227,7 @@ endfunction()
 
 # global init static library
 function(xgd_add_global_init_unit TARGET LIBRARY)
-    set(GLOBAL_INIT_SRC ${XGD_DEPS_DIR}/cmake/global_init_source/${LIBRARY}.cpp)
+    set(GLOBAL_INIT_SRC ${XGD_EXTERNAL_DIR}/cmake/global_init_source/${LIBRARY}.cpp)
     if (NOT EXISTS ${GLOBAL_INIT_SRC})
         message(FATAL_ERROR "${GLOBAL_INIT_SRC} not exist for target ${LIBRARY}")
     endif ()

@@ -1,12 +1,14 @@
-# deps for xgd-project
+# external
 
-**deps for xgd-project** is a repo to make cross-platform integration of some 3rdparty libraries easier, especially for
-cross-compiling on android, ios and wasm.
+**external** for xgd-project is a repo to make cross-platform integration of some 3rdparty libraries easier, especially
+for cross-compiling on android, ios and wasm.
 
-Instead of using `find_package` to find pre-installed libraries, **deps for xgd-project** is aimed at source integration.
+Instead of using `find_package` to find pre-installed libraries, **external** for xgd-project is aimed at source
+integration.
 
-Normally, **deps for xgd-project** is used as a git submodule. Once called by cmake from `add_subdirectory`, it will generate all
-targets but exclude from cmake `all` variable. A target will not be built from source until manually linked.
+Normally, **external** for xgd-project is used as a git submodule. Once called by cmake from `add_subdirectory`, it will
+generate all targets but exclude from cmake `all` variable. A target will not be built from source until manually
+linked.
 
 Typical usage:
 
@@ -14,20 +16,20 @@ Typical usage:
 # CMakeLists.txt
 project(hello-world)
 
-# expose a "XGD_DEPS_DIR" var for deps to find root
-set(XGD_DEPS_DIR /path/to/deps)
-# expose a "XGD_GENERATED_DIR" var for deps to generated export header and some assets
+# expose a "XGD_EXTERNAL_DIR" var for external to find root
+set(XGD_EXTERNAL_DIR /path/to/external)
+# expose a "XGD_GENERATED_DIR" var for external to generated export header and some assets
 set(XGD_GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
 
-include(${XGD_DEPS_DIR}/cmake/api_deps_util.cmake)
+include(${XGD_EXTERNAL_DIR}/cmake/api_util.cmake)
 xgd_setup_compile_options()
 xgd_check_compiler_arch()
 
-add_subdirectory(${XGD_DEPS_DIR})
+add_subdirectory(${XGD_EXTERNAL_DIR})
 add_executable(${PROJECT_NAME} main.cpp) # add your codes here
 
 # include related cmake function
-include(${XGD_DEPS_DIR}/cmake/api_deps_link.cmake)
+include(${XGD_EXTERNAL_DIR}/cmake/api_link.cmake)
 # link Boost::iostreams, Boost::serialization to hello-world
 xgd_link_boost(${PROJECT_NAME} COMPONENTS iostreams serialization)
 # link OpenBabel to hello-world
@@ -192,7 +194,7 @@ rm -rf ./opencv/3rdparty ./opencv/doc
 
 # encoding
 find . -type f -name *.c -o -name *.cpp -o -name *.cc -o -name *.h -o -name *.hh -o -name *.hpp | xargs dos2unix
-## TODO: using VSCode, change ./openbabel/data/ghemical.prm from windows 1252 to UTF-8
+## ... using VSCode, change ./openbabel/data/ghemical.prm from windows 1252 to UTF-8
 pushd ./openbabel/data && find . -type f | xargs dos2unix && popd
 
 # rename dir

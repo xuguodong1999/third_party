@@ -1,7 +1,7 @@
 # yoga
 function(xgd_build_yoga_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/yoga-src/yoga)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/yoga-src/yoga/yoga)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/yoga-src/yoga)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/yoga-src/yoga/yoga)
     xgd_add_library(
             yoga
             SRC_DIRS
@@ -18,8 +18,8 @@ endfunction()
 
 # spdlog
 function(xgd_build_spdlog_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/spdlog-src/spdlog/include)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/spdlog-src/spdlog/src)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/spdlog-src/spdlog/include)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/spdlog-src/spdlog/src)
     xgd_add_library(
             spdlog
             SRC_DIRS ${SRC_DIR}
@@ -39,8 +39,8 @@ endfunction()
 
 # gtest
 function(xgd_build_gtest_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/gtest-src/gtest/googletest/include)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/gtest-src/gtest/googletest/src)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/include)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/src)
     xgd_add_library(
             gtest
             SRC_FILES ${SRC_DIR}/gtest-all.cc
@@ -58,8 +58,8 @@ endfunction()
 
 # benchmark
 function(xgd_build_benchmark_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/benchmark-src/benchmark/include)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/benchmark-src/benchmark/src)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/benchmark-src/benchmark/include)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/benchmark-src/benchmark/src)
     xgd_add_library(
             benchmark
             SRC_DIRS ${SRC_DIR} ${SRC_DIR}/src
@@ -81,8 +81,8 @@ endfunction()
 
 # zlib
 function(xgd_build_zlib_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/zlib-src/zlib)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/zlib-src/zlib)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/zlib-src/zlib)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/c/zlib-src/zlib)
     xgd_add_library(
             zlib
             SRC_DIRS ${SRC_DIR}
@@ -96,9 +96,9 @@ endfunction()
 
 # inchi
 function(xgd_build_inchi_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/inchi-src/inchi/INCHI_BASE/src)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/inchi-src/inchi/INCHI_BASE/src)
     set(SRC_DIR ${INC_DIR})
-    set(API_SRC_DIR ${XGD_DEPS_DIR}/cpp/inchi-src/inchi/INCHI_API/libinchi/src)
+    set(API_SRC_DIR ${XGD_EXTERNAL_DIR}/c/inchi-src/inchi/INCHI_API/libinchi/src)
     xgd_add_library(
             inchi
             SRC_DIRS ${SRC_DIR} ${API_SRC_DIR} ${API_SRC_DIR}/ixa
@@ -112,8 +112,8 @@ endfunction()
 
 # maeparser
 function(xgd_build_maeparser_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/maeparser-src)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/maeparser-src/maeparser)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/maeparser-src)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/maeparser-src/maeparser)
     xgd_add_library(
             maeparser
             SRC_DIRS ${SRC_DIR}
@@ -127,8 +127,8 @@ endfunction()
 
 # coordgenlibs
 function(xgd_build_coordgenlibs_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/coordgen-src)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/coordgen-src/coordgen)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/coordgen-src)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/coordgen-src/coordgen)
     xgd_add_library(
             coordgenlibs
             SRC_DIRS ${SRC_DIR}
@@ -141,15 +141,15 @@ endfunction()
 
 # ade
 function(xgd_build_ade_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/ade-src/ade/sources/ade/include)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/ade-src/ade/sources/ade/source)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/ade-src/ade/sources/ade/include)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/ade-src/ade/sources/ade/source)
     xgd_add_library(ade STATIC SRC_DIRS ${SRC_DIR} INCLUDE_DIRS ${INC_DIR})
 endfunction()
 
 # yaehmop
 function(xgd_build_yaehmop_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/yaehmop-src)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/yaehmop-src/yaehmop/tightbind)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/yaehmop-src)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/c/yaehmop-src/yaehmop/tightbind)
     xgd_add_library(
             yaehmop
             STATIC # yaehmop has no export header preparation
@@ -167,7 +167,7 @@ endfunction()
 
 # avalontoolkit
 function(xgd_build_avalontoolkit_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/avalontoolkit-src/avalontoolkit/SourceDistribution/common)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/avalontoolkit-src/avalontoolkit/SourceDistribution/common)
     set(SRC_DIR ${INC_DIR})
     xgd_add_library(
             avalontoolkit
@@ -184,7 +184,7 @@ endfunction()
 
 # ringdecomposerlib
 function(xgd_build_ringdecomposerlib_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/ringdecomposerlib-src/ringdecomposerlib/src/RingDecomposerLib)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/ringdecomposerlib-src/ringdecomposerlib/src/RingDecomposerLib)
     set(SRC_DIR ${INC_DIR})
     xgd_add_library(
             ringdecomposerlib
@@ -201,7 +201,7 @@ endfunction()
 
 # freesasa
 function(xgd_build_freesasa_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/freesasa-src/freesasa/src)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/freesasa-src/freesasa/src)
     set(SRC_DIR ${INC_DIR})
     xgd_add_library(
             freesasa

@@ -1,6 +1,6 @@
 # libpng
 function(xgd_build_png_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/libpng-src/libpng)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/libpng-src/libpng)
     set(SRC_DIR ${INC_DIR})
     xgd_add_library(
             png

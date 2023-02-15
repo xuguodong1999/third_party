@@ -1,8 +1,8 @@
 # libxml2
 ## disable http and module, enable threads
 function(xgd_build_xml2_library)
-    set(INC_DIR ${XGD_DEPS_DIR}/cpp/libxml2-src/libxml2/include)
-    set(SRC_DIR ${XGD_DEPS_DIR}/cpp/libxml2-src/libxml2)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/libxml2-src/libxml2/include)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/c/libxml2-src/libxml2)
     set(_XML_SRC_FILES buf.c c14n.c catalog.c chvalid.c debugXML.c dict.c encoding.c entities.c error.c
             globals.c hash.c HTMLparser.c HTMLtree.c legacy.c list.c nanoftp.c nanohttp.c parser.c
             parserInternals.c pattern.c relaxng.c SAX.c SAX2.c schematron.c threads.c tree.c uri.c

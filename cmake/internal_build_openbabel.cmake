@@ -1,8 +1,8 @@
 # openbabel
 function(xgd_build_openbabel_library)
-    set(OB_INC_DIR ${XGD_DEPS_DIR}/cpp/openbabel-src/openbabel/include)
-    set(OB_SRC_DIR ${XGD_DEPS_DIR}/cpp/openbabel-src/openbabel/src)
-    set(OB_DATA_DIR ${XGD_DEPS_DIR}/cpp/openbabel-src/openbabel/data)
+    set(OB_INC_DIR ${XGD_EXTERNAL_DIR}/cpp/openbabel-src/openbabel/include)
+    set(OB_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/openbabel-src/openbabel/src)
+    set(OB_DATA_DIR ${XGD_EXTERNAL_DIR}/cpp/openbabel-src/openbabel/data)
     xgd_add_library(
             openbabel
             SRC_DIRS
@@ -31,7 +31,8 @@ function(xgd_build_openbabel_library)
 
     xgd_use_header(openbabel PUBLIC eigen PRIVATE rapidjson lbfgs)
 
-    xgd_link_omp(openbabel)
+    # use header eigen already add it
+    # xgd_link_omp(openbabel)
     xgd_link_zlib(openbabel)
     xgd_link_xml2(openbabel)
     xgd_link_inchi(openbabel)
