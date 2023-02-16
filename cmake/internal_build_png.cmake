@@ -6,6 +6,9 @@ function(xgd_build_png_library)
             png
             SRC_DIRS ${SRC_DIR}
             INCLUDE_DIRS ${INC_DIR}
+            EXCLUDE_SRC_FILES
+            ${SRC_DIR}/example.c
+            ${SRC_DIR}/pngtest.c
     )
     if (WIN32 AND BUILD_SHARED_LIBS)
         target_compile_definitions(png PRIVATE PNG_BUILD_DLL)
