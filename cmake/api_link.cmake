@@ -35,6 +35,9 @@ function(xgd_link_gtest TARGET)
         set(TEST_COMMAND "${TARGET}")
     if (EMSCRIPTEN AND NODEJS_RUNTIME)
         set(OUTPUT_JS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.js)
+        if (CMAKE_HOST_WIN32)
+            set(OUTPUT_JS "file://${OUTPUT_JS}")
+        endif ()
         set(TEST_COMMAND
                 "${NODEJS_RUNTIME}"
                 "--experimental-wasm-threads"
