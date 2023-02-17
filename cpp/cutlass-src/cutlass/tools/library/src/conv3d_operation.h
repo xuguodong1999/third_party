@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,9 +98,9 @@ public:
     description_.tile_description.threadblock_stages = Operator::kStages;
 
     description_.tile_description.warp_count = make_Coord(
-      Operator::ImplicitGemmKernel::WarpCount::kM,
-      Operator::ImplicitGemmKernel::WarpCount::kN,
-      Operator::ImplicitGemmKernel::WarpCount::kK);
+      Operator::UnderlyingKernel::WarpCount::kM,
+      Operator::UnderlyingKernel::WarpCount::kN,
+      Operator::UnderlyingKernel::WarpCount::kK);
     
     description_.tile_description.math_instruction.instruction_shape = make_Coord(
       Operator::InstructionShape::kM,

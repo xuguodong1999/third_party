@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,7 +195,12 @@ bool get_cudnn_mathtype(cudnnMathType_t &cudnn_math_type, library::ConvDescripti
       return true;
     }
     case library::OpcodeClassID::kSimt:
-      return false;
+      #if (defined(CUDNN_VERSION) && CUDNN_VERSION <= 8000)
+        cudnn_math_type = CUDNN_DEFAULT_MATH;
+      #else
+        cudnn_math_type = CUDNN_FMA_MATH;
+      #endif
+      return true;
   }
 
   return false;

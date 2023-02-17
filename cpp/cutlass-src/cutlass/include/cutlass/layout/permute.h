@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,9 +72,6 @@ private:
 
   Index stride_permute_;
 
-  Index col_permute_;
-  Index row_permute_;
-
 public:
   //
   // Methods
@@ -119,9 +116,6 @@ private:
 
   Index stride_permute_;
   
-  Index col_permute_;
-  Index row_permute_;
-
 public:
   //
   // Methods
@@ -159,10 +153,10 @@ public:
     int i = row_init / D1;
 
     // After the Permute Op
-    col_permute_ = l + j * D3;
-    row_permute_ = k + i * D2;
+    Index col_permute = l + j * D3;
+    Index row_permute = k + i * D2;
 
-    return LongIndex(row_permute_) * LongIndex(stride_permute_) + LongIndex(col_permute_);
+    return LongIndex(row_permute) * LongIndex(stride_permute_) + LongIndex(col_permute);
   }
 
   /// Return D1
@@ -198,9 +192,6 @@ private:
 
   Index stride_permute_;
   
-  Index col_permute_;
-  Index row_permute_;
-
 public:
   //
   // Methods
@@ -240,10 +231,10 @@ public:
     int i = BMM_batch_idx / D1;
 
     // After the Permute Op
-    col_permute_ = l + j * D3;
-    row_permute_ = k + i * D2;
+    Index col_permute = l + j * D3;
+    Index row_permute = k + i * D2;
 
-    return LongIndex(row_permute_) * LongIndex(stride_permute_) + LongIndex(col_permute_);
+    return LongIndex(row_permute) * LongIndex(stride_permute_) + LongIndex(col_permute);
   }
 
   /// Return D1
@@ -254,7 +245,7 @@ public:
 };
 
 /// Permute layout function for 5-D permuted tensors with output matrix (dimension as [M, N]) reshaped
-/// as [M/T1, T1, T2, T3, N/T3]. Then perform permute([2, 0, 3, 1, 4]) on the corresponding output tensor.
+/// as [M/T1, T1, T2, T3, N/T2/T3]. Then perform permute([2, 0, 3, 1, 4]) on the corresponding output tensor.
 template <int T1, int T2, int T3>
 class Tensor5DPermute20314 {
 public:
@@ -273,9 +264,6 @@ private:
 
   Index stride_permute_;
   
-  Index col_permute_;
-  Index row_permute_;
-
 public:
   //
   // Methods
@@ -313,10 +301,10 @@ public:
     int i = row_init / T1;
 
     // After the Permute Op
-    col_permute_ = m + j * T4 + l * T1 * T4;
-    row_permute_ = i + k * T0;
+    Index col_permute = m + j * T4 + l * T1 * T4;
+    Index row_permute = i + k * T0;
 
-    return LongIndex(row_permute_) * LongIndex(stride_permute_) + LongIndex(col_permute_);
+    return LongIndex(row_permute) * LongIndex(stride_permute_) + LongIndex(col_permute);
   }
 };
 

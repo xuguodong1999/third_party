@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1445,6 +1445,9 @@ struct ConvArguments {
   /// pointer to implicit gemm matrix B
   void const *B;
 
+  /// pointer to reordered matrix B
+  void const *reordered_B;
+  
   /// pointer to implicit gemm matrix C
   void const *C;
 

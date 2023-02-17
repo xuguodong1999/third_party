@@ -1,5 +1,5 @@
 
-# Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,18 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-
 cutlass_example_add_executable(
-  41_multi_head_attention
-  fused_multihead_attention.cu 
+  41_fused_multi_head_attention_fixed_seqlen
+  fused_multihead_attention_fixed_seqlen.cu
   )
 
+cutlass_example_add_executable(
+  41_fused_multi_head_attention_variable_seqlen
+  fused_multihead_attention_variable_seqlen.cu
+  )
+
+
+add_custom_target(41_fused_multi_head_attention
+DEPENDS 41_fused_multi_head_attention_fixed_seqlen
+        41_fused_multi_head_attention_variable_seqlen
+)

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ template <
   typename LayoutC_,
   /// Policy describing warp-level MmaTensorOp (concept: MmaTensorOp policy)
   typename Policy_,
-  ///
+  /// Reduce operand A or B along K dimension
   bool ReduceKForA_,
   /// Number of partitions along K dimension
   int PartitionsK_ = 1,

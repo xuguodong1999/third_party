@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,6 @@ public:
   using EpilogueOutputOp = typename GemmKernel::EpilogueOutputOp;
   using ElementAccumulator = typename EpilogueOutputOp::ElementAccumulator;
   using ThreadblockSwizzle = typename GemmKernel::ThreadblockSwizzle;
-
   using UnderlyingOperator = GemmUniversalBase<GemmKernel>;
   using Arguments = typename UnderlyingOperator::Arguments;
 
@@ -160,10 +159,11 @@ public:
     return underlying_operator_.initialize(to_underlying_arguments(args), workspace, stream);
   }
 
-  /// Lightweight update given a subset of arguments
-  Status update(Arguments const &args, void *workspace = nullptr) {
+  /// Lightweight update given a subset of arguments.  Problem geometry is assumed to
+  /// remain the same.
+  Status update(Arguments const &args) {
 
-    return underlying_operator_.update(to_underlying_arguments(args), workspace);
+    return underlying_operator_.update(to_underlying_arguments(args));
   }
 
   /// Runs the kernel using initialized state.

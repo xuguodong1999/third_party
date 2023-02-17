@@ -1,4 +1,4 @@
-# Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Redistribution and use in source and binary forms, with or without
@@ -117,3 +117,4 @@ cutlass_add_executable_tests(
     CUTLASS_PROFILER_TEST_COMMAND_OPTIONS_SYMM
   DISABLE_EXECUTABLE_INSTALL_RULE
   )
+

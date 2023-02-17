@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -211,7 +211,7 @@ public:
   /// Computes the maximum number of active blocks per multiprocessor
   static int maximum_active_blocks(int smem_capacity = -1) {
 
-    CUTLASS_TRACE_HOST("GemmUniversalBase::maximum_active_blocks()");
+    CUTLASS_TRACE_HOST("BaseGrouped::maximum_active_blocks()");
 
     int smem_size = int(sizeof(typename BaseKernel::SharedStorage));
 
@@ -349,7 +349,7 @@ public:
   /// Initializes GEMM state from arguments.
   Status initialize(Arguments const &args, void *workspace = nullptr, cudaStream_t stream = nullptr) {
 
-    CUTLASS_TRACE_HOST("GemmUniversalBase::initialize() - workspace "
+    CUTLASS_TRACE_HOST("BaseGrouped::initialize() - workspace "
       << workspace << ", stream: " << (stream ? "non-null" : "null"));
 
     // Workspace

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -305,7 +305,7 @@ public:
 
     Operator *op = static_cast<Operator *>(host_workspace);
 
-    status = op->update(args, device_workspace);
+    status = op->update(args);
 
     if (status != Status::kSuccess) {
       return status;
@@ -507,7 +507,7 @@ public:
 
     Operator *op = static_cast<Operator *>(host_workspace);
 
-    status = op->update(args, device_workspace);
+    status = op->update(args);
 
     if (status != Status::kSuccess) {
       return status;
@@ -725,8 +725,8 @@ public:
     }
     
     Operator *op = static_cast<Operator *>(host_workspace);
-    
-    status = op->update(args, device_workspace);
+
+    status = op->update(args);
 
     if (status != Status::kSuccess) {
       return status;
@@ -917,30 +917,30 @@ public:
   /// Runs the kernel
   virtual Status run(
     void const *arguments_ptr,
-    void *host_workspace, 
-    void *device_workspace = nullptr, 
+    void *host_workspace,
+    void *device_workspace = nullptr,
     cudaStream_t stream = nullptr) const {
 
     OperatorArguments args;
-    
+
     Status status = update_arguments_(
-      args, 
+      args,
       static_cast<GemmPlanarComplexArguments const *>(arguments_ptr));
 
     if (status != Status::kSuccess) {
       return status;
     }
-    
+
     Operator *op = static_cast<Operator *>(host_workspace);
-    
-    status = op->update(args, device_workspace);
+
+    status = op->update(args);
 
     if (status != Status::kSuccess) {
       return status;
     }
-    
+
     status = op->run(stream);
-    
+
     return status;
   }
 };
@@ -1134,7 +1134,7 @@ public:
     
     Operator *op = static_cast<Operator *>(host_workspace);
     
-    status = op->update(args, device_workspace);
+    status = op->update(args);
 
     if (status != Status::kSuccess) {
       return status;
@@ -1336,7 +1336,7 @@ public:
 
     Operator *op = static_cast<Operator *>(host_workspace);
 
-    status = op->update(args, device_workspace);
+    status = op->update(args);
 
     if (status != Status::kSuccess) {
       return status;

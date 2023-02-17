@@ -1,5 +1,5 @@
 
-# Copyright (c) 2017 - 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# Copyright (c) 2017 - 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Redistribution and use in source and binary forms, with or without
@@ -119,7 +119,12 @@ foreach(EXAMPLE
   37_gemm_layernorm_gemm_fusion
   38_syr2k_grouped
   39_gemm_permute
-  41_multi_head_attention
+  41_fused_multi_head_attention
+  42_ampere_tensorop_group_conv
+  43_ell_block_sparse_gemm
+  45_dual_gemm
+  46_depthwise_simt_conv2dfprop
+  47_ampere_gemm_universal_streamk
   )
 
   add_subdirectory(${EXAMPLE})
