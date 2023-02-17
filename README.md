@@ -54,7 +54,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 | boost             | https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.7z                        |
 | cereal            | https://github.com/USCiLab/cereal/archive/refs/tags/v1.3.2.tar.gz                                       |
 | coordgenlibs      | https://github.com/schrodinger/coordgenlibs/archive/refs/tags/v3.0.1.tar.gz                             |
-| cutlass           | https://github.com/nvidia/cutlass/archive/refs/tags/v2.10.0.tar.gz                                      |
+| cutlass           | https://github.com/NVIDIA/cutlass/archive/refs/tags/v2.11.0.tar.gz                                      |
 | eigen3            | https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz                                    |
 | ensmallen         | https://ensmallen.org/files/ensmallen-2.19.1.tar.gz                                                     |
 | freesasa          | https://github.com/mittinatten/freesasa/releases/download/2.1.2/freesasa-2.1.2.zip                      |
@@ -113,7 +113,7 @@ tar -xvf benchmark-1.7.1.tar.gz -C ../tmp/
 tar -xvf boost_1_81_0.tar.gz -C ../tmp/
 tar -xvf cereal-1.3.2.tar.gz -C ../tmp/  
 tar -xvf coordgenlibs-3.0.1.tar.gz -C ../tmp/
-tar -xvf cutlass-2.10.0.tar.gz -C ../tmp/
+tar -xvf cutlass-2.11.0.tar.gz -C ../tmp/
 tar -xvf eigen-3.4.0.tar.gz -C ../tmp/
 tar -xvf ensmallen-2.19.1.tar.gz -C ../tmp/
 tar -xvf googletest-release-1.12.1.tar.gz -C ../tmp/
@@ -145,7 +145,7 @@ mv benchmark-1.7.1 benchmark
 mv boost_1_81_0 boost
 mv cereal-1.3.2 cereal
 mv coordgenlibs-3.0.1 coordgen
-mv cutlass-2.10.0 cutlass
+mv cutlass-2.11.0 cutlass
 mv eigen-3.4.0 eigen
 mv ensmallen-2.19.1 ensmallen
 mv freesasa-2.1.2 freesasa
