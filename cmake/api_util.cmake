@@ -21,7 +21,7 @@ function(xgd_add_global_compiler_flag FLAGS)
     endforeach ()
 endfunction()
 
-function(xgd_check_compiler_arch)
+function(xgd_setup_target_arch)
     include(CheckCXXCompilerFlag)
     while (1)
         if (EMSCRIPTEN)
@@ -123,7 +123,7 @@ function(xgd_check_compiler_arch)
     endif ()
 endfunction()
 
-macro(xgd_setup_compile_options)
+macro(xgd_setup_compiler_options)
     # C11
     set(CMAKE_C_STANDARD 11)
     set(CMAKE_C_STANDARD_REQUIRED ON)
