@@ -58,7 +58,13 @@ namespace cv
  *           1  2  1
  */
 template <typename T>
-static inline void spatialGradientKernel( T& vx, T& vy,
+static
+#if _MSC_VER >= 1930 && _MSC_VER <= 1934 // FIXME: MSVC 2022, static build, got fatal error C1001
+    __declspec(noinline)
+#else
+    inline
+#endif
+void spatialGradientKernel( T& vx, T& vy,
                                           const T& v00, const T& v01, const T& v02,
                                           const T& v10,               const T& v12,
                                           const T& v20, const T& v21, const T& v22 )
