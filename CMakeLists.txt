@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
 project(external LANGUAGES)
 
+if (NOT Threads_FOUND)
+    find_package(Threads REQUIRED)
+endif ()
+if (NOT OpenMP_CXX_FOUND)
+    find_package(OpenMP QUIET)
+endif ()
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/api_util.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/api_link.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/internal_build.cmake)

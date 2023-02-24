@@ -1,15 +1,46 @@
+macro(xgd_build_ncnn_omp_pthread)
+    xgd_add_library(
+            ncnn_omp
+            STATIC
+            SRC_FILES ${NCNN_OMP_SRC}
+            INCLUDE_DIRS ${NCNN_INC_DIR}
+    )
+    set_target_properties(ncnn_omp PROPERTIES LINKER_LANGUAGE C)
+    target_include_directories(ncnn_omp PUBLIC ${NCNN_GEN_BASE_INC_DIR} ${NCNN_GEN_INC_DIR})
+    target_compile_definitions(ncnn_omp PUBLIC NCNN_SIMPLEOMP)
+    if (IOS OR APPLE)
+        target_compile_options(ncnn_omp PUBLIC -Xpreprocessor -fopenmp)
+    else ()
+        target_compile_options(ncnn_omp PUBLIC -fopenmp)
+    endif ()
+    xgd_link_threads(ncnn_omp PUBLIC)
+endmacro()
+
 function(xgd_build_ncnn_library)
     set(NCNN_INC_DIR ${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/src)
     set(NCNN_SRC_DIR ${NCNN_INC_DIR})
+    set(NCNN_GEN_BASE_INC_DIR ${XGD_GENERATED_DIR}/ncnn/include)
+    set(NCNN_GEN_INC_DIR ${NCNN_GEN_BASE_INC_DIR}/ncnn)
     set(NCNN_CMAKE_DIR ${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake)
-    xgd_add_library(ncnn SRC_DIRS ${NCNN_SRC_DIR} INCLUDE_DIRS ${NCNN_INC_DIR})
+    set(NCNN_OMP_SRC ${NCNN_SRC_DIR}/simpleomp.cpp ${NCNN_SRC_DIR}/cpu.cpp)
+    xgd_add_library(
+            ncnn
+            SRC_DIRS ${NCNN_SRC_DIR}
+            INCLUDE_DIRS ${NCNN_INC_DIR}
+            EXCLUDE_SRC_FILES ${NCNN_OMP_SRC}
+    )
     if (XGD_ENABLE_VULKAN_COMP)
         set(NCNN_VULKAN ON)
         set(NCNN_SYSTEM_GLSLANG ON)
     endif ()
     xgd_link_omp(ncnn)
-    if (NOT OpenMP_CXX_FOUND)
+    get_target_property(XGD_OMP_LINKED ncnn XGD_OMP_LINKED)
+    if (XGD_OMP_LINKED OR (EMSCRIPTEN AND NOT XGD_WASM_NODE)) # disable simpleomp for wasm web
+        target_sources(ncnn PRIVATE ${NCNN_OMP_SRC})
+    else ()
         set(NCNN_SIMPLEOMP ON)
+        xgd_build_ncnn_omp_pthread()
+        xgd_link_ncnn_omp(ncnn)
     endif ()
     if (NOT EMSCRIPTEN)
         set(NCNN_RUNTIME_CPU ON)
@@ -63,7 +94,7 @@ function(xgd_build_ncnn_library)
     if (NCNN_TARGET_ARCH)
         target_include_directories(ncnn PRIVATE ${NCNN_SRC_DIR}/layer)
         target_include_directories(ncnn PRIVATE ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH})
-        target_include_directories(ncnn PRIVATE ${XGD_GENERATED_DIR}/ncnn/include/ncnn/layer/${NCNN_TARGET_ARCH})
+        target_include_directories(ncnn PRIVATE ${NCNN_GEN_INC_DIR}/layer/${NCNN_TARGET_ARCH})
     endif ()
 
     set(ncnn_SRCS)
@@ -192,10 +223,11 @@ function(xgd_build_ncnn_library)
     foreach (TO_CONFIGURE_FILE ${TO_CONFIGURE_FILES})
         configure_file(
                 ${NCNN_SRC_DIR}/${TO_CONFIGURE_FILE}.in
-                ${XGD_GENERATED_DIR}/ncnn/include/ncnn/${TO_CONFIGURE_FILE}
+                ${NCNN_GEN_INC_DIR}/${TO_CONFIGURE_FILE}
         )
     endforeach ()
-    target_include_directories(ncnn PUBLIC ${XGD_GENERATED_DIR}/ncnn/include/ncnn)
+
+    target_include_directories(ncnn PUBLIC ${NCNN_GEN_INC_DIR})
     if (WIN32)
         target_compile_definitions(ncnn PRIVATE NOMINMAX)
     endif ()
@@ -203,7 +235,7 @@ function(xgd_build_ncnn_library)
         target_sources(ncnn PRIVATE ${ncnn_SRCS})
     endif ()
     if (NCNN_VULKAN)
-        target_include_directories(ncnn PRIVATE ${XGD_GENERATED_DIR}/ncnn/include/ncnn/layer/vulkan/shader)
+        target_include_directories(ncnn PRIVATE ${NCNN_GEN_INC_DIR}/layer/vulkan/shader)
         xgd_link_vulkan(ncnn)
     endif ()
     xgd_use_header(ncnn PRIVATE stb)

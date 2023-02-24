@@ -30,9 +30,8 @@ function(xgd_build_openbabel_library)
     )
 
     xgd_use_header(openbabel PUBLIC eigen PRIVATE rapidjson lbfgs)
+    xgd_link_omp(openbabel)
 
-    # use header eigen already add it
-    # xgd_link_omp(openbabel)
     xgd_link_zlib(openbabel)
     xgd_link_xml2(openbabel)
     xgd_link_inchi(openbabel)

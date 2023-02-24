@@ -23,8 +23,8 @@ set(XGD_EXTERNAL_DIR /path/to/external)
 set(XGD_GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
 
 include(${XGD_EXTERNAL_DIR}/cmake/api_util.cmake)
+xgd_setup_c_cxx_options()
 xgd_setup_compiler_options()
-xgd_setup_target_arch()
 
 add_subdirectory(${XGD_EXTERNAL_DIR})
 add_executable(${PROJECT_NAME} main.cpp)

@@ -160,24 +160,18 @@ function(xgd_build_opencv_library)
         )
         set(CXX20_NO_WARNING_FLAGS -Wno-deprecated-enum-enum-conversion)
         list(APPEND CXX20_NO_WARNING_FLAGS -Wno-deprecated-enum-float-conversion)
-        if (NOT WIN32)
-            list(APPEND CXX20_NO_WARNING_FLAGS -Wno-deprecated-anon-enum-enum-conversion)
-        endif ()
+        set(CXX20_NO_WARNING_FLAGS_CLANG -Wno-deprecated-anon-enum-enum-conversion)
         target_compile_options(
                 opencv_${OCV_COMPONENT} PUBLIC
                 $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:${CXX20_NO_WARNING_FLAGS}>
+                $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${CXX20_NO_WARNING_FLAGS_CLANG}>
         )
         if (MSVC)
             target_compile_options(opencv_${OCV_COMPONENT} PUBLIC /wd5055)
         endif ()
         xgd_use_header(opencv_${OCV_COMPONENT} PRIVATE eigen)
-        xgd_link_png(opencv_${OCV_COMPONENT})
-        xgd_link_zlib(opencv_${OCV_COMPONENT})
-        # use header eigen already add it
-        # xgd_link_omp(opencv_${OCV_COMPONENT})
-        if (ANDROID)
-            target_link_libraries(opencv_${OCV_COMPONENT} PRIVATE log)
-        elseif (EMSCRIPTEN)
+        xgd_link_omp(opencv_${OCV_COMPONENT})
+        if (EMSCRIPTEN)
             target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE CV_FORCE_SIMD128_CPP)
         endif ()
         target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE __OPENCV_BUILD CVAPI_EXPORTS)
@@ -499,6 +493,16 @@ function(xgd_build_opencv_library)
             ${OCV_GENERATED_INC_DIR}/cvconfig.h)
     configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
             ${OCV_GENERATED_INC_DIR}/opencv2/cvconfig.h)
+
+    xgd_link_zlib(opencv_core)
+
+    xgd_link_png(opencv_imgcodecs)
+    xgd_link_zlib(opencv_imgcodecs)
+    if (ANDROID)
+        target_link_libraries(opencv_core PRIVATE log)
+        target_link_libraries(opencv_objdetect PRIVATE log)
+        # target_link_libraries(opencv_videoio PRIVATE log)
+    endif ()
 endfunction()
 
 # reference: opencv/cmake/OpenCVCompilerOptimizations.cmake
