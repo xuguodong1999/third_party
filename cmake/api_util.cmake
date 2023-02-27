@@ -8,24 +8,134 @@ function(xgd_disable_warnings TARGET)
     target_compile_options(
             ${TARGET}
             PRIVATE
-            # $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wno-deprecated-non-prototype -Wno-parentheses -Wno-comment -Wno-constant-logical-operand -Wno-unsequenced -Wno-pointer-bool-conversion -Wno-unused-value -Wno-switch>
             $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-w>
             $<$<CXX_COMPILER_ID:MSVC>:/w>
     )
 endfunction()
 
-function(xgd_add_compile_options_no_cuda)
-    foreach (FLAG ${ARGV})
-        message(STATUS "use ${FLAG}")
-        add_compile_options($<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${FLAG}>)
-    endforeach ()
+function(xgd_target_global_options TARGET)
+    cmake_parse_arguments(param "" "" "" ${ARGN})
+    set(COMPILE_OPTIONS "")
+    set(COMPILE_DEFINITIONS "")
+    set(LINK_OPTIONS "")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # _GLIBCXX_USE_CXX11_ABI=1
+        list(APPEND COMPILE_OPTIONS -Werror=return-type)
+    endif ()
+    if (WIN32)
+        list(APPEND COMPILE_DEFINITIONS _USE_MATH_DEFINES) # for M_PI macro
+    endif ()
+    if (MSVC)
+        list(APPEND COMPILE_OPTIONS
+                /MP             # multi processor build
+                /utf-8          # correct msvc charset
+                /bigobj         # big obj
+                # get correct __cplusplus macro
+                /Zc:__cplusplus)
+        list(APPEND LINK_OPTIONS /manifest:no) # do not generate manifest
+        # crt
+        # set_target_properties(${TARGET} PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    elseif (EMSCRIPTEN)
+        list(APPEND COMPILE_OPTIONS
+                -frtti
+                -fexceptions
+                -sUSE_PTHREADS=1)
+        list(APPEND LINK_OPTIONS
+                -fexceptions
+                -frtti
+                -sALLOW_BLOCKING_ON_MAIN_THREAD=1
+                -sASSERTIONS=1
+                -sASYNCIFY
+                -sPTHREAD_POOL_SIZE_STRICT=0
+                -sSAFE_HEAP=1
+                # -sSINGLE_FILE=1
+                -sTOTAL_MEMORY=1024MB
+                -sTOTAL_STACK=4MB
+                -sUSE_PTHREADS=1)
+        if (EMSCRIPTEN AND XGD_WASM_NODE)
+            list(APPEND LINK_OPTIONS
+                    -sPROXY_TO_PTHREAD
+                    -sEXIT_RUNTIME=1
+                    -sPTHREAD_POOL_SIZE=${XGD_HOST_PROCESSOR_NUM}
+                    -sENVIRONMENT=node)
+        endif ()
+    endif ()
+
+    if (XGD_FLAG_MARCH_NATIVE)
+        list(APPEND COMPILE_OPTIONS -march=native)
+    endif ()
+    if (XGD_EMSCRIPTEN_SIMD)
+        list(APPEND COMPILE_OPTIONS -msimd128)
+    elseif (XGD_ARCH_X86)
+        if (MSVC)
+            if (XGD_FLAG_AVX)
+                list(APPEND COMPILE_OPTIONS /arch:AVX)
+            endif ()
+            if (XGD_FLAG_AVX2)
+                list(APPEND COMPILE_OPTIONS /arch:AVX2)
+            endif ()
+        else ()
+            if (XGD_FLAG_SSE)
+                list(APPEND COMPILE_OPTIONS
+                        -mf16c -mfma
+                        -msse3 -msse4.1 -msse4.2 -mssse3
+                        -msse -msse2)
+            endif ()
+            if (XGD_FLAG_AVX)
+                list(APPEND COMPILE_OPTIONS -mavx)
+            endif ()
+            if (XGD_FLAG_AVX2)
+                list(APPEND COMPILE_OPTIONS -mavx2)
+            endif ()
+        endif ()
+    endif ()
+
+    if (XGD_FLAG_SSE)
+        list(APPEND COMPILE_DEFINITIONS __SSE__ __SSE2__)
+        if (NOT EMSCRIPTEN)
+            list(APPEND COMPILE_DEFINITIONS __SSE3__ __SSSE3__ __SSE4_1__ __SSE4_2__ __FMA__ __F16C__)
+        endif ()
+    endif ()
+    if (XGD_FLAG_AVX)
+        list(APPEND COMPILE_DEFINITIONS __AVX__)
+    endif ()
+    if (XGD_FLAG_AVX2)
+        list(APPEND COMPILE_DEFINITIONS __AVX2__)
+    endif ()
+
+    if (COMPILE_DEFINITIONS)
+        target_compile_definitions(${TARGET} PRIVATE ${COMPILE_DEFINITIONS})
+    endif ()
+    if (COMPILE_OPTIONS)
+        target_compile_options(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${COMPILE_OPTIONS}>)
+    endif ()
+    if (LINK_OPTIONS)
+        target_link_options(${TARGET} PRIVATE ${LINK_OPTIONS})
+    endif ()
+    set_target_properties(
+            ${TARGET} PROPERTIES
+            C_STANDARD 11       # C11
+            C_STANDARD_REQUIRED ON
+            CXX_STANDARD 20     # C++20
+            CXX_STANDARD_REQUIRED ON
+            CUDA_STANDARD 17    # CUDA C++17
+            CUDA_STANDARD_REQUIRED ON
+            # Export only public symbols
+            CXX_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN ON
+            POSITION_INDEPENDENT_CODE ON
+            CMAKE_DEBUG_POSTFIX "${XGD_DEBUG_POSTFIX}"
+    )
+    if (NOT MINGW) # mxe heavily dependent on it
+        set_target_properties(${TARGET} PROPERTIES CXX_EXTENSIONS OFF)
+    endif ()
 endfunction()
 
-function(xgd_setup_compiler_options)
+function(xgd_check_global_options)
     include(CheckCXXCompilerFlag)
     while (1)
         if (EMSCRIPTEN)
-            set(XGD_ARCH_X86 ON CACHE INTERNAL "")
+            set(XGD_ARCH_X86 ON CACHE INTERNAL "" FORCE)
             break()
         endif ()
         set(CHECK_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs/config/checks/architecture)
@@ -64,135 +174,35 @@ function(xgd_setup_compiler_options)
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         check_cxx_compiler_flag("-march=native" XGD_FLAG_MARCH_NATIVE)
-        if (XGD_FLAG_MARCH_NATIVE)
-            xgd_add_compile_options_no_cuda(-march=native)
-        endif ()
     endif ()
     if (EMSCRIPTEN)
         check_cxx_compiler_flag("-msimd128" XGD_EMSCRIPTEN_SIMD)
         if (XGD_EMSCRIPTEN_SIMD)
-            set(XGD_FLAG_SSE ON CACHE INTERNAL "")
-            set(XGD_FLAG_AVX OFF CACHE INTERNAL "")
-            set(XGD_FLAG_AVX2 OFF CACHE INTERNAL "")
-            add_compile_options(-msimd128)
+            set(XGD_FLAG_SSE ON CACHE INTERNAL "" FORCE)
+            set(XGD_FLAG_AVX OFF CACHE INTERNAL "" FORCE)
+            set(XGD_FLAG_AVX2 OFF CACHE INTERNAL "" FORCE)
         endif ()
     elseif (XGD_ARCH_X86)
         if (MSVC)
             # /arch:SSE and /arch:SSE2 doesn't work and is enabled by default
-            set(XGD_FLAG_SSE ON CACHE INTERNAL "")
-
+            set(XGD_FLAG_SSE ON CACHE INTERNAL "" FORCE)
             check_cxx_compiler_flag("/arch:AVX" XGD_FLAG_AVX)
-            if (XGD_FLAG_AVX)
-                xgd_add_compile_options_no_cuda(/arch:AVX)
-            endif ()
-
             check_cxx_compiler_flag("/arch:AVX2" XGD_FLAG_AVX2)
-            if (XGD_FLAG_AVX2)
-                xgd_add_compile_options_no_cuda(/arch:AVX2)
-            endif ()
         else ()
+            check_cxx_compiler_flag("-msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mfma -mf16c" XGD_FLAG_SSE)
             check_cxx_compiler_flag("-mavx" XGD_FLAG_AVX)
-            if (XGD_FLAG_AVX)
-                xgd_add_compile_options_no_cuda(-mavx)
-            endif ()
-            check_cxx_compiler_flag("-mfma -mf16c -mavx2" XGD_FLAG_AVX2)
-            if (XGD_FLAG_AVX2)
-                xgd_add_compile_options_no_cuda(-mfma -mf16c -mavx2)
-            endif ()
-            set(GNU_SSE_FLAGS "-msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
-            check_cxx_compiler_flag(${GNU_SSE_FLAGS} XGD_FLAG_SSE)
-            if (XGD_FLAG_SSE)
-                separate_arguments(GNU_SSE_FLAGS UNIX_COMMAND "${GNU_SSE_FLAGS}")
-                xgd_add_compile_options_no_cuda(${GNU_SSE_FLAGS})
-            endif ()
+            check_cxx_compiler_flag("-mavx2" XGD_FLAG_AVX2)
         endif ()
     elseif (XGD_ARCH_ARM64)
-        set(XGD_FLAG_NEON ON CACHE INTERNAL "")
-    endif ()
-    if (XGD_FLAG_SSE)
-        add_compile_definitions(__SSE__ __SSE2__)
-        if (NOT EMSCRIPTEN)
-            add_compile_definitions(__SSE3__ __SSSE3__ __SSE4_1__ __SSE4_2__)
-        endif ()
-    endif ()
-    if (XGD_FLAG_AVX)
-        add_compile_definitions(__AVX__)
-    endif ()
-    if (XGD_FLAG_AVX2)
-        add_compile_definitions(__AVX2__)
+        set(XGD_FLAG_NEON ON CACHE INTERNAL "" FORCE)
     endif ()
 
-    if (WIN32)
-        if (MSVC)
-            xgd_add_compile_options_no_cuda(
-                    /MP             # multi processor build
-                    /utf-8          # correct msvc charset
-                    /bigobj         # big obj
-                    /Zc:__cplusplus # get correct __cplusplus macro
-            )
-            # do not generate manifest
-            add_link_options(/manifest:no)
-            # crt
-            # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-        endif ()
-        # for M_PI macro
-        add_compile_definitions(_USE_MATH_DEFINES)
-    elseif (EMSCRIPTEN)
-        add_compile_options(-frtti)
-        add_compile_options(-fexceptions)
-        add_compile_options(-sUSE_PTHREADS=1)
-
-        add_link_options(-frtti)
-        add_link_options(-fexceptions)
-        add_link_options(-sUSE_PTHREADS=1)
-        add_link_options(-sTOTAL_MEMORY=1024MB)
-        add_link_options(-sTOTAL_STACK=4MB)
-        add_link_options(-sSAFE_HEAP=1)
-        add_link_options(-sASSERTIONS=1)
-        add_link_options(-sALLOW_BLOCKING_ON_MAIN_THREAD=1)
-        add_link_options(-sPTHREAD_POOL_SIZE_STRICT=0)
-        add_link_options(-sASYNCIFY)
-        # add_link_options(-sSINGLE_FILE=1)
-        if (XGD_WASM_NODE)
-            include(ProcessorCount)
-            ProcessorCount(N)
-            add_link_options(-sPTHREAD_POOL_SIZE=${N})
-            add_link_options(-sPROXY_TO_PTHREAD)
-            add_link_options(-sEXIT_RUNTIME=1)
-            add_link_options(-sENVIRONMENT=node)
-        endif ()
-    endif ()
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        xgd_add_compile_options_no_cuda(-Werror=return-type)
-        # add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
+    if (EMSCRIPTEN AND XGD_WASM_NODE)
+        include(ProcessorCount)
+        ProcessorCount(_N)
+        set(XGD_HOST_PROCESSOR_NUM ${_N} CACHE INTERNAL "")
     endif ()
 endfunction()
-
-macro(xgd_setup_c_cxx_options)
-    # C11
-    set(CMAKE_C_STANDARD 11)
-    set(CMAKE_C_STANDARD_REQUIRED ON)
-
-    # C++20
-    set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-    # CUDA C++17
-    set(CMAKE_CUDA_STANDARD 17)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
-    # Export only public symbols
-    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-    set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-    if (NOT MINGW) # mxe heavily dependent on it
-        set(CMAKE_CXX_EXTENSIONS OFF)
-    endif ()
-    if (XGD_DEBUG_POSTFIX)
-        set(CMAKE_DEBUG_POSTFIX ${XGD_DEBUG_POSTFIX})
-    endif ()
-endmacro()
 
 function(xgd_mark_generated TARGETS)
     set_source_files_properties(${TARGETS} PROPERTIES GENERATED TRUE)
@@ -233,6 +243,7 @@ function(xgd_add_library TARGET)
             PUBLIC ${param_INCLUDE_DIRS}
             PRIVATE ${param_PRIVATE_INCLUDE_DIRS}
     )
+    xgd_target_global_options(${TARGET})
 endfunction()
 
 # global init static library
