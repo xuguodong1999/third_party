@@ -32,9 +32,17 @@ function(xgd_link_gtest TARGET)
                 PRIVATE ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/src/gtest_main.cc
         )
     endif ()
-        set(TEST_COMMAND "${TARGET}")
+    set(TEST_COMMAND "${TARGET}")
+    get_target_property(RUNTIME_OUTPUT_DIRECTORY ${TARGET} RUNTIME_OUTPUT_DIRECTORY)
+    if (NOT RUNTIME_OUTPUT_DIRECTORY)
+        if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+            set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+        else ()
+            set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+        endif ()
+    endif ()
     if (EMSCRIPTEN AND NODEJS_RUNTIME)
-        set(OUTPUT_JS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.js)
+        set(OUTPUT_JS ${RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.js)
         if (CMAKE_HOST_WIN32)
             set(OUTPUT_JS "file://${OUTPUT_JS}")
         endif ()
@@ -42,11 +50,11 @@ function(xgd_link_gtest TARGET)
                 "${NODEJS_RUNTIME}"
                 "--experimental-wasm-threads"
                 "-e"
-                "import('${OUTPUT_JS}').then( m => 'function' === typeof m?.default ? m.default() : 0)")
+                "import('${OUTPUT_JS}').then(m => ('function' === typeof m?.default) ? m.default() : 0)")
     elseif (XGD_WINE64_RUNTIME)
         set(TEST_COMMAND
                 "${XGD_WINE64_RUNTIME}"
-                "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.exe")
+                "${RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.exe")
     endif ()
     add_test(NAME ${TARGET} COMMAND ${TEST_COMMAND} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
     if (NOT TARGET gtest_programs_all)
