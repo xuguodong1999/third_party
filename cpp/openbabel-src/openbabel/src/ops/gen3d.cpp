@@ -70,8 +70,10 @@ bool OpGen3D::Do(OBBase* pOb, const char* OptionText, OpMap* pOptions, OBConvers
   bool useDistGeom = false;
 
   // first try converting OptionText to an integer
-  char *endptr;
-  speed = strtol(OptionText, &endptr, 10);
+  char *endptr = nullptr;
+  if (OptionText) {
+    speed = strtol(OptionText, &endptr, 10);
+  }
   if (endptr == OptionText) { // not a number
     speed = 3; // we'll default to balanced
     // but let's also check if it's words like "fast" or "best"
