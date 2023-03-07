@@ -133,12 +133,12 @@ bool OpGen3D::Do(OBBase* pOb, const char* OptionText, OpMap* pOptions, OBConvers
       return true; // done
 
     // All other speed levels do some FF cleanup
-    // Try MMFF94 first and UFF if that doesn't work
-    OBForceField* pFF = OBForceField::FindForceField("MMFF94");
+    // Try UFF first and MMFF94 if that doesn't work
+    OBForceField* pFF = OBForceField::FindForceField("UFF");
     if (!pFF)
       return true;
     if (!pFF->Setup(molCopy)) {
-      pFF = OBForceField::FindForceField("UFF");
+      pFF = OBForceField::FindForceField("MMFF94");
       if (!pFF || !pFF->Setup(molCopy)) return true; // can't use either MMFF94 or UFF
     }
 
