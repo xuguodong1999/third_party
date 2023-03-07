@@ -37,6 +37,24 @@ function(xgd_build_spdlog_library)
     target_link_libraries(spdlog PUBLIC $<$<BOOL:${ANDROID}>:log>)
 endfunction()
 
+# nodeeditor
+function(xgd_build_qtnodes_library)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/nodeeditor-src/nodeeditor/include)
+    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/nodeeditor-src/nodeeditor/src)
+    xgd_add_library(
+            QtNodes
+            SRC_DIRS ${SRC_DIR}
+            INCLUDE_DIRS ${INC_DIR}
+            PRIVATE_INCLUDE_DIRS ${INC_DIR}/QtNodes/internal
+    )
+    xgd_link_qt(QtNodes PUBLIC Core Gui Widgets PRIVATE OpenGL)
+    target_compile_definitions(
+            QtNodes
+            PUBLIC NODE_EDITOR_SHARED
+            PRIVATE NODE_EDITOR_EXPORTS QT_NO_KEYWORDS
+    )
+endfunction()
+
 # gtest
 function(xgd_build_gtest_library)
     set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/include)

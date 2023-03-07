@@ -8,7 +8,6 @@ endfunction()
 function(xgd_link_spdlog TARGET)
     add_dependencies(${TARGET} spdlog)
     target_link_libraries(${TARGET} PRIVATE spdlog)
-    xgd_add_global_init_unit(${TARGET} spdlog)
 endfunction()
 
 # Threads::Threads
@@ -154,20 +153,20 @@ endfunction()
 # qt
 function(xgd_link_qt TARGET)
     # usage: xgd_link_qt(your-awesome-target COMPONENTS [Core Widgets ...])
-    cmake_parse_arguments(param "" "" "PRIVATE" ${ARGN})
-    if (NOT param_PRIVATE)
+    cmake_parse_arguments(param "" "" "PUBLIC;PRIVATE" ${ARGN})
+    if ((NOT param_PRIVATE) AND (NOT param_PUBLIC))
         message(FATAL "xgd_link_qt: no components given")
     endif ()
     foreach (COMPONENT ${param_PRIVATE})
-        add_dependencies(${TARGET} Qt${QT_VERSION_MAJOR}::${COMPONENT})
         target_link_libraries(${TARGET} PRIVATE Qt${QT_VERSION_MAJOR}::${COMPONENT})
+    endforeach ()
+    foreach (COMPONENT ${param_PUBLIC})
+        target_link_libraries(${TARGET} PUBLIC Qt${QT_VERSION_MAJOR}::${COMPONENT})
     endforeach ()
     target_compile_definitions(
             ${TARGET}
-            PRIVATE
-            QT_DISABLE_DEPRECATED_BEFORE=0x060000
+            PRIVATE QT_DISABLE_DEPRECATED_BEFORE=0x060000
     )
-    xgd_add_global_init_unit(${TARGET} qt)
     set_target_properties(${TARGET} PROPERTIES AUTOUIC ON AUTOMOC ON AUTORCC ON)
 endfunction()
 
@@ -212,7 +211,6 @@ endfunction()
 function(xgd_link_openbabel TARGET)
     add_dependencies(${TARGET} openbabel)
     target_link_libraries(${TARGET} PRIVATE openbabel)
-    xgd_add_global_init_unit(${TARGET} openbabel)
 endfunction()
 
 # ade
@@ -280,8 +278,8 @@ endfunction()
 
 # openmp
 function(xgd_link_omp TARGET)
-    get_target_property(XGD_OMP_LINKED ${TARGET} XGD_OMP_LINKED)
-    if (XGD_OMP_LINKED)
+    get_target_property(XGD_OMP_TRY_LINKED ${TARGET} XGD_OMP_TRY_LINKED)
+    if (XGD_OMP_TRY_LINKED)
         return()
     endif ()
     if (ANDROID)
@@ -292,7 +290,9 @@ function(xgd_link_omp TARGET)
         set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 1)
     else ()
         message(STATUS "openmp: OpenMP_CXX not found for ${TARGET}")
+        set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 0)
     endif ()
+    set_target_properties(${TARGET} PROPERTIES XGD_OMP_TRY_LINKED 1)
 endfunction()
 
 function(xgd_link_ncnn_omp TARGET)
