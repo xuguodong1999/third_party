@@ -16,33 +16,19 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
-#include <stdlib.h>
-#include <string.h>
 #include <openbabel/locale.h>
-
-#if HAVE_XLOCALE_H
-#include <xlocale.h>
-#endif
-#if HAVE_LOCALE_H
-#include <locale.h>
-#endif
+#include <string>
+#include <clocale>
 
 namespace OpenBabel
 {
   class OBLocalePrivate {
   public:
-    char *old_locale_string;
-#if HAVE_USELOCALE
-    locale_t new_c_num_locale;
-    locale_t old_locale;
-#endif
+    std::string old_locale_string;
     unsigned int counter; // Reference counter -- ensures balance in SetLocale/RestoreLocale calls
 
     OBLocalePrivate(): counter(0)
     {
-#if HAVE_USELOCALE
-      new_c_num_locale = newlocale(LC_NUMERIC_MASK, NULL, NULL);
-#endif
     }
 
     ~OBLocalePrivate()
@@ -92,21 +78,8 @@ namespace OpenBabel
   void OBLocale::SetLocale()
   {
     if (d->counter == 0) {
-      // Set the locale for number parsing to avoid locale issues: PR#1785463
-#if HAVE_USELOCALE
-      // Extended per-thread interface
-      d->old_locale = uselocale(d->new_c_num_locale);
-#else
-#ifndef ANDROID
-      // Original global POSIX interface
-      // regular UNIX, no USELOCALE, no ANDROID
-      d->old_locale_string = strdup(setlocale(LC_NUMERIC, nullptr));
-#else
-      // ANDROID should stay as "C" -- Igor Filippov
-      d->old_locale_string = "C";
-#endif
+      d->old_locale_string = std::setlocale(LC_ALL, nullptr);
   	  setlocale(LC_NUMERIC, "C");
-#endif
     }
 
     ++d->counter;
@@ -117,15 +90,7 @@ namespace OpenBabel
     --d->counter;
     if(d->counter == 0) {
       // return the locale to the original one
-#ifdef HAVE_USELOCALE
-      uselocale(d->old_locale);
-#else
-      setlocale(LC_NUMERIC, d->old_locale_string);
-#ifndef ANDROID
-      // Don't free on Android because "C" is a static ctring constant
-      free (d->old_locale_string);
-#endif
-#endif
+      std::setlocale(LC_NUMERIC, d->old_locale_string.c_str());
     }
   }
 
