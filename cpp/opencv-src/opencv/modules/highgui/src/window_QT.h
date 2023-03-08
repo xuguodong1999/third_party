@@ -132,7 +132,7 @@ public:
     bool bTimeOut;
     QTimer* timer;
 
-public slots:
+public Q_SLOTS:
     void createWindow( QString name, int flags = 0 );
     void destroyWindow(QString name);
     void destroyAllWindow();
@@ -208,7 +208,7 @@ private:
     CvButtonCallback callback;
     void* userdata;
 
-private slots:
+private Q_SLOTS:
     void callCallBack(bool);
 };
 
@@ -225,7 +225,7 @@ private:
     CvButtonCallback callback;
     void* userdata;
 
-private slots:
+private Q_SLOTS:
     void callCallBack(bool);
 };
 
@@ -242,7 +242,7 @@ private:
     CvButtonCallback callback;
     void* userdata;
 
-private slots:
+private Q_SLOTS:
     void callCallBack(bool);
 };
 
@@ -256,7 +256,7 @@ public:
 
     QPointer<QSlider> slider;
 
-private slots:
+private Q_SLOTS:
     void createDialog();
     void update(int myvalue);
 
@@ -381,7 +381,7 @@ private:
     void showTools();
     QSize getAvailableSize();
 
-private slots:
+private Q_SLOTS:
     void displayPropertiesWin();
 };
 
@@ -522,7 +522,7 @@ public:
 
     void setSize(QSize size_) CV_OVERRIDE;
 
-public slots:
+public Q_SLOTS:
     //reference:
     //http://www.qtcentre.org/wiki/index.php?title=QGraphicsView:_Smooth_Panning_and_Zooming
     //http://doc.qt.nokia.com/4.6/gestures-imagegestures-imagewidget-cpp.html
@@ -589,7 +589,7 @@ private:
 
     void icvmouseProcessing(QPointF pt, int cv_event, int flags) CV_OVERRIDE;
 
-private slots:
+private Q_SLOTS:
     void stopDisplayInfo();
 };
 

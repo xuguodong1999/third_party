@@ -438,7 +438,7 @@ static CvWindow* icvFindWindowByName(QString name)
 
     //This is not a very clean way to do the stuff. Indeed, QAction automatically generate toolTil (QLabel)
     //that can be grabbed here and crash the code at 'w->param_name==name'.
-    foreach (QWidget* widget, QApplication::topLevelWidgets())
+    Q_FOREACH (QWidget* widget, QApplication::topLevelWidgets())
     {
         if (widget->isWindow() && !widget->parentWidget())//is a window without parent
         {
@@ -1182,7 +1182,7 @@ void GuiReceiver::resizeWindow(QString name, int width, int height)
 void GuiReceiver::enablePropertiesButtonEachWindow()
 {
     //For each window, enable window property button
-    foreach (QWidget* widget, QApplication::topLevelWidgets())
+    Q_FOREACH (QWidget* widget, QApplication::topLevelWidgets())
     {
         if (widget->isWindow() && !widget->parentWidget()) //is a window without parent
         {
@@ -2132,7 +2132,7 @@ void CvWindow::createToolBar()
     myToolBar = new QToolBar(this);
     myToolBar->setFloatable(false); //is not a window
 
-    foreach (QAction *a, vect_QActions)
+    Q_FOREACH (QAction *a, vect_QActions)
         myToolBar->addAction(a);
 }
 
@@ -2796,7 +2796,7 @@ void DefaultViewPort::contextMenuEvent(QContextMenuEvent* evnt)
     {
         QMenu menu(this);
 
-        foreach (QAction *a, centralWidget->vect_QActions)
+        Q_FOREACH (QAction *a, centralWidget->vect_QActions)
             menu.addAction(a);
 
         menu.exec(evnt->globalPos());
