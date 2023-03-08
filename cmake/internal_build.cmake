@@ -39,20 +39,28 @@ endfunction()
 
 # nodeeditor
 function(xgd_build_qtnodes_library)
-    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/nodeeditor-src/nodeeditor/include)
-    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/nodeeditor-src/nodeeditor/src)
+    set(ROOT_DIR ${XGD_EXTERNAL_DIR}/cpp/nodeeditor-src/nodeeditor)
+    set(INC_DIR ${ROOT_DIR}/include)
+    set(SRC_DIR ${ROOT_DIR}/src)
+    set(RES_DIR ${ROOT_DIR}/resources)
     xgd_add_library(
             QtNodes
             SRC_DIRS ${SRC_DIR}
             INCLUDE_DIRS ${INC_DIR}
             PRIVATE_INCLUDE_DIRS ${INC_DIR}/QtNodes/internal
     )
+    qt_add_resources(QtNodes_RESOURCES_SRC ${RES_DIR}/resources.qrc)
+    # put headers and sources in diferent directories make automoc failed
+    file(GLOB_RECURSE QtNodes_TO_MOC_SRC ${INC_DIR}/QtNodes/internal/*.hpp)
+    qt_wrap_cpp(QtNodes_MOC_SRC ${QtNodes_TO_MOC_SRC} TARGET QtNodes OPTIONS --no-notes)
+    target_sources(QtNodes PRIVATE ${QtNodes_RESOURCES_SRC} ${QtNodes_MOC_SRC})
     xgd_link_qt(QtNodes PUBLIC Core Gui Widgets PRIVATE OpenGL)
-    target_compile_definitions(
-            QtNodes
-            PUBLIC NODE_EDITOR_SHARED
-            PRIVATE NODE_EDITOR_EXPORTS QT_NO_KEYWORDS
-    )
+    if (BUILD_SHARED_LIBS)
+        target_compile_definitions(QtNodes PUBLIC NODE_EDITOR_SHARED)
+    else ()
+        target_compile_definitions(QtNodes PUBLIC NODE_EDITOR_STATIC)
+    endif ()
+    target_compile_definitions(QtNodes PRIVATE NODE_EDITOR_EXPORTS)
 endfunction()
 
 # gtest
@@ -66,10 +74,7 @@ function(xgd_build_gtest_library)
             PRIVATE_INCLUDE_DIRS ${SRC_DIR}/..
     )
     if (BUILD_SHARED_LIBS)
-        target_compile_definitions(
-                gtest
-                PRIVATE "GTEST_CREATE_SHARED_LIBRARY=1"
-        )
+        target_compile_definitions(gtest PRIVATE "GTEST_CREATE_SHARED_LIBRARY=1")
     endif ()
     xgd_link_threads(gtest)
 endfunction()
@@ -89,10 +94,7 @@ function(xgd_build_benchmark_library)
             PRIVATE benchmark_EXPORTS
     )
     if (NOT BUILD_SHARED_LIBS)
-        target_compile_definitions(
-                benchmark
-                PUBLIC BENCHMARK_STATIC_DEFINE
-        )
+        target_compile_definitions(benchmark PUBLIC BENCHMARK_STATIC_DEFINE)
     endif ()
     xgd_link_threads(benchmark)
 endfunction()

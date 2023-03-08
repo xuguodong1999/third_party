@@ -1,3 +1,9 @@
+# qtnodes
+function(xgd_link_qtnodes TARGET)
+    add_dependencies(${TARGET} QtNodes)
+    target_link_libraries(${TARGET} PRIVATE QtNodes)
+endfunction()
+
 # yoga
 function(xgd_link_yoga TARGET)
     add_dependencies(${TARGET} yoga)
@@ -166,6 +172,7 @@ function(xgd_link_qt TARGET)
     target_compile_definitions(
             ${TARGET}
             PRIVATE QT_DISABLE_DEPRECATED_BEFORE=0x060000
+            QT_NO_KEYWORDS
     )
     set_target_properties(${TARGET} PROPERTIES AUTOUIC ON AUTOMOC ON AUTORCC ON)
 endfunction()

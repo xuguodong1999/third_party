@@ -438,6 +438,9 @@ function(xgd_build_opencv_library)
                 ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_winrt.cpp
                 ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_winrt_bridge.cpp
         )
+        set(RESOURCES_SRC "")
+        qt_add_resources(RESOURCES_SRC ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_QT.qrc)
+        target_sources(opencv_highgui PRIVATE ${RESOURCES_SRC})
         target_compile_definitions(opencv_highgui PRIVATE HAVE_QT)
         xgd_link_qt(opencv_highgui PRIVATE Core Widgets Test)
 
