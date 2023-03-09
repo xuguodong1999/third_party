@@ -32,7 +32,12 @@ This code calls C++ routines in RDKit which are
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <Geometry/point.h>
 #include <GraphMol/MolOps.h>
+#include <boost/algorithm/string.hpp>
+#include <boost/convert.hpp>
+#include <boost/convert/strtol.hpp>
 
+#include <string_view>
+#include <vector>
 #ifndef OBERROR
  #define OBERROR
 #endif
@@ -54,8 +59,15 @@ public:
 
 Op2D theOp2D("2D"); //Global instance
 
+static void string_view_to_double(const std::string_view&s, double&v){
+  auto value = boost::convert<double>(s, boost::cnv::strtol());
+  if (value.has_value()) {
+    v = value.get();
+  }
+}
+
 /////////////////////////////////////////////////////////////////
-bool Op2D::Do(OBBase* pOb, const char*, OpMap*, OBConversion*)
+bool Op2D::Do(OBBase* pOb, const char*, OpMap*pOptions, OBConversion*)
 {
   OBMol* pmol = dynamic_cast<OBMol*>(pOb);
   if(!pmol)
@@ -66,8 +78,21 @@ bool Op2D::Do(OBBase* pOb, const char*, OpMap*, OBConversion*)
   {
     RDKit::RWMol RDMol = OBMolToRWMol(pmol);
     RDKit::MolOps::sanitizeMol(RDMol); //initializes various internl parameters
-
-    unsigned int ConformerID = RDDepict::compute2DCoords(RDMol);
+    RDGeom::INT_POINT2D_MAP coordMap;
+    if (pOptions) {
+      for(const auto &[key, value]: *pOptions) {
+        std::string_view view = value;
+        std::vector<std::string_view> tokens;
+        boost::algorithm::split(tokens, view, boost::is_any_of(","));
+        if (2 == tokens.size()) {
+          double x, y;
+          string_view_to_double(tokens[0], x);
+          string_view_to_double(tokens[1], y);
+          coordMap.try_emplace(std::stoi(key), RDGeom::Point2D{x, y});
+        }
+      }
+    }
+    unsigned int ConformerID = RDDepict::compute2DCoords(RDMol, &coordMap);
     RDKit::Conformer confmer = RDMol.getConformer(ConformerID);
     for(int i=0; i<confmer.getNumAtoms(); ++i)
     {
