@@ -47,6 +47,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 
 | Library           | Source                                                                                               |
 |-------------------|------------------------------------------------------------------------------------------------------|
+| absl              | https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.1.tar.gz                             |
 | ade               | https://github.com/opencv/ade/archive/refs/tags/v0.1.2a.tar.gz                                       |
 | armadillo         | http://sourceforge.net/projects/arma/files/armadillo-11.4.4.tar.xz                                   |
 | avalontoolkit     | http://sourceforge.net/projects/avalontoolkit/files/AvalonToolkit_1.2/AvalonToolkit_1.2.0.source.tar |
@@ -69,6 +70,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 | nodeeditor        | https://github.com/paceholder/nodeeditor/archive/refs/tags/3.0.10.tar.gz                             |
 | openbabel         | https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-3-1-1.tar.gz                      |
 | opencv            | https://github.com/opencv/opencv/archive/refs/tags/4.7.0.tar.gz                                      |
+| protobuf          | https://github.com/protocolbuffers/protobuf/archive/refs/tags/v22.2.tar.gz                           |
 | rapidjson         | https://github.com/Tencent/rapidjson/archive/012be8528783cdbf4b7a9e64f78bd8f056b97e24.zip            |
 | rdkit             | https://github.com/rdkit/rdkit/archive/refs/tags/Release_2022_09_4.tar.gz                            |
 | RingDecomposerLib | https://github.com/rareylab/RingDecomposerLib/archive/refs/tags/v1.1.3_rdkit.tar.gz                  |
@@ -107,6 +109,7 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 ```shell
 # unzip all downloads
 mkdir -p ../tmp/avalontoolkit/
+tar -xvf abseil-cpp-20230125.1.tar.gz -C ../tmp
 tar -xvf ade-0.1.2a.tar.gz -C ../tmp
 tar -xvf armadillo-11.4.4.tar.xz -C ../tmp/
 tar -xvf AvalonToolkit_1.2.0.source.tar -C ../tmp/avalontoolkit/
@@ -127,6 +130,7 @@ tar -xvf ncnn-20221128.tar.gz -C ../tmp/
 tar -xvf nodeeditor-3.0.10.tar.gz -C ../tmp/
 tar -xvf openbabel-3.1.1-source.tar.bz2 -C ../tmp/
 tar -xvf opencv-4.7.0.tar.gz -C ../tmp/
+tar -xvf protobuf-22.2.tar.gz -C ../tmp/
 tar -xvf rdkit-Release_2022_09_4.tar.gz -C ../tmp/
 tar -xvf RingDecomposerLib-1.1.3_rdkit.tar.gz -C ../tmp/
 tar -xvf RxCpp-4.1.1.tar.gz -C ../tmp/
@@ -141,6 +145,7 @@ unzip rapidjson-012be8528783cdbf4b7a9e64f78bd8f056b97e24.zip -d ../tmp/
 unzip stb-5736b15f7ea0ffb08dd38af21067c314d6a3aae9.zip -d ../tmp/
 
 # rename dir
+mv abseil-cpp-20230125.1 abseil
 mv ade-0.1.2a ade
 mv armadillo-11.4.4 armadillo
 mv benchmark-1.7.1 benchmark
@@ -162,6 +167,7 @@ mv ncnn-20221128 ncnn
 mv nodeeditor-3.0.10.tar.gz nodeeditor
 mv openbabel-3.1.1 openbabel
 mv opencv-4.7.0 opencv
+mv protobuf-22.2 protobuf
 mv rapidjson-012be8528783cdbf4b7a9e64f78bd8f056b97e24 rapidjson
 mv rdkit-Release_2022_09_4 rdkit
 mv RingDecomposerLib-1.1.3_rdkit ringdecomposerlib
@@ -193,7 +199,8 @@ find . -type d -wholename ./rdkit/*/*testdata -o -wholename ./rdkit/*/*test_data
 rm -rf ./taskflow/3rd-party taskflow/docs ./cutlass/docs ./freesasa/tests/data ./ncnn/src/stb_*.h
 rm -rf ./mlpack/src/mlpack/tests/data
 rm -rf ./opencv/3rdparty ./opencv/doc ./nodeeditor/docs
-
+rm -rf ./abseil/absl/time/internal/cctz/testdata
+rm -rf ./protobuf/php ./protobuf/src/google/protobuf/testdata ./protobuf/csharp ./protobuf/objectivec
 
 # encoding
 find . -type f -name *.c -o -name *.cpp -o -name *.cc -o -name *.h -o -name *.hh -o -name *.hpp | xargs dos2unix
