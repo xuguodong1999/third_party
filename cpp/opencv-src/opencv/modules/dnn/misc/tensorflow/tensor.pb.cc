@@ -4,115 +4,159 @@
 #include "tensor.pb.h"
 
 #include <algorithm>
-
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/extension_set.h>
-#include <google/protobuf/wire_format_lite.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/generated_message_reflection.h>
-#include <google/protobuf/reflection_ops.h>
-#include <google/protobuf/wire_format.h>
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/extension_set.h"
+#include "google/protobuf/wire_format_lite.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/generated_message_reflection.h"
+#include "google/protobuf/reflection_ops.h"
+#include "google/protobuf/wire_format.h"
 // @@protoc_insertion_point(includes)
-#include <google/protobuf/port_def.inc>
 
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 PROTOBUF_PRAGMA_INIT_SEG
+namespace _pb = ::PROTOBUF_NAMESPACE_ID;
+namespace _pbi = ::PROTOBUF_NAMESPACE_ID::internal;
 namespace opencv_tensorflow {
-constexpr TensorProto::TensorProto(
-  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
-  : float_val_()
-  , double_val_()
-  , int_val_()
-  , _int_val_cached_byte_size_(0)
-  , string_val_()
-  , scomplex_val_()
-  , int64_val_()
-  , _int64_val_cached_byte_size_(0)
-  , bool_val_()
-  , dcomplex_val_()
-  , half_val_()
-  , _half_val_cached_byte_size_(0)
-  , tensor_content_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
-  , tensor_shape_(nullptr)
-  , dtype_(0)
+PROTOBUF_CONSTEXPR TensorProto::TensorProto(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.float_val_)*/ {}
 
-  , version_number_(0){}
+  , /*decltype(_impl_.double_val_)*/ {}
+
+  , /*decltype(_impl_.int_val_)*/ {}
+  ,/* _impl_._int_val_cached_byte_size_ = */ { 0 }
+
+  , /*decltype(_impl_.string_val_)*/{}
+  , /*decltype(_impl_.scomplex_val_)*/ {}
+
+  , /*decltype(_impl_.int64_val_)*/ {}
+  ,/* _impl_._int64_val_cached_byte_size_ = */ { 0 }
+
+  , /*decltype(_impl_.bool_val_)*/ {}
+
+  , /*decltype(_impl_.dcomplex_val_)*/ {}
+
+  , /*decltype(_impl_.half_val_)*/ {}
+  ,/* _impl_._half_val_cached_byte_size_ = */ { 0 }
+
+  , /*decltype(_impl_.tensor_content_)*/ {
+    &::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized {}
+  }
+
+  , /*decltype(_impl_.tensor_shape_)*/nullptr
+  , /*decltype(_impl_.dtype_)*/ 0
+
+  , /*decltype(_impl_.version_number_)*/ 0
+
+  , /*decltype(_impl_._cached_size_)*/{}} {}
 struct TensorProtoDefaultTypeInternal {
-  constexpr TensorProtoDefaultTypeInternal()
-    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
+  PROTOBUF_CONSTEXPR TensorProtoDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
   ~TensorProtoDefaultTypeInternal() {}
   union {
     TensorProto _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT TensorProtoDefaultTypeInternal _TensorProto_default_instance_;
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 TensorProtoDefaultTypeInternal _TensorProto_default_instance_;
 }  // namespace opencv_tensorflow
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_tensor_2eproto[1];
-static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_tensor_2eproto = nullptr;
-static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_tensor_2eproto = nullptr;
-
-const uint32_t TableStruct_tensor_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, dtype_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, tensor_shape_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, version_number_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, tensor_content_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, half_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, float_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, double_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, int_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, string_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, scomplex_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, int64_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, bool_val_),
-  PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, dcomplex_val_),
-};
-static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::opencv_tensorflow::TensorProto)},
-};
-
-static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::opencv_tensorflow::_TensorProto_default_instance_),
+static ::_pb::Metadata file_level_metadata_tensor_2eproto[1];
+static constexpr const ::_pb::EnumDescriptor**
+    file_level_enum_descriptors_tensor_2eproto = nullptr;
+static constexpr const ::_pb::ServiceDescriptor**
+    file_level_service_descriptors_tensor_2eproto = nullptr;
+const ::uint32_t TableStruct_tensor_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
+    protodesc_cold) = {
+    ~0u,  // no _has_bits_
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _internal_metadata_),
+    ~0u,  // no _extensions_
+    ~0u,  // no _oneof_case_
+    ~0u,  // no _weak_field_map_
+    ~0u,  // no _inlined_string_donated_
+    ~0u,  // no _split_
+    ~0u,  // no sizeof(Split)
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.dtype_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.tensor_shape_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.version_number_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.tensor_content_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.half_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.float_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.double_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.int_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.string_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.scomplex_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.int64_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.bool_val_),
+    PROTOBUF_FIELD_OFFSET(::opencv_tensorflow::TensorProto, _impl_.dcomplex_val_),
 };
 
-const char descriptor_table_protodef_tensor_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\014tensor.proto\022\021opencv_tensorflow\032\022tenso"
-  "r_shape.proto\032\013types.proto\"\363\002\n\013TensorPro"
-  "to\022*\n\005dtype\030\001 \001(\0162\033.opencv_tensorflow.Da"
-  "taType\0229\n\014tensor_shape\030\002 \001(\0132#.opencv_te"
-  "nsorflow.TensorShapeProto\022\026\n\016version_num"
-  "ber\030\003 \001(\005\022\026\n\016tensor_content\030\004 \001(\014\022\024\n\010hal"
-  "f_val\030\r \003(\005B\002\020\001\022\025\n\tfloat_val\030\005 \003(\002B\002\020\001\022\026"
-  "\n\ndouble_val\030\006 \003(\001B\002\020\001\022\023\n\007int_val\030\007 \003(\005B"
-  "\002\020\001\022\022\n\nstring_val\030\010 \003(\014\022\030\n\014scomplex_val\030"
-  "\t \003(\002B\002\020\001\022\025\n\tint64_val\030\n \003(\003B\002\020\001\022\024\n\010bool"
-  "_val\030\013 \003(\010B\002\020\001\022\030\n\014dcomplex_val\030\014 \003(\001B\002\020\001"
-  "B-\n\030org.tensorflow.frameworkB\014TensorProt"
-  "osP\001\370\001\001b\006proto3"
-  ;
-static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_tensor_2eproto_deps[2] = {
-  &::descriptor_table_tensor_5fshape_2eproto,
-  &::descriptor_table_types_2eproto,
+static const ::_pbi::MigrationSchema
+    schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+        { 0, -1, -1, sizeof(::opencv_tensorflow::TensorProto)},
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_tensor_2eproto_once;
-const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_tensor_2eproto = {
-  false, false, 495, descriptor_table_protodef_tensor_2eproto, "tensor.proto",
-  &descriptor_table_tensor_2eproto_once, descriptor_table_tensor_2eproto_deps, 2, 1,
-  schemas, file_default_instances, TableStruct_tensor_2eproto::offsets,
-  file_level_metadata_tensor_2eproto, file_level_enum_descriptors_tensor_2eproto, file_level_service_descriptors_tensor_2eproto,
+
+static const ::_pb::Message* const file_default_instances[] = {
+    &::opencv_tensorflow::_TensorProto_default_instance_._instance,
 };
-PROTOBUF_ATTRIBUTE_WEAK const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable* descriptor_table_tensor_2eproto_getter() {
+const char descriptor_table_protodef_tensor_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+    "\n\014tensor.proto\022\021opencv_tensorflow\032\022tenso"
+    "r_shape.proto\032\013types.proto\"\363\002\n\013TensorPro"
+    "to\022*\n\005dtype\030\001 \001(\0162\033.opencv_tensorflow.Da"
+    "taType\0229\n\014tensor_shape\030\002 \001(\0132#.opencv_te"
+    "nsorflow.TensorShapeProto\022\026\n\016version_num"
+    "ber\030\003 \001(\005\022\026\n\016tensor_content\030\004 \001(\014\022\024\n\010hal"
+    "f_val\030\r \003(\005B\002\020\001\022\025\n\tfloat_val\030\005 \003(\002B\002\020\001\022\026"
+    "\n\ndouble_val\030\006 \003(\001B\002\020\001\022\023\n\007int_val\030\007 \003(\005B"
+    "\002\020\001\022\022\n\nstring_val\030\010 \003(\014\022\030\n\014scomplex_val\030"
+    "\t \003(\002B\002\020\001\022\025\n\tint64_val\030\n \003(\003B\002\020\001\022\024\n\010bool"
+    "_val\030\013 \003(\010B\002\020\001\022\030\n\014dcomplex_val\030\014 \003(\001B\002\020\001"
+    "B-\n\030org.tensorflow.frameworkB\014TensorProt"
+    "osP\001\370\001\001b\006proto3"
+};
+static const ::_pbi::DescriptorTable* const descriptor_table_tensor_2eproto_deps[2] =
+    {
+        &::descriptor_table_tensor_5fshape_2eproto,
+        &::descriptor_table_types_2eproto,
+};
+static ::absl::once_flag descriptor_table_tensor_2eproto_once;
+const ::_pbi::DescriptorTable descriptor_table_tensor_2eproto = {
+    false,
+    false,
+    495,
+    descriptor_table_protodef_tensor_2eproto,
+    "tensor.proto",
+    &descriptor_table_tensor_2eproto_once,
+    descriptor_table_tensor_2eproto_deps,
+    2,
+    1,
+    schemas,
+    file_default_instances,
+    TableStruct_tensor_2eproto::offsets,
+    file_level_metadata_tensor_2eproto,
+    file_level_enum_descriptors_tensor_2eproto,
+    file_level_service_descriptors_tensor_2eproto,
+};
+
+// This function exists to be marked as weak.
+// It can significantly speed up compilation by breaking up LLVM's SCC
+// in the .pb.cc translation units. Large translation units see a
+// reduction of more than 35% of walltime for optimized builds. Without
+// the weak attribute all the messages in the file, including all the
+// vtables and everything they use become part of the same SCC through
+// a cycle like:
+// GetMetadata -> descriptor table -> default instances ->
+//   vtables -> GetMetadata
+// By adding a weak function here we break the connection from the
+// individual vtables back into the descriptor table.
+PROTOBUF_ATTRIBUTE_WEAK const ::_pbi::DescriptorTable* descriptor_table_tensor_2eproto_getter() {
   return &descriptor_table_tensor_2eproto;
 }
-
 // Force running AddDescriptors() at dynamic initialization time.
-PROTOBUF_ATTRIBUTE_INIT_PRIORITY static ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptorsRunner dynamic_init_dummy_tensor_2eproto(&descriptor_table_tensor_2eproto);
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY2
+static ::_pbi::AddDescriptorsRunner dynamic_init_dummy_tensor_2eproto(&descriptor_table_tensor_2eproto);
 namespace opencv_tensorflow {
-
 // ===================================================================
 
 class TensorProto::_Internal {
@@ -122,264 +166,315 @@ class TensorProto::_Internal {
 
 const ::opencv_tensorflow::TensorShapeProto&
 TensorProto::_Internal::tensor_shape(const TensorProto* msg) {
-  return *msg->tensor_shape_;
+  return *msg->_impl_.tensor_shape_;
 }
 void TensorProto::clear_tensor_shape() {
-  if (GetArenaForAllocation() == nullptr && tensor_shape_ != nullptr) {
-    delete tensor_shape_;
+  if (GetArenaForAllocation() == nullptr && _impl_.tensor_shape_ != nullptr) {
+    delete _impl_.tensor_shape_;
   }
-  tensor_shape_ = nullptr;
+  _impl_.tensor_shape_ = nullptr;
 }
-TensorProto::TensorProto(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned),
-  float_val_(arena),
-  double_val_(arena),
-  int_val_(arena),
-  string_val_(arena),
-  scomplex_val_(arena),
-  int64_val_(arena),
-  bool_val_(arena),
-  dcomplex_val_(arena),
-  half_val_(arena) {
-  SharedCtor();
-  if (!is_message_owned) {
-    RegisterArenaDtor(arena);
-  }
+TensorProto::TensorProto(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+  SharedCtor(arena);
   // @@protoc_insertion_point(arena_constructor:opencv_tensorflow.TensorProto)
 }
 TensorProto::TensorProto(const TensorProto& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
-      float_val_(from.float_val_),
-      double_val_(from.double_val_),
-      int_val_(from.int_val_),
-      string_val_(from.string_val_),
-      scomplex_val_(from.scomplex_val_),
-      int64_val_(from.int64_val_),
-      bool_val_(from.bool_val_),
-      dcomplex_val_(from.dcomplex_val_),
-      half_val_(from.half_val_) {
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  TensorProto* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.float_val_) { from._impl_.float_val_ }
+
+    , decltype(_impl_.double_val_) { from._impl_.double_val_ }
+
+    , decltype(_impl_.int_val_) { from._impl_.int_val_ }
+    ,/* _impl_._int_val_cached_byte_size_ = */ { 0 }
+
+    , decltype(_impl_.string_val_){from._impl_.string_val_}
+    , decltype(_impl_.scomplex_val_) { from._impl_.scomplex_val_ }
+
+    , decltype(_impl_.int64_val_) { from._impl_.int64_val_ }
+    ,/* _impl_._int64_val_cached_byte_size_ = */ { 0 }
+
+    , decltype(_impl_.bool_val_) { from._impl_.bool_val_ }
+
+    , decltype(_impl_.dcomplex_val_) { from._impl_.dcomplex_val_ }
+
+    , decltype(_impl_.half_val_) { from._impl_.half_val_ }
+    ,/* _impl_._half_val_cached_byte_size_ = */ { 0 }
+
+    , decltype(_impl_.tensor_content_) {}
+
+    , decltype(_impl_.tensor_shape_){nullptr}
+    , decltype(_impl_.dtype_) {}
+
+    , decltype(_impl_.version_number_) {}
+
+    , /*decltype(_impl_._cached_size_)*/{}};
+
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  tensor_content_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  _impl_.tensor_content_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    tensor_content_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        _impl_.tensor_content_.Set("", GetArenaForAllocation());
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   if (!from._internal_tensor_content().empty()) {
-    tensor_content_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_tensor_content(),
-      GetArenaForAllocation());
+    _this->_impl_.tensor_content_.Set(from._internal_tensor_content(), _this->GetArenaForAllocation());
   }
   if (from._internal_has_tensor_shape()) {
-    tensor_shape_ = new ::opencv_tensorflow::TensorShapeProto(*from.tensor_shape_);
-  } else {
-    tensor_shape_ = nullptr;
+    _this->_impl_.tensor_shape_ = new ::opencv_tensorflow::TensorShapeProto(*from._impl_.tensor_shape_);
   }
-  ::memcpy(&dtype_, &from.dtype_,
-    static_cast<size_t>(reinterpret_cast<char*>(&version_number_) -
-    reinterpret_cast<char*>(&dtype_)) + sizeof(version_number_));
+  ::memcpy(&_impl_.dtype_, &from._impl_.dtype_,
+    static_cast<::size_t>(reinterpret_cast<char*>(&_impl_.version_number_) -
+    reinterpret_cast<char*>(&_impl_.dtype_)) + sizeof(_impl_.version_number_));
   // @@protoc_insertion_point(copy_constructor:opencv_tensorflow.TensorProto)
 }
 
-inline void TensorProto::SharedCtor() {
-tensor_content_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  tensor_content_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
-    reinterpret_cast<char*>(&tensor_shape_) - reinterpret_cast<char*>(this)),
-    0, static_cast<size_t>(reinterpret_cast<char*>(&version_number_) -
-    reinterpret_cast<char*>(&tensor_shape_)) + sizeof(version_number_));
+inline void TensorProto::SharedCtor(::_pb::Arena* arena) {
+  (void)arena;
+  new (&_impl_) Impl_{
+      decltype(_impl_.float_val_) { arena }
+
+    , decltype(_impl_.double_val_) { arena }
+
+    , decltype(_impl_.int_val_) { arena }
+    ,/* _impl_._int_val_cached_byte_size_ = */ { 0 }
+
+    , decltype(_impl_.string_val_){arena}
+    , decltype(_impl_.scomplex_val_) { arena }
+
+    , decltype(_impl_.int64_val_) { arena }
+    ,/* _impl_._int64_val_cached_byte_size_ = */ { 0 }
+
+    , decltype(_impl_.bool_val_) { arena }
+
+    , decltype(_impl_.dcomplex_val_) { arena }
+
+    , decltype(_impl_.half_val_) { arena }
+    ,/* _impl_._half_val_cached_byte_size_ = */ { 0 }
+
+    , decltype(_impl_.tensor_content_) {}
+
+    , decltype(_impl_.tensor_shape_){nullptr}
+    , decltype(_impl_.dtype_) { 0 }
+
+    , decltype(_impl_.version_number_) { 0 }
+
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.tensor_content_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        _impl_.tensor_content_.Set("", GetArenaForAllocation());
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 TensorProto::~TensorProto() {
   // @@protoc_insertion_point(destructor:opencv_tensorflow.TensorProto)
-  if (GetArenaForAllocation() != nullptr) return;
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
   SharedDtor();
-  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 inline void TensorProto::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  tensor_content_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (this != internal_default_instance()) delete tensor_shape_;
+  ABSL_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.float_val_.~RepeatedField();
+  _impl_.double_val_.~RepeatedField();
+  _impl_.int_val_.~RepeatedField();
+  _impl_.string_val_.~RepeatedPtrField();
+  _impl_.scomplex_val_.~RepeatedField();
+  _impl_.int64_val_.~RepeatedField();
+  _impl_.bool_val_.~RepeatedField();
+  _impl_.dcomplex_val_.~RepeatedField();
+  _impl_.half_val_.~RepeatedField();
+  _impl_.tensor_content_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.tensor_shape_;
 }
 
-void TensorProto::ArenaDtor(void* object) {
-  TensorProto* _this = reinterpret_cast< TensorProto* >(object);
-  (void)_this;
-}
-void TensorProto::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
-}
 void TensorProto::SetCachedSize(int size) const {
-  _cached_size_.Set(size);
+  _impl_._cached_size_.Set(size);
 }
 
 void TensorProto::Clear() {
 // @@protoc_insertion_point(message_clear_start:opencv_tensorflow.TensorProto)
-  uint32_t cached_has_bits = 0;
+  ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  float_val_.Clear();
-  double_val_.Clear();
-  int_val_.Clear();
-  string_val_.Clear();
-  scomplex_val_.Clear();
-  int64_val_.Clear();
-  bool_val_.Clear();
-  dcomplex_val_.Clear();
-  half_val_.Clear();
-  tensor_content_.ClearToEmpty();
-  if (GetArenaForAllocation() == nullptr && tensor_shape_ != nullptr) {
-    delete tensor_shape_;
+  _impl_.float_val_.Clear();
+  _impl_.double_val_.Clear();
+  _impl_.int_val_.Clear();
+  _impl_.string_val_.Clear();
+  _impl_.scomplex_val_.Clear();
+  _impl_.int64_val_.Clear();
+  _impl_.bool_val_.Clear();
+  _impl_.dcomplex_val_.Clear();
+  _impl_.half_val_.Clear();
+  _impl_.tensor_content_.ClearToEmpty();
+  if (GetArenaForAllocation() == nullptr && _impl_.tensor_shape_ != nullptr) {
+    delete _impl_.tensor_shape_;
   }
-  tensor_shape_ = nullptr;
-  ::memset(&dtype_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&version_number_) -
-      reinterpret_cast<char*>(&dtype_)) + sizeof(version_number_));
+  _impl_.tensor_shape_ = nullptr;
+  ::memset(&_impl_.dtype_, 0, static_cast<::size_t>(
+      reinterpret_cast<char*>(&_impl_.version_number_) -
+      reinterpret_cast<char*>(&_impl_.dtype_)) + sizeof(_impl_.version_number_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* TensorProto::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+const char* TensorProto::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    ::uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
       // .opencv_tensorflow.DataType dtype = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 8)) {
+          ::uint32_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
           _internal_set_dtype(static_cast<::opencv_tensorflow::DataType>(val));
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // .opencv_tensorflow.TensorShapeProto tensor_shape = 2;
       case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 18)) {
           ptr = ctx->ParseMessage(_internal_mutable_tensor_shape(), ptr);
           CHK_(ptr);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // int32 version_number = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
-          version_number_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 24)) {
+          _impl_.version_number_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // bytes tensor_content = 4;
       case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 34)) {
           auto str = _internal_mutable_tensor_content();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated float float_val = 5 [packed = true];
       case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 42)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedFloatParser(_internal_mutable_float_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 45) {
+        } else if (static_cast<::uint8_t>(tag) == 45) {
           _internal_add_float_val(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr));
           ptr += sizeof(float);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated double double_val = 6 [packed = true];
       case 6:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 50)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedDoubleParser(_internal_mutable_double_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 49) {
+        } else if (static_cast<::uint8_t>(tag) == 49) {
           _internal_add_double_val(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr));
           ptr += sizeof(double);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated int32 int_val = 7 [packed = true];
       case 7:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 58)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_int_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 56) {
+        } else if (static_cast<::uint8_t>(tag) == 56) {
           _internal_add_int_val(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
           CHK_(ptr);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated bytes string_val = 8;
       case 8:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 66)) {
           ptr -= 1;
           do {
             ptr += 1;
             auto str = _internal_add_string_val();
-            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<66>(ptr));
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated float scomplex_val = 9 [packed = true];
       case 9:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 74)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedFloatParser(_internal_mutable_scomplex_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 77) {
+        } else if (static_cast<::uint8_t>(tag) == 77) {
           _internal_add_scomplex_val(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr));
           ptr += sizeof(float);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated int64 int64_val = 10 [packed = true];
       case 10:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 82)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt64Parser(_internal_mutable_int64_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 80) {
+        } else if (static_cast<::uint8_t>(tag) == 80) {
           _internal_add_int64_val(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr));
           CHK_(ptr);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated bool bool_val = 11 [packed = true];
       case 11:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 90)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedBoolParser(_internal_mutable_bool_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 88) {
+        } else if (static_cast<::uint8_t>(tag) == 88) {
           _internal_add_bool_val(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr));
           CHK_(ptr);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated double dcomplex_val = 12 [packed = true];
       case 12:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 98)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 98)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedDoubleParser(_internal_mutable_dcomplex_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 97) {
+        } else if (static_cast<::uint8_t>(tag) == 97) {
           _internal_add_dcomplex_val(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr));
           ptr += sizeof(double);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       // repeated int32 half_val = 13 [packed = true];
       case 13:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 106)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 106)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_half_val(), ptr, ctx);
           CHK_(ptr);
-        } else if (static_cast<uint8_t>(tag) == 104) {
+        } else if (static_cast<::uint8_t>(tag) == 104) {
           _internal_add_half_val(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
           CHK_(ptr);
-        } else
+        } else {
           goto handle_unusual;
+        }
         continue;
       default:
         goto handle_unusual;
@@ -404,37 +499,37 @@ failure:
 #undef CHK_
 }
 
-uint8_t* TensorProto::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+::uint8_t* TensorProto::_InternalSerialize(
+    ::uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:opencv_tensorflow.TensorProto)
-  uint32_t cached_has_bits = 0;
+  ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   // .opencv_tensorflow.DataType dtype = 1;
   if (this->_internal_dtype() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
-      1, this->_internal_dtype(), target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+        1, this->_internal_dtype(), target);
   }
 
   // .opencv_tensorflow.TensorShapeProto tensor_shape = 2;
   if (this->_internal_has_tensor_shape()) {
-    target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(
-        2, _Internal::tensor_shape(this), target, stream);
+      InternalWriteMessage(2, _Internal::tensor_shape(this),
+        _Internal::tensor_shape(this).GetCachedSize(), target, stream);
   }
 
   // int32 version_number = 3;
   if (this->_internal_version_number() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(3, this->_internal_version_number(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(
+        3, this->_internal_version_number(), target);
   }
 
   // bytes tensor_content = 4;
   if (!this->_internal_tensor_content().empty()) {
-    target = stream->WriteBytesMaybeAliased(
-        4, this->_internal_tensor_content(), target);
+    const std::string& _s = this->_internal_tensor_content();
+    target = stream->WriteBytesMaybeAliased(4, _s, target);
   }
 
   // repeated float float_val = 5 [packed = true];
@@ -449,15 +544,15 @@ uint8_t* TensorProto::_InternalSerialize(
 
   // repeated int32 int_val = 7 [packed = true];
   {
-    int byte_size = _int_val_cached_byte_size_.load(std::memory_order_relaxed);
+    int byte_size = _impl_._int_val_cached_byte_size_.Get();
     if (byte_size > 0) {
-      target = stream->WriteInt32Packed(
-          7, _internal_int_val(), byte_size, target);
+      target = stream->WriteInt32Packed(7, _internal_int_val(),
+                                                 byte_size, target);
     }
   }
 
   // repeated bytes string_val = 8;
-  for (int i = 0, n = this->_internal_string_val_size(); i < n; i++) {
+  for (int i = 0, n = this->_internal_string_val_size(); i < n; ++i) {
     const auto& s = this->_internal_string_val(i);
     target = stream->WriteBytes(8, s, target);
   }
@@ -469,10 +564,10 @@ uint8_t* TensorProto::_InternalSerialize(
 
   // repeated int64 int64_val = 10 [packed = true];
   {
-    int byte_size = _int64_val_cached_byte_size_.load(std::memory_order_relaxed);
+    int byte_size = _impl_._int64_val_cached_byte_size_.Get();
     if (byte_size > 0) {
-      target = stream->WriteInt64Packed(
-          10, _internal_int64_val(), byte_size, target);
+      target = stream->WriteInt64Packed(10, _internal_int64_val(),
+                                                 byte_size, target);
     }
   }
 
@@ -488,211 +583,205 @@ uint8_t* TensorProto::_InternalSerialize(
 
   // repeated int32 half_val = 13 [packed = true];
   {
-    int byte_size = _half_val_cached_byte_size_.load(std::memory_order_relaxed);
+    int byte_size = _impl_._half_val_cached_byte_size_.Get();
     if (byte_size > 0) {
-      target = stream->WriteInt32Packed(
-          13, _internal_half_val(), byte_size, target);
+      target = stream->WriteInt32Packed(13, _internal_half_val(),
+                                                 byte_size, target);
     }
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:opencv_tensorflow.TensorProto)
   return target;
 }
 
-size_t TensorProto::ByteSizeLong() const {
+::size_t TensorProto::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:opencv_tensorflow.TensorProto)
-  size_t total_size = 0;
+  ::size_t total_size = 0;
 
-  uint32_t cached_has_bits = 0;
+  ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated float float_val = 5 [packed = true];
   {
-    unsigned int count = static_cast<unsigned int>(this->_internal_float_val_size());
-    size_t data_size = 4UL * count;
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    total_size += data_size;
+    std::size_t data_size = std::size_t{4} *
+        ::_pbi::FromIntSize(this->_internal_float_val_size())
+    ;
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // repeated double double_val = 6 [packed = true];
   {
-    unsigned int count = static_cast<unsigned int>(this->_internal_double_val_size());
-    size_t data_size = 8UL * count;
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    total_size += data_size;
+    std::size_t data_size = std::size_t{8} *
+        ::_pbi::FromIntSize(this->_internal_double_val_size())
+    ;
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // repeated int32 int_val = 7 [packed = true];
   {
-    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      Int32Size(this->int_val_);
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
-    _int_val_cached_byte_size_.store(cached_size,
-                                    std::memory_order_relaxed);
-    total_size += data_size;
+    std::size_t data_size = ::_pbi::WireFormatLite::Int32Size(this->_impl_.int_val_)
+    ;
+    _impl_._int_val_cached_byte_size_.Set(::_pbi::ToCachedSize(data_size));
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // repeated bytes string_val = 8;
-  total_size += 1 *
-      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(string_val_.size());
-  for (int i = 0, n = string_val_.size(); i < n; i++) {
-    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-      string_val_.Get(i));
+  total_size += 1 * ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.string_val_.size());
+  for (int i = 0, n = _impl_.string_val_.size(); i < n; ++i) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(_impl_.string_val_.Get(i));
   }
 
   // repeated float scomplex_val = 9 [packed = true];
   {
-    unsigned int count = static_cast<unsigned int>(this->_internal_scomplex_val_size());
-    size_t data_size = 4UL * count;
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    total_size += data_size;
+    std::size_t data_size = std::size_t{4} *
+        ::_pbi::FromIntSize(this->_internal_scomplex_val_size())
+    ;
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // repeated int64 int64_val = 10 [packed = true];
   {
-    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      Int64Size(this->int64_val_);
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
-    _int64_val_cached_byte_size_.store(cached_size,
-                                    std::memory_order_relaxed);
-    total_size += data_size;
+    std::size_t data_size = ::_pbi::WireFormatLite::Int64Size(this->_impl_.int64_val_)
+    ;
+    _impl_._int64_val_cached_byte_size_.Set(::_pbi::ToCachedSize(data_size));
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // repeated bool bool_val = 11 [packed = true];
   {
-    unsigned int count = static_cast<unsigned int>(this->_internal_bool_val_size());
-    size_t data_size = 1UL * count;
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    total_size += data_size;
+    std::size_t data_size = std::size_t{1} *
+        ::_pbi::FromIntSize(this->_internal_bool_val_size())
+    ;
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // repeated double dcomplex_val = 12 [packed = true];
   {
-    unsigned int count = static_cast<unsigned int>(this->_internal_dcomplex_val_size());
-    size_t data_size = 8UL * count;
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    total_size += data_size;
+    std::size_t data_size = std::size_t{8} *
+        ::_pbi::FromIntSize(this->_internal_dcomplex_val_size())
+    ;
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // repeated int32 half_val = 13 [packed = true];
   {
-    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      Int32Size(this->half_val_);
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<int32_t>(data_size));
-    }
-    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
-    _half_val_cached_byte_size_.store(cached_size,
-                                    std::memory_order_relaxed);
-    total_size += data_size;
+    std::size_t data_size = ::_pbi::WireFormatLite::Int32Size(this->_impl_.half_val_)
+    ;
+    _impl_._half_val_cached_byte_size_.Set(::_pbi::ToCachedSize(data_size));
+    std::size_t tag_size = data_size == 0
+        ? 0
+        : 1 + ::_pbi::WireFormatLite::Int32Size(
+                            static_cast<int32_t>(data_size))
+    ;
+    total_size += tag_size + data_size;
   }
 
   // bytes tensor_content = 4;
   if (!this->_internal_tensor_content().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-        this->_internal_tensor_content());
+    total_size += 1 + ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+                                    this->_internal_tensor_content());
   }
 
   // .opencv_tensorflow.TensorShapeProto tensor_shape = 2;
   if (this->_internal_has_tensor_shape()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *tensor_shape_);
+        *_impl_.tensor_shape_);
   }
 
   // .opencv_tensorflow.DataType dtype = 1;
   if (this->_internal_dtype() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_dtype());
+                  ::_pbi::WireFormatLite::EnumSize(this->_internal_dtype());
   }
 
   // int32 version_number = 3;
   if (this->_internal_version_number() != 0) {
-    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32SizePlusOne(this->_internal_version_number());
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+        this->_internal_version_number());
   }
 
-  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData TensorProto::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
     TensorProto::MergeImpl
 };
 const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*TensorProto::GetClassData() const { return &_class_data_; }
 
-void TensorProto::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-  static_cast<TensorProto *>(to)->MergeFrom(
-      static_cast<const TensorProto &>(from));
-}
 
-
-void TensorProto::MergeFrom(const TensorProto& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:opencv_tensorflow.TensorProto)
-  GOOGLE_DCHECK_NE(&from, this);
-  uint32_t cached_has_bits = 0;
+void TensorProto::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<TensorProto*>(&to_msg);
+  auto& from = static_cast<const TensorProto&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:opencv_tensorflow.TensorProto)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  float_val_.MergeFrom(from.float_val_);
-  double_val_.MergeFrom(from.double_val_);
-  int_val_.MergeFrom(from.int_val_);
-  string_val_.MergeFrom(from.string_val_);
-  scomplex_val_.MergeFrom(from.scomplex_val_);
-  int64_val_.MergeFrom(from.int64_val_);
-  bool_val_.MergeFrom(from.bool_val_);
-  dcomplex_val_.MergeFrom(from.dcomplex_val_);
-  half_val_.MergeFrom(from.half_val_);
+  _this->_impl_.float_val_.MergeFrom(from._impl_.float_val_);
+  _this->_impl_.double_val_.MergeFrom(from._impl_.double_val_);
+  _this->_impl_.int_val_.MergeFrom(from._impl_.int_val_);
+  _this->_impl_.string_val_.MergeFrom(from._impl_.string_val_);
+  _this->_impl_.scomplex_val_.MergeFrom(from._impl_.scomplex_val_);
+  _this->_impl_.int64_val_.MergeFrom(from._impl_.int64_val_);
+  _this->_impl_.bool_val_.MergeFrom(from._impl_.bool_val_);
+  _this->_impl_.dcomplex_val_.MergeFrom(from._impl_.dcomplex_val_);
+  _this->_impl_.half_val_.MergeFrom(from._impl_.half_val_);
   if (!from._internal_tensor_content().empty()) {
-    _internal_set_tensor_content(from._internal_tensor_content());
+    _this->_internal_set_tensor_content(from._internal_tensor_content());
   }
   if (from._internal_has_tensor_shape()) {
-    _internal_mutable_tensor_shape()->::opencv_tensorflow::TensorShapeProto::MergeFrom(from._internal_tensor_shape());
+    _this->_internal_mutable_tensor_shape()->::opencv_tensorflow::TensorShapeProto::MergeFrom(
+        from._internal_tensor_shape());
   }
   if (from._internal_dtype() != 0) {
-    _internal_set_dtype(from._internal_dtype());
+    _this->_internal_set_dtype(from._internal_dtype());
   }
   if (from._internal_version_number() != 0) {
-    _internal_set_version_number(from._internal_version_number());
+    _this->_internal_set_version_number(from._internal_version_number());
   }
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void TensorProto::CopyFrom(const TensorProto& from) {
@@ -711,41 +800,37 @@ void TensorProto::InternalSwap(TensorProto* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  float_val_.InternalSwap(&other->float_val_);
-  double_val_.InternalSwap(&other->double_val_);
-  int_val_.InternalSwap(&other->int_val_);
-  string_val_.InternalSwap(&other->string_val_);
-  scomplex_val_.InternalSwap(&other->scomplex_val_);
-  int64_val_.InternalSwap(&other->int64_val_);
-  bool_val_.InternalSwap(&other->bool_val_);
-  dcomplex_val_.InternalSwap(&other->dcomplex_val_);
-  half_val_.InternalSwap(&other->half_val_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      &tensor_content_, lhs_arena,
-      &other->tensor_content_, rhs_arena
-  );
+  _impl_.float_val_.InternalSwap(&other->_impl_.float_val_);
+  _impl_.double_val_.InternalSwap(&other->_impl_.double_val_);
+  _impl_.int_val_.InternalSwap(&other->_impl_.int_val_);
+  _impl_.string_val_.InternalSwap(&other->_impl_.string_val_);
+  _impl_.scomplex_val_.InternalSwap(&other->_impl_.scomplex_val_);
+  _impl_.int64_val_.InternalSwap(&other->_impl_.int64_val_);
+  _impl_.bool_val_.InternalSwap(&other->_impl_.bool_val_);
+  _impl_.dcomplex_val_.InternalSwap(&other->_impl_.dcomplex_val_);
+  _impl_.half_val_.InternalSwap(&other->_impl_.half_val_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.tensor_content_, lhs_arena,
+                                       &other->_impl_.tensor_content_, rhs_arena);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(TensorProto, version_number_)
-      + sizeof(TensorProto::version_number_)
-      - PROTOBUF_FIELD_OFFSET(TensorProto, tensor_shape_)>(
-          reinterpret_cast<char*>(&tensor_shape_),
-          reinterpret_cast<char*>(&other->tensor_shape_));
+      PROTOBUF_FIELD_OFFSET(TensorProto, _impl_.version_number_)
+      + sizeof(TensorProto::_impl_.version_number_)
+      - PROTOBUF_FIELD_OFFSET(TensorProto, _impl_.tensor_shape_)>(
+          reinterpret_cast<char*>(&_impl_.tensor_shape_),
+          reinterpret_cast<char*>(&other->_impl_.tensor_shape_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata TensorProto::GetMetadata() const {
-  return ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
+  return ::_pbi::AssignDescriptors(
       &descriptor_table_tensor_2eproto_getter, &descriptor_table_tensor_2eproto_once,
       file_level_metadata_tensor_2eproto[0]);
 }
-
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace opencv_tensorflow
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::opencv_tensorflow::TensorProto* Arena::CreateMaybeMessage< ::opencv_tensorflow::TensorProto >(Arena* arena) {
+template<> PROTOBUF_NOINLINE ::opencv_tensorflow::TensorProto*
+Arena::CreateMaybeMessage< ::opencv_tensorflow::TensorProto >(Arena* arena) {
   return Arena::CreateMessageInternal< ::opencv_tensorflow::TensorProto >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
-
 // @@protoc_insertion_point(global_scope)
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
