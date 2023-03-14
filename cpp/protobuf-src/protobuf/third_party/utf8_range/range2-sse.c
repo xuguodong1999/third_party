@@ -6,7 +6,11 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
 #include <x86intrin.h>
+#endif
 
 int utf8_naive(const unsigned char *data, int len);
 
