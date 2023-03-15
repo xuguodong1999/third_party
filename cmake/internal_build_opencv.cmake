@@ -2,6 +2,7 @@
 function(xgd_build_opencv_library)
     set(SUPPORTED_MODULES
             opencv_calib3d
+            opencv_dnn
             opencv_features2d
             opencv_flann
             opencv_gapi
@@ -12,32 +13,29 @@ function(xgd_build_opencv_library)
             opencv_photo
             opencv_stitching
             opencv_video)
+    set(CV_ENABLE_INTRINSICS ON)
     set(CPU_BASELINE_FINAL "")
     set(CPU_DISPATCH_FINAL "")
     if (XGD_FLAG_SSE)
         list(APPEND CPU_BASELINE_FINAL SSE SSE2)
-        list(APPEND CPU_DISPATCH_FINAL SSE SSE2)
         if (NOT EMSCRIPTEN)
             list(APPEND CPU_BASELINE_FINAL SSE3 SSSE3 SSE4_1 SSE4_2)
-            list(APPEND CPU_DISPATCH_FINAL SSE3 SSSE3 SSE4_1 SSE4_2)
         endif ()
     endif ()
     if (XGD_FLAG_AVX)
         list(APPEND CPU_BASELINE_FINAL AVX)
-        list(APPEND CPU_DISPATCH_FINAL AVX)
     endif ()
     if (XGD_FLAG_AVX2)
         list(APPEND CPU_BASELINE_FINAL AVX2)
-        list(APPEND CPU_DISPATCH_FINAL AVX2)
     endif ()
     if (XGD_FLAG_NEON)
         list(APPEND CPU_BASELINE_FINAL NEON)
-        list(APPEND CPU_DISPATCH_FINAL NEON)
     endif ()
     if (EMSCRIPTEN)
         set(CPU_BASELINE_FINAL "")
-        set(CPU_DISPATCH_FINAL "")
     endif ()
+    set(CPU_DISPATCH_FINAL ${CPU_BASELINE_FINAL})
+
 
     set(OCV_ROOT ${XGD_EXTERNAL_DIR}/cpp/opencv-src/opencv)
     set(OCV_MODULE_DIR ${OCV_ROOT}/modules)
@@ -98,7 +96,7 @@ function(xgd_build_opencv_library)
         if (NOT EXISTS ${OCV_COMPONENT_DIR})
             message(FATAL_ERROR "${OCV_COMPONENT_DIR} not exist for ${OCV_COMPONENT}")
         endif ()
-        cmake_parse_arguments(param "" "" "SRC_FILES;SRC_DIRS;EXCLUDE_SRC_FILES" ${ARGN})
+        cmake_parse_arguments(param "" "" "SRC_FILES;SRC_DIRS;PRIVATE_INCLUDE_DIRS;EXCLUDE_SRC_FILES" ${ARGN})
         set(OCV_COMPONENT_INC_DIR ${OCV_COMPONENT_DIR}/include)
         set(OCV_COMPONENT_SRC_DIR ${OCV_COMPONENT_DIR}/src)
         set(OCV_COMPONENT_GEN_DIR ${OCV_GENERATED_SRC_DIR}/${OCV_COMPONENT})
@@ -141,6 +139,7 @@ function(xgd_build_opencv_library)
 
                 SRC_FILES
                 ${OUTPUT_SRC}
+                ${param_SRC_FILES}
 
                 INCLUDE_DIRS
                 ${OCV_COMPONENT_INC_DIR}
@@ -148,6 +147,7 @@ function(xgd_build_opencv_library)
                 ${OCV_ROOT}/include
 
                 PRIVATE_INCLUDE_DIRS
+                ${param_PRIVATE_INCLUDE_DIRS}
                 ${OCV_GENERATED_SRC_DIR}
                 ${OCV_COMPONENT_GEN_DIR}
                 ${OCV_COMPONENT_SRC_DIR} # for gapi
@@ -175,6 +175,7 @@ function(xgd_build_opencv_library)
             target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE CV_FORCE_SIMD128_CPP)
         endif ()
         target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE __OPENCV_BUILD CVAPI_EXPORTS)
+        ocv_compiler_optimization_process_sources(${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED})
 
         if (NOT TARGET opencv_all)
             add_custom_target(opencv_all)
@@ -364,6 +365,38 @@ function(xgd_build_opencv_library)
     endfunction()
     xgd_build_opencv_gapi()
 
+    function(xgd_build_opencv_dnn)
+        set(OCV_COMPONENT dnn)
+        set(the_module opencv_${OCV_COMPONENT})
+        ocv_add_dispatched_file_force_all(layers/layers_common AVX AVX2 AVX512_SKX RVV LASX)
+        ocv_add_dispatched_file_force_all(int8layers/layers_common AVX2 AVX512_SKX LASX)
+        xgd_internal_build_opencv(
+                dnn
+                SRC_DIRS
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/misc/caffe
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/misc/onnx
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/misc/tensorflow
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/caffe
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/darknet
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/int8layers
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/layers
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/layers/fast_convolution
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/onnx
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/tensorflow
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/torch
+                SRC_FILES
+                ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
+                PRIVATE_INCLUDE_DIRS
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/misc/caffe
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/misc/onnx
+                ${OCV_MODULE_DIR}/${OCV_COMPONENT}/misc/tensorflow
+        )
+        target_compile_definitions(opencv_dnn PRIVATE "HAVE_PROTOBUF=1")
+        xgd_link_protobuf(opencv_dnn)
+    endfunction()
+    xgd_build_opencv_dnn()
+
     function(xgd_build_opencv_ml)
         set(OCV_COMPONENT ml)
         set(the_module opencv_${OCV_COMPONENT})
@@ -378,7 +411,6 @@ function(xgd_build_opencv_library)
     function(xgd_build_opencv_objdetect)
         set(OCV_COMPONENT objdetect)
         set(the_module opencv_${OCV_COMPONENT})
-        ocv_add_dispatched_file(accum SSE4_1 AVX AVX2)
         xgd_internal_build_opencv(
                 objdetect
                 SRC_DIRS
@@ -415,7 +447,6 @@ function(xgd_build_opencv_library)
     function(xgd_build_opencv_video)
         set(OCV_COMPONENT video)
         set(the_module opencv_${OCV_COMPONENT})
-        ocv_add_dispatched_file(accum SSE4_1 AVX AVX2)
         xgd_internal_build_opencv(
                 video
                 SRC_DIRS
@@ -472,12 +503,12 @@ function(xgd_build_opencv_library)
     xgd_link_opencv(opencv_imgcodecs PUBLIC imgproc)
     xgd_link_opencv(opencv_imgproc PUBLIC core)
     xgd_link_opencv(opencv_ml PUBLIC core)
-    xgd_link_opencv(opencv_objdetect PUBLIC core imgproc calib3d) # optional dnn
+    xgd_link_opencv(opencv_objdetect PUBLIC core imgproc calib3d dnn)
     xgd_link_opencv(opencv_photo PUBLIC imgproc)
     xgd_link_opencv(opencv_stitching PUBLIC imgproc features2d calib3d flann)
-    xgd_link_opencv(opencv_video PUBLIC imgproc calib3d) # optional dnn
+    xgd_link_opencv(opencv_video PUBLIC imgproc calib3d dnn)
 
-    # xgd_link_opencv(opencv_dnn PUBLIC core imgproc)
+    xgd_link_opencv(opencv_dnn PUBLIC core imgproc)
     # xgd_link_opencv(opencv_videoio PUBLIC imgproc imgcodecs)
 
     set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "")
@@ -491,7 +522,6 @@ function(xgd_build_opencv_library)
 
     set(HAVE_PNG ON)
     set(HAVE_EIGEN ON)
-    set(CV_ENABLE_INTRINSICS ON)
     configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
             ${OCV_GENERATED_INC_DIR}/cvconfig.h)
     configure_file(${OCV_ROOT}/cmake/templates/cvconfig.h.in
@@ -511,8 +541,8 @@ endfunction()
 # reference: opencv/cmake/OpenCVCompilerOptimizations.cmake
 macro(__ocv_add_dispatched_file filename target_src_var src_directory dst_directory precomp_hpp optimizations_var)
     set(__codestr "
-            #include \"${src_directory}/${precomp_hpp}\"
-            #include \"${src_directory}/${filename}.simd.hpp\"")
+#include \"${src_directory}/${precomp_hpp}\"
+#include \"${src_directory}/${filename}.simd.hpp\"")
 
     set(__declarations_str "#define CV_CPU_SIMD_FILENAME \"${src_directory}/${filename}.simd.hpp\"")
     set(__dispatch_modes "BASELINE")
@@ -541,8 +571,8 @@ macro(__ocv_add_dispatched_file filename target_src_var src_directory dst_direct
                 xgd_mark_generated("${__file}")
             endif ()
             set(__declarations_str "${__declarations_str}
-                #define CV_CPU_DISPATCH_MODE ${OPT}
-                #include \"opencv2/core/private/cv_cpu_include_simd_declarations.hpp\"")
+#define CV_CPU_DISPATCH_MODE ${OPT}
+#include \"opencv2/core/private/cv_cpu_include_simd_declarations.hpp\"")
             set(__dispatch_modes "${OPT}, ${__dispatch_modes}")
         endif ()
     endforeach ()
@@ -582,12 +612,104 @@ function(ocv_update_file filepath content)
         file(READ "${filepath}" actual_content)
     else()
         set(actual_content "")
-    endif()
-    if("${actual_content}" STREQUAL "${content}")
-        if(";${ARGN};" MATCHES ";VERBOSE;")
+    endif ()
+    if ("${actual_content}" STREQUAL "${content}")
+        if (";${ARGN};" MATCHES ";VERBOSE;")
             message(STATUS "${filepath} contains the same content")
-        endif()
-    else()
+        endif ()
+    else ()
         file(WRITE "${filepath}" "${content}")
-    endif()
+    endif ()
 endfunction()
+
+macro(ocv_compiler_optimization_process_sources)
+    # set(__result "")
+    foreach (OPT ${CPU_DISPATCH_FINAL})
+        set(__result_${OPT} "")
+    endforeach ()
+    foreach (fname ${ARGV})
+        string(TOLOWER "${fname}" fname_LOWER)
+        get_filename_component(fname_LOWER "${fname_LOWER}" NAME)
+        if (fname_LOWER MATCHES ".+\\.([^\\.]*)\\.cpp$")
+            string(TOUPPER "${CMAKE_MATCH_1}" OPT_)
+            if (OPT_ MATCHES "(CUDA.*|DISPATCH.*|OCL)") # don't touch files like filename.cuda.cpp
+                # list(APPEND __result "${fname}")
+                #continue()
+            elseif (CV_DISABLE_OPTIMIZATION OR NOT CV_ENABLE_INTRINSICS)
+                # ocv_get_smart_file_name(fname_ "${fname}")
+                # message(STATUS "Excluding from source files list (optimization is disabled): ${fname_}")
+                #continue()
+            else ()
+                get_source_file_property(__definitions "${fname}" COMPILE_DEFINITIONS)
+                if (__definitions)
+                    list(APPEND __definitions "CV_CPU_DISPATCH_MODE=${OPT_}")
+                else ()
+                    set(__definitions "CV_CPU_DISPATCH_MODE=${OPT_}")
+                endif ()
+                set_source_files_properties("${fname}" PROPERTIES COMPILE_DEFINITIONS "${__definitions}")
+
+                set(__opt_found 0)
+                foreach (OPT ${CPU_BASELINE_FINAL})
+                    string(TOLOWER "${OPT}" OPT_LOWER)
+                    if (fname_LOWER MATCHES "\\.${OPT_LOWER}\\.cpp$")
+                        #message("${fname} BASELINE-${OPT}")
+                        set(__opt_found 1)
+                        # list(APPEND __result "${fname}")
+                        break()
+                    endif ()
+                endforeach ()
+                foreach (OPT ${CPU_DISPATCH_FINAL})
+                    set(OPT2 ${OPT})
+                    # foreach (OPT2 ${CPU_DISPATCH_${OPT}_FORCED})
+                        string(TOLOWER "${OPT2}" OPT2_LOWER)
+                        if (fname_LOWER MATCHES "\\.${OPT2_LOWER}\\.cpp$")
+                            list(APPEND __result_${OPT} "${fname}")
+                            # math(EXPR CPU_${OPT}_USAGE_COUNT "${CPU_${OPT}_USAGE_COUNT}+1")
+                            # set(CPU_${OPT}_USAGE_COUNT "${CPU_${OPT}_USAGE_COUNT}" CACHE INTERNAL "" FORCE)
+                            #message("(${CPU_${OPT}_USAGE_COUNT})${fname} ${OPT}")
+                            #message("    ${CPU_DISPATCH_${OPT}_INCLUDED}")
+                            #message("    ${CPU_DISPATCH_DEFINITIONS_${OPT}}")
+                            #message("    ${CPU_DISPATCH_FLAGS_${OPT}}")
+                            set(__opt_found 1)
+                            # break()
+                        endif ()
+                    # endforeach ()
+                    if (__opt_found)
+                        set(__opt_found 1)
+                        break()
+                    endif ()
+                endforeach ()
+                if (NOT __opt_found)
+                    # ocv_get_smart_file_name(fname_ "${fname}")
+                    # message(STATUS "Excluding from source files list: ${fname_}")
+                endif ()
+            endif ()
+        else ()
+            # list(APPEND __result "${fname}")
+        endif ()
+    endforeach ()
+
+    foreach (OPT ${CPU_DISPATCH_FINAL})
+        if (__result_${OPT})
+            foreach (fname ${__result_${OPT}})
+                get_source_file_property(__definitions "${fname}" COMPILE_DEFINITIONS)
+                if (__definitions)
+                    list(APPEND __definitions "${CPU_DISPATCH_DEFINITIONS_${OPT}}")
+                else ()
+                    set(__definitions "${CPU_DISPATCH_DEFINITIONS_${OPT}}")
+                endif ()
+                get_target_property(TARGET_COMPILE_DEFINITIONS opencv_${OCV_COMPONENT} COMPILE_DEFINITIONS)
+                list(APPEND __definitions ${TARGET_COMPILE_DEFINITIONS})
+                # message(STATUS "TARGET_COMPILE_DEFINITIONS=${TARGET_COMPILE_DEFINITIONS}")
+                set_source_files_properties("${fname}" PROPERTIES COMPILE_DEFINITIONS "${__definitions}")
+
+                get_source_file_property(__definitions "${fname}" COMPILE_DEFINITIONS)
+                message(STATUS "def for ${fname} is ${__definitions}")
+                # set_source_files_properties("${fname}" PROPERTIES COMPILE_FLAGS "${CPU_DISPATCH_FLAGS_${OPT}}")
+                # message(STATUS "define ${__definitions} for ${fname}")
+            endforeach ()
+            # list(APPEND __result ${__result_${OPT}})
+        endif ()
+    endforeach ()
+    # set(${SOURCES_VAR_NAME} "${__result}")
+endmacro()

@@ -1,3 +1,20 @@
+# protobuf
+function(xgd_link_protobuf TARGET)
+    add_dependencies(${TARGET} protobuf)
+    target_link_libraries(${TARGET} PRIVATE protobuf)
+endfunction()
+
+# absl
+function(xgd_link_absl TARGET)
+    add_dependencies(${TARGET} absl)
+    cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
+    if (param_PUBLIC)
+        target_link_libraries(${TARGET} PUBLIC absl)
+    else ()
+        target_link_libraries(${TARGET} PRIVATE absl)
+    endif ()
+endfunction()
+
 # qtnodes
 function(xgd_link_qtnodes TARGET)
     add_dependencies(${TARGET} QtNodes)
