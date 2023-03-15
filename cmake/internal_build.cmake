@@ -55,8 +55,10 @@ function(xgd_build_absl_library)
     )
     if (WIN32)
         target_compile_definitions(absl PRIVATE NOMINMAX)
+    elseif (APPLE)
+        find_library(CoreFoundation CoreFoundation REQUIRED)
     endif ()
-    target_link_libraries(absl PRIVATE $<$<BOOL:${ANDROID}>:log>)
+    target_link_libraries(absl PRIVATE $<$<BOOL:${ANDROID}>:log> $<$<PLATFORM_ID:Darwin>:${CoreFoundation}>)
 endfunction()
 
 # protobuf
