@@ -59,7 +59,7 @@ namespace cv
  */
 template <typename T>
 static
-#if _MSC_VER >= 1930 && _MSC_VER <= 1934 // FIXME: MSVC 2022, static build, got fatal error C1001
+#if _MSC_VER >= 1930 // FIXME: MSVC 2022, static build, got fatal error C1001
     __declspec(noinline)
 #else
     inline
