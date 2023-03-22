@@ -140,19 +140,16 @@ endfunction()
 function(xgd_build_qtnodes_library)
     set(ROOT_DIR ${XGD_EXTERNAL_DIR}/cpp/nodeeditor-src/nodeeditor)
     set(INC_DIR ${ROOT_DIR}/include)
-    set(SRC_DIR ${ROOT_DIR}/src)
+    set(SRC_DIR ${ROOT_DIR}/include/QtNodes/internal)
     set(RES_DIR ${ROOT_DIR}/resources)
+    qt_add_resources(QtNodes_RESOURCES_SRC ${RES_DIR}/resources.qrc)
     xgd_add_library(
             QtNodes
             SRC_DIRS ${SRC_DIR}
+            SRC_FILES ${QtNodes_RESOURCES_SRC}
             INCLUDE_DIRS ${INC_DIR}
             PRIVATE_INCLUDE_DIRS ${INC_DIR}/QtNodes/internal
     )
-    qt_add_resources(QtNodes_RESOURCES_SRC ${RES_DIR}/resources.qrc)
-    # put headers and sources in diferent directories make automoc failed
-    file(GLOB_RECURSE QtNodes_TO_MOC_SRC ${INC_DIR}/QtNodes/internal/*.hpp)
-    qt_wrap_cpp(QtNodes_MOC_SRC ${QtNodes_TO_MOC_SRC} TARGET QtNodes OPTIONS --no-notes)
-    target_sources(QtNodes PRIVATE ${QtNodes_RESOURCES_SRC} ${QtNodes_MOC_SRC})
     xgd_link_qt(QtNodes PUBLIC Core Gui Widgets PRIVATE OpenGL)
     if (BUILD_SHARED_LIBS)
         target_compile_definitions(QtNodes PUBLIC NODE_EDITOR_SHARED)

@@ -104,7 +104,6 @@ function(xgd_target_global_options TARGET)
     endif ()
 
     if (COMPILE_DEFINITIONS)
-         # target_compile_definitions(${TARGET} PRIVATE ${COMPILE_DEFINITIONS})
          target_compile_definitions(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${COMPILE_DEFINITIONS}>)
     endif ()
     if (COMPILE_OPTIONS)
