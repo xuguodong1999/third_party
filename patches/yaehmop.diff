@@ -1,0 +1,133 @@
+diff --git a/c/yaehmop-src/yaehmop/tightbind/Zmat.c b/c/yaehmop-src/yaehmop/tightbind/Zmat.c
+index 1250195f0..9f930df95 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/Zmat.c
++++ b/c/yaehmop-src/yaehmop/tightbind/Zmat.c
+@@ -60,6 +60,7 @@ int find_atom(atoms,num_atoms,which)
+   sprintf(err_string,"Can't find atom %d (of %d) in find_atom.\n",
+           which,num_atoms);
+   FATAL_BUG(err_string);
++  return -1;
+ }
+ 
+ 
+diff --git a/c/yaehmop-src/yaehmop/tightbind/abfns.c b/c/yaehmop-src/yaehmop/tightbind/abfns.c
+index 9d9b4a6dd..5c53312ea 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/abfns.c
++++ b/c/yaehmop-src/yaehmop/tightbind/abfns.c
+@@ -2,7 +2,15 @@
+ Produced by gmFortran V30.59(10/26/17) on 9/17/18 at 9:45:37
+ */
+ #define LPROTOTYPE
+-#include "fortran.h"
++#include <math.h>
++#include <stdlib.h>
++#ifndef min
++#define min(x, y) ({				\
++	typeof(x) _min1 = (x);			\
++	typeof(y) _min2 = (y);			\
++	(void) (&_min1 == &_min2);		\
++	_min1 < _min2 ? _min1 : _min2; })
++#endif
+ /*
+ */
+ void abfns(double *a,double *b,double *sk1,double *sk2,double *rr,int *l1,
+@@ -55,7 +63,7 @@ static double tr;
+     }
+     ix = j;
+     ir = fabs(2.e0*rho2);
+-    is = fifmin0(ir+1,19);
++    is = min(ir+1,19);
+     if(rho2 == 0) goto S35;
+     d = exp(rho2);
+     h = 1.e0/d;
+diff --git a/c/yaehmop-src/yaehmop/tightbind/bind.h b/c/yaehmop-src/yaehmop/tightbind/bind.h
+index 27673e725..fbff97fb1 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/bind.h
++++ b/c/yaehmop-src/yaehmop/tightbind/bind.h
+@@ -74,7 +74,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-//#include <unistd.h>
++#ifdef __unix__
++#include <unistd.h>
++#endif
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ 
+diff --git a/c/yaehmop-src/yaehmop/tightbind/cboris.c b/c/yaehmop-src/yaehmop/tightbind/cboris.c
+index b3aa33a98..54df7de4e 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/cboris.c
++++ b/c/yaehmop-src/yaehmop/tightbind/cboris.c
+@@ -2,7 +2,7 @@
+ Produced by gmFortran V30.59(10/26/17) on 9/18/18 at 9:02:32
+ */
+ #define LPROTOTYPE
+-#include "fortran.h"
++#include <math.h>
+ void cboris(int *n,int *nd,double *a,double *b,double *c,double *d,double *e,
+     double *f,int *fail)
+ {
+diff --git a/c/yaehmop-src/yaehmop/tightbind/charge_mat.c b/c/yaehmop-src/yaehmop/tightbind/charge_mat.c
+index e8da27b21..3ef25cd61 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/charge_mat.c
++++ b/c/yaehmop-src/yaehmop/tightbind/charge_mat.c
+@@ -159,7 +159,7 @@ void eval_charge_matrix(cell,eigenset,overlap,num_orbs,
+  *     num_atoms * num_orbs
+  *
+  ****************************************************************************/
+-void reduced_charge_mat(num_atoms,num_orbs,orbital_lookup_table,Chg_matrix,RChg_matrix)
++void reduced_charge_matrix(num_atoms,num_orbs,orbital_lookup_table,Chg_matrix,RChg_matrix)
+   int num_atoms,num_orbs,*orbital_lookup_table;
+   real *Chg_matrix;
+   real *RChg_matrix;
+diff --git a/c/yaehmop-src/yaehmop/tightbind/diag.c b/c/yaehmop-src/yaehmop/tightbind/diag.c
+index ed24a9896..c4948159a 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/diag.c
++++ b/c/yaehmop-src/yaehmop/tightbind/diag.c
+@@ -2,7 +2,9 @@
+ Produced by gmFortran V30.59(10/26/17) on 9/18/18 at 9:02:32
+ */
+ #define LPROTOTYPE
+-#include "fortran.h"
++#include "bind.h"
++#include <math.h>
++
+ void cchol(int *n,int *nd,double *a,int *fail)
+ {
+ static int i,ia,j,k,ka;
+@@ -431,7 +433,7 @@ S24:
+ */
+         p = (d[l]-d[l-1])/(2.0e0*e[l-1]);
+         r = sqrt(1.0e0+p*p);
+-        h = d[l-1]-e[l-1]/(p+fdsign(r,p));
++        h = d[l-1]-e[l-1]/(p+d_sign(r,p));
+ /*
+ */
+         for(i=l; i<=*n; i++) {
+diff --git a/c/yaehmop-src/yaehmop/tightbind/lovlap.c b/c/yaehmop-src/yaehmop/tightbind/lovlap.c
+index 5b519e8e2..cc8fab537 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/lovlap.c
++++ b/c/yaehmop-src/yaehmop/tightbind/lovlap.c
+@@ -2,7 +2,7 @@
+ Produced by gmFortran V30.59(10/26/17) on 9/17/18 at 9:45:37
+ */
+ #define LPROTOTYPE
+-#include "fortran.h"
++#include <math.h>
+ /*
+ */
+ void lovlap(double *strad,double *a,double *b,double *sk1,double *sk2,double *r,
+diff --git a/c/yaehmop-src/yaehmop/tightbind/postprocess.c b/c/yaehmop-src/yaehmop/tightbind/postprocess.c
+index 8a3521efc..5da5d6a7b 100644
+--- a/c/yaehmop-src/yaehmop/tightbind/postprocess.c
++++ b/c/yaehmop-src/yaehmop/tightbind/postprocess.c
+@@ -739,7 +739,7 @@ INCREASE to the right)\n");
+ 
+     /* this stores the reduced charge matrix */
+     if( details->Rchg_mat_PRT ){
+-      reduced_charge_mat(cell->num_atoms,num_orbs,orbital_lookup_table,
++      reduced_charge_matrix(cell->num_atoms,num_orbs,orbital_lookup_table,
+                        properties->chg_mat,properties->Rchg_mat);
+     }
+ 

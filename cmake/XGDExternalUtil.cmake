@@ -124,7 +124,7 @@ function(xgd_target_global_options TARGET)
             CXX_VISIBILITY_PRESET hidden
             VISIBILITY_INLINES_HIDDEN ON
             POSITION_INDEPENDENT_CODE ON
-            CMAKE_DEBUG_POSTFIX "${XGD_DEBUG_POSTFIX}"
+            CMAKE_DEBUG_POSTFIX "${XGD_POSTFIX}"
     )
     if (NOT MINGW) # mxe heavily dependent on it
         set_target_properties(${TARGET} PROPERTIES CXX_EXTENSIONS OFF)

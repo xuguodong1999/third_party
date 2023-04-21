@@ -1,0 +1,13 @@
+diff --git a/c/zlib-src/zlib/gzguts.h b/c/zlib-src/zlib/gzguts.h
+index 57faf3716..9f1e09dce 100644
+--- a/c/zlib-src/zlib/gzguts.h
++++ b/c/zlib-src/zlib/gzguts.h
+@@ -37,6 +37,8 @@
+ 
+ #if defined(__TURBOC__) || defined(_MSC_VER) || defined(_WIN32)
+ #  include <io.h>
++#else
++#  include <unistd.h>
+ #endif
+ 
+ #if defined(_WIN32)

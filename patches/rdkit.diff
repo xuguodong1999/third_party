@@ -1,0 +1,591 @@
+diff --git a/cpp/rdkit-src/rdkit/.gitignore b/cpp/rdkit-src/rdkit/.gitignore
+index f57939364..18d701719 100644
+--- a/cpp/rdkit-src/rdkit/.gitignore
++++ b/cpp/rdkit-src/rdkit/.gitignore
+@@ -39,7 +39,6 @@ __pycache__/
+ 
+ /Code/RDBoost/test.h
+ /Code/RDGeneral/RDConfig.h
+-/Code/RDGeneral/export.h
+ /Code/RDGeneral/test.h
+ /Code/RDGeneral/versions.h
+ /Code/RDGeneral/versions.cpp
+diff --git a/cpp/rdkit-src/rdkit/Code/ForceField/MMFF/Params.cpp b/cpp/rdkit-src/rdkit/Code/ForceField/MMFF/Params.cpp
+index b63721a85..008de9ff5 100644
+--- a/cpp/rdkit-src/rdkit/Code/ForceField/MMFF/Params.cpp
++++ b/cpp/rdkit-src/rdkit/Code/ForceField/MMFF/Params.cpp
+@@ -10,7 +10,7 @@
+ //  which is included in the file license.txt, found at the root
+ //  of the RDKit source tree.
+ //
+-#ifdef WIN32
++#if defined(WIN32) && !defined(_USE_MATH_DEFINES)
+ #define _USE_MATH_DEFINES
+ #endif
+ #include <cmath>
+diff --git a/cpp/rdkit-src/rdkit/Code/ForceField/UFF/Params.cpp b/cpp/rdkit-src/rdkit/Code/ForceField/UFF/Params.cpp
+index b84968159..221b31fc9 100644
+--- a/cpp/rdkit-src/rdkit/Code/ForceField/UFF/Params.cpp
++++ b/cpp/rdkit-src/rdkit/Code/ForceField/UFF/Params.cpp
+@@ -7,7 +7,7 @@
+ //  which is included in the file license.txt, found at the root
+ //  of the RDKit source tree.
+ //
+-#ifdef WIN32
++#if defined(WIN32) && !defined(_USE_MATH_DEFINES)
+ #define _USE_MATH_DEFINES
+ #endif
+ #include <cmath>
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTree.h b/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTree.h
+index bcfa6958e..cd2d63c9b 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTree.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTree.h
+@@ -13,7 +13,7 @@
+ #define _RD_FEATTREE_H_
+ 
+ #include <boost/graph/adjacency_list.hpp>
+-#include <boost/property_map.hpp>
++#include <boost/property_map/property_map.hpp>
+ #include <boost/shared_ptr.hpp>
+ #include <set>
+ 
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTreeUtils.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTreeUtils.cpp
+index 3280dda18..adefa8d9c 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTreeUtils.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/Basement/FeatTrees/FeatTreeUtils.cpp
+@@ -16,7 +16,7 @@
+ #include "FeatTree.h"
+ 
+ #include <boost/graph/biconnected_components.hpp>
+-#include <boost/property_map.hpp>
++#include <boost/property_map/property_map.hpp>
+ #include <map>
+ #include <set>
+ 
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/Canon.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/Canon.cpp
+index 5ba811ae5..d5a7774d6 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/Canon.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/Canon.cpp
+@@ -79,7 +79,7 @@ bool chiralAtomNeedsTagInversion(const RDKit::ROMol &mol,
+            !details::isUnsaturated(atom, mol)));
+ }
+ 
+-auto _possibleCompare = [](const PossibleType &arg1, const PossibleType &arg2) {
++const auto _possibleCompare = [](const PossibleType &arg1, const PossibleType &arg2) {
+   return (arg1.get<0>() < arg2.get<0>());
+ };
+ 
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/MORSE.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/MORSE.cpp
+index 6d792c7eb..9f9a2982e 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/MORSE.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/MORSE.cpp
+@@ -115,6 +115,7 @@ void getMORSEDesc(const double *DM, const ROMol &mol, const Conformer &conf,
+     R7[i] = std::round(1000 * res7) / 1000;
+   }
+ 
++  R1.reserve(R1.size() + R2.size() + R3.size() + R4.size() + R5.size() + R6.size() + R7.size());
+   R1.insert(R1.end(), R2.begin(), R2.end());
+   R1.insert(R1.end(), R3.begin(), R3.end());
+   R1.insert(R1.end(), R4.begin(), R4.end());
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/PMI.h b/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/PMI.h
+index fa1f796b7..355fa79f3 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/PMI.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/PMI.h
+@@ -37,7 +37,7 @@ RDKIT_DESCRIPTORS_EXPORT double PMI1(const ROMol&, int confId = -1,
+                                      bool force = false);
+ const std::string PMI1Version = "1.0.0";
+ //! second principal moment of inertia
+-RDKIT_DESCRIPTORS_EXPORT RDKIT_DESCRIPTORS_EXPORT double PMI2(
++RDKIT_DESCRIPTORS_EXPORT double PMI2(
+     const ROMol&, int confId = -1, bool useAtomicMasses = true,
+     bool force = false);
+ const std::string PMI2Version = "1.0.0";
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/RDF.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/RDF.cpp
+index 1ae7a7117..7914c7fdf 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/RDF.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/Descriptors/RDF.cpp
+@@ -112,6 +112,7 @@ void getRDFDesc(double* DM, const ROMol& mol, const Conformer& conf,
+     R7[i] = std::round(1000 * res7) / 1000;
+   }
+ 
++  R1.reserve(R1.size() + R2.size() + R3.size() + R4.size() + R5.size() + R6.size() + R7.size());
+   R1.insert(R1.end(), R2.begin(), R2.end());
+   R1.insert(R1.end(), R3.begin(), R3.end());
+   R1.insert(R1.end(), R4.begin(), R4.end());
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/MaximumCommonSubgraph.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/MaximumCommonSubgraph.cpp
+index a6cfc970e..1f16959e7 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/MaximumCommonSubgraph.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/MaximumCommonSubgraph.cpp
+@@ -348,7 +348,7 @@ void MaximumCommonSubgraph::makeInitialSeeds() {
+          ms != matching_substructs.end(); ms++) {
+       Seed seed;
+       seed.ExcludedBonds = excludedBonds;
+-      seed.MatchResult.resize(Targets.size());
++      seed.resizeMatchResult(Targets.size());
+ #ifdef VERBOSE_STATISTICS_ON
+       {
+         ++VerboseStatistics.Seed;
+@@ -417,7 +417,7 @@ void MaximumCommonSubgraph::makeInitialSeeds() {
+       // if(excludedBonds[(*bi)->getIdx()])
+       //    continue;
+       Seed seed;
+-      seed.MatchResult.resize(Targets.size());
++      seed.resizeMatchResult(Targets.size());
+ 
+ #ifdef VERBOSE_STATISTICS_ON
+       {
+@@ -1266,7 +1266,7 @@ bool MaximumCommonSubgraph::match(Seed& seed) {
+     { ++VerboseStatistics.MatchCall; }
+ #endif
+     bool target_matched = false;
+-    if (!seed.MatchResult.empty() && !seed.MatchResult[itarget].empty()) {
++    if (!seed.MatchResult.empty() && !seed.MatchResult[itarget]->empty()) {
+       target_matched = matchIncrementalFast(seed, itarget);
+     }
+     if (!target_matched) {  // slow full match
+@@ -1277,11 +1277,11 @@ bool MaximumCommonSubgraph::match(Seed& seed) {
+       // save current match info
+       if (target_matched) {
+         if (seed.MatchResult.empty()) {
+-          seed.MatchResult.resize(Targets.size());
++          seed.resizeMatchResult(Targets.size());
+         }
+-        seed.MatchResult[itarget].init(seed, match, *QueryMolecule, *tag);
++        seed.MatchResult[itarget]->init(seed, match, *QueryMolecule, *tag);
+       } else if (!seed.MatchResult.empty()) {
+-        seed.MatchResult[itarget].clear();  //.Empty = true; // == fast clear();
++        seed.MatchResult[itarget]->clear();  //.Empty = true; // == fast clear();
+       }
+ #ifdef VERBOSE_STATISTICS_ON
+       if (target_matched) {
+@@ -1316,7 +1316,7 @@ bool MaximumCommonSubgraph::matchIncrementalFast(Seed& seed, unsigned itarget) {
+   { ++VerboseStatistics.FastMatchCall; }
+ #endif
+   const Target& target = Targets[itarget];
+-  TargetMatch& match = seed.MatchResult[itarget];
++  TargetMatch& match = *(seed.MatchResult[itarget]);
+   if (match.empty()) {
+     return false;
+   }
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.cpp
+index 15f528297..e97ee0516 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.cpp
+@@ -19,6 +19,14 @@
+ namespace RDKit {
+ namespace FMCS {
+ 
++void Seed::resizeMatchResult(const std::size_t& size) {
++  MatchResult.clear();
++  MatchResult.resize(size);
++  for(auto&p : MatchResult) {
++    p = std::make_shared<TargetMatch>();
++  }
++}
++
+ unsigned Seed::addAtom(const Atom* atom) {
+   unsigned i = MoleculeFragment.AtomsIdx.size();
+   unsigned aqi = atom->getIdx();
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.h b/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.h
+index 23e8f0d37..56c32066d 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/FMCS/Seed.h
+@@ -77,12 +77,14 @@ class RDKIT_FMCS_EXPORT Seed {
+ #ifdef DUP_SUBSTRUCT_CACHE
+   DuplicatedSeedCache::TKey DupCacheKey;
+ #endif
+-  std::vector<TargetMatch> MatchResult;  // for each target
++  std::vector<std::shared_ptr<TargetMatch>> MatchResult;  // for each target
+  public:
+   Seed()
+ 
+   {}
+ 
++  void resizeMatchResult(const std::size_t& size);
++
+   void setMoleculeFragment(const Seed& src) {
+     MoleculeFragment = src.MoleculeFragment;
+   }
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/MolSGroupParsing.h b/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/MolSGroupParsing.h
+index 4f683a066..5daa93dac 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/MolSGroupParsing.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/MolSGroupParsing.h
+@@ -131,7 +131,7 @@ void ParseSGroupV2000SBTLine(IDX_TO_SGROUP_MAP &sGroupMap, RWMol *mol,
+ template <class T>
+ RDKIT_FILEPARSERS_EXPORT std::vector<T> ParseV3000Array(
+     std::stringstream &stream, int maxV = -1, bool strictParsing = false);
+-#if defined(_MSC_VER) && defined(RDKIT_DYN_LINK)
++#if defined(_MSC_VER)
+ template RDKIT_FILEPARSERS_EXPORT std::vector<int> ParseV3000Array(
+     std::stringstream &, int, bool);
+ template RDKIT_FILEPARSERS_EXPORT std::vector<unsigned int> ParseV3000Array(
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/PNGParser.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/PNGParser.cpp
+index d2b4d525e..4019f15ca 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/PNGParser.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/FileParsers/PNGParser.cpp
+@@ -22,7 +22,6 @@
+ 
+ #include "FileParsers.h"
+ #ifdef RDK_USE_BOOST_IOSTREAMS
+-#include <zlib.h>
+ #include <boost/iostreams/filtering_streambuf.hpp>
+ #include <boost/iostreams/copy.hpp>
+ #include <boost/iostreams/filter/zlib.hpp>
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/MolAlign/O3AAlignMolecules.h b/cpp/rdkit-src/rdkit/Code/GraphMol/MolAlign/O3AAlignMolecules.h
+index 13112f8f0..caf9a39e9 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/MolAlign/O3AAlignMolecules.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/MolAlign/O3AAlignMolecules.h
+@@ -27,7 +27,7 @@
+ 
+ namespace RDKit {
+ namespace MolAlign {
+-struct RDKIT_MOLALIGN_EXPORT O3AFuncData {
++struct RDKIT_O3AALIGN_EXPORT O3AFuncData {
+   const Conformer *prbConf;
+   const Conformer *refConf;
+   void *prbProp;
+@@ -46,7 +46,7 @@ class O3AConstraintVect;
+ //! is defined by a pair of atom indexes (one for the probe,
+ //! one for the reference) and a weight. Constraints can
+ //! can be added via the O3AConstraintVect class.
+-class RDKIT_MOLALIGN_EXPORT O3AConstraint {
++class RDKIT_O3AALIGN_EXPORT O3AConstraint {
+   friend class O3AConstraintVect;
+ 
+  public:
+@@ -66,7 +66,7 @@ class RDKIT_MOLALIGN_EXPORT O3AConstraint {
+ //! method is invoked, the vector is sorted to make lookup faster.
+ //! Hence, constraints are not necessarily stored in the same order
+ //! they were appended.
+-class RDKIT_MOLALIGN_EXPORT O3AConstraintVect {
++class RDKIT_O3AALIGN_EXPORT O3AConstraintVect {
+  public:
+   O3AConstraintVect() {}
+   ~O3AConstraintVect() = default;
+@@ -128,7 +128,7 @@ enum {
+   O3_LOCAL_ONLY = (1 << 2)
+ };
+ 
+-class RDKIT_MOLALIGN_EXPORT MolHistogram {
++class RDKIT_O3AALIGN_EXPORT MolHistogram {
+  public:
+   MolHistogram(const ROMol &mol, const double *dmat, bool cleanupDmat = false);
+   ~MolHistogram() = default;
+@@ -142,7 +142,7 @@ class RDKIT_MOLALIGN_EXPORT MolHistogram {
+   boost::multi_array<int, 2> d_h;
+ };
+ 
+-class RDKIT_MOLALIGN_EXPORT LAP {
++class RDKIT_O3AALIGN_EXPORT LAP {
+  public:
+   LAP(unsigned int dim)
+       : d_rowSol(dim),
+@@ -184,7 +184,7 @@ class RDKIT_MOLALIGN_EXPORT LAP {
+   boost::multi_array<int, 2> d_cost;
+ };
+ 
+-class RDKIT_MOLALIGN_EXPORT SDM {
++class RDKIT_O3AALIGN_EXPORT SDM {
+  public:
+   // constructor
+   SDM(const Conformer *prbConf = nullptr, const Conformer *refConf = nullptr,
+@@ -271,7 +271,7 @@ class RDKIT_MOLALIGN_EXPORT SDM {
+   }
+ };
+ 
+-class RDKIT_MOLALIGN_EXPORT O3A {
++class RDKIT_O3AALIGN_EXPORT O3A {
+  public:
+   //! pre-defined atom typing schemes
+   typedef enum { MMFF94 = 0, CRIPPEN } AtomTypeScheme;
+@@ -319,30 +319,30 @@ class RDKIT_MOLALIGN_EXPORT O3A {
+   double d_o3aScore;
+ };
+ 
+-RDKIT_MOLALIGN_EXPORT void randomTransform(ROMol &mol, const int cid = -1,
++RDKIT_O3AALIGN_EXPORT void randomTransform(ROMol &mol, const int cid = -1,
+                                            const int seed = -1);
+-RDKIT_MOLALIGN_EXPORT const RDGeom::POINT3D_VECT *reflect(
++RDKIT_O3AALIGN_EXPORT const RDGeom::POINT3D_VECT *reflect(
+     const Conformer &conf);
+-RDKIT_MOLALIGN_EXPORT int o3aMMFFCostFunc(const unsigned int prbIdx,
++RDKIT_O3AALIGN_EXPORT int o3aMMFFCostFunc(const unsigned int prbIdx,
+                                           const unsigned int refIdx,
+                                           double hSum, void *data);
+-RDKIT_MOLALIGN_EXPORT double o3aMMFFWeightFunc(const unsigned int prbIdx,
++RDKIT_O3AALIGN_EXPORT double o3aMMFFWeightFunc(const unsigned int prbIdx,
+                                                const unsigned int refIdx,
+                                                void *data);
+-RDKIT_MOLALIGN_EXPORT double o3aMMFFScoringFunc(const unsigned int prbIdx,
++RDKIT_O3AALIGN_EXPORT double o3aMMFFScoringFunc(const unsigned int prbIdx,
+                                                 const unsigned int refIdx,
+                                                 void *data);
+-RDKIT_MOLALIGN_EXPORT int o3aCrippenCostFunc(const unsigned int prbIdx,
++RDKIT_O3AALIGN_EXPORT int o3aCrippenCostFunc(const unsigned int prbIdx,
+                                              const unsigned int refIdx,
+                                              double hSum, void *data);
+-RDKIT_MOLALIGN_EXPORT double o3aCrippenWeightFunc(const unsigned int prbIdx,
++RDKIT_O3AALIGN_EXPORT double o3aCrippenWeightFunc(const unsigned int prbIdx,
+                                                   const unsigned int refIdx,
+                                                   void *data);
+-RDKIT_MOLALIGN_EXPORT double o3aCrippenScoringFunc(const unsigned int prbIdx,
++RDKIT_O3AALIGN_EXPORT double o3aCrippenScoringFunc(const unsigned int prbIdx,
+                                                    const unsigned int refIdx,
+                                                    void *data);
+ 
+-RDKIT_MOLALIGN_EXPORT void getO3AForProbeConfs(
++RDKIT_O3AALIGN_EXPORT void getO3AForProbeConfs(
+     ROMol &prbMol, const ROMol &refMol, void *prbProp, void *refProp,
+     std::vector<boost::shared_ptr<O3A>> &res, int numThreads = 1,
+     O3A::AtomTypeScheme atomTypes = O3A::MMFF94, const int refCid = -1,
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/DrawTextQt.h b/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/DrawTextQt.h
+index 23647ee43..2886e9235 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/DrawTextQt.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/DrawTextQt.h
+@@ -11,6 +11,7 @@
+ #define RDKIT_DRAWTEXTQT_H
+ 
+ #include <RDGeneral/export.h>
++#include <MolDraw2DQt/rdkit_export.hpp>
+ #include <GraphMol/MolDraw2D/DrawTextNotFT.h>
+ 
+ class QPainter;
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/MolDraw2DQt.h b/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/MolDraw2DQt.h
+index bb2406d21..289f99c13 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/MolDraw2DQt.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/MolDraw2D/Qt/MolDraw2DQt.h
+@@ -10,10 +10,10 @@
+ // This is a concrete class derived from MolDraw2D that uses RDKit to draw a
+ // molecule into a QPainter.
+ 
+-#include <RDGeneral/export.h>
+ #ifndef MOLDRAW2DQT_H
+ #define MOLDRAW2DQT_H
+-
++#include <RDGeneral/export.h>
++#include <MolDraw2DQt/rdkit_export.hpp>
+ #include <GraphMol/MolDraw2D/MolDraw2D.h>
+ 
+ class QPainter;
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.cpp
+index 07a280fac..a10be9681 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.cpp
+@@ -45,6 +45,11 @@ TautomerCatalogParams::TautomerCatalogParams(
+ 
+ TautomerCatalogParams::~TautomerCatalogParams() {}
+ 
++TautomerCatalogParams::TautomerCatalogParams() {
++    d_typeStr = "Tautomer Catalog Parameters";
++    d_transforms.clear();
++}
++
+ const std::vector<TautomerTransform> &TautomerCatalogParams::getTransforms()
+     const {
+   return d_transforms;
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.h b/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.h
+index 70cb4bbfe..ccba22e88 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/TautomerCatalogParams.h
+@@ -36,10 +36,7 @@ RDKIT_MOLSTANDARDIZE_EXPORT extern const TautomerTransformDefs
+ class RDKIT_MOLSTANDARDIZE_EXPORT TautomerCatalogParams
+     : public RDCatalog::CatalogParams {
+  public:
+-  TautomerCatalogParams() {
+-    d_typeStr = "Tautomer Catalog Parameters";
+-    d_transforms.clear();
+-  }
++  TautomerCatalogParams();
+ 
+   TautomerCatalogParams(const std::string &tautomerFile);
+   TautomerCatalogParams(const TautomerTransformDefs &data);
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupFingerprintScore.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupFingerprintScore.cpp
+index fc70ecc81..c222e2659 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupFingerprintScore.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupFingerprintScore.cpp
+@@ -12,7 +12,7 @@
+ #include "GraphMol/Fingerprints/Fingerprints.h"
+ #include "GraphMol//Fingerprints/MorganFingerprints.h"
+ #include <GraphMol/SmilesParse/SmilesParse.h>
+-#include "../../../External/GA/util/Util.h"
++#include "GA/util/Util.h"
+ #include <memory>
+ #include <utility>
+ #include <vector>
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.cpp b/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.cpp
+index 4fe6d0f5f..ae5d587bd 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.cpp
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.cpp
+@@ -7,7 +7,7 @@
+ //  which is included in the file license.txt, found at the root
+ //  of the RDKit source tree.
+ //
+-
++#include <RDGeneral/export.h>
+ #include <ctime>
+ #include <limits>
+ #ifdef RDK_BUILD_THREADSAFE_SSS
+@@ -18,7 +18,7 @@
+ #include "RGroupDecompData.h"
+ #include "RGroupDecomp.h"
+ #include "RGroupFingerprintScore.h"
+-#include "../../../External/GA/util/Util.h"
++#include "GA/util/Util.h"
+ 
+ // #define DEBUG
+ 
+@@ -326,7 +326,7 @@ vector<GaResult> RGroupGa::runBatch() {
+     tasks.reserve(numberRuns);
+     for (int n = 0; n < numberRuns; n++) {
+       auto future = async(launch::async, &RDKit::RGroupGa::run, this, n + 1);
+-      tasks.push_back(move(future));
++      tasks.push_back(std::move(future));
+     }
+ 
+     std::transform(tasks.begin(), tasks.end(), back_inserter(results),
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.h b/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.h
+index 673049f7b..c15d1174f 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/RGroupDecomposition/RGroupGa.h
+@@ -16,11 +16,11 @@
+ #include <map>
+ #include <chrono>
+ 
+-#include "../../../External/GA/ga/StringChromosome.h"
+-#include "../../../External/GA/ga/GaBase.h"
+-#include "../../../External/GA/ga/GaOperation.h"
+-#include "../../../External/GA/ga/LinkedPopLinearSel.h"
+-#include "../../../External/GA/ga/IntegerStringChromosomePolicy.h"
++#include "GA/ga/StringChromosome.h"
++#include "GA/ga/GaBase.h"
++#include "GA/ga/GaOperation.h"
++#include "GA/ga/LinkedPopLinearSel.h"
++#include "GA/ga/IntegerStringChromosomePolicy.h"
+ #include "RGroupFingerprintScore.h"
+ #include "RGroupScore.h"
+ 
+diff --git a/cpp/rdkit-src/rdkit/Code/GraphMol/SubstructLibrary/SubstructLibrary.h b/cpp/rdkit-src/rdkit/Code/GraphMol/SubstructLibrary/SubstructLibrary.h
+index db95cd961..7a6aaa9a8 100644
+--- a/cpp/rdkit-src/rdkit/Code/GraphMol/SubstructLibrary/SubstructLibrary.h
++++ b/cpp/rdkit-src/rdkit/Code/GraphMol/SubstructLibrary/SubstructLibrary.h
+@@ -412,7 +412,7 @@ class RDKIT_SUBSTRUCTLIBRARY_EXPORT KeyFromPropHolder : public KeyHolderBase {
+       const std::vector<unsigned int> &indices) const override {
+     std::vector<std::string> res;
+     std::transform(indices.begin(), indices.end(), std::back_inserter(res),
+-                   [=](unsigned idx) { return keys.at(idx); });
++                   [=, this](unsigned idx) { return keys.at(idx); });
+     return res;
+   }
+   unsigned int size() const override { return keys.size(); }
+diff --git a/cpp/rdkit-src/rdkit/Code/ML/Cluster/Murtagh/f2c.h b/cpp/rdkit-src/rdkit/Code/ML/Cluster/Murtagh/f2c.h
+index d2bd893ae..58bb0c486 100644
+--- a/cpp/rdkit-src/rdkit/Code/ML/Cluster/Murtagh/f2c.h
++++ b/cpp/rdkit-src/rdkit/Code/ML/Cluster/Murtagh/f2c.h
+@@ -4,7 +4,6 @@
+ 
+         - From The Shogakukan DICTIONARY OF NEW ENGLISH (Second edition) */
+ 
+-#include <RDGeneral/export.h>
+ #ifndef F2C_INCLUDE
+ #define F2C_INCLUDE
+ 
+diff --git a/cpp/rdkit-src/rdkit/Code/RDGeneral/RDLog.cpp b/cpp/rdkit-src/rdkit/Code/RDGeneral/RDLog.cpp
+index 00caf4eb7..dc12cb836 100644
+--- a/cpp/rdkit-src/rdkit/Code/RDGeneral/RDLog.cpp
++++ b/cpp/rdkit-src/rdkit/Code/RDGeneral/RDLog.cpp
+@@ -25,9 +25,7 @@ RDLogger rdStatusLog = nullptr;
+ namespace RDLog {
+ 
+ namespace {
+-const std::vector<RDLogger *> allLogs = {&rdAppLog,     &rdDebugLog,
+-                                         &rdInfoLog,    &rdErrorLog,
+-                                         &rdWarningLog, &rdStatusLog};
++std::vector<RDLogger *> allLogs;
+ }
+ 
+ LogStateSetter::LogStateSetter() {
+@@ -147,6 +145,11 @@ void InitLogs() {
+   rdInfoLog->df_enabled = false;
+   rdWarningLog = std::make_shared<boost::logging::rdLogger>(&std::cerr);
+   rdErrorLog = std::make_shared<boost::logging::rdLogger>(&std::cerr);
++  rdAppLog = rdInfoLog;
++  rdStatusLog = rdInfoLog;
++  allLogs = {&rdAppLog,     &rdDebugLog,
++             &rdInfoLog,    &rdErrorLog,
++             &rdWarningLog, &rdStatusLog};
+ }
+ 
+ std::ostream &toStream(std::ostream &logstrm) {
+diff --git a/cpp/rdkit-src/rdkit/Contrib/PBF/PBFRDKit.cpp b/cpp/rdkit-src/rdkit/Contrib/PBF/PBFRDKit.cpp
+index 27932806d..37dd09281 100644
+--- a/cpp/rdkit-src/rdkit/Contrib/PBF/PBFRDKit.cpp
++++ b/cpp/rdkit-src/rdkit/Contrib/PBF/PBFRDKit.cpp
+@@ -114,7 +114,7 @@ bool getBestFitPlane(const std::vector<RDGeom::Point3D> &points,
+   if (eigensolver.info() != Eigen::Success) {
+     BOOST_LOG(rdErrorLog) << "eigenvalue calculation did not converge"
+                           << std::endl;
+-    return 0.0;
++    return false;
+   }
+   RDGeom::Point3D normal;
+   normal.x = eigensolver.eigenvectors()(0, 0);
+@@ -125,6 +125,7 @@ bool getBestFitPlane(const std::vector<RDGeom::Point3D> &points,
+   plane[1] = normal.y;
+   plane[2] = normal.z;
+   plane[3] = -1 * normal.dotProduct(origin);
++  return true;
+ }
+ 
+ double PBFRD(ROMol &mol, int confId) {
+diff --git a/cpp/rdkit-src/rdkit/External/GA/ga/GaBase.h b/cpp/rdkit-src/rdkit/External/GA/ga/GaBase.h
+index 982dea6b0..bf50b1db0 100644
+--- a/cpp/rdkit-src/rdkit/External/GA/ga/GaBase.h
++++ b/cpp/rdkit-src/rdkit/External/GA/ga/GaBase.h
+@@ -34,8 +34,8 @@ class GA_EXPORT GaBase {
+   GaBase& operator=(const GaBase& other) = delete;
+ 
+  public:
+-  GaBase(){};
+-  virtual ~GaBase(){};
++  GaBase();
++  virtual ~GaBase();
+ 
+   double getSelectionPressure() const { return selectionPressure; }
+ 
+diff --git a/cpp/rdkit-src/rdkit/External/GA/util/Util.cpp b/cpp/rdkit-src/rdkit/External/GA/util/Util.cpp
+index 16558fb2a..643dbe9d0 100644
+--- a/cpp/rdkit-src/rdkit/External/GA/util/Util.cpp
++++ b/cpp/rdkit-src/rdkit/External/GA/util/Util.cpp
+@@ -40,18 +40,7 @@ bool startsWith(string str, string prefix) {
+ }
+ 
+ string getUserName() {
+-#ifdef WIN32
+-  return "UNKNOWN";
+-#else
+-  const int bufsize = 100;
+-  char buffer[bufsize];
+-
+-  if (!getlogin_r(buffer, bufsize)) {
+-    return string(buffer);
+-  } else {
+-    return string("");
+-  }
+-#endif
++    return "unimplemented";
+ }
+ 
+ string &removeTrailingLF(string &line) {
+diff --git a/cpp/rdkit-src/rdkit/External/GA/util/export.h b/cpp/rdkit-src/rdkit/External/GA/util/export.h
+index 0366c1c2f..012bd0c12 100644
+--- a/cpp/rdkit-src/rdkit/External/GA/util/export.h
++++ b/cpp/rdkit-src/rdkit/External/GA/util/export.h
+@@ -10,6 +10,6 @@
+ 
+ #pragma once
+ 
+-#include <RDGeneral/RDExportMacros.h>
++#include <RDGeneral/export.h>
+ 
+-#define  GA_EXPORT RDKIT_EXPORT_API
++#define  GA_EXPORT RDKIT_GA_EXPORT

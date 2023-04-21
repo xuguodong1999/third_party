@@ -1,0 +1,549 @@
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ichilnct.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/ichilnct.c
+index 92dce7e5a..106a382ef 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ichilnct.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ichilnct.c
+@@ -42,16 +42,16 @@
+ 
+ /* for use in the InChI library */
+ 
+-#include "../../../INCHI_BASE/src/mode.h"
++#include "mode.h"
+ 
+-#include "../../../INCHI_BASE/src/incomdef.h"
+-#include "../../../INCHI_BASE/src/ichidrp.h"
+-#include "../../../INCHI_BASE/src/inpdef.h"
+-#include "../../../INCHI_BASE/src/util.h"
+-#include "../../../INCHI_BASE/src/ichierr.h"
+-#include "../../../INCHI_BASE/src/ichicomp.h"
+-#include "../../../INCHI_BASE/src/ichi_io.h"
+-#include "../../../INCHI_BASE/src/inchi_api.h"
++#include "incomdef.h"
++#include "ichidrp.h"
++#include "inpdef.h"
++#include "util.h"
++#include "ichierr.h"
++#include "ichicomp.h"
++#include "ichi_io.h"
++#include "inchi_api.h"
+ 
+ #include "inchi_dll_b.h"
+ 
+@@ -63,7 +63,7 @@ int InchiToInchi_Input( INCHI_IOSTREAM *inp_molfile, inchi_Input *orig_at_data,
+                        int *err, char *pStrErr );
+ 
+ /* This contains executable code. Included in lReadAux.c, e_ReadINCH.c, ReadINCH.c,  */
+-#include "../../../INCHI_BASE/src/readinch.h"
++#include "readinch.h"
+ 
+ 
+ 
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll.c
+index 1b0771167..94e2c89be 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll.c
+@@ -42,25 +42,25 @@
+ #include <float.h>
+ #include <math.h>
+ 
+-#include "../../../INCHI_BASE/src/mode.h"
+-
+-#include "../../../INCHI_BASE/src/incomdef.h"
+-#include "../../../INCHI_BASE/src/ichidrp.h"
+-#include "../../../INCHI_BASE/src/inpdef.h"
+-#include "../../../INCHI_BASE/src/ichi.h"
+-#include "../../../INCHI_BASE/src/strutil.h"
+-#include "../../../INCHI_BASE/src/util.h"
+-#include "../../../INCHI_BASE/src/ichierr.h"
+-#include "../../../INCHI_BASE/src/ichimain.h"
+-#include "../../../INCHI_BASE/src/extr_ct.h"
+-#include "../../../INCHI_BASE/src/ichi_io.h"
+-#include "../../../INCHI_BASE/src/ichicomp.h"
+-#include "../../../INCHI_BASE/src/inchi_api.h"
+-#include "../../../INCHI_BASE/src/readinch.h"
+-
+-#include "../../../INCHI_BASE/src/ichitaut.h"
+-#include "../../../INCHI_BASE/src/ichicant.h"
+-#include "../../../INCHI_BASE/src/ichitime.h"
++#include "mode.h"
++
++#include "incomdef.h"
++#include "ichidrp.h"
++#include "inpdef.h"
++#include "ichi.h"
++#include "strutil.h"
++#include "util.h"
++#include "ichierr.h"
++#include "ichimain.h"
++#include "extr_ct.h"
++#include "ichi_io.h"
++#include "ichicomp.h"
++#include "inchi_api.h"
++#include "readinch.h"
++
++#include "ichitaut.h"
++#include "ichicant.h"
++#include "ichitime.h"
+ 
+ #include "inchi_dll.h"
+ 
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.c
+index 3b3272321..0077d510d 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.c
+@@ -46,26 +46,26 @@
+ #include <limits.h>
+ #include <float.h>
+ #include <math.h>
+-#include "../../../INCHI_BASE/src/incomdef.h"
+-#include "../../../INCHI_BASE/src/ichidrp.h"
+-#include "../../../INCHI_BASE/src/inpdef.h"
+-#include "../../../INCHI_BASE/src/ichi.h"
+-#include "../../../INCHI_BASE/src/strutil.h"
+-#include "../../../INCHI_BASE/src/util.h"
+-#include "../../../INCHI_BASE/src/ichierr.h"
+-#include "../../../INCHI_BASE/src/ichimain.h"
+-#include "../../../INCHI_BASE/src/extr_ct.h"
+-#include "../../../INCHI_BASE/src/ichi_io.h"
+-#include "../../../INCHI_BASE/src/mol_fmt.h"
+-#include "../../../INCHI_BASE/src/ichicomp.h"
+-#include "../../../INCHI_BASE/src/ichitaut.h"
+-#include "../../../INCHI_BASE/src/ichinorm.h"
+-
+-
+-#include "../../../INCHI_BASE/src/ichisize.h"
+-#include "../../../INCHI_BASE/src/ichitime.h"
+-#include "../../../INCHI_BASE/src/mode.h"
+-#include "../../../INCHI_BASE/src/inchi_api.h"
++#include "incomdef.h"
++#include "ichidrp.h"
++#include "inpdef.h"
++#include "ichi.h"
++#include "strutil.h"
++#include "util.h"
++#include "ichierr.h"
++#include "ichimain.h"
++#include "extr_ct.h"
++#include "ichi_io.h"
++#include "mol_fmt.h"
++#include "ichicomp.h"
++#include "ichitaut.h"
++#include "ichinorm.h"
++
++
++#include "ichisize.h"
++#include "ichitime.h"
++#include "mode.h"
++#include "inchi_api.h"
+ 
+ #include "inchi_dll_a.h" /* not inchi_api.h as it hides internal data types */
+ #include "inchi_dll.h"
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.h b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.h
+index 4d685e065..57fefa28b 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.h
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.h
+@@ -35,7 +35,7 @@
+ #ifndef __INCHI_DLL_A_H__
+ #define __INCHI_DLL_A_H__
+ 
+-#include "../../../INCHI_BASE/src/ichicant.h"
++#include "ichicant.h"
+ 
+ typedef struct tagCOMPONENT_TREAT_INFO
+ {
+@@ -128,25 +128,6 @@ Exported functions
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*/
+ 
+ 
+-#if (defined( _WIN32 ) && defined( _MSC_VER ) && defined(BUILD_LINK_AS_DLL) )
+-    /* Win32 & MS VC ++, compile and link as a DLL */
+-#ifdef _USRDLL
+-    /* InChI library dll */
+-#define INCHI_API __declspec(dllexport)
+-#define EXPIMP_TEMPLATE
+-#define INCHI_DECL
+-#else
+-   /* calling the InChI dll program */
+-#define INCHI_API __declspec(dllimport)
+-#define EXPIMP_TEMPLATE extern
+-#define INCHI_DECL
+-#endif
+-#else
+-    /* create a statically linked InChI library or link to an executable */
+-#define INCHI_API
+-#define EXPIMP_TEMPLATE
+-#define INCHI_DECL
+-#endif
+ 
+ 
+ 
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a2.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a2.c
+index 170254808..af68a7d79 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a2.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a2.c
+@@ -43,31 +43,31 @@
+ 
+ /*  */
+ 
+-#include "../../../INCHI_BASE/src/mode.h"
+-#include "../../../INCHI_BASE/src/ichitime.h"
+-#include "../../../INCHI_BASE/src/incomdef.h"
+-#include "../../../INCHI_BASE/src/ichidrp.h"
+-#include "../../../INCHI_BASE/src/inpdef.h"
+-#include "../../../INCHI_BASE/src/ichi.h"
+-#include "../../../INCHI_BASE/src/strutil.h"
+-#include "../../../INCHI_BASE/src/util.h"
+-#include "../../../INCHI_BASE/src/ichidrp.h"
+-#include "../../../INCHI_BASE/src/ichierr.h"
+-#include "../../../INCHI_BASE/src/ichimain.h"
+-#include "../../../INCHI_BASE/src/extr_ct.h"
+-#include "../../../INCHI_BASE/src/ichitaut.h"
+-#include "../../../INCHI_BASE/src/ichi_io.h"
+-#include "../../../INCHI_BASE/src/ichinorm.h"
+-#include "../../../INCHI_BASE/src/ichicant.h"
+-#include "../../../INCHI_BASE/src/ichicano.h"
+-#include "../../../INCHI_BASE/src/ichicomn.h"
+-#include "../../../INCHI_BASE/src/ichimake.h"
+-#include "../../../INCHI_BASE/src/ichister.h"
++#include "mode.h"
++#include "ichitime.h"
++#include "incomdef.h"
++#include "ichidrp.h"
++#include "inpdef.h"
++#include "ichi.h"
++#include "strutil.h"
++#include "util.h"
++#include "ichidrp.h"
++#include "ichierr.h"
++#include "ichimain.h"
++#include "extr_ct.h"
++#include "ichitaut.h"
++#include "ichi_io.h"
++#include "ichinorm.h"
++#include "ichicant.h"
++#include "ichicano.h"
++#include "ichicomn.h"
++#include "ichimake.h"
++#include "ichister.h"
+ /* */
+ #ifdef INCHI_LIB
+ #include "ichi_lib.h"
+ #endif
+-#include "../../../INCHI_BASE/src/ichicomp.h"
++#include "ichicomp.h"
+ 
+ /* for DisplayTheWholeStructure() */
+ #define COMP_ORIG_0_MAIN  0x0001
+@@ -77,9 +77,9 @@
+ #define COMP_ORIG_1_MAIN  0x0010
+ #define COMP_ORIG_1_RECN  0x0020
+ 
+-#include "../../../INCHI_BASE/src/ichisize.h"
+-#include "../../../INCHI_BASE/src/mode.h"
+-#include "../../../INCHI_BASE/src/inchi_api.h"
++#include "ichisize.h"
++#include "mode.h"
++#include "inchi_api.h"
+ #include "inchi_dll_a.h" /* not inchi_api.h as it hides internal data types */
+ 
+ 
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_b.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_b.c
+index e33bbb927..91548bddc 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_b.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_b.c
+@@ -42,22 +42,22 @@
+ #include <float.h>
+ #include <math.h>
+ 
+-#include "../../../INCHI_BASE/src/mode.h"
+-#include "../../../INCHI_BASE/src/inchi_api.h"
+-#include "../../../INCHI_BASE/src/incomdef.h"
+-#include "../../../INCHI_BASE/src/ichidrp.h"
+-#include "../../../INCHI_BASE/src/inpdef.h"
+-#include "../../../INCHI_BASE/src/ichi.h"
+-#include "../../../INCHI_BASE/src/strutil.h"
+-#include "../../../INCHI_BASE/src/util.h"
+-#include "../../../INCHI_BASE/src/ichierr.h"
+-#include "../../../INCHI_BASE/src/ichimain.h"
+-#include "../../../INCHI_BASE/src/extr_ct.h"
+-#include "../../../INCHI_BASE/src/ichi_io.h"
+-#include "../../../INCHI_BASE/src/ichicomp.h"
+-#include "../../../INCHI_BASE/src/ichitime.h"
+-#include "../../../INCHI_BASE/src/ichicant.h"
+-#include "../../../INCHI_BASE/src/readinch.h"
++#include "mode.h"
++#include "inchi_api.h"
++#include "incomdef.h"
++#include "ichidrp.h"
++#include "inpdef.h"
++#include "ichi.h"
++#include "strutil.h"
++#include "util.h"
++#include "ichierr.h"
++#include "ichimain.h"
++#include "extr_ct.h"
++#include "ichi_io.h"
++#include "ichicomp.h"
++#include "ichitime.h"
++#include "ichicant.h"
++#include "readinch.h"
+ 
+ #include "inchi_dll.h"
+ #include "inchi_dll_b.h"
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_main.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_main.c
+index 2d551c528..e2301bf9c 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_main.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_main.c
+@@ -34,7 +34,7 @@
+ 
+ /* inchi_dll_main.c : Defines the entry point for the DLL application. */
+ 
+-#include "../../../INCHI_BASE/src/mode.h"
++#include "mode.h"
+ 
+ #if defined(_WIN32) && defined(_USRDLL) && defined(_DEBUG) && !(defined(__STDC__) && __STDC__ == 1)
+ #include "inchi_dll_main.h"
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_builder.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_builder.c
+index 3bf6c6442..9199b3069 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_builder.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_builder.c
+@@ -32,9 +32,9 @@
+  */
+ 
+ 
+-#include "../../../../INCHI_BASE/src/mode.h"
+-#include "../../../../INCHI_BASE/src/inchi_api.h"
+-#include "../../../../INCHI_BASE/src/inpdef.h"
++#include "mode.h"
++#include "inchi_api.h"
++#include "inpdef.h"
+ #include "ixa_status.h"
+ #include "ixa_mol.h"
+ #include <ctype.h>
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_inchikey_builder.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_inchikey_builder.c
+index a066f0315..10513a0c4 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_inchikey_builder.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_inchikey_builder.c
+@@ -32,8 +32,8 @@
+  */
+ 
+ 
+-#include "../../../../INCHI_BASE/src/mode.h"
+-#include "../../../../INCHI_BASE/src/inchi_api.h"
++#include "mode.h"
++#include "inchi_api.h"
+ #include "ixa_status.h"
+ #include <stdlib.h>
+ #include <string.h>
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.c
+index 034dc3c8e..bd8cda705 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.c
+@@ -36,12 +36,12 @@
+ #include <string.h>
+ #include <limits.h>
+ 
+-#include "../../../../INCHI_BASE/src/mode.h"
+-#include "../../../../INCHI_BASE/src/ichierr.h"
+-#include "../../../../INCHI_BASE/src/mol_fmt.h"
+-#include "../../../../INCHI_BASE/src/inchi_api.h"
++#include "mode.h"
++#include "ichierr.h"
++#include "mol_fmt.h"
++#include "inchi_api.h"
+ 
+-#include "../../../../INCHI_BASE/src/ichi_io.h"
++#include "ichi_io.h"
+ 
+ #include "ixa_mol.h"
+ #include "ixa_status.h"
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.h b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.h
+index ce5a96cf1..c39c1214a 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.h
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.h
+@@ -35,7 +35,7 @@
+ #ifndef __IXA_MOL_H__
+ #define __IXA_MOL_H__
+ 
+-#include "../../../../INCHI_BASE/src/ixa.h"
++#include "ixa.h"
+ 
+ typedef struct
+ {
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_inchi.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_inchi.c
+index 161dae8ad..23002f437 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_inchi.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_inchi.c
+@@ -34,9 +34,9 @@
+ 
+ #include "string.h"
+ 
+-#include "../../../../INCHI_BASE/src/mode.h"
+-#include "../../../../INCHI_BASE/src/inchi_api.h"
+-#include "../../../../INCHI_BASE/src/util.h"
++#include "mode.h"
++#include "inchi_api.h"
++#include "util.h"
+ #include "ixa_mol.h"
+ #include "ixa_status.h"
+ 
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_mol.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_mol.c
+index b81837ad5..96e419b5f 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_mol.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_mol.c
+@@ -38,12 +38,12 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include "../../../../INCHI_BASE/src/mode.h"
+-#include "../../../../INCHI_BASE/src/inchi_api.h"
+-#include "../../../../INCHI_BASE/src/ichicomp.h"
+-#include "../../../../INCHI_BASE/src/util.h"
+-#include "../../../../INCHI_BASE/src/mol_fmt.h"
+-#include "../../../../INCHI_BASE/src/ichi_io.h"
++#include "mode.h"
++#include "inchi_api.h"
++#include "ichicomp.h"
++#include "util.h"
++#include "mol_fmt.h"
++#include "ichi_io.h"
+ 
+ #include "ixa_status.h"
+ #include "ixa_mol.h"
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.c b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.c
+index 263693e29..31b685f2e 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.c
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.c
+@@ -32,8 +32,8 @@
+  */
+ 
+ 
+-#include "../../../../INCHI_BASE/src/mode.h"
+-#include "../../../../INCHI_BASE/src/inchi_api.h"
++#include "mode.h"
++#include "inchi_api.h"
+ #include "ixa_status.h"
+ #include <string.h>
+ #include <stdarg.h>
+diff --git a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.h b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.h
+index fd5fa528b..7989c997b 100644
+--- a/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.h
++++ b/c/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.h
+@@ -35,7 +35,7 @@
+ #ifndef __IXA_STATUS_H__
+ #define __IXA_STATUS_H__
+ 
+-#include "../../../../INCHI_BASE/src/ixa.h"
++#include "ixa.h"
+ 
+ void STATUS_PushMessage( IXA_STATUS_HANDLE hStatus,
+                         IXA_STATUS        vSeverity,
+diff --git a/c/inchi-src/inchi/INCHI_BASE/src/ichicano.c b/c/inchi-src/inchi/INCHI_BASE/src/ichicano.c
+index 2f6669fcc..3522b7954 100644
+--- a/c/inchi-src/inchi/INCHI_BASE/src/ichicano.c
++++ b/c/inchi-src/inchi/INCHI_BASE/src/ichicano.c
+@@ -37,7 +37,6 @@
+ #include <string.h>
+ #include <ctype.h>
+ #include <time.h>
+-#include <sys/timeb.h>
+ 
+ #include "mode.h"
+ #include "ichicano.h"
+diff --git a/c/inchi-src/inchi/INCHI_BASE/src/ichicomp.h b/c/inchi-src/inchi/INCHI_BASE/src/ichicomp.h
+index 52c077f41..4a7b42c88 100644
+--- a/c/inchi-src/inchi/INCHI_BASE/src/ichicomp.h
++++ b/c/inchi-src/inchi/INCHI_BASE/src/ichicomp.h
+@@ -54,9 +54,6 @@ extern "C" {
+ 
+ /*  ANSI redefinitions */
+ #ifdef COMPILE_ANSI_ONLY  /* { */
+-#ifndef __isascii
+-#define __isascii(val)  ((unsigned)(val) <= 0x7F)
+-#endif
+ 
+ /* #ifndef __GNUC__ */
+ /* these non-ANSI functions are implemented in gcc */
+diff --git a/c/inchi-src/inchi/INCHI_BASE/src/inchi_api.h b/c/inchi-src/inchi/INCHI_BASE/src/inchi_api.h
+index ded6c44c4..12f3610d3 100644
+--- a/c/inchi-src/inchi/INCHI_BASE/src/inchi_api.h
++++ b/c/inchi-src/inchi/INCHI_BASE/src/inchi_api.h
+@@ -681,23 +681,17 @@ void FreeInChIExtInput( inchi_Input_Polymer    *polymer, inchi_Input_V3000 *v300
+  *************************************************/
+ 
+ 
+-#if (defined( _WIN32 ) && defined( _MSC_VER ) && defined(BUILD_LINK_AS_DLL) )
+-    /* Win32 & MS VC ++, compile and link as a DLL */
+-#ifdef _USRDLL
+-    /* InChI library dll */
+-#define INCHI_API __declspec(dllexport)
+-#define EXPIMP_TEMPLATE
+-#define INCHI_DECL
+-#else
+-   /* calling the InChI dll program */
+-#define INCHI_API __declspec(dllimport)
++#include <inchi_export.h>
++
++#ifdef _MSC_VER
+ #define EXPIMP_TEMPLATE extern
+-#define INCHI_DECL
+-#endif
+ #else
+-    /* create a statically linked InChI library or link to an executable */
+-#define INCHI_API
+ #define EXPIMP_TEMPLATE
++#endif
++#ifndef INCHI_API
++#define INCHI_API INCHI_EXPORT
++#endif
++#ifndef INCHI_DECL
+ #define INCHI_DECL
+ #endif
+ 
+diff --git a/c/inchi-src/inchi/INCHI_BASE/src/runichi.c b/c/inchi-src/inchi/INCHI_BASE/src/runichi.c
+index ab7b54537..c510f1bde 100644
+--- a/c/inchi-src/inchi/INCHI_BASE/src/runichi.c
++++ b/c/inchi-src/inchi/INCHI_BASE/src/runichi.c
+@@ -3083,7 +3083,11 @@ int mark_atoms_to_delete_or_renumber( ORIG_ATOM_DATA *orig_at_data,
+         (i.e., delete a whole connected component(s) comprising original atoms)
+         */
+         int natnums = 0;
+-        atnums = (int *)inchi_calloc(max_atoms, sizeof(int));
++        if (max_atoms > 0) {
++            atnums = (int *) inchi_calloc(max_atoms, sizeof(int));
++        } else {
++            atnums = NULL;
++        }
+         if (!atnums)
+         {
+             return _IS_ERROR;
+diff --git a/c/inchi-src/inchi/INCHI_BASE/src/util.c b/c/inchi-src/inchi/INCHI_BASE/src/util.c
+index 373f03d14..ac442b367 100644
+--- a/c/inchi-src/inchi/INCHI_BASE/src/util.c
++++ b/c/inchi-src/inchi/INCHI_BASE/src/util.c
+@@ -38,10 +38,6 @@
+ 
+ #include "mode.h"
+ 
+-#if defined(COMPILE_ANSI_ONLY) && defined(__APPLE__)
+-/*    For build under OSX, advice from Burt Leland */
+-#include "ichicomp.h"    /* Needed for __isascii define */
+-#endif
+ 
+ #include "util.h"
+ #include "extr_ct.h"
+@@ -1741,13 +1737,13 @@ char* lrtrim( char *p, int* nLen )
+ 
+     if (p && ( len = (int) strlen( p ) ))
+     {
+-        for (i = 0; i < len && __isascii( p[i] ) && isspace( p[i] ); i++)
++        for (i = 0; i < len && isascii( p[i] ) && isspace( p[i] ); i++)
+         {
+             ;
+         }
+         if (i)
+             (memmove) ( p, p + i, ( len -= i ) + 1 );
+-        for (; 0 < len && __isascii( p[len - 1] ) && isspace( p[len - 1] ); len--)
++        for (; 0 < len && isascii( p[len - 1] ) && isspace( p[len - 1] ); len--)
+         {
+             ;
+         }

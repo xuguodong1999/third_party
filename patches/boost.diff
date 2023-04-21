@@ -1,0 +1,169 @@
+diff --git a/cpp/boost-src/boost/boost/gil/extension/rasterization/ellipse.hpp b/cpp/boost-src/boost/boost/gil/extension/rasterization/ellipse.hpp
+index 27ca5de74..5d491d447 100644
+--- a/cpp/boost-src/boost/boost/gil/extension/rasterization/ellipse.hpp
++++ b/cpp/boost-src/boost/boost/gil/extension/rasterization/ellipse.hpp
+@@ -37,8 +37,8 @@ struct midpoint_ellipse_rasterizer
+     /// center respectively.
+     /// \param semi_axes - Point containing positive integer lengths of horizontal semi-axis
+     /// and vertical semi-axis respectively.
+-    midpoint_ellipse_rasterizer(point<unsigned int> center_point,
+-        point<unsigned int> semi_axes_values)
++    midpoint_ellipse_rasterizer(point_t center_point,
++        point_t semi_axes_values)
+         : center(center_point)
+         , semi_axes(semi_axes_values)
+     {}
+@@ -130,7 +130,7 @@ struct midpoint_ellipse_rasterizer
+         }
+ 
+         // mutable center copy
+-        point<unsigned int> center2(center);
++        point_t center2(center);
+         --center2[0], --center2[1]; // For converting center co-ordinate values to zero based indexing.
+         for (point_t pnt : trajectory_points)
+         {
+@@ -186,8 +186,8 @@ struct midpoint_ellipse_rasterizer
+         draw_curve(view, pixel, obtain_trajectory());
+     }
+ 
+-    point<unsigned int> center;
+-    point<unsigned int> semi_axes;
++    point_t center;
++    point_t semi_axes;
+ };
+ 
+ namespace detail {
+diff --git a/cpp/boost-src/boost/boost/url/impl/segments_view.ipp b/cpp/boost-src/boost/boost/url/impl/segments_view.ipp
+index a243efda6..f3b1e15d9 100644
+--- a/cpp/boost-src/boost/boost/url/impl/segments_view.ipp
++++ b/cpp/boost-src/boost/boost/url/impl/segments_view.ipp
+@@ -27,7 +27,7 @@ segments_view(
+ segments_view::
+ segments_view(
+     string_view s)
+-    : segments_view(
++    : segments_base(
+         parse_path(s).value(
+             BOOST_URL_POS))
+ {
+diff --git a/cpp/boost-src/boost/libs/serialization/src/basic_text_wiprimitive.cpp b/cpp/boost-src/boost/libs/serialization/src/basic_text_wiprimitive.cpp
+index 28250007b..8f96c418e 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/basic_text_wiprimitive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/basic_text_wiprimitive.cpp
+@@ -20,6 +20,7 @@
+ #  pragma warning (disable : 4786) // too long name, harmless warning
+ #endif
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/detail/auto_link_warchive.hpp>
+diff --git a/cpp/boost-src/boost/libs/serialization/src/basic_text_woprimitive.cpp b/cpp/boost-src/boost/libs/serialization/src/basic_text_woprimitive.cpp
+index 6c0caa979..c9b5ac36b 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/basic_text_woprimitive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/basic_text_woprimitive.cpp
+@@ -20,6 +20,7 @@
+ #  pragma warning (disable : 4786) // too long name, harmless warning
+ #endif
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/detail/auto_link_warchive.hpp>
+diff --git a/cpp/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp b/cpp/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp
+index 720d469d7..c414efda5 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp
+@@ -14,6 +14,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/archive/binary_wiarchive.hpp>
+ #include <boost/archive/detail/archive_serializer_map.hpp>
+diff --git a/cpp/boost-src/boost/libs/serialization/src/binary_woarchive.cpp b/cpp/boost-src/boost/libs/serialization/src/binary_woarchive.cpp
+index 905a319d6..d14056ab4 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/binary_woarchive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/binary_woarchive.cpp
+@@ -14,6 +14,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/archive/binary_woarchive.hpp>
+ 
+diff --git a/cpp/boost-src/boost/libs/serialization/src/text_wiarchive.cpp b/cpp/boost-src/boost/libs/serialization/src/text_wiarchive.cpp
+index 6b6e592f7..ee9cd9e37 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/text_wiarchive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/text_wiarchive.cpp
+@@ -14,6 +14,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/text_wiarchive.hpp>
+diff --git a/cpp/boost-src/boost/libs/serialization/src/text_woarchive.cpp b/cpp/boost-src/boost/libs/serialization/src/text_woarchive.cpp
+index 46441694e..754dd2442 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/text_woarchive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/text_woarchive.cpp
+@@ -13,6 +13,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/text_woarchive.hpp>
+diff --git a/cpp/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp b/cpp/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp
+index 7c053e809..b310b2abb 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp
+@@ -14,6 +14,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/impl/basic_xml_grammar.hpp>
+diff --git a/cpp/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp b/cpp/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp
+index 8c60abf73..a755f1efb 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp
+@@ -17,6 +17,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/xml_wiarchive.hpp>
+diff --git a/cpp/boost-src/boost/libs/serialization/src/xml_woarchive.cpp b/cpp/boost-src/boost/libs/serialization/src/xml_woarchive.cpp
+index f9b6ba389..a5e047a35 100644
+--- a/cpp/boost-src/boost/libs/serialization/src/xml_woarchive.cpp
++++ b/cpp/boost-src/boost/libs/serialization/src/xml_woarchive.cpp
+@@ -17,6 +17,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/xml_woarchive.hpp>
+diff --git a/cpp/boost-src/boost/libs/stacktrace/src/noop.cpp b/cpp/boost-src/boost/libs/stacktrace/src/noop.cpp
+index a6a1e97f7..b2aff438a 100644
+--- a/cpp/boost-src/boost/libs/stacktrace/src/noop.cpp
++++ b/cpp/boost-src/boost/libs/stacktrace/src/noop.cpp
+@@ -6,6 +6,8 @@
+ 
+ #define BOOST_STACKTRACE_INTERNAL_BUILD_LIBS
+ #define BOOST_STACKTRACE_LINK
++#ifndef BOOST_STACKTRACE_USE_NOOP
+ #define BOOST_STACKTRACE_USE_NOOP
++#endif
+ #include <boost/stacktrace/detail/frame_noop.ipp>
+ #include <boost/stacktrace/detail/safe_dump_noop.ipp>

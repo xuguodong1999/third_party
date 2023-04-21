@@ -1,0 +1,424 @@
+diff --git a/cpp/ncnn-src/ncnn/cmake/ncnn_add_layer.cmake b/cpp/ncnn-src/ncnn/cmake/ncnn_add_layer.cmake
+index 857d3b528..e894028fe 100644
+--- a/cpp/ncnn-src/ncnn/cmake/ncnn_add_layer.cmake
++++ b/cpp/ncnn-src/ncnn/cmake/ncnn_add_layer.cmake
+@@ -1,28 +1,28 @@
+ 
+ macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CFLAGS)
+-    set(NCNN_${NCNN_TARGET_ARCH}_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.h)
+-    set(NCNN_${NCNN_TARGET_ARCH}_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
++    set(NCNN_${NCNN_TARGET_ARCH}_HEADER ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.h)
++    set(NCNN_${NCNN_TARGET_ARCH}_SOURCE ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
+ 
+-    if(WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_HEADER} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE})
++    if (WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_HEADER} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE})
+ 
+-        set(NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER ${CMAKE_CURRENT_BINARY_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h)
+-        set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
++        set(NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER ${XGD_GENERATED_DIR}/ncnn/include/ncnn/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h)
++        set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${XGD_GENERATED_DIR}/ncnn/src/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
+ 
+         add_custom_command(
+-            OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER}
+-            COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+-            DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_HEADER}
+-            COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h"
+-            VERBATIM
++                OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER}
++                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
++                DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_HEADER}
++                COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h"
++                VERBATIM
+         )
+         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} PROPERTIES GENERATED TRUE)
+ 
+         add_custom_command(
+-            OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE}
+-            COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+-            DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE}
+-            COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp"
+-            VERBATIM
++                OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE}
++                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
++                DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE}
++                COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp"
++                VERBATIM
+         )
+         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} PROPERTIES GENERATED TRUE)
+ 
+@@ -68,7 +68,7 @@ macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CF
+ endmacro()
+ 
+ macro(ncnn_add_arch_opt_source class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CFLAGS)
+-    set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
++    set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
+ 
+     if(WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE})
+         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} PROPERTIES COMPILE_FLAGS ${NCNN_TARGET_ARCH_OPT_CFLAGS})
+@@ -91,17 +91,17 @@ macro(ncnn_add_layer class)
+     endif()
+ 
+     if(WITH_LAYER_${name})
+-        list(APPEND ncnn_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/layer/${name}.cpp)
++        list(APPEND ncnn_SRCS ${NCNN_SRC_DIR}/layer/${name}.cpp)
+ 
+         # look for arch specific implementation and append source
+         # optimized implementation for armv7, aarch64 or x86
+-        set(LAYER_ARCH_SRC ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
++        set(LAYER_ARCH_SRC ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
+         if(EXISTS ${LAYER_ARCH_SRC})
+             set(WITH_LAYER_${name}_${NCNN_TARGET_ARCH} 1)
+             list(APPEND ncnn_SRCS ${LAYER_ARCH_SRC})
+         endif()
+ 
+-        set(LAYER_VULKAN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/layer/vulkan/${name}_vulkan.cpp)
++        set(LAYER_VULKAN_SRC ${NCNN_SRC_DIR}/layer/vulkan/${name}_vulkan.cpp)
+         if(NCNN_VULKAN AND EXISTS ${LAYER_VULKAN_SRC})
+             set(WITH_LAYER_${name}_vulkan 1)
+             list(APPEND ncnn_SRCS ${LAYER_VULKAN_SRC})
+@@ -115,7 +115,7 @@ macro(ncnn_add_layer class)
+         set(create_pipeline_content "        { int ret = ${class}::create_pipeline(opt); if (ret) return ret; }\n")
+         set(destroy_pipeline_content "        { int ret = ${class}::destroy_pipeline(opt); if (ret) return ret; }\n")
+ 
+-        source_group ("sources\\\\layers" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/${name}.cpp")
++        source_group("sources\\\\layers" FILES "${NCNN_SRC_DIR}/layer/${name}.cpp")
+     endif()
+ 
+     if(WITH_LAYER_${name}_vulkan)
+@@ -124,14 +124,14 @@ macro(ncnn_add_layer class)
+         set(create_pipeline_content "${create_pipeline_content}        if (vkdev) { int ret = ${class}_vulkan::create_pipeline(opt); if (ret) return ret; }\n")
+         set(destroy_pipeline_content "        if (vkdev) { int ret = ${class}_vulkan::destroy_pipeline(opt); if (ret) return ret; }\n${destroy_pipeline_content}")
+ 
+-        file(GLOB_RECURSE NCNN_SHADER_SRCS "layer/vulkan/shader/${name}.comp")
+-        file(GLOB_RECURSE NCNN_SHADER_SUBSRCS "layer/vulkan/shader/${name}_*.comp")
++        file(GLOB_RECURSE NCNN_SHADER_SRCS "${NCNN_SRC_DIR}/layer/vulkan/shader/${name}.comp")
++        file(GLOB_RECURSE NCNN_SHADER_SUBSRCS "${NCNN_SRC_DIR}/layer/vulkan/shader/${name}_*.comp")
+         list(APPEND NCNN_SHADER_SRCS ${NCNN_SHADER_SUBSRCS})
+-        foreach(NCNN_SHADER_SRC ${NCNN_SHADER_SRCS})
++        foreach (NCNN_SHADER_SRC ${NCNN_SHADER_SRCS})
+             ncnn_add_shader(${NCNN_SHADER_SRC})
+-        endforeach()
++        endforeach ()
+ 
+-        source_group ("sources\\\\layers\\\\vulkan" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/vulkan/${name}_vulkan.cpp")
++        source_group("sources\\\\layers\\\\vulkan" FILES "${NCNN_SRC_DIR}/layer/vulkan/${name}_vulkan.cpp")
+     endif()
+ 
+     if(WITH_LAYER_${name}_${NCNN_TARGET_ARCH})
+@@ -140,7 +140,7 @@ macro(ncnn_add_layer class)
+         set(create_pipeline_content "${create_pipeline_content}        { int ret = ${class}_${NCNN_TARGET_ARCH}::create_pipeline(opt); if (ret) return ret; }\n")
+         set(destroy_pipeline_content "        { int ret = ${class}_${NCNN_TARGET_ARCH}::destroy_pipeline(opt); if (ret) return ret; }\n${destroy_pipeline_content}")
+ 
+-        source_group ("sources\\\\layers\\\\${NCNN_TARGET_ARCH}" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp")
++        source_group("sources\\\\layers\\\\${NCNN_TARGET_ARCH}" FILES "${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp")
+     endif()
+ 
+     if(WITH_LAYER_${name})
+diff --git a/cpp/ncnn-src/ncnn/cmake/ncnn_add_shader.cmake b/cpp/ncnn-src/ncnn/cmake/ncnn_add_shader.cmake
+index 8006241bc..98776397b 100644
+--- a/cpp/ncnn-src/ncnn/cmake/ncnn_add_shader.cmake
++++ b/cpp/ncnn-src/ncnn/cmake/ncnn_add_shader.cmake
+@@ -1,14 +1,14 @@
+ 
+ macro(ncnn_add_shader NCNN_SHADER_SRC)
+     get_filename_component(NCNN_SHADER_SRC_NAME_WE ${NCNN_SHADER_SRC} NAME_WE)
+-    set(NCNN_SHADER_COMP_HEADER ${CMAKE_CURRENT_BINARY_DIR}/${NCNN_SHADER_SRC_NAME_WE}.comp.hex.h)
++    set(NCNN_SHADER_COMP_HEADER ${XGD_GENERATED_DIR}/ncnn/include/ncnn/layer/vulkan/shader/${NCNN_SHADER_SRC_NAME_WE}.comp.hex.h)
+ 
+     add_custom_command(
+-        OUTPUT ${NCNN_SHADER_COMP_HEADER}
+-        COMMAND ${CMAKE_COMMAND} -DSHADER_SRC=${NCNN_SHADER_SRC} -DSHADER_COMP_HEADER=${NCNN_SHADER_COMP_HEADER} -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ncnn_generate_shader_comp_header.cmake"
+-        DEPENDS ${NCNN_SHADER_SRC}
+-        COMMENT "Preprocessing shader source ${NCNN_SHADER_SRC_NAME_WE}.comp"
+-        VERBATIM
++            OUTPUT ${NCNN_SHADER_COMP_HEADER}
++            COMMAND ${CMAKE_COMMAND} -DSHADER_SRC=${NCNN_SHADER_SRC} -DSHADER_COMP_HEADER=${NCNN_SHADER_COMP_HEADER} -DXGD_GENERATED_DIR=${XGD_GENERATED_DIR} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_shader_comp_header.cmake"
++            DEPENDS ${NCNN_SHADER_SRC}
++            COMMENT "Preprocessing shader source ${NCNN_SHADER_SRC_NAME_WE}.comp"
++            VERBATIM
+     )
+     set_source_files_properties(${NCNN_SHADER_COMP_HEADER} PROPERTIES GENERATED TRUE)
+ 
+@@ -24,4 +24,3 @@ macro(ncnn_add_shader NCNN_SHADER_SRC)
+     set(layer_shader_type_enum "${layer_shader_type_enum}${NCNN_SHADER_SRC_NAME_WE} = ${__LAYER_SHADER_TYPE_ENUM_INDEX},\n")
+     math(EXPR __LAYER_SHADER_TYPE_ENUM_INDEX "${__LAYER_SHADER_TYPE_ENUM_INDEX}+1")
+ endmacro()
+-
+diff --git a/cpp/ncnn-src/ncnn/cmake/ncnn_generate_shader_comp_header.cmake b/cpp/ncnn-src/ncnn/cmake/ncnn_generate_shader_comp_header.cmake
+index 5d0fb05d5..a8941afbc 100644
+--- a/cpp/ncnn-src/ncnn/cmake/ncnn_generate_shader_comp_header.cmake
++++ b/cpp/ncnn-src/ncnn/cmake/ncnn_generate_shader_comp_header.cmake
+@@ -5,9 +5,9 @@ file(READ ${SHADER_SRC} comp_data)
+ 
+ # skip leading comment
+ string(FIND "${comp_data}" "#version" version_start)
+-if(NOT ${version_start} EQUAL -1)
++if (NOT ${version_start} EQUAL -1)
+     string(SUBSTRING "${comp_data}" ${version_start} -1 comp_data)
+-endif()
++endif ()
+ 
+ # remove whitespace
+ string(REGEX REPLACE "\n +" "\n" comp_data "${comp_data}")
+@@ -15,8 +15,8 @@ string(REGEX REPLACE "\n +" "\n" comp_data "${comp_data}")
+ get_filename_component(SHADER_SRC_NAME_WE ${SHADER_SRC} NAME_WE)
+ 
+ # text to hex
+-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_SRC_NAME_WE}.text2hex.txt "${comp_data}")
+-file(READ ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_SRC_NAME_WE}.text2hex.txt comp_data_hex HEX)
++file(WRITE ${XGD_GENERATED_DIR}/ncnn/tmp/${SHADER_SRC_NAME_WE}.text2hex.txt "${comp_data}")
++file(READ ${XGD_GENERATED_DIR}/ncnn/tmp/${SHADER_SRC_NAME_WE}.text2hex.txt comp_data_hex HEX)
+ string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," comp_data_hex ${comp_data_hex})
+ string(FIND "${comp_data_hex}" "," tail_comma REVERSE)
+ string(SUBSTRING "${comp_data_hex}" 0 ${tail_comma} comp_data_hex)
+diff --git a/cpp/ncnn-src/ncnn/src/datareader.cpp b/cpp/ncnn-src/ncnn/src/datareader.cpp
+index 310049205..05b26edbe 100644
+--- a/cpp/ncnn-src/ncnn/src/datareader.cpp
++++ b/cpp/ncnn-src/ncnn/src/datareader.cpp
+@@ -38,11 +38,6 @@ size_t DataReader::read(void* /*buf*/, size_t /*size*/) const
+     return 0;
+ }
+ 
+-size_t DataReader::reference(size_t /*size*/, const void** /*buf*/) const
+-{
+-    return 0;
+-}
+-
+ #if NCNN_STDIO
+ class DataReaderFromStdioPrivate
+ {
+@@ -142,13 +137,6 @@ size_t DataReaderFromMemory::read(void* buf, size_t size) const
+     return size;
+ }
+ 
+-size_t DataReaderFromMemory::reference(size_t size, const void** buf) const
+-{
+-    *buf = d->mem;
+-    d->mem += size;
+-    return size;
+-}
+-
+ #if NCNN_PLATFORM_API
+ #if __ANDROID_API__ >= 9
+ class DataReaderFromAndroidAssetPrivate
+diff --git a/cpp/ncnn-src/ncnn/src/datareader.h b/cpp/ncnn-src/ncnn/src/datareader.h
+index ed2aba3c8..863c34ada 100644
+--- a/cpp/ncnn-src/ncnn/src/datareader.h
++++ b/cpp/ncnn-src/ncnn/src/datareader.h
+@@ -44,10 +44,6 @@ public:
+     // read binary param and model data
+     // return bytes read
+     virtual size_t read(void* buf, size_t size) const;
+-
+-    // get model data reference
+-    // return bytes referenced
+-    virtual size_t reference(size_t size, const void** buf) const;
+ };
+ 
+ #if NCNN_STDIO
+@@ -83,7 +79,6 @@ public:
+     virtual int scan(const char* format, void* p) const;
+ #endif // NCNN_STRING
+     virtual size_t read(void* buf, size_t size) const;
+-    virtual size_t reference(size_t size, const void** buf) const;
+ 
+ private:
+     DataReaderFromMemory(const DataReaderFromMemory&);
+diff --git a/cpp/ncnn-src/ncnn/src/gpu.h b/cpp/ncnn-src/ncnn/src/gpu.h
+index 2ef492753..8205da9fe 100644
+--- a/cpp/ncnn-src/ncnn/src/gpu.h
++++ b/cpp/ncnn-src/ncnn/src/gpu.h
+@@ -195,7 +195,7 @@ private:
+     GpuInfo& operator=(const GpuInfo&);
+ 
+ private:
+-    friend int create_gpu_instance();
++    friend NCNN_EXPORT int create_gpu_instance();
+     GpuInfoPrivate* const d;
+ };
+ 
+diff --git a/cpp/ncnn-src/ncnn/src/modelbin.cpp b/cpp/ncnn-src/ncnn/src/modelbin.cpp
+index fdcff2aa6..31019bc26 100644
+--- a/cpp/ncnn-src/ncnn/src/modelbin.cpp
++++ b/cpp/ncnn-src/ncnn/src/modelbin.cpp
+@@ -87,7 +87,6 @@ ModelBinFromDataReader& ModelBinFromDataReader::operator=(const ModelBinFromData
+ 
+ Mat ModelBinFromDataReader::load(int w, int type) const
+ {
+-    Mat m;
+ 
+     if (type == 0)
+     {
+@@ -119,15 +118,6 @@ Mat ModelBinFromDataReader::load(int w, int type) const
+             // half-precision data
+             size_t align_data_size = alignSize(w * sizeof(unsigned short), 4);
+ 
+-            // try reference data
+-            const void* refbuf = 0;
+-            nread = d->dr.reference(align_data_size, &refbuf);
+-            if (nread == align_data_size)
+-            {
+-                m = Mat::from_float16((const unsigned short*)refbuf, w);
+-            }
+-            else
+-            {
+                 std::vector<unsigned short> float16_weights;
+                 float16_weights.resize(align_data_size);
+                 nread = d->dr.read(&float16_weights[0], align_data_size);
+@@ -137,25 +127,12 @@ Mat ModelBinFromDataReader::load(int w, int type) const
+                     return Mat();
+                 }
+ 
+-                m = Mat::from_float16(&float16_weights[0], w);
+-            }
+-
+-            return m;
++                return Mat::from_float16(float16_weights.data(), w);
+         }
+         else if (flag_struct.tag == 0x000D4B38)
+         {
+             // int8 data
+             size_t align_data_size = alignSize(w, 4);
+-
+-            // try reference data
+-            const void* refbuf = 0;
+-            nread = d->dr.reference(align_data_size, &refbuf);
+-            if (nread == align_data_size)
+-            {
+-                m = Mat(w, (void*)refbuf, (size_t)1u);
+-            }
+-            else
+-            {
+                 std::vector<signed char> int8_weights;
+                 int8_weights.resize(align_data_size);
+                 nread = d->dr.read(&int8_weights[0], align_data_size);
+@@ -165,27 +142,17 @@ Mat ModelBinFromDataReader::load(int w, int type) const
+                     return Mat();
+                 }
+ 
+-                m.create(w, (size_t)1u);
++                Mat m(w, (size_t)1u);
+                 if (m.empty())
+                     return m;
+ 
+                 memcpy(m.data, &int8_weights[0], w);
+-            }
+ 
+             return m;
+         }
+         else if (flag_struct.tag == 0x0002C056)
+         {
+-            // try reference data
+-            const void* refbuf = 0;
+-            nread = d->dr.reference(w * sizeof(float), &refbuf);
+-            if (nread == w * sizeof(float))
+-            {
+-                m = Mat(w, (void*)refbuf);
+-            }
+-            else
+-            {
+-                m.create(w);
++            Mat m(w);
+                 if (m.empty())
+                     return m;
+ 
+@@ -196,17 +163,14 @@ Mat ModelBinFromDataReader::load(int w, int type) const
+                     NCNN_LOGE("ModelBin read weight_data failed %zd", nread);
+                     return Mat();
+                 }
+-            }
+ 
+             return m;
+         }
+-
+-        if (flag != 0)
+-        {
+-            m.create(w);
++        Mat m(w);
+             if (m.empty())
+                 return m;
+-
++        if (flag != 0)
++        {
+             // quantized data
+             float quantization_value[256];
+             nread = d->dr.read(quantization_value, 256 * sizeof(float));
+@@ -234,19 +198,6 @@ Mat ModelBinFromDataReader::load(int w, int type) const
+         }
+         else if (flag_struct.f0 == 0)
+         {
+-            // try reference data
+-            const void* refbuf = 0;
+-            nread = d->dr.reference(w * sizeof(float), &refbuf);
+-            if (nread == w * sizeof(float))
+-            {
+-                m = Mat(w, (void*)refbuf);
+-            }
+-            else
+-            {
+-                m.create(w);
+-                if (m.empty())
+-                    return m;
+-
+                 // raw data
+                 nread = d->dr.read(m, w * sizeof(float));
+                 if (nread != w * sizeof(float))
+@@ -255,22 +206,11 @@ Mat ModelBinFromDataReader::load(int w, int type) const
+                     return Mat();
+                 }
+             }
+-        }
+-
+         return m;
+     }
+     else if (type == 1)
+     {
+-        // try reference data
+-        const void* refbuf = 0;
+-        size_t nread = d->dr.reference(w * sizeof(float), &refbuf);
+-        if (nread == w * sizeof(float))
+-        {
+-            m = Mat(w, (void*)refbuf);
+-        }
+-        else
+-        {
+-            m.create(w);
++            Mat m(w);
+             if (m.empty())
+                 return m;
+ 
+@@ -281,8 +221,6 @@ Mat ModelBinFromDataReader::load(int w, int type) const
+                 NCNN_LOGE("ModelBin read weight_data failed %zd", nread);
+                 return Mat();
+             }
+-        }
+-
+         return m;
+     }
+     else
+diff --git a/cpp/ncnn-src/ncnn/src/simpleocv.cpp b/cpp/ncnn-src/ncnn/src/simpleocv.cpp
+index f1270633d..c0e0dc67c 100644
+--- a/cpp/ncnn-src/ncnn/src/simpleocv.cpp
++++ b/cpp/ncnn-src/ncnn/src/simpleocv.cpp
+@@ -29,7 +29,7 @@
+ #define STB_IMAGE_WRITE_IMPLEMENTATION
+ #include "stb_image_write.h"
+ 
+-namespace cv {
++namespace ncnn::cv {
+ 
+ Mat imread(const std::string& path, int flags)
+ {
+diff --git a/cpp/ncnn-src/ncnn/src/simpleocv.h b/cpp/ncnn-src/ncnn/src/simpleocv.h
+index 55ede15b7..6a6214127 100644
+--- a/cpp/ncnn-src/ncnn/src/simpleocv.h
++++ b/cpp/ncnn-src/ncnn/src/simpleocv.h
+@@ -52,7 +52,7 @@ enum
+ };
+ 
+ // minimal opencv style data structure implementation
+-namespace cv {
++namespace ncnn::cv {
+ 
+ template<typename _Tp>
+ static inline _Tp saturate_cast(int v)

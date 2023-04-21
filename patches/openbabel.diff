@@ -1,0 +1,3033 @@
+diff --git a/cpp/openbabel-src/openbabel/data/gaff.prm b/cpp/openbabel-src/openbabel/data/gaff.prm
+index 07d782eb7..80b4fc75e 100644
+--- a/cpp/openbabel-src/openbabel/data/gaff.prm
++++ b/cpp/openbabel-src/openbabel/data/gaff.prm
+@@ -91,7 +91,7 @@ atom [#6X3;R](=[#6])([#6])[#1]						    ca "sp2 C in aromatic ring"
+ atom [#6X3;R](=*)-*=*   						    ca "sp2 C in aromatic ring"
+ atom [#6X3;R](=[#6X3])([#6])[#1]					    ca "sp2 C in aromatic ring"	
+ atom [#6X3;R](=[#6])([#6])[F,Cl,Br,I]   				    c2 "sp2 C in a ring with 1 electron-withdrawal group"
+-atom [#6X3;R](=[#6X3])([#6X4])[#6]					    c2 "sp2 C in a ring"		
++atom [#6X3;R](=[#6X3])([#6X4])[#6]					    c2 "sp2 C in a ring"
+ atom [#6X3;R](=*)-*#*   						    cc "sp2 C in a conjugated ring"
+ atom [#6X3;R](#*)-*#*   						    cc "sp2 C in a conjugated ring"
+ atom [#6X3;R]:[#7,#8,#16]     	     	      				    cc "sp2 C in a ring with 1 electron-withdrawal group"
+diff --git a/cpp/openbabel-src/openbabel/data/ghemical.prm b/cpp/openbabel-src/openbabel/data/ghemical.prm
+index 85d6b87ae..6940aca22 100644
+--- a/cpp/openbabel-src/openbabel/data/ghemical.prm
++++ b/cpp/openbabel-src/openbabel/data/ghemical.prm
+@@ -48,95 +48,95 @@ atom [I]*        3500 (-*) "general iodine"
+ // [opt] = Å
+ // [fc] = kcal/(mol * Å^2)
+ 
+-bond 	0602 0602 T 1.204 1400.0
+-bond 	0602 0602 S 1.380  700.0
+-bond	2300 0601 S 1.890  500.0
+-bond	0602 0601 S 1.440 1340.0
+-bond	0602 0601 D 1.440 1340.0
+-bond	0601 0601 D 1.335 1340.0
+-bond	0601 0601 S 1.470  700.0
+-bond	0602 0600 S 1.458  640.0
+-bond	0601 0600 S 1.501  639.0
+-bond	0600 0600 S 1.540  633.6
+-bond	2300 0603 S 1.850  500.0
+-bond	0602 0603 S 1.440 1340.0
+-bond	0601 0603 S 1.510 1340.0
+-bond	0600 0603 S 1.525  640.0
+-bond	0603 0603 C 1.395 1400.0
+-bond	0603 0603 S 1.480 1000.0
+-bond	0601 1100 S 1.750  520.0
+-bond	0600 1100 S 1.767  600.0
+-bond	0603 1100 S 1.750  513.4
+-bond	0601 2300 S 1.850  520.0
+-bond	0600 2300 S 1.867  600.0
+-bond	0603 2300 S 1.850  513.4
+-bond	0601 0900 S 1.330 1200.0
+-bond	0600 0900 S 1.360  600.0
+-bond	0603 0900 S 1.330  500.0
+-bond	0602 0100 S 1.056  700.0
+-bond	0601 0100 S 1.089  692.0
+-bond	0600 0100 S 1.100  662.4
+-bond	0603 0100 S 1.084  692.0
+-bond	0600 3500 S 2.050  490.0	//added 20050225
+-bond	0601 3500 S 2.050  490.0	//added 20050225
+-bond	0602 3500 S 2.050  490.0	//added 20050225
+-bond	0603 3500 S 2.050  490.0
+-bond	0602 0702 T 1.158 1600.0
+-bond	0602 0701 S 1.330 1300.0
+-bond	0602 0701 D 1.330 1300.0
+-bond	0601 0701 D 1.270 1305.9
+-bond	0601 0701 S 1.444 1300.0
+-bond	0600 0701 S 1.440  760.2
+-bond	0603 0701 S 1.346 1305.9
+-bond	0701 0701 D 1.346 1305.9
+-bond	0701 0701 S 1.418 1300.0
+-bond	0601 0700 S 1.330 1300.0
+-bond	0600 0700 S 1.470  760.0
+-bond	0603 0700 S 1.410  720.0
+-bond	0100 0700 S 1.080  692.0
+-bond	0601 0704 S 1.330 1300.0
+-bond	0600 0704 S 1.470  760.0
+-bond	0603 0704 S 1.410  720.0
+-bond	0601 0705 S 1.345  870.1
+-bond	0600 0705 S 1.450  677.6
+-bond	0603 0705 S 1.416 1090.1
+-bond	0100 0705 S 1.000  700.0
+-bond	0701 0705 S 1.440  667.6
+-bond	0705 0705 S 1.450  744.5
+-bond	0603 0703 C 1.346 1305.9
+-bond	0703 0703 C 1.330 1400.0
+-bond	0601 0801 D 1.220 1555.2
+-bond	0705 0801 S 1.240 1120.0
+-bond	0705 0801 D 1.210  680.0
+-bond	0601 0800 S 1.330  699.8
+-bond	0600 0800 S 1.430  618.9
+-bond	0603 0800 S 1.390  700.0
+-bond	0100 0800 S 0.950 1007.5
+-bond	0701 0800 S 1.405 1200.0
+-bond	0705 0800 S 1.400  620.0
+-bond	0800 0800 S 1.480 1172.2
+-bond	0600 0F00 S 1.830  407.6
+-bond	0801 0F00 S 1.490 1400.0
+-bond	0801 0F00 D 1.490 1400.0
+-bond	0800 0F00 S 1.600  800.0
+-bond	0601 1001 D 1.710  400.0
+-bond	0600 1001 S 1.800  381.6
+-bond	0603 1001 S 1.740  700.0
+-bond	0601 1000 S 1.780  360.0
+-bond	0600 1000 S 1.817  381.6
+-bond	0603 1000 S 1.770  360.0
+-bond	0700 1000 S 1.625  360.0
+-bond	0704 1000 S 1.625  360.0
+-bond	0801 1000 D 1.450  600.0
+-bond	1000 1000 S 2.030  600.0
+-bond	0601 1002 S 1.710  360.0
+-bond	0600 1002 S 1.800  381.6
+-bond	0801 1002 D 1.450  600.0
+-bond	0800 1002 S 1.500  600.0
+-bond	0600 1003 S 1.800  381.6
+-bond	0801 1003 D 1.450  600.0
+-bond	0800 1003 S 1.500  600.0
+-bond	FFFF 0100 S 1.008  700.0
++bond    0602 0602 T 1.204 1400.0
++bond    0602 0602 S 1.380  700.0
++bond    2300 0601 S 1.890  500.0
++bond    0602 0601 S 1.440 1340.0
++bond    0602 0601 D 1.440 1340.0
++bond    0601 0601 D 1.335 1340.0
++bond    0601 0601 S 1.470  700.0
++bond    0602 0600 S 1.458  640.0
++bond    0601 0600 S 1.501  639.0
++bond    0600 0600 S 1.540  633.6
++bond    2300 0603 S 1.850  500.0
++bond    0602 0603 S 1.440 1340.0
++bond    0601 0603 S 1.510 1340.0
++bond    0600 0603 S 1.525  640.0
++bond    0603 0603 C 1.395 1400.0
++bond    0603 0603 S 1.480 1000.0
++bond    0601 1100 S 1.750  520.0
++bond    0600 1100 S 1.767  600.0
++bond    0603 1100 S 1.750  513.4
++bond    0601 2300 S 1.850  520.0
++bond    0600 2300 S 1.867  600.0
++bond    0603 2300 S 1.850  513.4
++bond    0601 0900 S 1.330 1200.0
++bond    0600 0900 S 1.360  600.0
++bond    0603 0900 S 1.330  500.0
++bond    0602 0100 S 1.056  700.0
++bond    0601 0100 S 1.089  692.0
++bond    0600 0100 S 1.100  662.4
++bond    0603 0100 S 1.084  692.0
++bond    0600 3500 S 2.050  490.0    //added 20050225
++bond    0601 3500 S 2.050  490.0    //added 20050225
++bond    0602 3500 S 2.050  490.0    //added 20050225
++bond    0603 3500 S 2.050  490.0
++bond    0602 0702 T 1.158 1600.0
++bond    0602 0701 S 1.330 1300.0
++bond    0602 0701 D 1.330 1300.0
++bond    0601 0701 D 1.270 1305.9
++bond    0601 0701 S 1.444 1300.0
++bond    0600 0701 S 1.440  760.2
++bond    0603 0701 S 1.346 1305.9
++bond    0701 0701 D 1.346 1305.9
++bond    0701 0701 S 1.418 1300.0
++bond    0601 0700 S 1.330 1300.0
++bond    0600 0700 S 1.470  760.0
++bond    0603 0700 S 1.410  720.0
++bond    0100 0700 S 1.080  692.0
++bond    0601 0704 S 1.330 1300.0
++bond    0600 0704 S 1.470  760.0
++bond    0603 0704 S 1.410  720.0
++bond    0601 0705 S 1.345  870.1
++bond    0600 0705 S 1.450  677.6
++bond    0603 0705 S 1.416 1090.1
++bond    0100 0705 S 1.000  700.0
++bond    0701 0705 S 1.440  667.6
++bond    0705 0705 S 1.450  744.5
++bond    0603 0703 C 1.346 1305.9
++bond    0703 0703 C 1.330 1400.0
++bond    0601 0801 D 1.220 1555.2
++bond    0705 0801 S 1.240 1120.0
++bond    0705 0801 D 1.210  680.0
++bond    0601 0800 S 1.330  699.8
++bond    0600 0800 S 1.430  618.9
++bond    0603 0800 S 1.390  700.0
++bond    0100 0800 S 0.950 1007.5
++bond    0701 0800 S 1.405 1200.0
++bond    0705 0800 S 1.400  620.0
++bond    0800 0800 S 1.480 1172.2
++bond    0600 0F00 S 1.830  407.6
++bond    0801 0F00 S 1.490 1400.0
++bond    0801 0F00 D 1.490 1400.0
++bond    0800 0F00 S 1.600  800.0
++bond    0601 1001 D 1.710  400.0
++bond    0600 1001 S 1.800  381.6
++bond    0603 1001 S 1.740  700.0
++bond    0601 1000 S 1.780  360.0
++bond    0600 1000 S 1.817  381.6
++bond    0603 1000 S 1.770  360.0
++bond    0700 1000 S 1.625  360.0
++bond    0704 1000 S 1.625  360.0
++bond    0801 1000 D 1.450  600.0
++bond    1000 1000 S 2.030  600.0
++bond    0601 1002 S 1.710  360.0
++bond    0600 1002 S 1.800  381.6
++bond    0801 1002 D 1.450  600.0
++bond    0800 1002 S 1.500  600.0
++bond    0600 1003 S 1.800  381.6
++bond    0801 1003 D 1.450  600.0
++bond    0800 1003 S 1.500  600.0
++bond    FFFF 0100 S 1.008  700.0
+ 
+ // angle bending parameters 09.05.2000 (based on Tripos 5.2 and MMFF94)
+ // [id #1] [id #2] [id #3] [bt12][bt23] [opt] [fc]
+@@ -147,191 +147,191 @@ bond	FFFF 0100 S 1.008  700.0
+ // [opt] = deg
+ // [fc] = kcal/(mol * deg^2)
+ 
+-angle	0602 0602 0601 ?? 180.0 0.040
+-angle	0601 0602 0702 ?? 180.0 0.040
+-angle	0600 0602 0702 ?? 180.0 0.040
+-angle	0603 0602 0702 ?? 180.0 0.040
+-angle	0702 0602 0800 ?? 180.0 0.040
+-angle	2300 0601 2300 ?? 120.0 0.020
+-angle	2300 0601 0601 ?? 120.0 0.036
+-angle	0601 0601 0601 ?? 121.7 0.018
+-angle	0602 0601 0600 ?? 120.0 0.024
+-angle	0601 0601 0600 ?? 121.0 0.024
+-angle	0600 0601 0600 ?? 116.4 0.046
+-angle	0602 0601 0603 ?? 120.0 0.024
+-angle	0601 0601 0603 ?? 120.0 0.026
+-angle	0600 0601 0603 ?? 120.0 0.024
+-angle	0603 0601 0603 ?? 120.0 0.024
+-angle	0601 0601 1100 ?? 120.0 0.036
+-angle	0603 0601 1100 ?? 120.0 0.036
+-angle	1100 0601 1100 ?? 122.0 0.030
+-angle	0601 0601 2300 ?? 120.0 0.036
+-angle	0603 0601 2300 ?? 120.0 0.036
+-angle	2300 0601 2300 ?? 122.0 0.030
+-angle	0602 0601 0701 ?? 123.0 0.070
+-angle	0601 0601 0701 ?? 120.0 0.024
+-angle	0600 0601 0701 ?? 118.0 0.020
+-angle	0603 0601 0701 ?? 120.0 0.040
+-angle	0601 0601 0700 ?? 120.0 0.024
+-angle	0600 0601 0700 ?? 118.0 0.040
+-angle	0701 0601 0700 ?? 121.8 0.030
+-angle	0700 0601 0700 ?? 116.4 0.030
+-angle	0601 0601 0705 ?? 120.0 0.024
+-angle	0600 0601 0705 ?? 117.0 0.020
+-angle	0603 0601 0705 ?? 120.0 0.040
+-angle	0701 0601 0705 ?? 123.0 0.070
+-angle	0705 0601 0705 ?? 120.0 0.030
+-angle	0602 0601 0801 ?? 120.0 0.060
+-angle	0601 0601 0801 ?? 120.0 0.026
+-angle	0600 0601 0801 ?? 120.0 0.026
+-angle	0603 0601 0801 ?? 120.0 0.026
+-angle	0700 0601 0801 ?? 120.0 0.026
+-angle	0705 0601 0801 ?? 123.0 0.030
+-angle	0601 0601 0800 ?? 120.0 0.072
+-angle	0600 0601 0800 ?? 114.0 0.030
+-angle	0603 0601 0800 ?? 120.0 0.030
+-angle	0705 0601 0800 ?? 110.5 0.014
+-angle	0801 0601 0800 ?? 120.0 0.030
+-angle	0701 0601 1000 ?? 125.6 0.028
+-angle	0705 0601 1000 ?? 111.5 0.030
+-angle	0801 0601 1000 ?? 125.0 0.016
+-angle	0601 0600 0601 ?? 109.5 0.018
+-angle	0602 0600 0600 ?? 109.5 0.024
+-angle	0601 0600 0600 ?? 109.5 0.018
+-angle	0600 0600 0600 ?? 109.5 0.024
+-angle	0601 0600 0603 ?? 109.5 0.018
+-angle	0600 0600 0603 ?? 109.5 0.024
+-angle	0603 0600 0603 ?? 109.5 0.018
+-angle	0600 0600 1100 ?? 109.5 0.020
+-angle	1100 0600 1100 ?? 109.5 0.020
+-angle	0600 0600 2300 ?? 109.5 0.020
+-angle	2300 0600 2300 ?? 109.5 0.020
+-angle	0603 0600 0900 ?? 110.0 0.024
+-angle	0900 0600 0900 ?? 109.5 0.040
+-angle	0601 0600 0100 ?? 110.0 0.016
+-angle	0100 0600 0100 ?? 109.5 0.024
+-angle	0600 0600 0701 ?? 109.5 0.018
+-angle	0601 0600 0700 ?? 109.5 0.018
+-angle	0600 0600 0700 ?? 109.5 0.024
+-angle	0603 0600 0700 ?? 109.5 0.018
+-angle	0601 0600 0705 ?? 109.5 0.022
+-angle	0600 0600 0705 ?? 109.5 0.018
+-angle	0603 0600 0705 ?? 109.5 0.020
+-angle	0100 0600 0705 ?? 110.0 0.020
+-angle	0701 0600 0705 ?? 109.5 0.020
+-angle	0705 0600 0705 ?? 109.5 0.040
+-angle	0900 0600 0703 ?? 109.5 0.040
+-angle	0601 0600 0800 ?? 109.5 0.022
+-angle	0600 0600 0800 ?? 109.5 0.022
+-angle	0603 0600 0800 ?? 109.5 0.018
+-angle	0705 0600 0800 ?? 109.5 0.020
+-angle	0800 0600 0800 ?? 109.5 0.020
+-angle	0600 0600 0F00 ?? 112.0 0.014
+-angle	0601 0600 1001 ?? 109.5 0.018
+-angle	0600 0600 1001 ?? 109.5 0.018
+-angle	0705 0600 1001 ?? 109.5 0.040
+-angle	0601 0600 1000 ?? 107.8 0.018
+-angle	0600 0600 1000 ?? 107.8 0.018
+-angle	0603 0600 1000 ?? 107.8 0.018
+-angle	0705 0600 1000 ?? 109.5 0.024
+-angle	0800 0600 1000 ?? 107.8 0.020
+-angle	2300 0603 0603 ?? 120.0 0.036
+-angle	0601 0603 0603 ?? 120.0 0.024
+-angle	0600 0603 0603 ?? 120.0 0.024
+-angle	0603 0603 0603 ?? 120.0 0.024
+-angle	0603 0603 1100 ?? 120.0 0.036
+-angle	0603 0603 2300 ?? 120.0 0.036
+-angle	0603 0603 0900 ?? 120.0 0.036
+-angle	0603 0603 3500 ?? 120.0 0.036
+-angle	0600 0603 0701 ?? 120.0 0.040
+-angle	0603 0603 0701 ?? 120.0 0.040
+-angle	0701 0603 0701 ?? 120.0 0.040
+-angle	0603 0603 0700 ?? 120.0 0.062
+-angle	0600 0603 0705 ?? 120.0 0.040
+-angle	0603 0603 0705 ?? 120.0 0.062
+-angle	0701 0603 0705 ?? 118.0 0.040
+-angle	0705 0603 0705 ?? 120.0 0.030
+-angle	0601 0603 0703 ?? 120.0 0.040
+-angle	0600 0603 0703 ?? 120.0 0.040
+-angle	0603 0603 0703 ?? 120.0 0.024
+-angle	0705 0603 0703 ?? 118.0 0.040
+-angle	0600 0603 0800 ?? 120.0 0.040
+-angle	0603 0603 0800 ?? 120.0 0.062
+-angle	0603 0603 1001 ?? 120.0 0.062
+-angle	0603 0603 1000 ?? 120.0 0.062
+-angle	0602 0701 0601 ?? 120.0 0.040
+-angle	0601 0701 0601 ?? 123.0 0.080
+-angle	0601 0701 0600 ?? 110.0 0.082
+-angle	0601 0701 0603 ?? 123.0 0.080
+-angle	0600 0701 0603 ?? 110.0 0.082
+-angle	0603 0701 0603 ?? 120.0 0.040
+-angle	0601 0701 0701 ?? 112.0 0.044
+-angle	0600 0701 0701 ?? 118.0 0.040
+-angle	0603 0701 0701 ?? 118.0 0.040
+-angle	0601 0701 0705 ?? 120.0 0.044
+-angle	0601 0701 0800 ?? 105.0 0.044
+-angle	0601 0700 0600 ?? 110.0 0.040
+-angle	0600 0700 0600 ?? 109.5 0.018
+-angle	0600 0700 0603 ?? 118.0 0.040
+-angle	0603 0700 0603 ?? 118.0 0.040
+-angle	0600 0700 1001 ?? 109.5 0.040
+-angle	0600 0704 0600 ?? 109.5 0.018
+-angle	0601 0705 0601 ?? 120.0 0.018
+-angle	0601 0705 0600 ?? 118.0 0.044
+-angle	0600 0705 0600 ?? 122.0 0.040
+-angle	0601 0705 0603 ?? 120.0 0.052
+-angle	0600 0705 0603 ?? 118.0 0.044
+-angle	0603 0705 0603 ?? 120.0 0.044
+-angle	0601 0705 0100 ?? 119.0 0.016
+-angle	0600 0705 0100 ?? 117.0 0.020
+-angle	0601 0705 0701 ?? 120.0 0.018
+-angle	0600 0705 0701 ?? 120.0 0.024
+-angle	0603 0705 0701 ?? 109.5 0.044
+-angle	0601 0705 0705 ?? 120.0 0.018
+-angle	0600 0705 0705 ?? 120.0 0.024
+-angle	0603 0705 0705 ?? 120.0 0.052
+-angle	0601 0705 0801 ?? 120.0 0.024
+-angle	0600 0705 0801 ?? 120.0 0.020
+-angle	0603 0705 0801 ?? 120.0 0.024
+-angle	0801 0705 0801 ?? 120.0 0.020
+-angle	0603 0703 0603 ?? 120.0 0.040
+-angle	0601 0800 0601 ?? 110.0 0.020
+-angle	0601 0800 0600 ?? 109.5 0.044
+-angle	0600 0800 0600 ?? 109.5 0.044
+-angle	0601 0800 0603 ?? 110.0 0.020
+-angle	0600 0800 0603 ?? 110.0 0.020
+-angle	0603 0800 0603 ?? 110.0 0.020
+-angle	0601 0800 0701 ?? 108.5 0.044
+-angle	0600 0800 0800 ?? 103.9 0.094
+-angle	0600 0800 0F00 ?? 120.0 0.010
+-angle	0801 0F00 0801 ?? 109.5 0.020
+-angle	0801 0F00 0800 ?? 109.5 0.020
+-angle	0800 0F00 0800 ?? 109.5 0.020
+-angle	0600 1001 0700 ?? 111.0 0.040
+-angle	0603 1001 0700 ?? 111.0 0.040
+-angle	0601 1000 0600 ??  94.3 0.022
+-angle	0600 1000 0600 ??  98.0 0.020
+-angle	0603 1000 0603 ??  97.5 0.062
+-angle	0603 1000 1000 ?? 102.9 0.060
+-angle	0801 1003 0801 ?? 118.0 0.040
+-angle	FFFF 0601 0100 ?? 120.0 0.012
+-angle	FFFF 0600 0100 ?? 109.5 0.016
+-angle	FFFF 1002 0801 ?? 107.0 0.040
+-angle	FFFF 1003 0801 ?? 107.0 0.040
+-angle	FFFF 0602 FFFF ?? 180.0 0.040
+-angle	FFFF 0601 FFFF ?? 120.0 0.024
+-angle	FFFF 0600 FFFF ?? 109.5 0.020
+-angle	FFFF 0603 FFFF ?? 120.0 0.024
+-angle	FFFF 0702 FFFF ?? 180.0 0.080
+-angle	FFFF 0701 FFFF ?? 120.0 0.040
+-angle	FFFF 0700 FFFF ?? 109.5 0.040
+-angle	FFFF 0704 FFFF ?? 109.5 0.010
+-angle	FFFF 0705 FFFF ?? 120.0 0.020
+-angle	FFFF 0703 FFFF ?? 120.0 0.020
+-angle	FFFF 0800 FFFF ?? 109.5 0.020
+-angle	FFFF 0F00 FFFF ?? 109.5 0.020
+-angle	FFFF 1001 FFFF ?? 110.5 0.040
+-angle	FFFF 1000 FFFF ??  97.0 0.020
++angle    0602 0602 0601 ?? 180.0 0.040
++angle    0601 0602 0702 ?? 180.0 0.040
++angle    0600 0602 0702 ?? 180.0 0.040
++angle    0603 0602 0702 ?? 180.0 0.040
++angle    0702 0602 0800 ?? 180.0 0.040
++angle    2300 0601 2300 ?? 120.0 0.020
++angle    2300 0601 0601 ?? 120.0 0.036
++angle    0601 0601 0601 ?? 121.7 0.018
++angle    0602 0601 0600 ?? 120.0 0.024
++angle    0601 0601 0600 ?? 121.0 0.024
++angle    0600 0601 0600 ?? 116.4 0.046
++angle    0602 0601 0603 ?? 120.0 0.024
++angle    0601 0601 0603 ?? 120.0 0.026
++angle    0600 0601 0603 ?? 120.0 0.024
++angle    0603 0601 0603 ?? 120.0 0.024
++angle    0601 0601 1100 ?? 120.0 0.036
++angle    0603 0601 1100 ?? 120.0 0.036
++angle    1100 0601 1100 ?? 122.0 0.030
++angle    0601 0601 2300 ?? 120.0 0.036
++angle    0603 0601 2300 ?? 120.0 0.036
++angle    2300 0601 2300 ?? 122.0 0.030
++angle    0602 0601 0701 ?? 123.0 0.070
++angle    0601 0601 0701 ?? 120.0 0.024
++angle    0600 0601 0701 ?? 118.0 0.020
++angle    0603 0601 0701 ?? 120.0 0.040
++angle    0601 0601 0700 ?? 120.0 0.024
++angle    0600 0601 0700 ?? 118.0 0.040
++angle    0701 0601 0700 ?? 121.8 0.030
++angle    0700 0601 0700 ?? 116.4 0.030
++angle    0601 0601 0705 ?? 120.0 0.024
++angle    0600 0601 0705 ?? 117.0 0.020
++angle    0603 0601 0705 ?? 120.0 0.040
++angle    0701 0601 0705 ?? 123.0 0.070
++angle    0705 0601 0705 ?? 120.0 0.030
++angle    0602 0601 0801 ?? 120.0 0.060
++angle    0601 0601 0801 ?? 120.0 0.026
++angle    0600 0601 0801 ?? 120.0 0.026
++angle    0603 0601 0801 ?? 120.0 0.026
++angle    0700 0601 0801 ?? 120.0 0.026
++angle    0705 0601 0801 ?? 123.0 0.030
++angle    0601 0601 0800 ?? 120.0 0.072
++angle    0600 0601 0800 ?? 114.0 0.030
++angle    0603 0601 0800 ?? 120.0 0.030
++angle    0705 0601 0800 ?? 110.5 0.014
++angle    0801 0601 0800 ?? 120.0 0.030
++angle    0701 0601 1000 ?? 125.6 0.028
++angle    0705 0601 1000 ?? 111.5 0.030
++angle    0801 0601 1000 ?? 125.0 0.016
++angle    0601 0600 0601 ?? 109.5 0.018
++angle    0602 0600 0600 ?? 109.5 0.024
++angle    0601 0600 0600 ?? 109.5 0.018
++angle    0600 0600 0600 ?? 109.5 0.024
++angle    0601 0600 0603 ?? 109.5 0.018
++angle    0600 0600 0603 ?? 109.5 0.024
++angle    0603 0600 0603 ?? 109.5 0.018
++angle    0600 0600 1100 ?? 109.5 0.020
++angle    1100 0600 1100 ?? 109.5 0.020
++angle    0600 0600 2300 ?? 109.5 0.020
++angle    2300 0600 2300 ?? 109.5 0.020
++angle    0603 0600 0900 ?? 110.0 0.024
++angle    0900 0600 0900 ?? 109.5 0.040
++angle    0601 0600 0100 ?? 110.0 0.016
++angle    0100 0600 0100 ?? 109.5 0.024
++angle    0600 0600 0701 ?? 109.5 0.018
++angle    0601 0600 0700 ?? 109.5 0.018
++angle    0600 0600 0700 ?? 109.5 0.024
++angle    0603 0600 0700 ?? 109.5 0.018
++angle    0601 0600 0705 ?? 109.5 0.022
++angle    0600 0600 0705 ?? 109.5 0.018
++angle    0603 0600 0705 ?? 109.5 0.020
++angle    0100 0600 0705 ?? 110.0 0.020
++angle    0701 0600 0705 ?? 109.5 0.020
++angle    0705 0600 0705 ?? 109.5 0.040
++angle    0900 0600 0703 ?? 109.5 0.040
++angle    0601 0600 0800 ?? 109.5 0.022
++angle    0600 0600 0800 ?? 109.5 0.022
++angle    0603 0600 0800 ?? 109.5 0.018
++angle    0705 0600 0800 ?? 109.5 0.020
++angle    0800 0600 0800 ?? 109.5 0.020
++angle    0600 0600 0F00 ?? 112.0 0.014
++angle    0601 0600 1001 ?? 109.5 0.018
++angle    0600 0600 1001 ?? 109.5 0.018
++angle    0705 0600 1001 ?? 109.5 0.040
++angle    0601 0600 1000 ?? 107.8 0.018
++angle    0600 0600 1000 ?? 107.8 0.018
++angle    0603 0600 1000 ?? 107.8 0.018
++angle    0705 0600 1000 ?? 109.5 0.024
++angle    0800 0600 1000 ?? 107.8 0.020
++angle    2300 0603 0603 ?? 120.0 0.036
++angle    0601 0603 0603 ?? 120.0 0.024
++angle    0600 0603 0603 ?? 120.0 0.024
++angle    0603 0603 0603 ?? 120.0 0.024
++angle    0603 0603 1100 ?? 120.0 0.036
++angle    0603 0603 2300 ?? 120.0 0.036
++angle    0603 0603 0900 ?? 120.0 0.036
++angle    0603 0603 3500 ?? 120.0 0.036
++angle    0600 0603 0701 ?? 120.0 0.040
++angle    0603 0603 0701 ?? 120.0 0.040
++angle    0701 0603 0701 ?? 120.0 0.040
++angle    0603 0603 0700 ?? 120.0 0.062
++angle    0600 0603 0705 ?? 120.0 0.040
++angle    0603 0603 0705 ?? 120.0 0.062
++angle    0701 0603 0705 ?? 118.0 0.040
++angle   0705 0603 0705 ?? 120.0 0.030
++angle    0601 0603 0703 ?? 120.0 0.040
++angle    0600 0603 0703 ?? 120.0 0.040
++angle    0603 0603 0703 ?? 120.0 0.024
++angle    0705 0603 0703 ?? 118.0 0.040
++angle    0600 0603 0800 ?? 120.0 0.040
++angle    0603 0603 0800 ?? 120.0 0.062
++angle    0603 0603 1001 ?? 120.0 0.062
++angle    0603 0603 1000 ?? 120.0 0.062
++angle    0602 0701 0601 ?? 120.0 0.040
++angle    0601 0701 0601 ?? 123.0 0.080
++angle    0601 0701 0600 ?? 110.0 0.082
++angle    0601 0701 0603 ?? 123.0 0.080
++angle    0600 0701 0603 ?? 110.0 0.082
++angle    0603 0701 0603 ?? 120.0 0.040
++angle    0601 0701 0701 ?? 112.0 0.044
++angle    0600 0701 0701 ?? 118.0 0.040
++angle    0603 0701 0701 ?? 118.0 0.040
++angle    0601 0701 0705 ?? 120.0 0.044
++angle    0601 0701 0800 ?? 105.0 0.044
++angle    0601 0700 0600 ?? 110.0 0.040
++angle    0600 0700 0600 ?? 109.5 0.018
++angle    0600 0700 0603 ?? 118.0 0.040
++angle    0603 0700 0603 ?? 118.0 0.040
++angle    0600 0700 1001 ?? 109.5 0.040
++angle    0600 0704 0600 ?? 109.5 0.018
++angle    0601 0705 0601 ?? 120.0 0.018
++angle    0601 0705 0600 ?? 118.0 0.044
++angle    0600 0705 0600 ?? 122.0 0.040
++angle    0601 0705 0603 ?? 120.0 0.052
++angle    0600 0705 0603 ?? 118.0 0.044
++angle    0603 0705 0603 ?? 120.0 0.044
++angle    0601 0705 0100 ?? 119.0 0.016
++angle    0600 0705 0100 ?? 117.0 0.020
++angle    0601 0705 0701 ?? 120.0 0.018
++angle    0600 0705 0701 ?? 120.0 0.024
++angle    0603 0705 0701 ?? 109.5 0.044
++angle    0601 0705 0705 ?? 120.0 0.018
++angle    0600 0705 0705 ?? 120.0 0.024
++angle    0603 0705 0705 ?? 120.0 0.052
++angle    0601 0705 0801 ?? 120.0 0.024
++angle    0600 0705 0801 ?? 120.0 0.020
++angle    0603 0705 0801 ?? 120.0 0.024
++angle    0801 0705 0801 ?? 120.0 0.020
++angle    0603 0703 0603 ?? 120.0 0.040
++angle    0601 0800 0601 ?? 110.0 0.020
++angle    0601 0800 0600 ?? 109.5 0.044
++angle    0600 0800 0600 ?? 109.5 0.044
++angle    0601 0800 0603 ?? 110.0 0.020
++angle    0600 0800 0603 ?? 110.0 0.020
++angle    0603 0800 0603 ?? 110.0 0.020
++angle    0601 0800 0701 ?? 108.5 0.044
++angle    0600 0800 0800 ?? 103.9 0.094
++angle    0600 0800 0F00 ?? 120.0 0.010
++angle    0801 0F00 0801 ?? 109.5 0.020
++angle    0801 0F00 0800 ?? 109.5 0.020
++angle    0800 0F00 0800 ?? 109.5 0.020
++angle    0600 1001 0700 ?? 111.0 0.040
++angle    0603 1001 0700 ?? 111.0 0.040
++angle    0601 1000 0600 ??  94.3 0.022
++angle    0600 1000 0600 ??  98.0 0.020
++angle    0603 1000 0603 ??  97.5 0.062
++angle    0603 1000 1000 ?? 102.9 0.060
++angle    0801 1003 0801 ?? 118.0 0.040
++angle    FFFF 0601 0100 ?? 120.0 0.012
++angle    FFFF 0600 0100 ?? 109.5 0.016
++angle    FFFF 1002 0801 ?? 107.0 0.040
++angle    FFFF 1003 0801 ?? 107.0 0.040
++angle    FFFF 0602 FFFF ?? 180.0 0.040
++angle    FFFF 0601 FFFF ?? 120.0 0.024
++angle    FFFF 0600 FFFF ?? 109.5 0.020
++angle    FFFF 0603 FFFF ?? 120.0 0.024
++angle    FFFF 0702 FFFF ?? 180.0 0.080
++angle    FFFF 0701 FFFF ?? 120.0 0.040
++angle    FFFF 0700 FFFF ?? 109.5 0.040
++angle    FFFF 0704 FFFF ?? 109.5 0.010
++angle    FFFF 0705 FFFF ?? 120.0 0.020
++angle    FFFF 0703 FFFF ?? 120.0 0.020
++angle    FFFF 0800 FFFF ?? 109.5 0.020
++angle    FFFF 0F00 FFFF ?? 109.5 0.020
++angle    FFFF 1001 FFFF ?? 110.5 0.040
++angle    FFFF 1000 FFFF ??  97.0 0.020
+ 
+ // torsion parameters 09.05.2000 (based on Tripos 5.2 and MMFF94)
+ // [id #1] [id #2] [id #3] [id #4] [bt12][bt23][bt34] [k] [n] [s]
+@@ -341,76 +341,76 @@ angle	FFFF 1000 FFFF ??  97.0 0.020
+ //
+ // [k] = kcal/mol (rotational barrier ???)
+ 
+-torsion	0801 0601 0600 0600 ?S?  0.700 - 3.0
+-torsion	0601 0600 0600 0601 ?S?  0.040 + 3.0
+-torsion	0601 0600 0600 0600 ?S?  0.126 + 3.0
+-torsion	0600 0600 0600 0600 ?S?  0.500 + 3.0
+-torsion	0601 0601 0600 0601 ?S?  0.126 - 3.0
+-torsion	0601 0601 0600 0100 ?S?  0.273 - 3.0
+-torsion	0600 0601 0600 0601 ?S?  0.126 + 3.0
+-torsion	0600 0601 0600 0600 ?S?  0.126 + 3.0
+-torsion	0600 0601 0600 0100 ?S?  0.274 + 3.0
+-torsion	0100 0601 0600 0601 ?S?  0.274 + 3.0
+-torsion	0100 0601 0600 0600 ?S?  0.274 + 3.0
+-torsion	0100 0601 0600 0100 ?S?  0.274 + 3.0
+-torsion	0601 0601 0600 0600 ?S?  0.126 - 3.0
+-torsion	FFFF 0601 0600 0601 ?S?  0.126 + 3.0
+-torsion	FFFF 0601 0600 0600 ?S?  0.126 + 3.0
+-torsion	FFFF 0601 0600 0100 ?S?  0.274 + 3.0
+-torsion	FFFF 0600 0600 0100 ?S?  0.320 + 3.0
+-torsion	0601 0601 0600 FFFF ?S?  0.126 - 3.0
+-torsion	0600 0601 0600 FFFF ?S?  0.126 + 3.0
+-torsion	0100 0601 0600 FFFF ?S?  0.274 + 3.0
+-torsion	FFFF 0602 0602 FFFF ?T?  0.000 + 1.0
+-torsion	FFFF 0602 0602 FFFF ?S?  0.000 + 1.0
+-torsion	FFFF 0602 0601 FFFF ?S?  0.000 + 1.0
+-torsion	FFFF 0602 0601 FFFF ?D?  0.000 + 1.0
+-torsion	FFFF 0601 0601 FFFF ?D? 12.500 - 2.0
+-torsion	FFFF 0601 0601 FFFF ?S?  1.424 - 2.0
+-torsion	FFFF 0602 0600 FFFF ?S?  0.000 + 1.0
+-torsion	FFFF 0601 0600 FFFF ?S?  0.120 - 3.0
+-torsion	FFFF 0600 0600 FFFF ?S?  0.200 + 3.0
+-torsion	FFFF 0602 0603 FFFF ?S?  0.000 + 1.0
+-torsion	FFFF 0601 0603 FFFF ?S?  1.600 - 2.0
+-torsion	FFFF 0600 0603 FFFF ?S?  0.120 - 3.0
+-torsion	FFFF 0603 0603 FFFF ?C?  2.000 - 2.0
+-torsion	FFFF 0603 0603 FFFF ?S?  0.600 - 2.0
+-torsion	FFFF 0602 0701 FFFF ?S?  0.000 + 1.0
+-torsion	FFFF 0602 0701 FFFF ?D?  0.000 + 1.0
+-torsion	FFFF 0601 0701 FFFF ?D? 12.000 - 2.0
+-torsion	FFFF 0601 0701 FFFF ?S? 12.000 - 2.0
+-torsion	FFFF 0600 0701 FFFF ?S?  0.400 - 3.0
+-torsion	FFFF 0603 0701 FFFF ?S?  1.600 - 2.0
+-torsion	FFFF 0701 0701 FFFF ?D?  1.600 - 2.0
+-torsion	FFFF 0701 0701 FFFF ?S?  1.600 - 2.0
+-torsion	FFFF 0601 0700 FFFF ?S?  0.120 - 3.0
+-torsion	FFFF 0600 0700 FFFF ?S?  0.200 + 3.0
+-torsion	FFFF 0603 0700 FFFF ?S?  0.120 - 3.0
+-torsion	FFFF 0700 0700 FFFF ?S?  0.200 + 3.0
+-torsion	FFFF 0601 0705 FFFF ?S?  6.460 - 2.0
+-torsion	FFFF 0600 0705 FFFF ?S?  0.200 + 3.0
+-torsion	FFFF 0603 0705 FFFF ?S?  1.600 - 2.0
+-torsion	FFFF 0701 0705 FFFF ?S?  1.600 - 2.0
+-torsion	FFFF 0700 0705 FFFF ?S?  0.120 - 3.0
+-torsion	FFFF 0705 0705 FFFF ?S?  1.600 - 2.0
+-torsion	FFFF 0603 0703 FFFF ?C?  1.600 - 2.0
+-torsion	FFFF 0601 0800 FFFF ?S?  5.800 - 2.0
+-torsion	FFFF 0600 0800 FFFF ?S?  1.200 + 3.0
+-torsion	FFFF 0603 0800 FFFF ?S?  1.200 - 2.0
+-torsion	FFFF 0701 0800 FFFF ?S?  1.000 + 2.0
+-torsion	FFFF 0700 0800 FFFF ?S?  0.200 + 3.0
+-torsion	FFFF 0601 0F00 FFFF ?S?  1.000 - 2.0
+-torsion	FFFF 0600 0F00 FFFF ?S?  0.400 + 3.0
+-torsion	FFFF 0603 0F00 FFFF ?S?  1.000 + 3.0
+-torsion	FFFF 0800 0F00 FFFF ?S?  0.400 + 3.0
+-torsion	FFFF 0601 1001 FFFF ?D?  1.000 - 2.0
+-torsion	FFFF 0600 1001 FFFF ?S?  0.400 + 3.0
+-torsion	FFFF 0603 1001 FFFF ?S?  1.000 + 3.0
+-torsion	FFFF 0700 1001 FFFF ?S?  0.400 + 3.0
+-torsion	FFFF 0601 1000 FFFF ?S?  1.000 - 2.0
+-torsion	FFFF 0600 1000 FFFF ?S?  0.400 + 3.0
+-torsion	FFFF 0603 1000 FFFF ?S?  1.000 + 3.0
+-torsion	FFFF 1000 1000 FFFF ?S?  4.000 + 3.0
++torsion    0801 0601 0600 0600 ?S?  0.700 - 3.0
++torsion    0601 0600 0600 0601 ?S?  0.040 + 3.0
++torsion    0601 0600 0600 0600 ?S?  0.126 + 3.0
++torsion    0600 0600 0600 0600 ?S?  0.500 + 3.0
++torsion    0601 0601 0600 0601 ?S?  0.126 - 3.0
++torsion    0601 0601 0600 0100 ?S?  0.273 - 3.0
++torsion    0600 0601 0600 0601 ?S?  0.126 + 3.0
++torsion    0600 0601 0600 0600 ?S?  0.126 + 3.0
++torsion    0600 0601 0600 0100 ?S?  0.274 + 3.0
++torsion    0100 0601 0600 0601 ?S?  0.274 + 3.0
++torsion    0100 0601 0600 0600 ?S?  0.274 + 3.0
++torsion    0100 0601 0600 0100 ?S?  0.274 + 3.0
++torsion    0601 0601 0600 0600 ?S?  0.126 - 3.0
++torsion    FFFF 0601 0600 0601 ?S?  0.126 + 3.0
++torsion    FFFF 0601 0600 0600 ?S?  0.126 + 3.0
++torsion    FFFF 0601 0600 0100 ?S?  0.274 + 3.0
++torsion    FFFF 0600 0600 0100 ?S?  0.320 + 3.0
++torsion    0601 0601 0600 FFFF ?S?  0.126 - 3.0
++torsion    0600 0601 0600 FFFF ?S?  0.126 + 3.0
++torsion    0100 0601 0600 FFFF ?S?  0.274 + 3.0
++torsion    FFFF 0602 0602 FFFF ?T?  0.000 + 1.0
++torsion    FFFF 0602 0602 FFFF ?S?  0.000 + 1.0
++torsion    FFFF 0602 0601 FFFF ?S?  0.000 + 1.0
++torsion    FFFF 0602 0601 FFFF ?D?  0.000 + 1.0
++torsion    FFFF 0601 0601 FFFF ?D? 12.500 - 2.0
++torsion    FFFF 0601 0601 FFFF ?S?  1.424 - 2.0
++torsion    FFFF 0602 0600 FFFF ?S?  0.000 + 1.0
++torsion    FFFF 0601 0600 FFFF ?S?  0.120 - 3.0
++torsion    FFFF 0600 0600 FFFF ?S?  0.200 + 3.0
++torsion    FFFF 0602 0603 FFFF ?S?  0.000 + 1.0
++torsion    FFFF 0601 0603 FFFF ?S?  1.600 - 2.0
++torsion    FFFF 0600 0603 FFFF ?S?  0.120 - 3.0
++torsion    FFFF 0603 0603 FFFF ?C?  2.000 - 2.0
++torsion    FFFF 0603 0603 FFFF ?S?  0.600 - 2.0
++torsion    FFFF 0602 0701 FFFF ?S?  0.000 + 1.0
++torsion    FFFF 0602 0701 FFFF ?D?  0.000 + 1.0
++torsion    FFFF 0601 0701 FFFF ?D? 12.000 - 2.0
++torsion    FFFF 0601 0701 FFFF ?S? 12.000 - 2.0
++torsion    FFFF 0600 0701 FFFF ?S?  0.400 - 3.0
++torsion    FFFF 0603 0701 FFFF ?S?  1.600 - 2.0
++torsion    FFFF 0701 0701 FFFF ?D?  1.600 - 2.0
++torsion    FFFF 0701 0701 FFFF ?S?  1.600 - 2.0
++torsion    FFFF 0601 0700 FFFF ?S?  0.120 - 3.0
++torsion    FFFF 0600 0700 FFFF ?S?  0.200 + 3.0
++torsion    FFFF 0603 0700 FFFF ?S?  0.120 - 3.0
++torsion    FFFF 0700 0700 FFFF ?S?  0.200 + 3.0
++torsion    FFFF 0601 0705 FFFF ?S?  6.460 - 2.0
++torsion    FFFF 0600 0705 FFFF ?S?  0.200 + 3.0
++torsion    FFFF 0603 0705 FFFF ?S?  1.600 - 2.0
++torsion    FFFF 0701 0705 FFFF ?S?  1.600 - 2.0
++torsion    FFFF 0700 0705 FFFF ?S?  0.120 - 3.0
++torsion    FFFF 0705 0705 FFFF ?S?  1.600 - 2.0
++torsion    FFFF 0603 0703 FFFF ?C?  1.600 - 2.0
++torsion    FFFF 0601 0800 FFFF ?S?  5.800 - 2.0
++torsion    FFFF 0600 0800 FFFF ?S?  1.200 + 3.0
++torsion    FFFF 0603 0800 FFFF ?S?  1.200 - 2.0
++torsion    FFFF 0701 0800 FFFF ?S?  1.000 + 2.0
++torsion    FFFF 0700 0800 FFFF ?S?  0.200 + 3.0
++torsion    FFFF 0601 0F00 FFFF ?S?  1.000 - 2.0
++torsion    FFFF 0600 0F00 FFFF ?S?  0.400 + 3.0
++torsion    FFFF 0603 0F00 FFFF ?S?  1.000 + 3.0
++torsion    FFFF 0800 0F00 FFFF ?S?  0.400 + 3.0
++torsion    FFFF 0601 1001 FFFF ?D?  1.000 - 2.0
++torsion    FFFF 0600 1001 FFFF ?S?  0.400 + 3.0
++torsion    FFFF 0603 1001 FFFF ?S?  1.000 + 3.0
++torsion    FFFF 0700 1001 FFFF ?S?  0.400 + 3.0
++torsion    FFFF 0601 1000 FFFF ?S?  1.000 - 2.0
++torsion    FFFF 0600 1000 FFFF ?S?  0.400 + 3.0
++torsion    FFFF 0603 1000 FFFF ?S?  1.000 + 3.0
++torsion    FFFF 1000 1000 FFFF ?S?  4.000 + 3.0
+ 
+ // lenjon-parameters 09.05.2000 (based on Tripos 5.2 and MMFF94)
+ // [id] [r] [k]
+@@ -418,31 +418,31 @@ torsion	FFFF 1000 1000 FFFF ?S?  4.000 + 3.0
+ // [r] = Å
+ // [k] = kcal/mol
+ 
+-vdw	0100 1.50 0.042
+-vdw	0600 1.70 0.107
+-vdw	0601 1.70 0.107
+-vdw	0602 1.70 0.107
+-vdw	0603 1.70 0.107
+-vdw	0604 1.70 0.107
+-vdw	0605 1.70 0.107
+-vdw	0700 1.55 0.095
+-vdw	0701 1.55 0.095
+-vdw	0702 1.55 0.095
+-vdw	0703 1.55 0.095
+-vdw	0704 1.55 0.095
+-vdw	0705 1.55 0.095
+-vdw	0800 1.52 0.116
+-vdw	0801 1.52 0.116
+-vdw	0900 1.47 0.109
+-vdw	0F00 1.80 0.314
+-vdw	1000 1.80 0.314
+-vdw	1001 1.80 0.314
+-vdw	1002 1.80 0.314
+-vdw	1003 1.80 0.314
+-vdw	1100 1.75 0.314
+-vdw	2300 1.85 0.434
+-vdw	3500 1.98 0.623
+-vdw	FFFF 1.50 0.042
++vdw    0100 1.50 0.042
++vdw    0600 1.70 0.107
++vdw    0601 1.70 0.107
++vdw    0602 1.70 0.107
++vdw    0603 1.70 0.107
++vdw    0604 1.70 0.107
++vdw    0605 1.70 0.107
++vdw    0700 1.55 0.095
++vdw    0701 1.55 0.095
++vdw    0702 1.55 0.095
++vdw    0703 1.55 0.095
++vdw    0704 1.55 0.095
++vdw    0705 1.55 0.095
++vdw    0800 1.52 0.116
++vdw    0801 1.52 0.116
++vdw    0900 1.47 0.109
++vdw    0F00 1.80 0.314
++vdw    1000 1.80 0.314
++vdw    1001 1.80 0.314
++vdw    1002 1.80 0.314
++vdw    1003 1.80 0.314
++vdw    1100 1.75 0.314
++vdw    2300 1.85 0.434
++vdw    3500 1.98 0.623
++vdw    FFFF 1.50 0.042
+ 
+ // atomic charge parameters 09.05.2000 (based on Tripos 5.2 and MMFF94)
+ // [id #1] [id #2] [delta]
+diff --git a/cpp/openbabel-src/openbabel/data/patty.rules b/cpp/openbabel-src/openbabel/data/patty.rules
+index 295889b51..4932aed9d 100644
+--- a/cpp/openbabel-src/openbabel/data/patty.rules
++++ b/cpp/openbabel-src/openbabel/data/patty.rules
+@@ -133,7 +133,7 @@ S=[#8,#16;X1]                                   OTH     # dative sulfoxides
+ # diaminopyrimidine (ring Ns are POL)
+ #
+ #        *==*
+-#       /    \  
++#       /    \
+ #     :N      C--NH2            (aromatic)
+ #      \\    #  
+ #        C--N:
+@@ -186,7 +186,7 @@ O=C-*:[#6](*)[OH]                 POL
+ [#8,#16,#34;D1]C=[#8,#16,#34]           ANI
+ [#8,#16,#34]=C[#8,#16,#34;D1]           ANI
+ #        *==*
+-#       /    \  
++#       /    \
+ #      *      C==O              (aromatic)
+ #      \\    /
+ #        C--C                   And 4 Cs away
+diff --git a/cpp/openbabel-src/openbabel/include/RDKitConv.h b/cpp/openbabel-src/openbabel/include/RDKitConv.h
+index f7e29b013..341558810 100644
+--- a/cpp/openbabel-src/openbabel/include/RDKitConv.h
++++ b/cpp/openbabel-src/openbabel/include/RDKitConv.h
+@@ -1,7 +1,7 @@
+ #include <openbabel/mol.h>
+ #include <openbabel/obiter.h>
+-#include <graphmol/RWMol.h>
+-#include <graphmol/Atom.h>
++#include <GraphMol/RWMol.h>
++#include <GraphMol/Atom.h>
+ 
+ ///Convert OpenBabel OBMol to and from RGKit molecules
+ RDKit::RWMol OBMolToRWMol(OpenBabel::OBMol* pOBMol);
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/inchiformat.h b/cpp/openbabel-src/openbabel/include/openbabel/inchiformat.h
+index 9e2db8054..04cf30f32 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/inchiformat.h
++++ b/cpp/openbabel-src/openbabel/include/openbabel/inchiformat.h
+@@ -131,7 +131,6 @@ public:
+   // and "CH4" is less than "C2H6"
+   // and "CH4" is less than "ClH" (hydrogen chloride)
+   struct InchiLess
+-    : public std::binary_function<const std::string&, const std::string&, bool>
+   {
+     bool operator()(const std::string& s1, const std::string& s2) const
+     {
+@@ -146,12 +145,14 @@ public:
+           {
+             n1 = atoi(&*p1);
+             //skip over number
+-            while(p1!=s1.end() && isdigit(*p1++)); --p1;
++            while(p1!=s1.end() && isdigit(*p1++)) {}
++            --p1;
+           }
+         if(isdigit(*p2))
+           {
+             n2 = atoi(&*p2);
+-            while(p2!=s2.end() && isdigit(*p2++)); --p2;
++            while(p2!=s2.end() && isdigit(*p2++)) {}
++            --p2;
+           }
+         if(n1<0 && n2 < 0)
+           {
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/math/matrix3x3.h b/cpp/openbabel-src/openbabel/include/openbabel/math/matrix3x3.h
+index 82b22b56c..b98b24fdf 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/math/matrix3x3.h
++++ b/cpp/openbabel-src/openbabel/include/openbabel/math/matrix3x3.h
+@@ -281,7 +281,7 @@ namespace OpenBabel
+       friend OBAPI std::ostream& operator<< ( std::ostream&, const matrix3x3 & ) ;
+ 
+       //! Eigenvalue calculation
+-      static void jacobi(unsigned int n, double *a, double *d, double *v);
++      static void jacobi(int n, double *a, double *d, double *v);
+     };
+ 
+ #ifndef SWIG
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/obmolecformat.h b/cpp/openbabel-src/openbabel/include/openbabel/obmolecformat.h
+index a4159f4ca..fe4df4c7a 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/obmolecformat.h
++++ b/cpp/openbabel-src/openbabel/include/openbabel/obmolecformat.h
+@@ -142,7 +142,7 @@ public:
+ #endif
+ 
+ #ifdef _MSC_VER
+-  typedef std::tr1::unordered_map<std::string, unsigned> NameIndexType;
++  typedef std::unordered_map<std::string, unsigned> NameIndexType;
+ #elif defined(_LIBCPP_VERSION)
+   typedef std::unordered_map<std::string, unsigned> NameIndexType;
+ #elif (__GNUC__ == 4 && __GNUC_MINOR__ >= 1 && !defined(__APPLE_CC__)) || defined (USE_BOOST)
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/obutil.h b/cpp/openbabel-src/openbabel/include/openbabel/obutil.h
+index 233ab0b65..2b4fded85 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/obutil.h
++++ b/cpp/openbabel-src/openbabel/include/openbabel/obutil.h
+@@ -24,6 +24,7 @@ GNU General Public License for more details.
+ 
+ #include <string>
+ #include <iosfwd>
++#include <fstream>
+ 
+ #if TIME_WITH_SYS_TIME
+ #include <sys/time.h>
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/plugin.h b/cpp/openbabel-src/openbabel/include/openbabel/plugin.h
+index 9f1b1efd7..b2591f03f 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/plugin.h
++++ b/cpp/openbabel-src/openbabel/include/openbabel/plugin.h
+@@ -20,7 +20,6 @@ General Public License for more details.
+ #define OB_PLUGIN_H
+ 
+ #include <openbabel/babelconfig.h>
+-#include <openbabel/dlhandler.h>
+ #include <string>
+ #include <iostream>
+ #include <vector>
+@@ -38,7 +37,7 @@ namespace OpenBabel
+ ///@{
+ 
+ /// @brief Case insensitive string comparison for PluginMapType key.
+-struct OBERROR CharPtrLess : public std::binary_function<const char*,const char*, bool>
++struct OBERROR CharPtrLess
+ {
+   bool operator()(const char* p1,const char* p2) const
+   { return strcasecmp(p1,p2)<0; }
+@@ -150,53 +149,13 @@ protected:
+   const char* _id;
+ };
+ 
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-
+-//Macro to be added to definition of the base class
+-#define MAKE_PLUGIN(BaseClass)\
+-protected:\
+-  static PluginMapType& Map();\
+-  virtual PluginMapType& GetMap() const {\
+-    return Map();\
+-  }\
+-public:\
+-  static BaseClass*& Default() {\
+-    static BaseClass* d;\
+-    return d;\
+-  }\
+-  BaseClass(const char* ID, bool IsDefault=false) {\
+-    _id=ID;\
+-    if (ID&&*ID) {\
+-      if (IsDefault || Map().empty()) {\
+-        Default() = this;\
+-      }\
+-      if (Map().count(ID) == 0) {\
+-        Map()[ID] = this;\
+-        PluginMap()[TypeID()] = this;\
+-      }\
+-    }\
+-  }\
+-  static BaseClass* FindType(const char* ID) {\
+-    if (!ID || *ID==0 || *ID==' ') {\
+-      return Default();\
+-    }\
+-    return static_cast<BaseClass*>(BaseFindType(Map(),ID));\
+-  }
+-
+-#define PLUGIN_CPP_FILE(BaseClass)\
+-OBPlugin::PluginMapType& BaseClass::Map() {\
+-  static OBPlugin::PluginMapType map;\
+-  return map;\
+-}
+-
+-#else // __CYGWIN__ || __MINGW32__
+-
+ //Macro to be added to definition of the base class
+ #define MAKE_PLUGIN(BaseClass)\
++private:\
++   inline static PluginMapType mPluginMapHolder;\
+ protected:\
+   static PluginMapType& Map() {\
+-    static PluginMapType m;\
+-    return m;\
++    return mPluginMapHolder;\
+   }\
+   virtual PluginMapType& GetMap() const {\
+     return Map();\
+@@ -223,9 +182,8 @@ public:\
+       return Default();\
+     }\
+     return static_cast<BaseClass*>(BaseFindType(Map(),ID));\
+-  }
+-
+-#endif // __CYGWIN__ || __MINGW32__
++  }\
++  private:
+ 
+ /** \file plugin.h
+    \brief Simplify 'plugin' classes to be discovered and/or loaded at runtime.
+@@ -371,7 +329,7 @@ public:
+ 
+ #define OB_STATIC_PLUGIN(className,instanceName) \
+   class className; \
+-  OBAPI OB_EXTERN className instanceName;
++  OB_EXTERN className instanceName;
+ 
+   // formats
+   OB_STATIC_PLUGIN(ABINITFormat, theABINITFormat)
+@@ -430,6 +388,8 @@ public:
+   OB_STATIC_PLUGIN(HINFormat, theHINFormat)
+   OB_STATIC_PLUGIN(JaguarOutputFormat, theJaguarOutputFormat)
+   OB_STATIC_PLUGIN(JaguarInputFormat, theJaguarInputFormat)
++  OB_STATIC_PLUGIN(ChemDoodleJSONFormat, theChemDoodleJSONFormat)
++  OB_STATIC_PLUGIN(PubChemJSONFormat, thePubChemJSONFormat)
+   OB_STATIC_PLUGIN(LMPDATFormat, theLMPDATFormat)
+   OB_STATIC_PLUGIN(MCDLFormat, theMCDLFormat)
+   OB_STATIC_PLUGIN(MOLFormat, theMOLFormat)
+@@ -502,6 +462,8 @@ public:
+ #endif
+ #ifdef HAVE_STATIC_INCHI
+   OB_STATIC_PLUGIN(InChIFormat, theInChIFormat)
++  OB_STATIC_PLUGIN(InChICompareFormat, theInChICompareFormat)
++  OB_STATIC_PLUGIN(InChIKeyFormat, theInChIKeyFormat)
+ #endif
+ #ifdef HAVE_REGEX_H
+   OB_STATIC_PLUGIN(GAMESSUKInputFormat, theGAMESSUKInputFormat)
+@@ -560,6 +522,7 @@ public:
+   OB_STATIC_PLUGIN(OpFillUC, theOpFillUC)
+   OB_STATIC_PLUGIN(OpEnergy, theOpEnergy)
+   OB_STATIC_PLUGIN(OpMinimize, theOpMinimize)
++  OB_STATIC_PLUGIN(Op2D, theOp2D)
+   OB_STATIC_PLUGIN(OpGen2D, theOpGen2D)
+   OB_STATIC_PLUGIN(OpGen3D, theOpGen3D)
+   OB_STATIC_PLUGIN(OpNewS, theOpNewS)
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/tokenst.h b/cpp/openbabel-src/openbabel/include/openbabel/tokenst.h
+index ad54b5a0c..709e45dac 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/tokenst.h
++++ b/cpp/openbabel-src/openbabel/include/openbabel/tokenst.h
+@@ -25,7 +25,6 @@ GNU General Public License for more details.
+ #include <vector>
+ #include <sstream>
+ #include <string>
+-#include <fstream>
+ 
+ namespace OpenBabel
+ {
+@@ -56,7 +55,7 @@ namespace OpenBabel
+ 
+   //! Opens a datafile in a directory where OpenBabel expects to find it.
+   // full documentation in tokenst.cpp
+-  OBERROR std::string OpenDatafile(std::ifstream& fs,
++  OBERROR std::string OpenDatafile(std::istringstream& iss,
+                                  const std::string& filename,
+                                  const std::string& envvar = "BABEL_DATADIR");
+ 
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/tree/tree.hh b/cpp/openbabel-src/openbabel/include/openbabel/tree/tree.hh
+index b4b7685d7..58ec0a6d1 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/tree/tree.hh
++++ b/cpp/openbabel-src/openbabel/include/openbabel/tree/tree.hh
+@@ -542,8 +542,8 @@ tree<T, tree_node_allocator>::~tree()
+ template <class T, class tree_node_allocator>
+ void tree<T, tree_node_allocator>::head_initialise_()
+    {
+-   head = alloc_.allocate(1,nullptr); // MSVC does not have default second argument
+-	feet = alloc_.allocate(1,nullptr);
++   head = alloc_.allocate(1);
++	feet = alloc_.allocate(1);
+ 
+    head->parent=nullptr;
+    head->first_child=nullptr;
+@@ -869,7 +869,7 @@ iter tree<T, tree_node_allocator>::append_child(iter position)
+ 	assert(position.node!=head);
+ 	assert(position.node);
+ 
+-	tree_node *tmp=alloc_.allocate(1,0);
++	tree_node *tmp=alloc_.allocate(1);
+ 	kp::constructor(&tmp->data);
+ 	tmp->first_child=0;
+ 	tmp->last_child=0;
+@@ -894,7 +894,7 @@ iter tree<T, tree_node_allocator>::prepend_child(iter position)
+ 	assert(position.node!=head);
+ 	assert(position.node);
+ 
+-	tree_node *tmp=alloc_.allocate(1,0);
++	tree_node *tmp=alloc_.allocate(1);
+ 	kp::constructor(&tmp->data);
+ 	tmp->first_child=0;
+ 	tmp->last_child=0;
+@@ -923,7 +923,7 @@ iter tree<T, tree_node_allocator>::append_child(iter position, const T& x)
+ 	assert(position.node!=head);
+ 	assert(position.node);
+ 
+-	tree_node* tmp = alloc_.allocate(1,nullptr);
++	tree_node* tmp = alloc_.allocate(1);
+ 	kp::constructor(&tmp->data, x);
+ 	tmp->first_child=nullptr;
+ 	tmp->last_child=nullptr;
+@@ -948,7 +948,7 @@ iter tree<T, tree_node_allocator>::prepend_child(iter position, const T& x)
+ 	assert(position.node!=head);
+ 	assert(position.node);
+ 
+-	tree_node* tmp = alloc_.allocate(1,0);
++	tree_node* tmp = alloc_.allocate(1);
+ 	kp::constructor(&tmp->data, x);
+ 	tmp->first_child=0;
+ 	tmp->last_child=0;
+@@ -1035,7 +1035,7 @@ iter tree<T, tree_node_allocator>::insert(iter position, const T& x)
+ 		position.node=feet; // Backward compatibility: when calling insert on a null node,
+ 		                    // insert before the feet.
+ 		}
+-	tree_node* tmp = alloc_.allocate(1,nullptr);
++	tree_node* tmp = alloc_.allocate(1);
+ 	kp::constructor(&tmp->data, x);
+ 	tmp->first_child=nullptr;
+ 	tmp->last_child=nullptr;
+@@ -1057,7 +1057,7 @@ iter tree<T, tree_node_allocator>::insert(iter position, const T& x)
+ template <class T, class tree_node_allocator>
+ typename tree<T, tree_node_allocator>::sibling_iterator tree<T, tree_node_allocator>::insert(sibling_iterator position, const T& x)
+ 	{
+-	tree_node* tmp = alloc_.allocate(1,0);
++	tree_node* tmp = alloc_.allocate(1);
+ 	kp::constructor(&tmp->data, x);
+ 	tmp->first_child=0;
+ 	tmp->last_child=0;
+@@ -1087,7 +1087,7 @@ template <class T, class tree_node_allocator>
+ template <class iter>
+ iter tree<T, tree_node_allocator>::insert_after(iter position, const T& x)
+ 	{
+-	tree_node* tmp = alloc_.allocate(1,0);
++	tree_node* tmp = alloc_.allocate(1);
+ 	kp::constructor(&tmp->data, x);
+ 	tmp->first_child=0;
+ 	tmp->last_child=0;
+@@ -1159,7 +1159,7 @@ iter tree<T, tree_node_allocator>::replace(iter position, const iterator_base& f
+ //	std::cout << "warning!" << position.node << std::endl;
+ 	erase_children(position);
+ //	std::cout << "no warning!" << std::endl;
+-	tree_node* tmp = alloc_.allocate(1,0);
++	tree_node* tmp = alloc_.allocate(1);
+ 	kp::constructor(&tmp->data, (*from));
+ 	tmp->first_child=0;
+ 	tmp->last_child=0;
+diff --git a/cpp/openbabel-src/openbabel/include/openbabel/typer.h b/cpp/openbabel-src/openbabel/include/openbabel/typer.h
+index 4a4dfff65..d03224968 100644
+--- a/cpp/openbabel-src/openbabel/include/openbabel/typer.h
++++ b/cpp/openbabel-src/openbabel/include/openbabel/typer.h
+@@ -67,7 +67,7 @@ public:
+ #endif
+ //! Global OBAtomTyper for marking internal valence, hybridization,
+ //!  and atom types (for internal and external use)
+-THREAD_LOCAL OB_EXTERN OBAtomTyper      atomtyper;
++THREAD_LOCAL extern OBAtomTyper      atomtyper;
+ 
+ // class introduction in typer.cpp
+ class OBAPI OBAromaticTyper
+@@ -81,7 +81,7 @@ public:
+ };
+ 
+ //! Global OBAromaticTyper for detecting aromatic atoms and bonds
+-THREAD_LOCAL OB_EXTERN OBAromaticTyper  aromtyper;
++THREAD_LOCAL extern OBAromaticTyper  aromtyper;
+ 
+ // class introduction in typer.cpp
+ class OBAPI OBRingTyper : public OBGlobalDataBase
+diff --git a/cpp/openbabel-src/openbabel/src/RDKitConv.cpp b/cpp/openbabel-src/openbabel/src/RDKitConv.cpp
+index 54e23a6bd..86178f090 100644
+--- a/cpp/openbabel-src/openbabel/src/RDKitConv.cpp
++++ b/cpp/openbabel-src/openbabel/src/RDKitConv.cpp
+@@ -23,6 +23,9 @@ This code calls C++ routines in RDKit which are
+ ***********************************************************************/
+ 
+ #include <openbabel/babelconfig.h>
++#include <openbabel/oberror.h>
++#include <openbabel/bond.h>
++#include <openbabel/bondtyper.h>
+ #include <RDKitConv.h>
+ 
+ using OpenBabel::OBMolAtomIter;
+@@ -45,7 +48,7 @@ RDKit::RWMol OBMolToRWMol(OpenBabel::OBMol* pOBMol)
+   {
+     //bond order >3 needs doing properly
+     //assume RDKit atom indices start at 0
+-    RDMol.addBond(b->GetBeginAtomIdx()-1, b->GetEndAtomIdx()-1, (RDKit::Bond::BondType)b->GetBO());
++    RDMol.addBond(b->GetBeginAtomIdx()-1, b->GetEndAtomIdx()-1, (RDKit::Bond::BondType)b->GetBondOrder());
+   }
+   std::string msg("RWMol made from ");
+   if(pOBMol->GetTitle())
+diff --git a/cpp/openbabel-src/openbabel/src/alias.cpp b/cpp/openbabel-src/openbabel/src/alias.cpp
+index 12aec4171..064f6966a 100644
+--- a/cpp/openbabel-src/openbabel/src/alias.cpp
++++ b/cpp/openbabel-src/openbabel/src/alias.cpp
+@@ -222,7 +222,7 @@ bool AliasData::FromNameLookup(OBMol& mol, const unsigned int atomindex)
+ bool AliasData::LoadFile(SuperAtomTable& table)
+ {
+   //In table: key=alias left-form; value=pair<alias right-form, SMILES>
+-  ifstream ifs;
++  istringstream ifs;
+   if (OpenDatafile(ifs, "superatom.txt").length() == 0)
+   {
+     obErrorLog.ThrowError(__FUNCTION__, "Cannot open superatom.txt", obError);
+@@ -250,7 +250,7 @@ bool AliasData::LoadFile(SuperAtomTable& table)
+ bool AliasData::LoadFile(SmartsTable& smtable)
+ {
+   //Re-parse the datafile. Seems simpler than trying to extract from the map.
+-  ifstream ifs;
++  istringstream ifs;
+   if (OpenDatafile(ifs, "superatom.txt").length() == 0)
+   {
+     obErrorLog.ThrowError(__FUNCTION__, "Cannot open superatom.txt", obError);
+diff --git a/cpp/openbabel-src/openbabel/src/bondtyper.cpp b/cpp/openbabel-src/openbabel/src/bondtyper.cpp
+index 8f4040126..b5728811a 100644
+--- a/cpp/openbabel-src/openbabel/src/bondtyper.cpp
++++ b/cpp/openbabel-src/openbabel/src/bondtyper.cpp
+@@ -24,8 +24,6 @@ GNU General Public License for more details.
+ #include <openbabel/bondtyper.h>
+ #include <openbabel/elements.h>
+ 
+-// data header with default parameters
+-#include "bondtyp.h"
+ 
+ using namespace std;
+ 
+@@ -54,7 +52,7 @@ namespace OpenBabel
+     _envvar = "BABEL_DATADIR";
+     _filename = "bondtyp.txt";
+     _subdir = "data";
+-    _dataptr = BondTypeData;
++    _dataptr = nullptr;
+   }
+ 
+   void OBBondTyper::ParseLine(const char *buffer)
+diff --git a/cpp/openbabel-src/openbabel/src/builder.cpp b/cpp/openbabel-src/openbabel/src/builder.cpp
+index 654d41b48..fcb3e19c0 100644
+--- a/cpp/openbabel-src/openbabel/src/builder.cpp
++++ b/cpp/openbabel-src/openbabel/src/builder.cpp
+@@ -97,7 +97,7 @@ namespace OpenBabel
+ 
+   void OBBuilder::LoadFragments()  {
+     // open data/fragments.txt
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "rigid-fragments-index.txt").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open ring-fragments-index.txt", obError);
+       return;
+@@ -171,7 +171,7 @@ namespace OpenBabel
+       return coords;
+     }
+ 
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "rigid-fragments.txt").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open rigid-fragments.txt", obError);
+       return coords;
+diff --git a/cpp/openbabel-src/openbabel/src/chargemodel.cpp b/cpp/openbabel-src/openbabel/src/chargemodel.cpp
+index 6d42214ab..891b676c1 100644
+--- a/cpp/openbabel-src/openbabel/src/chargemodel.cpp
++++ b/cpp/openbabel-src/openbabel/src/chargemodel.cpp
+@@ -26,11 +26,6 @@ GNU General Public License for more details.
+ using namespace std;
+ namespace OpenBabel
+ {
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-  // macro to implement static OBPlugin::PluginMapType& Map()
+-  PLUGIN_CPP_FILE(OBChargeModel)
+-#endif
+-
+   void OBChargeModel::FillChargeVectors(OBMol &mol)
+   {
+     OBAtom *atom;
+diff --git a/cpp/openbabel-src/openbabel/src/charges/eem.cpp b/cpp/openbabel-src/openbabel/src/charges/eem.cpp
+index 88ac84f7c..c001fa0af 100644
+--- a/cpp/openbabel-src/openbabel/src/charges/eem.cpp
++++ b/cpp/openbabel-src/openbabel/src/charges/eem.cpp
+@@ -92,7 +92,7 @@ namespace OpenBabel
+ 
+   void EEMCharges::_loadParameters()
+   {
+-    std::ifstream ifs;
++    std::istringstream ifs;
+     if (!OpenDatafile(ifs, _parameters_file).length()) {
+       obErrorLog.ThrowError(__FUNCTION__, std::string("Cannot open file with parameters: ").append(_parameters_file), obError);
+       return;
+diff --git a/cpp/openbabel-src/openbabel/src/charges/eqeq.cpp b/cpp/openbabel-src/openbabel/src/charges/eqeq.cpp
+index ff393914d..e2f220c76 100644
+--- a/cpp/openbabel-src/openbabel/src/charges/eqeq.cpp
++++ b/cpp/openbabel-src/openbabel/src/charges/eqeq.cpp
+@@ -15,7 +15,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ ***********************************************************************/
+-
++#include <openbabel/babelconfig.h>
+ #ifdef HAVE_EIGEN3
+ 
+ #include "eqeq.h"
+@@ -52,7 +52,7 @@ namespace OpenBabel
+     char buffer[BUFF_SIZE];
+ 
+     // open data/eqeqIonizations.txt
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "eqeqIonizations.txt").length() == 0)
+     {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open eqeqIonizations.txt", obError);
+diff --git a/cpp/openbabel-src/openbabel/src/charges/qeq.cpp b/cpp/openbabel-src/openbabel/src/charges/qeq.cpp
+index 8042b401a..a29d0bb29 100644
+--- a/cpp/openbabel-src/openbabel/src/charges/qeq.cpp
++++ b/cpp/openbabel-src/openbabel/src/charges/qeq.cpp
+@@ -15,7 +15,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ ***********************************************************************/
+-
++#include <openbabel/babelconfig.h>
+ #ifdef HAVE_EIGEN
+ 
+ #include "qeq.h"
+@@ -125,7 +125,7 @@ namespace OpenBabel
+     char buffer[BUFF_SIZE];
+ 
+     // open data/qeq.txt
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "qeq.txt").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open qeq.txt", obError);
+       return;
+diff --git a/cpp/openbabel-src/openbabel/src/charges/qtpie.cpp b/cpp/openbabel-src/openbabel/src/charges/qtpie.cpp
+index 7454734f7..b019d3036 100644
+--- a/cpp/openbabel-src/openbabel/src/charges/qtpie.cpp
++++ b/cpp/openbabel-src/openbabel/src/charges/qtpie.cpp
+@@ -15,7 +15,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ ***********************************************************************/
+-
++#include <openbabel/babelconfig.h>
+ #ifdef HAVE_EIGEN
+ 
+ #include "qtpie.h"
+@@ -117,7 +117,7 @@ QTPIECharges theQTPIECharges("qtpie"); //Global instance
+     char buffer[BUFF_SIZE];
+ 
+     // open data/qeq.txt
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "qeq.txt").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open qeq.txt", obError);
+       return;
+diff --git a/cpp/openbabel-src/openbabel/src/config.h.cmake b/cpp/openbabel-src/openbabel/src/config.h.cmake
+index 1c59c6769..0c4bb62d2 100644
+--- a/cpp/openbabel-src/openbabel/src/config.h.cmake
++++ b/cpp/openbabel-src/openbabel/src/config.h.cmake
+@@ -16,23 +16,12 @@
+ /* The file extension used for shared modules */
+ #define MODULE_EXTENSION "@MODULE_EXTENSION@"
+ 
++#include <openbabel_export.hpp>
+ // If we are using a recent GCC version with visibility support use it
+-#ifdef HAVE_GCC_VISIBILITY
+-  #define OB_EXPORT __attribute__ ((visibility("default")))
+-  #define OB_IMPORT __attribute__ ((visibility("default")))
+-  #define OB_HIDDEN __attribute__ ((visibility("hidden")))
+-#elif defined(WIN32) && defined(USING_DYNAMIC_LIBS) && !defined(__MINGW32__)
+- #define OB_EXPORT __declspec(dllexport)
+- #define OB_IMPORT __declspec(dllimport)
+- #define OB_HIDDEN
+-#else
+- #define OB_EXPORT
+- #define OB_IMPORT
+- #define OB_HIDDEN
++#ifndef OB_EXPORT
++#define OB_EXPORT OPENBABEL_EXPORT
+ #endif
+ 
+-/* Used to export symbols for DLL / shared library builds */
+-#if defined(MAKE_OBDLL) // e.g. in src/main.cpp
+  #ifndef OB_EXTERN
+   #define OB_EXTERN   OB_EXPORT extern
+  #endif
+@@ -61,39 +50,6 @@
+   #define OBDEPICT OB_EXPORT
+  #endif
+ 
+-#else   // defined(MAKE_OBDLL)
+-
+- #ifndef OB_EXTERN
+-  #define OB_EXTERN   OB_IMPORT extern
+- #endif
+- #ifndef OBAPI
+-  #define OBAPI    OB_IMPORT
+- #endif
+- #ifndef OBCOMMON
+-  #define OBCOMMON OB_IMPORT
+- #endif
+- #ifndef OBCONV
+-  #define OBCONV   OB_IMPORT
+- #endif
+- #ifndef OBERROR
+-  #define OBERROR  OB_IMPORT
+- #endif
+- #ifndef OBFPRT
+-  #define OBFPRT   OB_IMPORT
+- #endif
+- #ifndef OBFPTR
+-  #define OBFPTR   OB_IMPORT
+- #endif
+- #ifndef OBMCDL
+- #define OBMCDL    OB_IMPORT
+-  #ifndef OBDEPICT
+- #define OBDEPICT  OB_IMPORT
+- #endif
+-
+- #endif
+-
+-#endif
+-
+ #ifdef _MSC_VER
+  // Suppress warning on deprecated functions
+  #pragma warning(disable : 4996)
+@@ -149,6 +105,22 @@
+ /* have struct clock_t */
+ #cmakedefine HAVE_CLOCK_T 1
+ 
++#cmakedefine HAVE_REGEX_H 1
++
++#cmakedefine HAVE_SHARED_POINTER 1
++
++#cmakedefine HAVE_EIGEN 1
++
++#cmakedefine HAVE_EIGEN3 1
++
++#cmakedefine HAVE_STATIC_INCHI 1
++
++#cmakedefine HAVE_LIBZ 1
++
++#cmakedefine HAVE_STATIC_LIBXML 1
++
++#cmakedefine HAVE_RPC_XDR_H 1
++
+ /* shared pointer implementation to be used */
+ #cmakedefine OB_SHARED_PTR_IMPLEMENTATION @OB_SHARED_PTR_IMPLEMENTATION@
+ 
+diff --git a/cpp/openbabel-src/openbabel/src/confsearch.cpp b/cpp/openbabel-src/openbabel/src/confsearch.cpp
+index b80933fe2..7b5df319c 100644
+--- a/cpp/openbabel-src/openbabel/src/confsearch.cpp
++++ b/cpp/openbabel-src/openbabel/src/confsearch.cpp
+@@ -131,7 +131,7 @@ namespace OpenBabel
+ 
+     const double arr[] = {3.0, 2.0, 1.5, 1.0, 0.5, 0.25};
+     std::vector<double> vec (arr, arr + sizeof(arr) / sizeof(arr[0]) );
+-    vec.erase(std::remove_if(vec.begin(), vec.end(), std::bind2nd(std::less<double>(), (cutoff + 0.1) )), vec.end());
++    vec.erase(std::remove_if(vec.begin(), vec.end(), std::bind(std::less<double>(), std::placeholders::_1, (cutoff + 0.1) )), vec.end());
+     vec.push_back(cutoff);
+ 
+     levels = vec;
+@@ -293,7 +293,7 @@ void UpdateConformersFromTree(OBMol* mol, std::vector<double> &energies, OBDiver
+   std::vector <OBDiversePoses::PosePair> confs, newconfs;
+ 
+   // The leaf iterator will (in effect) iterate over the nodes just at the loweset level
+-  for (OBDiversePoses::Tree::leaf_iterator node = poses->begin(); node != poses->end(); ++node)
++  for (auto node = poses->begin(); node != poses->end(); ++node)
+     if (node->first.size() > 0) // Don't include the dummy head node
+       confs.push_back(*node);
+ 
+@@ -441,7 +441,7 @@ int OBForceField::DiverseConfGen(double rmsd, unsigned int nconfs, double energy
+     UpdateConformersFromTree(&_mol, _energies, &divposes, verbose);
+ 
+     // Add back the energy offset
+-    transform(_energies.begin(), _energies.end(), _energies.begin(), bind2nd(std::plus<double>(), energy_offset));
++    transform(_energies.begin(), _energies.end(), _energies.begin(), std::bind(std::plus<double>(), std::placeholders::_1, energy_offset));
+ 
+     // Clean up
+     delete [] store_initial;
+diff --git a/cpp/openbabel-src/openbabel/src/data.cpp b/cpp/openbabel-src/openbabel/src/data.cpp
+index d72e325c3..634c456ee 100644
+--- a/cpp/openbabel-src/openbabel/src/data.cpp
++++ b/cpp/openbabel-src/openbabel/src/data.cpp
+@@ -31,9 +31,6 @@ GNU General Public License for more details.
+ #include <openbabel/oberror.h>
+ #include <openbabel/elements.h>
+ 
+-// data headers with default parameters
+-#include "types.h"
+-#include "resdata.h"
+ 
+ 
+ #if !HAVE_STRNCASECMP
+@@ -250,7 +247,7 @@ namespace OpenBabel
+     _envvar = "BABEL_DATADIR";
+     _filename = "types.txt";
+     _subdir = "data";
+-    _dataptr = TypesData;
++    _dataptr = nullptr;
+     _linecount = 0;
+     _from = _to = -1;
+   }
+@@ -434,7 +431,7 @@ namespace OpenBabel
+     _envvar = "BABEL_DATADIR";
+     _filename = "resdata.txt";
+     _subdir = "data";
+-    _dataptr = ResidueData;
++    _dataptr = nullptr;
+   }
+ 
+   bool OBResidueData::AssignBonds(OBMol &mol)
+@@ -669,7 +666,7 @@ namespace OpenBabel
+       return;
+     _init = true;
+ 
+-    ifstream ifs;
++    istringstream ifs;
+     char charBuffer[BUFF_SIZE];
+ 
+     // Set the locale for number parsing to avoid locale issues: PR#1785463
+@@ -716,8 +713,6 @@ namespace OpenBabel
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     if (GetSize() == 0)
+       {
+diff --git a/cpp/openbabel-src/openbabel/src/depict/depict.cpp b/cpp/openbabel-src/openbabel/src/depict/depict.cpp
+index 9f7ca9ea1..ad556df2e 100644
+--- a/cpp/openbabel-src/openbabel/src/depict/depict.cpp
++++ b/cpp/openbabel-src/openbabel/src/depict/depict.cpp
+@@ -1235,7 +1235,7 @@ OBBitVec& drawnBonds)
+                       end.x() - offset.x(), end.y() - offset.y());
+ 
+     static const float dashpattern[] = {5., 5.};
+-    static const vector<double> pat = vector<double>(dashpattern,dashpattern + sizeof(dashpattern)/sizeof(double));
++    static const vector<double> pat = vector<double>(dashpattern, dashpattern + sizeof(dashpattern)/sizeof(float));
+     painter->DrawLine(begin.x() + offset.x(), begin.y() + offset.y(),
+                       end.x() + offset.x(), end.y() + offset.y(), pat);
+   }
+diff --git a/cpp/openbabel-src/openbabel/src/descriptor.cpp b/cpp/openbabel-src/openbabel/src/descriptor.cpp
+index c2716567d..adccfc14c 100644
+--- a/cpp/openbabel-src/openbabel/src/descriptor.cpp
++++ b/cpp/openbabel-src/openbabel/src/descriptor.cpp
+@@ -25,11 +25,6 @@ GNU General Public License for more details.
+ using namespace std;
+ namespace OpenBabel
+ {
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-  // macro to implement static OBPlugin::PluginMapType& Map()
+-  PLUGIN_CPP_FILE(OBDescriptor)
+-#endif
+-
+ /**
+      Compare() is a virtual function and can be overridden to allow different
+      comparison behaviour.
+diff --git a/cpp/openbabel-src/openbabel/src/descriptors/groupcontrib.cpp b/cpp/openbabel-src/openbabel/src/descriptors/groupcontrib.cpp
+index 77c7dbebe..450a8f0b7 100644
+--- a/cpp/openbabel-src/openbabel/src/descriptors/groupcontrib.cpp
++++ b/cpp/openbabel-src/openbabel/src/descriptors/groupcontrib.cpp
+@@ -55,7 +55,7 @@ namespace OpenBabel
+     OBSmartsPattern *sp;
+ 
+     // open data file
+-    ifstream ifs;
++    istringstream ifs;
+ 
+     if (OpenDatafile(ifs, _filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, " Could not find contribution data file.", obError);
+diff --git a/cpp/openbabel-src/openbabel/src/distgeom.cpp b/cpp/openbabel-src/openbabel/src/distgeom.cpp
+index 8758ae9e6..323ce299c 100644
+--- a/cpp/openbabel-src/openbabel/src/distgeom.cpp
++++ b/cpp/openbabel-src/openbabel/src/distgeom.cpp
+@@ -16,7 +16,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ ***********************************************************************/
+-
++#include <openbabel/babelconfig.h>
+ #ifdef HAVE_EIGEN
+ 
+ #include <openbabel/distgeom.h>
+diff --git a/cpp/openbabel-src/openbabel/src/fingerprint.cpp b/cpp/openbabel-src/openbabel/src/fingerprint.cpp
+index fd8035dde..4ae612ab2 100644
+--- a/cpp/openbabel-src/openbabel/src/fingerprint.cpp
++++ b/cpp/openbabel-src/openbabel/src/fingerprint.cpp
+@@ -30,11 +30,6 @@ GNU General Public License for more details.
+ using namespace std;
+ namespace OpenBabel
+ {
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-  // macro to implement static OBPlugin::PluginMapType& Map()
+-  PLUGIN_CPP_FILE(OBFingerprint)
+-#endif
+-
+   const unsigned int OBFingerprint::bitsperint = 8 * sizeof(unsigned int);
+ 
+   void OBFingerprint::SetBit(vector<unsigned int>& vec, const unsigned int n)
+diff --git a/cpp/openbabel-src/openbabel/src/fingerprints/finger3.cpp b/cpp/openbabel-src/openbabel/src/fingerprints/finger3.cpp
+index 4bed37ba2..f9fb8cb36 100644
+--- a/cpp/openbabel-src/openbabel/src/fingerprints/finger3.cpp
++++ b/cpp/openbabel-src/openbabel/src/fingerprints/finger3.cpp
+@@ -159,7 +159,7 @@ public:
+   bool ReadPatternFile(string& ver)
+   {
+     //Reads three types of file. See below
+-    ifstream ifs;
++    istringstream ifs;
+ 	  stringstream errorMsg;
+ 
+     if (OpenDatafile(ifs, _patternsfile).length() == 0)
+@@ -238,8 +238,6 @@ public:
+       }
+     }while(getline(ifs,line));
+ 
+-    if (ifs)
+-      ifs.close();
+     return true;
+   }
+ 
+@@ -255,7 +253,8 @@ public:
+       int num =  ppat->numbits, div = ppat->numoccurrences+1, ngrp;
+       while(num) //for each group of bits
+       {
+-        ngrp = (num + div -1)/div--; //rounds up
++        ngrp = (num + div -1)/div; //rounds up
++        div--;
+         num -= ngrp;
+         if(GetBit(fp, n) == bSet)
+         {
+diff --git a/cpp/openbabel-src/openbabel/src/forcefield.cpp b/cpp/openbabel-src/openbabel/src/forcefield.cpp
+index c8961351a..40a46e893 100644
+--- a/cpp/openbabel-src/openbabel/src/forcefield.cpp
++++ b/cpp/openbabel-src/openbabel/src/forcefield.cpp
+@@ -40,11 +40,6 @@ using namespace std;
+ 
+ namespace OpenBabel
+ {
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-  // macro to implement static OBPlugin::PluginMapType& Map()
+-  PLUGIN_CPP_FILE(OBForceField)
+-#endif
+-
+   /** \class OBForceField forcefield.h <openbabel/forcefield.h>
+       \brief Base class for molecular mechanics force fields
+ 
+diff --git a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldgaff.cpp b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldgaff.cpp
+index b1b07d8cf..3b0becd79 100644
+--- a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldgaff.cpp
++++ b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldgaff.cpp
+@@ -1081,7 +1081,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/gaff.dat
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "gaff.dat").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open gaff.dat", obError);
+       return false;
+@@ -1204,8 +1204,6 @@ namespace OpenBabel
+ 	    ifs.getline(buffer, BUFF_SIZE);
+       }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+@@ -1230,7 +1228,7 @@ namespace OpenBabel
+     _mol.SetAtomTypesPerceived();
+ 
+     // open data/gaff.prm
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "gaff.prm").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open gaff.prm", obError);
+       return false;
+@@ -1412,8 +1410,6 @@ namespace OpenBabel
+     }
+ 
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+diff --git a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldghemical.cpp b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldghemical.cpp
+index 751de4ffc..a857a0504 100644
+--- a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldghemical.cpp
++++ b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldghemical.cpp
+@@ -858,7 +858,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/ghemical.prm
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "ghemical.prm").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open ghemical.prm", obError);
+       return false;
+@@ -942,8 +942,6 @@ namespace OpenBabel
+       }
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+@@ -964,7 +962,7 @@ namespace OpenBabel
+     _mol.SetAtomTypesPerceived();
+ 
+     // open data/ghemical.prm
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "ghemical.prm").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open ghemical.prm", obError);
+       return false;
+@@ -1026,8 +1024,6 @@ namespace OpenBabel
+     //  else
+     //    cout << "ATOMTYPE " << a->GetType() << endl;
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+diff --git a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmm2.cpp b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmm2.cpp
+index 99c9a3dca..9a73066df 100644
+--- a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmm2.cpp
++++ b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmm2.cpp
+@@ -18,6 +18,10 @@ GNU General Public License for more details.
+ #include <openbabel/babelconfig.h>
+ #include <openbabel/mol.h>
+ #include <openbabel/locale.h>
++#include <openbabel/obiter.h>
++#include <openbabel/bond.h>
++#include <openbabel/oberror.h>
++#include <openbabel/data.h>
+ #include "forcefieldmm2.h"
+ 
+ using namespace std;
+@@ -498,8 +502,8 @@ namespace OpenBabel
+     {
+       _mol = src._mol;
+       _init = src._init;
+-      return *this;
+     }
++    return *this;
+   }
+ 
+   bool OBForceFieldMM2::Setup(OBMol &mol)
+@@ -522,7 +526,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mm2.prm
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "mm2.prm").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mm2.prm", obError);
+       return false;
+@@ -667,8 +671,6 @@ namespace OpenBabel
+       }
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+diff --git a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmmff94.cpp b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmmff94.cpp
+index 132ed43c6..f67d9f611 100644
+--- a/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmmff94.cpp
++++ b/cpp/openbabel-src/openbabel/src/forcefields/forcefieldmmff94.cpp
+@@ -874,7 +874,7 @@ namespace OpenBabel
+     char buffer[80];
+ 
+     // open data/_parFile
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, _parFile).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open parameter file", obError);
+       return false;
+@@ -913,8 +913,6 @@ namespace OpenBabel
+         ParseParamVDW(vs[1]);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+@@ -929,7 +927,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffbond.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffbond.par", obError);
+       return false;
+@@ -950,8 +948,6 @@ namespace OpenBabel
+       _ffbondparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -964,7 +960,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffbndk.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffbndk.par", obError);
+       return false;
+@@ -984,8 +980,6 @@ namespace OpenBabel
+       _ffbndkparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -998,7 +992,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffang.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffang.par", obError);
+       return false;
+@@ -1020,8 +1014,6 @@ namespace OpenBabel
+       _ffangleparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1034,7 +1026,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffstbn.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffstbn.par", obError);
+       return false;
+@@ -1056,8 +1048,6 @@ namespace OpenBabel
+       _ffstrbndparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1070,7 +1060,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffdfsb.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffdfsb.par", obError);
+       return false;
+@@ -1091,8 +1081,6 @@ namespace OpenBabel
+       _ffdfsbparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1105,7 +1093,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffoop.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffoop.par", obError);
+       return false;
+@@ -1126,8 +1114,6 @@ namespace OpenBabel
+       _ffoopparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1140,7 +1126,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmfftor.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmfftor.par", obError);
+       return false;
+@@ -1164,8 +1150,6 @@ namespace OpenBabel
+       _fftorsionparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1178,7 +1162,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffvdw.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffvdw.par", obError);
+       return false;
+@@ -1205,8 +1189,6 @@ namespace OpenBabel
+       _ffvdwparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1219,7 +1201,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffchg.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffchg.par", obError);
+       return false;
+@@ -1239,8 +1221,6 @@ namespace OpenBabel
+       _ffchgparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1253,7 +1233,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffpbci.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffpbci", obError);
+       return false;
+@@ -1272,8 +1252,6 @@ namespace OpenBabel
+       _ffpbciparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1286,7 +1264,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffprop.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffprop.par", obError);
+       return false;
+@@ -1321,8 +1299,6 @@ namespace OpenBabel
+       _ffpropparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+@@ -1335,7 +1311,7 @@ namespace OpenBabel
+     OBFFParameter parameter;
+ 
+     // open data/mmffdef.par
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, filename).length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffdef.par", obError);
+       return false;
+@@ -1356,8 +1332,6 @@ namespace OpenBabel
+       _ffdefparams.push_back(parameter);
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     return 0;
+   }
+diff --git a/cpp/openbabel-src/openbabel/src/forcefields/forcefielduff.cpp b/cpp/openbabel-src/openbabel/src/forcefields/forcefielduff.cpp
+index 9bff879c9..cbdc0ada2 100644
+--- a/cpp/openbabel-src/openbabel/src/forcefields/forcefielduff.cpp
++++ b/cpp/openbabel-src/openbabel/src/forcefields/forcefielduff.cpp
+@@ -1614,7 +1614,7 @@ namespace OpenBabel {
+     OBFFParameter parameter;
+ 
+     // open data/UFF.prm
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "UFF.prm").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open UFF.prm", obError);
+       return false;
+@@ -1647,7 +1647,10 @@ namespace OpenBabel {
+         parameter.b = 0; // used for tracking number of angles in 5-coordinate
+         parameter.c = 0;
+ 
+-        char coord = vs[1][2]; // 3rd character of atom type
++        char coord = '\0';
++        if (vs[1].size() > 2) {
++          coord = vs[1][2]; // 3rd character of atom type
++        }
+         switch (coord) {
+         case '1': // linear
+           parameter._ipar.push_back(1);
+@@ -1680,8 +1683,6 @@ namespace OpenBabel {
+       }
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // return the locale to the original one
+     obLocale.RestoreLocale();
+@@ -1702,7 +1703,7 @@ namespace OpenBabel {
+     _mol.SetAtomTypesPerceived();
+ 
+     // open data/UFF.prm
+-    ifstream ifs;
++    istringstream ifs;
+     if (OpenDatafile(ifs, "UFF.prm").length() == 0) {
+       obErrorLog.ThrowError(__FUNCTION__, "Cannot open UFF.prm", obError);
+       return false;
+@@ -1771,8 +1772,6 @@ namespace OpenBabel {
+ 
+     }
+ 
+-    if (ifs)
+-      ifs.close();
+ 
+     // Free memory
+     for (i = _vexttyp.begin();i != _vexttyp.end();++i) {
+diff --git a/cpp/openbabel-src/openbabel/src/format.cpp b/cpp/openbabel-src/openbabel/src/format.cpp
+index 7c6098984..ac8bc576f 100644
+--- a/cpp/openbabel-src/openbabel/src/format.cpp
++++ b/cpp/openbabel-src/openbabel/src/format.cpp
+@@ -23,11 +23,6 @@ GNU General Public License for more details.
+ using namespace std;
+ namespace OpenBabel
+ {
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-  // macro to implement static OBPlugin::PluginMapType& Map()
+-  PLUGIN_CPP_FILE(OBFormat)
+-#endif
+-
+ int OBFormat::RegisterFormat(const char* ID, const char* MIME)
+ {
+   GetMap()[ID] = this;
+diff --git a/cpp/openbabel-src/openbabel/src/formats/chemdrawcdx.cpp b/cpp/openbabel-src/openbabel/src/formats/chemdrawcdx.cpp
+index 7c81dcf07..1f2074717 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/chemdrawcdx.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/chemdrawcdx.cpp
+@@ -810,7 +810,7 @@ OBText* CDXReader::WriteTree(const string& filename, unsigned wtoptions)
+ ///////////////////////////////////////////////////////////////////////
+ bool CDXReader::ParseEnums(map<CDXTag, string>& enummap, const string& filename)
+ {
+-  ifstream ihs;
++  istringstream ihs;
+   if(OpenDatafile(ihs, filename).empty())
+   {
+     obErrorLog.ThrowError(__FUNCTION__, 
+diff --git a/cpp/openbabel-src/openbabel/src/formats/chemkinformat.cpp b/cpp/openbabel-src/openbabel/src/formats/chemkinformat.cpp
+index a6ebadb6d..b1f669dec 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/chemkinformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/chemkinformat.cpp
+@@ -726,7 +726,7 @@ bool ChemKinFormat::ReadStdThermo(const string& datafilename)
+ 
+   string missing; // list of molecules which do not have thermodata
+   OBConversion StdThermConv;
+-  ifstream stdthermo;
++  istringstream stdthermo;
+   OpenDatafile(stdthermo, datafilename);
+   if(!stdthermo)
+   {
+diff --git a/cpp/openbabel-src/openbabel/src/formats/exampleformat.cpp b/cpp/openbabel-src/openbabel/src/formats/exampleformat.cpp
+index 08abad867..479c4dcc8 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/exampleformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/exampleformat.cpp
+@@ -32,6 +32,7 @@ as an example.
+ 
+ #include <openbabel/babelconfig.h>
+ #include <openbabel/obmolecformat.h>
++#include <openbabel/mol.h>
+ 
+ using namespace std;
+ namespace OpenBabel
+diff --git a/cpp/openbabel-src/openbabel/src/formats/fchkformat.cpp b/cpp/openbabel-src/openbabel/src/formats/fchkformat.cpp
+index d9eb0e6f8..2a91e4b20 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/fchkformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/fchkformat.cpp
+@@ -665,16 +665,16 @@ namespace OpenBabel
+            no atom numbers < 0 or > Natoms */
+         if (NBond.end() != find_if(NBond.begin(),
+                                    NBond.end(),
+-                                   bind2nd(less_equal<int>(), 0)) ||
++                                   bind(less_equal<int>(), std::placeholders::_1, 0)) ||
+             NBond.end() != find_if(NBond.begin(),
+                                    NBond.end(),
+-                                   bind2nd(greater<int>(), MxBond)) ||
++                                   bind(greater<int>(), std::placeholders::_1, MxBond)) ||
+             IBond.end() != find_if(IBond.begin(),
+                                    IBond.end(),
+-                                   bind2nd(less<int>(), 0)) ||
++                                   bind(less<int>(), std::placeholders::_1, 0)) ||
+             IBond.end() != find_if(IBond.begin(),
+                                    IBond.end(),
+-                                   bind2nd(greater<int>(), Natoms)))
++                                   bind(greater<int>(), std::placeholders::_1, Natoms)))
+           {
+             error_msg << "Invalid connectivity : check the \"NBond\" and/or"
+                       << " \"IBond\" section(s).";
+diff --git a/cpp/openbabel-src/openbabel/src/formats/gamessukformat.cpp b/cpp/openbabel-src/openbabel/src/formats/gamessukformat.cpp
+index 321924094..dc72a33dc 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/gamessukformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/gamessukformat.cpp
+@@ -23,12 +23,7 @@
+ 
+ #include <algorithm>
+ #include <cmath>
+-
+-#ifdef _MSC_VER
+ #include <regex>
+-#else
+-#include <regex.h>
+-#endif
+ 
+ using namespace std;
+ 
+@@ -797,20 +792,15 @@ namespace OpenBabel
+     //                     ------label--------   -------charge-------- < seems enough for a match
+     string pattern(" *\\* *[a-zA-Z]{1,2}[0-9]* *[0-9]{1,3}\\.[0-9]{1}");
+     bool iok;
+-#ifdef _MSC_VER
+-    std::tr1::regex myregex;
++    std::regex myregex;
+     try {
+       myregex.assign(pattern,
+-                     std::tr1::regex_constants::extended |
+-                     std::tr1::regex_constants::nosubs);
++                     std::regex_constants::extended |
++                     std::regex_constants::nosubs);
+       iok = true;
+-    } catch (std::tr1::regex_error ex) {
++    } catch (std::regex_error ex) {
+       iok = false;
+     }
+-#else
+-    regex_t *myregex = new regex_t;
+-    iok = regcomp(myregex, pattern.c_str(), REG_EXTENDED | REG_NOSUB)==0;
+-#endif
+     if (!iok) cerr << "Error compiling regex in GUK OUTPUT!\n";
+ 
+     // Read in the coordinates - we process them directly rather
+@@ -820,11 +810,7 @@ namespace OpenBabel
+ 
+       // End of geometry block
+       if (strstr(buffer, "*************************") != nullptr) break;
+-#ifdef _MSC_VER
+-      if (std::tr1::regex_search(buffer, myregex)) {
+-#else
+-        if (regexec(myregex, buffer, 0, nullptr, 0) == 0) {
+-#endif
++      if (std::regex_search(buffer, myregex)) {
+           //cerr << "Got Coord line: " << buffer << endl;
+           OBAtom *atom = mol.NewAtom();
+           tokenize(tokens,buffer," ");
+@@ -841,9 +827,6 @@ namespace OpenBabel
+         }
+       }
+       mol.EndModify();
+-#ifndef _MSC_VER
+-      regfree(myregex);
+-#endif
+       return true;
+     } // End ReadInitalCartesian
+ 
+diff --git a/cpp/openbabel-src/openbabel/src/formats/json/pubchemjsonformat.cpp b/cpp/openbabel-src/openbabel/src/formats/json/pubchemjsonformat.cpp
+index 3b825b2e8..b26c295ac 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/json/pubchemjsonformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/json/pubchemjsonformat.cpp
+@@ -760,7 +760,7 @@ class PubChemJSONFormat : public OBMoleculeFormat
+       // Coordinates
+       // TODO: An option to round coordinates to n decimal places?
+       xcoords.PushBack(rapidjson::Value(patom->GetX()).Move(), al);
+-      ycoords.PushBack(rapidjson::Value(patom->GetX()).Move(), al);
++      ycoords.PushBack(rapidjson::Value(patom->GetY()).Move(), al);
+       if (pmol->GetDimension() == 3) {
+         zcoords.PushBack(rapidjson::Value(patom->GetZ()).Move(), al);
+       }
+diff --git a/cpp/openbabel-src/openbabel/src/formats/mdffformat.cpp b/cpp/openbabel-src/openbabel/src/formats/mdffformat.cpp
+index 8e3795e90..35dacd4d0 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/mdffformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/mdffformat.cpp
+@@ -30,9 +30,13 @@ GNU General Public License for more details.
+ #include <algorithm>
+ 
+ #ifdef _MSC_VER
++#ifndef INFINITY
+ #define INFINITY (DBL_MAX+DBL_MAX)
++#endif
++#ifndef NAN
+ #define NAN (INFINITY-INFINITY)
+ #endif
++#endif
+ 
+ using namespace std;
+ namespace OpenBabel {
+@@ -133,7 +137,7 @@ namespace OpenBabel {
+     //    path = buffer;
+     string full_path = pConv->GetInFilename();
+     size_t found = full_path.rfind("/");
+-    string path = (found == string::npos) ? "" : path.substr(0, found);
++    string path = (found == string::npos) ? "" : full_path.substr(0, found);
+     string short_fn = full_path.substr(path.length(), string::npos);
+ 
+     // Open files
+diff --git a/cpp/openbabel-src/openbabel/src/formats/nwchemformat.cpp b/cpp/openbabel-src/openbabel/src/formats/nwchemformat.cpp
+index fd817ab43..ed3a650ac 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/nwchemformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/nwchemformat.cpp
+@@ -303,10 +303,11 @@ static const char* OPTIMIZATION_END_PATTERN = "  Optimization converged";
+         blank_line = false;
+         if (vs[0][0] == '0')
+             charge = atoi(vs[4].c_str());
+-        else if (vs[0][0] == '1')
++        else if (vs[0][0] == '1') {
+             for (unsigned int i = 0; i < 3; i++)
+                 if (vs[i+1][0] == '1')
+                     dipole[i] = atof(vs[4].c_str());
++        }
+         else if (vs[0][0] == '2')
+         {
+             double value = atof(vs[4].c_str());
+diff --git a/cpp/openbabel-src/openbabel/src/formats/orcaformat.cpp b/cpp/openbabel-src/openbabel/src/formats/orcaformat.cpp
+index e5f1c615b..bb49a466a 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/orcaformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/orcaformat.cpp
+@@ -24,11 +24,7 @@ GNU General Public License for more details.
+ #include <openbabel/generic.h>
+ #include <cstdlib>
+ 
+-#ifdef _MSC_VER
+ #include <regex>
+-#else
+-#include <regex.h>
+-#endif
+ 
+ #include <iomanip>
+ 
+@@ -696,38 +692,22 @@ namespace OpenBabel
+ 
+ // small function to avoid wrong parsing
+ // if there is no whitespace between the numbers in the column structure
+-#ifdef _MSC_VER
+   string OrcaOutputFormat::checkColumns(string checkBuffer)
+   {
+     string pattern ("[0-9]-");
+-    std::tr1::regex myregex;
+-    std::tr1::smatch pm;
++    std::regex myregex;
++    std::smatch pm;
+     try {
+       myregex.assign(pattern,
+-                     std::tr1::regex_constants::extended);
++                     std::regex_constants::extended);
+       //iok = true;
+-    } catch (std::tr1::regex_error ex) {
++    } catch (std::regex_error ex) {
+         return (checkBuffer); // do nothing
+       //iok = false;
+     }
+-    while (std::tr1::regex_search (checkBuffer,pm,myregex)) {
++    while (std::regex_search (checkBuffer,pm,myregex)) {
+         checkBuffer.insert(pm.position(0)+1, " ");
+     }
+     return (checkBuffer);
+   }
+-#else
+-  string OrcaOutputFormat::checkColumns(string checkBuffer)
+-  {
+-      string pattern ("[0-9]-");
+-      regmatch_t pm;
+-      regex_t myregex;
+-      int pos = regcomp(&myregex, pattern.c_str(), REG_EXTENDED);
+-      if (pos !=0) return (checkBuffer); // do nothing
+-
+-      while (regexec(&myregex, checkBuffer.c_str(), 1, &pm, REG_EXTENDED) == 0) {
+-          checkBuffer.insert(pm.rm_eo-1, " ");  // insert whitespace to separate the columns
+-      }
+-      return (checkBuffer);
+-  }
+-#endif
+ } //namespace OpenBabel
+diff --git a/cpp/openbabel-src/openbabel/src/formats/pdbqtformat.cpp b/cpp/openbabel-src/openbabel/src/formats/pdbqtformat.cpp
+index f14b8e8a3..567305477 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/pdbqtformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/pdbqtformat.cpp
+@@ -483,7 +483,7 @@ namespace OpenBabel
+     return mol.DeleteNonPolarHydrogens();
+   }
+ 
+-  bool OutputTree(OBConversion* pConv, OBMol& mol, ostream& ofs, map <unsigned int, branch> & tree, unsigned int depth, bool moves_many, bool preserve_original_index)
++  bool OutputTree(OBConversion* pConv, OBMol& mol, ostream& ofs, map <size_t, branch> & tree, unsigned int depth, bool moves_many, bool preserve_original_index)
+   {
+     if (tree.empty()) {return false;}
+     if (depth>= tree.size()-1) {depth=tree.size()-1;}
+@@ -607,7 +607,7 @@ namespace OpenBabel
+     return true;
+   }
+ 
+-  void ConstructTree (map <unsigned int, branch>& tree, vector <vector <int> > rigid_fragments, unsigned int root_piece, const OBMol& mol, bool flexible)
++  void ConstructTree (map <size_t, branch>& tree, vector <vector <int> > rigid_fragments, unsigned int root_piece, const OBMol& mol, bool flexible)
+   {
+     unsigned int first_atom = 0;
+     unsigned int second_atom = 0;
+@@ -651,7 +651,7 @@ namespace OpenBabel
+             sprog.rigid_with.insert(sprog.index);
+ 
+             (*tree.find(position)).second.children.insert(tree.size()); //tells the current parent it has an extra child
+-                        tree.insert(pair<unsigned int, branch> (tree.size(), sprog)); //adds the current branch to the tree
++                        tree.insert(std::make_pair(tree.size(), sprog)); //adds the current branch to the tree
+ 
+             rigid_fragments.erase(rigid_fragments.begin() + i);
+             sterile=false;
+@@ -747,7 +747,7 @@ namespace OpenBabel
+     return false;
+   }
+ 
+-  unsigned int AtomsSoFar(const map <unsigned int, branch> & tree, unsigned int depth)
++  unsigned int AtomsSoFar(const map <size_t, branch> & tree, unsigned int depth)
+   {
+     if (depth > tree.size()) {return 0;}
+     unsigned int numberAtoms=0;
+@@ -985,7 +985,7 @@ namespace OpenBabel
+ 
+       vector <vector <int> > rigid_fragments; //the vector of all the rigid molecule fragments, using atom indexes
+       unsigned int best_root_atom=1;
+-      map <unsigned int, branch> tree;
++      map <size_t, branch> tree;
+       unsigned int torsdof=0;
+       unsigned int root_piece=0;
+       unsigned int rotatable_bonds=0;
+diff --git a/cpp/openbabel-src/openbabel/src/formats/povrayformat.cpp b/cpp/openbabel-src/openbabel/src/formats/povrayformat.cpp
+index 4a680265f..5d01051b9 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/povrayformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/povrayformat.cpp
+@@ -523,7 +523,7 @@ namespace OpenBabel
+ 
+         /* ---- Add a pigment - statement for start-atom of bond ---- */
+         bond_type = bond->GetBeginAtom() -> GetType();
+-        bond_type.erase(remove_if(bond_type.begin(), bond_type.end(), bind1st(equal_to<char>(), '.')), bond_type.end());
++        bond_type.erase(remove(bond_type.begin(), bond_type.end(), '.'), bond_type.end());
+         ofs << "\t    pigment{color Color_"
+             << bond_type
+             << "}" << endl;
+@@ -584,7 +584,7 @@ namespace OpenBabel
+ 
+         /* ---- Add a pigment - statement for end-atom of bond i ---- */
+         bond_type = bond->GetEndAtom() -> GetType();
+-        bond_type.erase(remove_if(bond_type.begin(), bond_type.end(), bind1st(equal_to<char>(), '.')), bond_type.end());
++        bond_type.erase(remove(bond_type.begin(), bond_type.end(), '.'), bond_type.end());
+ 
+         ofs << "\t    pigment{color Color_"
+             << bond_type
+diff --git a/cpp/openbabel-src/openbabel/src/formats/svgformat.cpp b/cpp/openbabel-src/openbabel/src/formats/svgformat.cpp
+index 3d453a5d7..aab3c4df9 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/svgformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/svgformat.cpp
+@@ -513,7 +513,7 @@ return ret;
+ //returns true if the file "svgformat.script" was inserted into the output
+ bool SVGFormat::EmbedScript(ostream& ofs)
+ {
+-  ifstream ifs;
++  istringstream ifs;
+   if(!ifs || OpenDatafile(ifs, "svgformat.script").empty())
+     return false;
+   ofs << ifs.rdbuf(); //copy whole file
+diff --git a/cpp/openbabel-src/openbabel/src/formats/vaspformat.cpp b/cpp/openbabel-src/openbabel/src/formats/vaspformat.cpp
+index 5a5b7478a..4b7b8e870 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/vaspformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/vaspformat.cpp
+@@ -532,7 +532,7 @@ namespace OpenBabel {
+             for (size_t natom = 0; natom < pmol->NumAtoms(); ++natom) {
+               const vector3 dxyz = currXyz[natom] - prevXyz[natom];
+               vector3::const_iterator iter = std::find_if(dxyz.begin(), dxyz.end(),
+-                      std::bind2nd(std::not_equal_to<double>(), 0.0));
++                      std::bind(std::not_equal_to<double>(), std::placeholders::_1, 0.0));
+               if (iter != dxyz.end()) dipGrad[natom].SetRow(iter - dxyz.begin(),
+                                                             (currDm - prevDm) / *iter);
+             }
+@@ -586,7 +586,7 @@ namespace OpenBabel {
+       if (max != 0.0) {
+         // Normalize
+         std::transform(Intensities.begin(), Intensities.end(), Intensities.begin(),
+-                       std::bind2nd(std::divides<double>(), max / 100.0));
++                       std::bind(std::divides<double>(), std::placeholders::_1, max / 100.0));
+       } else {
+         Intensities.clear();
+       }
+diff --git a/cpp/openbabel-src/openbabel/src/formats/xtcformat.cpp b/cpp/openbabel-src/openbabel/src/formats/xtcformat.cpp
+index 6166ebfe2..b74865a4f 100644
+--- a/cpp/openbabel-src/openbabel/src/formats/xtcformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/formats/xtcformat.cpp
+@@ -29,7 +29,7 @@
+ #include <vector>
+ 
+ #define MAXID 20
+-#define MAXABS INT_MAX-2
++#define MAXABS float(INT_MAX-2)
+ 
+ #ifndef MIN
+ #define MIN(x,y) ((x) < (y) ? (x):(y))
+diff --git a/cpp/openbabel-src/openbabel/src/locale.cpp b/cpp/openbabel-src/openbabel/src/locale.cpp
+index 1526f6110..d30439a29 100644
+--- a/cpp/openbabel-src/openbabel/src/locale.cpp
++++ b/cpp/openbabel-src/openbabel/src/locale.cpp
+@@ -16,33 +16,19 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ ***********************************************************************/
+ 
+-#include <stdlib.h>
+-#include <string.h>
+ #include <openbabel/locale.h>
+-
+-#if HAVE_XLOCALE_H
+-#include <xlocale.h>
+-#endif
+-#if HAVE_LOCALE_H
+-#include <locale.h>
+-#endif
++#include <string>
++#include <clocale>
+ 
+ namespace OpenBabel
+ {
+   class OBLocalePrivate {
+   public:
+-    char *old_locale_string;
+-#if HAVE_USELOCALE
+-    locale_t new_c_num_locale;
+-    locale_t old_locale;
+-#endif
++    std::string old_locale_string;
+     unsigned int counter; // Reference counter -- ensures balance in SetLocale/RestoreLocale calls
+ 
+     OBLocalePrivate(): counter(0)
+     {
+-#if HAVE_USELOCALE
+-      new_c_num_locale = newlocale(LC_NUMERIC_MASK, NULL, NULL);
+-#endif
+     }
+ 
+     ~OBLocalePrivate()
+@@ -92,21 +78,8 @@ namespace OpenBabel
+   void OBLocale::SetLocale()
+   {
+     if (d->counter == 0) {
+-      // Set the locale for number parsing to avoid locale issues: PR#1785463
+-#if HAVE_USELOCALE
+-      // Extended per-thread interface
+-      d->old_locale = uselocale(d->new_c_num_locale);
+-#else
+-#ifndef ANDROID
+-      // Original global POSIX interface
+-      // regular UNIX, no USELOCALE, no ANDROID
+-      d->old_locale_string = strdup(setlocale(LC_NUMERIC, nullptr));
+-#else
+-      // ANDROID should stay as "C" -- Igor Filippov
+-      d->old_locale_string = "C";
+-#endif
++      d->old_locale_string = std::setlocale(LC_ALL, nullptr);
+   	  setlocale(LC_NUMERIC, "C");
+-#endif
+     }
+ 
+     ++d->counter;
+@@ -117,15 +90,7 @@ namespace OpenBabel
+     --d->counter;
+     if(d->counter == 0) {
+       // return the locale to the original one
+-#ifdef HAVE_USELOCALE
+-      uselocale(d->old_locale);
+-#else
+-      setlocale(LC_NUMERIC, d->old_locale_string);
+-#ifndef ANDROID
+-      // Don't free on Android because "C" is a static ctring constant
+-      free (d->old_locale_string);
+-#endif
+-#endif
++      std::setlocale(LC_NUMERIC, d->old_locale_string.c_str());
+     }
+   }
+ 
+diff --git a/cpp/openbabel-src/openbabel/src/math/matrix3x3.cpp b/cpp/openbabel-src/openbabel/src/math/matrix3x3.cpp
+index 571fd6bd7..35662564c 100644
+--- a/cpp/openbabel-src/openbabel/src/math/matrix3x3.cpp
++++ b/cpp/openbabel-src/openbabel/src/math/matrix3x3.cpp
+@@ -545,7 +545,7 @@ namespace OpenBabel
+     eigenvectors. The eigenvectors are normalized and mutually
+     orthogonal.
+   */
+-  void matrix3x3::jacobi(unsigned int n, double *a, double *d, double *v)
++  void matrix3x3::jacobi(int n, double *a, double *d, double *v)
+   {
+     double onorm, dnorm;
+     double b, dma, q, t, c, s;
+@@ -557,9 +557,9 @@ namespace OpenBabel
+ 
+     // Set v to the identity matrix, set the vector d to contain the
+     // diagonal elements of the matrix a
+-    for (j = 0; j < static_cast<int>(n); j++)
++    for (j = 0; j < n; j++)
+       {
+-        for (i = 0; i < static_cast<int>(n); i++)
++        for (i = 0; i < n; i++)
+           v[n*i+j] = 0.0;
+         v[n*j+j] = 1.0;
+         d[j] = a[n*j+j];
+@@ -572,7 +572,7 @@ namespace OpenBabel
+         // onorm to the maximum norm of the off-diagonal elements
+         dnorm = 0.0;
+         onorm = 0.0;
+-        for (j = 0; j < static_cast<int>(n); j++)
++        for (j = 0; j < n; j++)
+           {
+             dnorm += (double)fabs(d[j]);
+             for (i = 0; i < j; i++)
+@@ -582,7 +582,7 @@ namespace OpenBabel
+         if((onorm/dnorm) <= 1.0e-12)
+           goto Exit_now;
+ 
+-        for (j = 1; j < static_cast<int>(n); j++)
++        for (j = 1; j < n; j++)
+           {
+             for (i = 0; i <= j - 1; i++)
+               {
+@@ -619,14 +619,14 @@ namespace OpenBabel
+                         a[n*i+k] = atemp;
+                       }
+ 
+-                    for (k = j+1; k < static_cast<int>(n); k++)
++                    for (k = j+1; k < n; k++)
+                       {
+                         atemp = c * a[n*i+k] - s * a[n*j+k];
+                         a[n*j+k] = s * a[n*i+k] + c * a[n*j+k];
+                         a[n*i+k] = atemp;
+                       }
+ 
+-                    for (k = 0; k < static_cast<int>(n); k++)
++                    for (k = 0; k < n; k++)
+                       {
+                         vtemp = c * v[n*k+i] - s * v[n*k+j];
+                         v[n*k+j] = s * v[n*k+i] + c * v[n*k+j];
+@@ -647,11 +647,11 @@ namespace OpenBabel
+     // smallest eigenvalues come first.
+     nrot = l;
+ 
+-    for (j = 0; j < static_cast<int>(n)-1; j++)
++    for (j = 0; j < n-1; j++)
+       {
+         k = j;
+         dtemp = d[k];
+-        for (i = j+1; i < static_cast<int>(n); i++)
++        for (i = j+1; i < n; i++)
+           if(d[i] < dtemp)
+             {
+               k = i;
+@@ -662,7 +662,7 @@ namespace OpenBabel
+           {
+             d[k] = d[j];
+             d[j] = dtemp;
+-            for (i = 0; i < static_cast<int>(n); i++)
++            for (i = 0; i < n; i++)
+               {
+                 dtemp = v[n*i+k];
+                 v[n*i+k] = v[n*i+j];
+diff --git a/cpp/openbabel-src/openbabel/src/mcdlutil.cpp b/cpp/openbabel-src/openbabel/src/mcdlutil.cpp
+index d06593f16..9d89f9dbe 100644
+--- a/cpp/openbabel-src/openbabel/src/mcdlutil.cpp
++++ b/cpp/openbabel-src/openbabel/src/mcdlutil.cpp
+@@ -5033,7 +5033,7 @@ namespace OpenBabel {
+ 
+     if (bondLabel != nullptr && nBonds() > 0) {
+       bondLabel->resize(molecule1->nBonds());
+-      if (test2) for (j=0; j<molecule1->nBonds(); j++) if (bSTested[j]>=0) (*bondLabel)[j]=1; else (*bondLabel)[j]=0;
++      if (test2) for (j=0; j<molecule1->nBonds(); j++) { if (bSTested[j]>=0) (*bondLabel)[j]=1; else (*bondLabel)[j]=0; }
+     };
+     result=test2;
+ 
+@@ -5102,7 +5102,7 @@ namespace OpenBabel {
+   std::vector<TEditedMolecule *> TemplateRedraw::queryData;
+ 
+   bool TemplateRedraw::loadTemplates() {
+-    std::ifstream ifs;
++    std::istringstream ifs;
+     string filename("templates.sdf");//("e:\\templates.sdf");
+     TEditedMolecule sm;
+     TEditedMolecule * em;
+diff --git a/cpp/openbabel-src/openbabel/src/obmolecformat.cpp b/cpp/openbabel-src/openbabel/src/obmolecformat.cpp
+index 84cbb4652..4d499d88c 100644
+--- a/cpp/openbabel-src/openbabel/src/obmolecformat.cpp
++++ b/cpp/openbabel-src/openbabel/src/obmolecformat.cpp
+@@ -500,12 +500,12 @@ namespace OpenBabel
+ 
+     NameIndexType::iterator itr;
+ 
+-    ifstream indexstream;
++    istringstream indexstream;
+     OpenDatafile(indexstream, datafilename + ".obindx");
+     if(!indexstream)
+       {
+         //Need to prepare the index
+-        ifstream datastream;
++        istringstream datastream;
+         string datafilepath = OpenDatafile(datastream, datafilename);
+         if(!datastream)
+           {
+diff --git a/cpp/openbabel-src/openbabel/src/op.cpp b/cpp/openbabel-src/openbabel/src/op.cpp
+index dd0c1fa5a..93e74366b 100644
+--- a/cpp/openbabel-src/openbabel/src/op.cpp
++++ b/cpp/openbabel-src/openbabel/src/op.cpp
+@@ -22,10 +22,6 @@ GNU General Public License for more details.
+ using namespace std;
+ namespace OpenBabel
+ {
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-  // macro to implement static OBPlugin::PluginMapType& Map()
+-  PLUGIN_CPP_FILE(OBOp)
+-#endif
+ }
+ 
+ 
+diff --git a/cpp/openbabel-src/openbabel/src/ops/gen3d.cpp b/cpp/openbabel-src/openbabel/src/ops/gen3d.cpp
+index 9b107ea51..6c19cfe9a 100644
+--- a/cpp/openbabel-src/openbabel/src/ops/gen3d.cpp
++++ b/cpp/openbabel-src/openbabel/src/ops/gen3d.cpp
+@@ -70,8 +70,10 @@ bool OpGen3D::Do(OBBase* pOb, const char* OptionText, OpMap* pOptions, OBConvers
+   bool useDistGeom = false;
+ 
+   // first try converting OptionText to an integer
+-  char *endptr;
+-  speed = strtol(OptionText, &endptr, 10);
++  char *endptr = nullptr;
++  if (OptionText) {
++    speed = strtol(OptionText, &endptr, 10);
++  }
+   if (endptr == OptionText) { // not a number
+     speed = 3; // we'll default to balanced
+     // but let's also check if it's words like "fast" or "best"
+@@ -131,12 +133,12 @@ bool OpGen3D::Do(OBBase* pOb, const char* OptionText, OpMap* pOptions, OBConvers
+       return true; // done
+ 
+     // All other speed levels do some FF cleanup
+-    // Try MMFF94 first and UFF if that doesn't work
+-    OBForceField* pFF = OBForceField::FindForceField("MMFF94");
++    // Try UFF first and MMFF94 if that doesn't work
++    OBForceField* pFF = OBForceField::FindForceField("UFF");
+     if (!pFF)
+       return true;
+     if (!pFF->Setup(molCopy)) {
+-      pFF = OBForceField::FindForceField("UFF");
++      pFF = OBForceField::FindForceField("MMFF94");
+       if (!pFF || !pFF->Setup(molCopy)) return true; // can't use either MMFF94 or UFF
+     }
+ 
+diff --git a/cpp/openbabel-src/openbabel/src/ops/loader.cpp b/cpp/openbabel-src/openbabel/src/ops/loader.cpp
+index 36100ee89..344086971 100644
+--- a/cpp/openbabel-src/openbabel/src/ops/loader.cpp
++++ b/cpp/openbabel-src/openbabel/src/ops/loader.cpp
+@@ -35,11 +35,6 @@ public:
+   const char* TypeID(){return "loaders";};
+ };
+ 
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
+-// macro to implement static OBPlugin::PluginMapType& Map()
+-PLUGIN_CPP_FILE(OBLoader)
+-#endif
+-
+ //*********************************************************
+ ///Class which makes instances of plugin classes from information in text file.
+ ///This allows the commandline and GUI interfaces to be extended without recompiling.
+@@ -55,7 +50,7 @@ public:
+   OBDefine(const char* ID, const char* filename)
+     : OBLoader(ID, false), _filename(filename)
+   {
+-    ifstream ifs;
++    istringstream ifs;
+     bool filefound = !OpenDatafile(ifs, filename).empty();
+     if(!ifs)
+     {
+diff --git a/cpp/openbabel-src/openbabel/src/ops/op2d.cpp b/cpp/openbabel-src/openbabel/src/ops/op2d.cpp
+index 7987c51f9..6b1bd8325 100644
+--- a/cpp/openbabel-src/openbabel/src/ops/op2d.cpp
++++ b/cpp/openbabel-src/openbabel/src/ops/op2d.cpp
+@@ -25,12 +25,13 @@ This code calls C++ routines in RDKit which are
+ #include <openbabel/babelconfig.h>
+ #include <iostream>
+ #include<openbabel/op.h>
++#include<openbabel/atom.h>
+ #include<openbabel/mol.h>
++#include<openbabel/oberror.h>
+ #include <RDKitConv.h>
+ #include <GraphMol/Depictor/RDDepictor.h>
+ #include <Geometry/point.h>
+-#include <GraphMol/conformer.h>
+-#include <GraphMol/molops.h>
++#include <GraphMol/MolOps.h>
+ 
+ #ifndef OBERROR
+  #define OBERROR
+@@ -48,14 +49,13 @@ public:
+       "Uses RDKit http://www.rdkit.org";
+   }
+   virtual bool WorksWith(OBBase* pOb)const{ return dynamic_cast<OBMol*>(pOb)!=NULL; }
+-
+-  virtual bool Do(OBBase* pOb, OpMap*, const char* OptionText);
++  virtual bool Do(OBBase* pOb, const char*, OpMap*, OBConversion*);
+ };
+ 
+ Op2D theOp2D("2D"); //Global instance
+ 
+ /////////////////////////////////////////////////////////////////
+-bool Op2D::Do(OBBase* pOb, OpMap*, const char* OptionText)
++bool Op2D::Do(OBBase* pOb, const char*, OpMap*, OBConversion*)
+ {
+   OBMol* pmol = dynamic_cast<OBMol*>(pOb);
+   if(!pmol)
+diff --git a/cpp/openbabel-src/openbabel/src/ops/optransform.cpp b/cpp/openbabel-src/openbabel/src/ops/optransform.cpp
+index 0ca38f5be..49d7fe391 100644
+--- a/cpp/openbabel-src/openbabel/src/ops/optransform.cpp
++++ b/cpp/openbabel-src/openbabel/src/ops/optransform.cpp
+@@ -40,9 +40,7 @@ bool OpTransform::Initialize()
+ {
+   _dataLoaded=true;
+   _transforms.clear();
+-  ifstream ifs;
+-  if(ifs.is_open())
+-    ifs.close();
++  istringstream ifs;
+   char charBuffer[BUFF_SIZE];
+ 
+   // Set the locale for number parsing to avoid locale issues: PR#1785463
+diff --git a/cpp/openbabel-src/openbabel/src/ops/sort.cpp b/cpp/openbabel-src/openbabel/src/ops/sort.cpp
+index 38e052487..79aa7b88c 100644
+--- a/cpp/openbabel-src/openbabel/src/ops/sort.cpp
++++ b/cpp/openbabel-src/openbabel/src/ops/sort.cpp
+@@ -29,7 +29,7 @@ namespace OpenBabel
+ {
+ 
+ template<class T>
+-struct Order : public std::binary_function<std::pair<OBBase*,T>, std::pair<OBBase*,T>, bool>
++struct Order
+ {
+   Order(OBDescriptor* pDesc, bool rev) : _pDesc(pDesc), _rev(rev){}
+   bool operator()(std::pair<OBBase*,T> p1, std::pair<OBBase*,T> p2) const
+diff --git a/cpp/openbabel-src/openbabel/src/ops/unique.cpp b/cpp/openbabel-src/openbabel/src/ops/unique.cpp
+index e034ad717..3eb0994d2 100644
+--- a/cpp/openbabel-src/openbabel/src/ops/unique.cpp
++++ b/cpp/openbabel-src/openbabel/src/ops/unique.cpp
+@@ -39,7 +39,7 @@ using namespace std;
+   #ifdef _LIBCPP_VERSION
+     using std::unordered_map;
+   #else
+-    using std::tr1::unordered_map;
++    using std::unordered_map;
+   #endif
+ #endif
+ namespace OpenBabel
+diff --git a/cpp/openbabel-src/openbabel/src/patty.cpp b/cpp/openbabel-src/openbabel/src/patty.cpp
+index e4c135456..93fc4d60e 100644
+--- a/cpp/openbabel-src/openbabel/src/patty.cpp
++++ b/cpp/openbabel-src/openbabel/src/patty.cpp
+@@ -25,6 +25,7 @@ GNU General Public License for more details.
+ 
+ #include <cstring>
+ #include <cstdlib>
++#include <fstream>
+ 
+ // Simple programmable atom typer
+ // WPW - 070199
+diff --git a/cpp/openbabel-src/openbabel/src/phmodel.cpp b/cpp/openbabel-src/openbabel/src/phmodel.cpp
+index f852661bb..512b94e11 100644
+--- a/cpp/openbabel-src/openbabel/src/phmodel.cpp
++++ b/cpp/openbabel-src/openbabel/src/phmodel.cpp
+@@ -28,8 +28,6 @@ GNU General Public License for more details.
+ 
+ #include <cstdlib>
+ 
+-// private data header with default parameters
+-#include "phmodeldata.h"
+ 
+ #ifdef WIN32
+ #pragma warning (disable : 4786)
+@@ -50,7 +48,7 @@ namespace OpenBabel
+     _envvar = "BABEL_DATADIR";
+     _filename = "phmodel.txt";
+     _subdir = "data";
+-    _dataptr = PhModelData;
++    _dataptr = nullptr;
+   }
+ 
+   OBPhModel::~OBPhModel()
+diff --git a/cpp/openbabel-src/openbabel/src/plugin.cpp b/cpp/openbabel-src/openbabel/src/plugin.cpp
+index 1ccd881f7..86ca05489 100644
+--- a/cpp/openbabel-src/openbabel/src/plugin.cpp
++++ b/cpp/openbabel-src/openbabel/src/plugin.cpp
+@@ -285,6 +285,8 @@ std::vector<std::string> EnableStaticPlugins()
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theHINFormat)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theJaguarOutputFormat)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theJaguarInputFormat)->GetID());
++  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theChemDoodleJSONFormat)->GetID());
++  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&thePubChemJSONFormat)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theLMPDATFormat)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theMCDLFormat)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theMOLFormat)->GetID());
+@@ -354,6 +356,8 @@ std::vector<std::string> EnableStaticPlugins()
+ #endif
+ #ifdef HAVE_STATIC_INCHI
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChIFormat)->GetID());
++  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChICompareFormat)->GetID());
++  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChIKeyFormat)->GetID());
+ #endif
+ #ifdef HAVE_RPC_XDR_H
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theXTCFormat)->GetID());
+@@ -413,6 +417,7 @@ std::vector<std::string> EnableStaticPlugins()
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpFillUC)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpEnergy)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpMinimize)->GetID());
++  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOp2D)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpGen2D)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpGen3D)->GetID());
+   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpNewS)->GetID());
+diff --git a/cpp/openbabel-src/openbabel/src/rotor.cpp b/cpp/openbabel-src/openbabel/src/rotor.cpp
+index 4f92ac567..ddb249762 100644
+--- a/cpp/openbabel-src/openbabel/src/rotor.cpp
++++ b/cpp/openbabel-src/openbabel/src/rotor.cpp
+@@ -31,8 +31,6 @@ GNU General Public License for more details.
+ #include <set>
+ #include <assert.h>
+ 
+-// private data headers with default parameters
+-#include "torlib.h"
+ 
+ #ifndef M_PI
+ #define M_PI 3.14159265358979323846
+@@ -806,7 +804,7 @@ namespace OpenBabel
+     _envvar = "BABEL_DATADIR";
+     _filename = "torlib.txt";
+     _subdir = "data";
+-    _dataptr = TorsionDefaults;
++    _dataptr = nullptr;
+   }
+ 
+   void OBRotorRules::ParseLine(const char *buffer)
+diff --git a/cpp/openbabel-src/openbabel/src/stereo/perception.cpp b/cpp/openbabel-src/openbabel/src/stereo/perception.cpp
+index 7c9fcc348..f25bfcf81 100644
+--- a/cpp/openbabel-src/openbabel/src/stereo/perception.cpp
++++ b/cpp/openbabel-src/openbabel/src/stereo/perception.cpp
+@@ -2969,9 +2969,6 @@ namespace OpenBabel {
+   }
+ 
+   void StereoRefToImplicit(OBMol& mol, OBStereo::Ref atomId) {
+-    // The following is for use in replace_if(...) below
+-    const std::binder1st<std::equal_to<OBStereo::Ref> > equal_to_atomId = std::bind1st (equal_to<OBStereo::Ref>(), atomId);
+-
+     std::vector<OBGenericData*> vdata = mol.GetAllData(OBGenericDataType::StereoData);
+     for (std::vector<OBGenericData*>::iterator data = vdata.begin(); data != vdata.end(); ++data) {
+       OBStereo::Type datatype = ((OBStereoBase*)*data)->GetType();
+@@ -2987,23 +2984,20 @@ namespace OpenBabel {
+       if (datatype == OBStereo::CisTrans) {
+         OBCisTransStereo *ct = dynamic_cast<OBCisTransStereo*>(*data);
+         OBCisTransStereo::Config ct_cfg = ct->GetConfig();
+-        replace_if(ct_cfg.refs.begin(), ct_cfg.refs.end(), equal_to_atomId, (OBStereo::Ref) OBStereo::ImplicitRef);
++        replace(ct_cfg.refs.begin(), ct_cfg.refs.end(), atomId, (OBStereo::Ref) OBStereo::ImplicitRef);
+         ct->SetConfig(ct_cfg);
+       }
+       else if (datatype == OBStereo::Tetrahedral) {
+         OBTetrahedralStereo *ts = dynamic_cast<OBTetrahedralStereo*>(*data);
+         OBTetrahedralStereo::Config ts_cfg = ts->GetConfig();
+         if (ts_cfg.from == atomId) ts_cfg.from = OBStereo::ImplicitRef;
+-        replace_if(ts_cfg.refs.begin(), ts_cfg.refs.end(), equal_to_atomId, (OBStereo::Ref) OBStereo::ImplicitRef);
++        replace(ts_cfg.refs.begin(), ts_cfg.refs.end(), atomId, (OBStereo::Ref) OBStereo::ImplicitRef);
+         ts->SetConfig(ts_cfg);
+       }
+     }
+   }
+ 
+   void ImplicitRefToStereo(OBMol& mol, OBStereo::Ref centerId, OBStereo::Ref newId) {
+-    // The following is for use in replace_if(...) below
+-    const std::binder1st<std::equal_to<OBStereo::Ref> > equal_to_implicitRef = std::bind1st (equal_to<OBStereo::Ref>(), (OBStereo::Ref) OBStereo::ImplicitRef);
+-
+     std::vector<OBGenericData*> vdata = mol.GetAllData(OBGenericDataType::StereoData);
+     for (std::vector<OBGenericData*>::iterator data = vdata.begin(); data != vdata.end(); ++data) {
+       OBStereo::Type datatype = ((OBStereoBase*)*data)->GetType();
+@@ -3022,9 +3016,9 @@ namespace OpenBabel {
+         if (ct_cfg.begin == centerId || ct_cfg.end == centerId) {
+           // Assumption: the first two refs are on the begin atom, the last two on the end atom
+           if (ct_cfg.begin == centerId)
+-            replace_if(ct_cfg.refs.begin(), ct_cfg.refs.begin()+2, equal_to_implicitRef, (OBStereo::Ref) newId);
++            replace(ct_cfg.refs.begin(), ct_cfg.refs.begin()+2, (OBStereo::Ref) OBStereo::ImplicitRef, (OBStereo::Ref) newId);
+           if (ct_cfg.end == centerId)
+-            replace_if(ct_cfg.refs.begin()+2, ct_cfg.refs.end(), equal_to_implicitRef, (OBStereo::Ref) newId);
++            replace(ct_cfg.refs.begin()+2, ct_cfg.refs.end(), (OBStereo::Ref) OBStereo::ImplicitRef, (OBStereo::Ref) newId);
+           ct->SetConfig(ct_cfg);
+         }
+       }
+@@ -3033,7 +3027,7 @@ namespace OpenBabel {
+         OBTetrahedralStereo::Config ts_cfg = ts->GetConfig();
+         if (ts_cfg.center == centerId) {
+           if (ts_cfg.from == OBStereo::ImplicitRef) ts_cfg.from = newId;
+-          replace_if(ts_cfg.refs.begin(), ts_cfg.refs.end(), equal_to_implicitRef, (OBStereo::Ref) newId);
++          replace(ts_cfg.refs.begin(), ts_cfg.refs.end(), (OBStereo::Ref) OBStereo::ImplicitRef, (OBStereo::Ref) newId);
+           ts->SetConfig(ts_cfg);
+         }
+       }
+diff --git a/cpp/openbabel-src/openbabel/src/tokenst.cpp b/cpp/openbabel-src/openbabel/src/tokenst.cpp
+index e82ff1345..af6ba2a9e 100644
+--- a/cpp/openbabel-src/openbabel/src/tokenst.cpp
++++ b/cpp/openbabel-src/openbabel/src/tokenst.cpp
+@@ -24,7 +24,7 @@ GNU General Public License for more details.
+ #include <limits>
+ #include <cstring>
+ #include <openbabel/tokenst.h>
+-
++#include "text_assets.hpp"
+ using namespace std;
+ 
+ namespace OpenBabel
+@@ -180,7 +180,7 @@ namespace OpenBabel
+      or "BABEL_DATADIR" if @p envvar is not specified, or the compiled-in
+      macro BABEL_DATADIR if the environment variable is not set
+ 
+-     \param ifs        Stream to load
++     \param iss        Stream to load
+      \param filename   Name of the data file to load
+      \param envvar     Name of the environment variable
+ 
+@@ -188,51 +188,16 @@ namespace OpenBabel
+      unless it is in current directory
+ 
+   **/
+-  std::string OpenDatafile(std::ifstream& ifs, const std::string& filename,
++  std::string OpenDatafile(std::istringstream& iss, const std::string& filename,
+                            const std::string& envvar)
+   {
+-    ios_base::openmode imode = ios_base::in;
+-    #ifdef ALL_READS_BINARY //Makes unix files compatible with VC++6
+-      imode = ios_base::in|ios_base::binary;
+-    #endif
+-
+-    // check the current directory
+-    ifs.close();
+-    ifs.clear();
+-    ifs.open(filename.c_str(),imode);
+-    if(ifs)
+-      return filename;
+-
+-    string file;
+-    const char* datadir = getenv(envvar.c_str());
+-    if(!datadir)
+-      datadir = BABEL_DATADIR;
+-
+-    // check the subdirectory for this version number
+-    file = datadir;
+-    file += FILE_SEP_CHAR;
+-    file += BABEL_VERSION;
+-    file += FILE_SEP_CHAR + filename;
+-
+-    ifs.clear();
+-    ifs.open(file.c_str(),imode);
+-    if(ifs)
+-      return file;
+-
+-    // couldn't find it with the version built in, so try the parent
+-    file = datadir;
+-    file += FILE_SEP_CHAR;
+-    file += filename;
+-
+-    ifs.clear();
+-    ifs.open(file.c_str(),imode);
+-
+-    if (ifs)
+-      return file;
+-
+-    ifs.clear();
+-    ifs.close();
+-    return(""); // error
++    auto it = openbabel::OPENBABEL_ASSET_MAP.find(filename);
++    if(it==openbabel::OPENBABEL_ASSET_MAP.end()) {
++        return "";
++    }
++    iss.clear();
++    iss.str(it->second);
++    return filename;
+   }
+ 
+ 
+diff --git a/cpp/openbabel-src/openbabel/src/typer.cpp b/cpp/openbabel-src/openbabel/src/typer.cpp
+index 443b4ab3e..ef3c1ce72 100644
+--- a/cpp/openbabel-src/openbabel/src/typer.cpp
++++ b/cpp/openbabel-src/openbabel/src/typer.cpp
+@@ -27,8 +27,6 @@ GNU General Public License for more details.
+ #include <openbabel/typer.h>
+ #include <openbabel/elements.h>
+ 
+-// private data headers with default parameters
+-#include "atomtyp.h"
+ 
+ #ifdef WIN32
+ #pragma warning (disable : 4786)
+@@ -64,7 +62,7 @@ namespace OpenBabel
+     _envvar = "BABEL_DATADIR";
+     _filename = "atomtyp.txt";
+     _subdir = "data";
+-    _dataptr = AtomTypeData;
++    _dataptr = nullptr;
+   }
+ 
+   void OBAtomTyper::ParseLine(const char *buffer)
+diff --git a/cpp/openbabel-src/openbabel/src/zipstreamimpl.h b/cpp/openbabel-src/openbabel/src/zipstreamimpl.h
+index 981758917..158d6ab66 100644
+--- a/cpp/openbabel-src/openbabel/src/zipstreamimpl.h
++++ b/cpp/openbabel-src/openbabel/src/zipstreamimpl.h
+@@ -176,8 +176,7 @@ std::streamsize basic_zip_streambuf<charT, traits>::flush(void)
+     }
+     while(_err == Z_OK);
+ 
+-    if(&_ostream)
+-			_ostream.flush();
++    _ostream.flush();
+ 
+     return total_written_byte_size;
+ }
