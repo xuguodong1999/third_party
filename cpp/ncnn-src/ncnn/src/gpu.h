@@ -196,7 +196,7 @@ private:
     GpuInfo& operator=(const GpuInfo&);
 
 private:
-    friend int create_gpu_instance();
+    friend NCNN_EXPORT int create_gpu_instance();
     GpuInfoPrivate* const d;
 };
 

@@ -67,7 +67,11 @@
 #endif
 
 #ifdef EIGEN_HAS_OPENMP
+#ifdef NCNN_SIMPLEOMP
+#include <simpleomp.h>
+#else
 #include <omp.h>
+#endif
 #endif
 
 // MSVC for windows mobile does not have the errno.h file

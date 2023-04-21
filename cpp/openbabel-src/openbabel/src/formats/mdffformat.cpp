@@ -30,8 +30,12 @@ GNU General Public License for more details.
 #include <algorithm>
 
 #ifdef _MSC_VER
+#ifndef INFINITY
 #define INFINITY (DBL_MAX+DBL_MAX)
+#endif
+#ifndef NAN
 #define NAN (INFINITY-INFINITY)
+#endif
 #endif
 
 using namespace std;
@@ -133,7 +137,7 @@ namespace OpenBabel {
     //    path = buffer;
     string full_path = pConv->GetInFilename();
     size_t found = full_path.rfind("/");
-    string path = (found == string::npos) ? "" : path.substr(0, found);
+    string path = (found == string::npos) ? "" : full_path.substr(0, found);
     string short_fn = full_path.substr(path.length(), string::npos);
 
     // Open files

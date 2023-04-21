@@ -285,6 +285,8 @@ std::vector<std::string> EnableStaticPlugins()
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theHINFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theJaguarOutputFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theJaguarInputFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theChemDoodleJSONFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&thePubChemJSONFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theLMPDATFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theMCDLFormat)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theMOLFormat)->GetID());
@@ -354,6 +356,8 @@ std::vector<std::string> EnableStaticPlugins()
 #endif
 #ifdef HAVE_STATIC_INCHI
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChIFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChICompareFormat)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theInChIKeyFormat)->GetID());
 #endif
 #ifdef HAVE_RPC_XDR_H
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theXTCFormat)->GetID());
@@ -413,6 +417,7 @@ std::vector<std::string> EnableStaticPlugins()
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpFillUC)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpEnergy)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpMinimize)->GetID());
+  plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOp2D)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpGen2D)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpGen3D)->GetID());
   plugin_ids.push_back(reinterpret_cast<OBPlugin*>(&theOpNewS)->GetID());

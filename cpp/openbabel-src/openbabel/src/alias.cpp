@@ -222,7 +222,7 @@ bool AliasData::FromNameLookup(OBMol& mol, const unsigned int atomindex)
 bool AliasData::LoadFile(SuperAtomTable& table)
 {
   //In table: key=alias left-form; value=pair<alias right-form, SMILES>
-  ifstream ifs;
+  istringstream ifs;
   if (OpenDatafile(ifs, "superatom.txt").length() == 0)
   {
     obErrorLog.ThrowError(__FUNCTION__, "Cannot open superatom.txt", obError);
@@ -250,7 +250,7 @@ bool AliasData::LoadFile(SuperAtomTable& table)
 bool AliasData::LoadFile(SmartsTable& smtable)
 {
   //Re-parse the datafile. Seems simpler than trying to extract from the map.
-  ifstream ifs;
+  istringstream ifs;
   if (OpenDatafile(ifs, "superatom.txt").length() == 0)
   {
     obErrorLog.ThrowError(__FUNCTION__, "Cannot open superatom.txt", obError);

@@ -67,7 +67,7 @@ public:
 #endif
 //! Global OBAtomTyper for marking internal valence, hybridization,
 //!  and atom types (for internal and external use)
-THREAD_LOCAL OB_EXTERN OBAtomTyper      atomtyper;
+THREAD_LOCAL extern OBAtomTyper      atomtyper;
 
 // class introduction in typer.cpp
 class OBAPI OBAromaticTyper
@@ -81,7 +81,7 @@ public:
 };
 
 //! Global OBAromaticTyper for detecting aromatic atoms and bonds
-THREAD_LOCAL OB_EXTERN OBAromaticTyper  aromtyper;
+THREAD_LOCAL extern OBAromaticTyper  aromtyper;
 
 // class introduction in typer.cpp
 class OBAPI OBRingTyper : public OBGlobalDataBase

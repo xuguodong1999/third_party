@@ -5,9 +5,9 @@ file(READ ${SHADER_SRC} comp_data)
 
 # skip leading comment
 string(FIND "${comp_data}" "#version" version_start)
-if(NOT ${version_start} EQUAL -1)
+if (NOT ${version_start} EQUAL -1)
     string(SUBSTRING "${comp_data}" ${version_start} -1 comp_data)
-endif()
+endif ()
 
 # remove whitespace
 string(REGEX REPLACE "\n +" "\n" comp_data "${comp_data}")
@@ -15,8 +15,8 @@ string(REGEX REPLACE "\n +" "\n" comp_data "${comp_data}")
 get_filename_component(SHADER_SRC_NAME_WE ${SHADER_SRC} NAME_WE)
 
 # text to hex
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_SRC_NAME_WE}.text2hex.txt "${comp_data}")
-file(READ ${CMAKE_CURRENT_BINARY_DIR}/${SHADER_SRC_NAME_WE}.text2hex.txt comp_data_hex HEX)
+file(WRITE ${XGD_GENERATED_DIR}/ncnn/tmp/${SHADER_SRC_NAME_WE}.text2hex.txt "${comp_data}")
+file(READ ${XGD_GENERATED_DIR}/ncnn/tmp/${SHADER_SRC_NAME_WE}.text2hex.txt comp_data_hex HEX)
 string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1," comp_data_hex ${comp_data_hex})
 string(FIND "${comp_data_hex}" "," tail_comma REVERSE)
 string(SUBSTRING "${comp_data_hex}" 0 ${tail_comma} comp_data_hex)

@@ -1,28 +1,28 @@
 
 macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CFLAGS)
-    set(NCNN_${NCNN_TARGET_ARCH}_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.h)
-    set(NCNN_${NCNN_TARGET_ARCH}_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
+    set(NCNN_${NCNN_TARGET_ARCH}_HEADER ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.h)
+    set(NCNN_${NCNN_TARGET_ARCH}_SOURCE ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
 
-    if(WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_HEADER} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE})
+    if (WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_HEADER} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE})
 
-        set(NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER ${CMAKE_CURRENT_BINARY_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h)
-        set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
+        set(NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER ${XGD_GENERATED_DIR}/ncnn/include/ncnn/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h)
+        set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${XGD_GENERATED_DIR}/ncnn/src/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
 
         add_custom_command(
-            OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER}
-            COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
-            DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_HEADER}
-            COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h"
-            VERBATIM
+                OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER}
+                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+                DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_HEADER}
+                COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h"
+                VERBATIM
         )
         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} PROPERTIES GENERATED TRUE)
 
         add_custom_command(
-            OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE}
-            COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
-            DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE}
-            COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp"
-            VERBATIM
+                OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE}
+                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+                DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE}
+                COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp"
+                VERBATIM
         )
         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} PROPERTIES GENERATED TRUE)
 
@@ -67,7 +67,7 @@ macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CF
 endmacro()
 
 macro(ncnn_add_arch_opt_source class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CFLAGS)
-    set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
+    set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
 
     if(WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE})
         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} PROPERTIES COMPILE_FLAGS ${NCNN_TARGET_ARCH_OPT_CFLAGS})
@@ -90,17 +90,17 @@ macro(ncnn_add_layer class)
     endif()
 
     if(WITH_LAYER_${name})
-        list(APPEND ncnn_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/layer/${name}.cpp)
+        list(APPEND ncnn_SRCS ${NCNN_SRC_DIR}/layer/${name}.cpp)
 
         # look for arch specific implementation and append source
         # optimized implementation for armv7, aarch64 or x86
-        set(LAYER_ARCH_SRC ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
+        set(LAYER_ARCH_SRC ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
         if(EXISTS ${LAYER_ARCH_SRC})
             set(WITH_LAYER_${name}_${NCNN_TARGET_ARCH} 1)
             list(APPEND ncnn_SRCS ${LAYER_ARCH_SRC})
         endif()
 
-        set(LAYER_VULKAN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/layer/vulkan/${name}_vulkan.cpp)
+        set(LAYER_VULKAN_SRC ${NCNN_SRC_DIR}/layer/vulkan/${name}_vulkan.cpp)
         if(NCNN_VULKAN AND EXISTS ${LAYER_VULKAN_SRC})
             set(WITH_LAYER_${name}_vulkan 1)
             list(APPEND ncnn_SRCS ${LAYER_VULKAN_SRC})
@@ -114,7 +114,7 @@ macro(ncnn_add_layer class)
         set(create_pipeline_content "        { int ret = ${class}::create_pipeline(opt); if (ret) return ret; }\n")
         set(destroy_pipeline_content "        { int ret = ${class}::destroy_pipeline(opt); if (ret) return ret; }\n")
 
-        source_group ("sources\\\\layers" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/${name}.cpp")
+        source_group("sources\\\\layers" FILES "${NCNN_SRC_DIR}/layer/${name}.cpp")
     endif()
 
     if(WITH_LAYER_${name}_vulkan)
@@ -123,14 +123,14 @@ macro(ncnn_add_layer class)
         set(create_pipeline_content "${create_pipeline_content}        if (vkdev) { int ret = ${class}_vulkan::create_pipeline(opt); if (ret) return ret; }\n")
         set(destroy_pipeline_content "        if (vkdev) { int ret = ${class}_vulkan::destroy_pipeline(opt); if (ret) return ret; }\n${destroy_pipeline_content}")
 
-        file(GLOB_RECURSE NCNN_SHADER_SRCS "layer/vulkan/shader/${name}.comp")
-        file(GLOB_RECURSE NCNN_SHADER_SUBSRCS "layer/vulkan/shader/${name}_*.comp")
+        file(GLOB_RECURSE NCNN_SHADER_SRCS "${NCNN_SRC_DIR}/layer/vulkan/shader/${name}.comp")
+        file(GLOB_RECURSE NCNN_SHADER_SUBSRCS "${NCNN_SRC_DIR}/layer/vulkan/shader/${name}_*.comp")
         list(APPEND NCNN_SHADER_SRCS ${NCNN_SHADER_SUBSRCS})
-        foreach(NCNN_SHADER_SRC ${NCNN_SHADER_SRCS})
+        foreach (NCNN_SHADER_SRC ${NCNN_SHADER_SRCS})
             ncnn_add_shader(${NCNN_SHADER_SRC})
-        endforeach()
+        endforeach ()
 
-        source_group ("sources\\\\layers\\\\vulkan" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/vulkan/${name}_vulkan.cpp")
+        source_group("sources\\\\layers\\\\vulkan" FILES "${NCNN_SRC_DIR}/layer/vulkan/${name}_vulkan.cpp")
     endif()
 
     if(WITH_LAYER_${name}_${NCNN_TARGET_ARCH})
@@ -139,7 +139,7 @@ macro(ncnn_add_layer class)
         set(create_pipeline_content "${create_pipeline_content}        { int ret = ${class}_${NCNN_TARGET_ARCH}::create_pipeline(opt); if (ret) return ret; }\n")
         set(destroy_pipeline_content "        { int ret = ${class}_${NCNN_TARGET_ARCH}::destroy_pipeline(opt); if (ret) return ret; }\n${destroy_pipeline_content}")
 
-        source_group ("sources\\\\layers\\\\${NCNN_TARGET_ARCH}" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp")
+        source_group("sources\\\\layers\\\\${NCNN_TARGET_ARCH}" FILES "${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp")
     endif()
 
     if(WITH_LAYER_${name})

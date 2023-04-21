@@ -115,6 +115,7 @@ void getMORSEDesc(const double *DM, const ROMol &mol, const Conformer &conf,
     R7[i] = std::round(1000 * res7) / 1000;
   }
 
+  R1.reserve(R1.size() + R2.size() + R3.size() + R4.size() + R5.size() + R6.size() + R7.size());
   R1.insert(R1.end(), R2.begin(), R2.end());
   R1.insert(R1.end(), R3.begin(), R3.end());
   R1.insert(R1.end(), R4.begin(), R4.end());

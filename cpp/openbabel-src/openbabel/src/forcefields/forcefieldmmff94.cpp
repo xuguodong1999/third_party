@@ -874,7 +874,7 @@ namespace OpenBabel
     char buffer[80];
 
     // open data/_parFile
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, _parFile).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open parameter file", obError);
       return false;
@@ -913,8 +913,6 @@ namespace OpenBabel
         ParseParamVDW(vs[1]);
     }
 
-    if (ifs)
-      ifs.close();
 
     // return the locale to the original one
     obLocale.RestoreLocale();
@@ -929,7 +927,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffbond.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffbond.par", obError);
       return false;
@@ -950,8 +948,6 @@ namespace OpenBabel
       _ffbondparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -964,7 +960,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffbndk.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffbndk.par", obError);
       return false;
@@ -984,8 +980,6 @@ namespace OpenBabel
       _ffbndkparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -998,7 +992,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffang.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffang.par", obError);
       return false;
@@ -1020,8 +1014,6 @@ namespace OpenBabel
       _ffangleparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1034,7 +1026,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffstbn.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffstbn.par", obError);
       return false;
@@ -1056,8 +1048,6 @@ namespace OpenBabel
       _ffstrbndparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1070,7 +1060,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffdfsb.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffdfsb.par", obError);
       return false;
@@ -1091,8 +1081,6 @@ namespace OpenBabel
       _ffdfsbparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1105,7 +1093,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffoop.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffoop.par", obError);
       return false;
@@ -1126,8 +1114,6 @@ namespace OpenBabel
       _ffoopparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1140,7 +1126,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmfftor.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmfftor.par", obError);
       return false;
@@ -1164,8 +1150,6 @@ namespace OpenBabel
       _fftorsionparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1178,7 +1162,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffvdw.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffvdw.par", obError);
       return false;
@@ -1205,8 +1189,6 @@ namespace OpenBabel
       _ffvdwparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1219,7 +1201,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffchg.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffchg.par", obError);
       return false;
@@ -1239,8 +1221,6 @@ namespace OpenBabel
       _ffchgparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1253,7 +1233,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffpbci.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffpbci", obError);
       return false;
@@ -1272,8 +1252,6 @@ namespace OpenBabel
       _ffpbciparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1286,7 +1264,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffprop.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffprop.par", obError);
       return false;
@@ -1321,8 +1299,6 @@ namespace OpenBabel
       _ffpropparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
@@ -1335,7 +1311,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/mmffdef.par
-    ifstream ifs;
+    istringstream ifs;
     if (OpenDatafile(ifs, filename).length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open mmffdef.par", obError);
       return false;
@@ -1356,8 +1332,6 @@ namespace OpenBabel
       _ffdefparams.push_back(parameter);
     }
 
-    if (ifs)
-      ifs.close();
 
     return 0;
   }
