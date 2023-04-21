@@ -34,8 +34,8 @@ include(${XGD_EXTERNAL_DIR}/cmake/api_link.cmake)
 xgd_link_boost(${PROJECT_NAME} PRIVATE iostreams PUBLIC serialization)
 # link OpenBabel to hello-world
 xgd_link_openbabel(${PROJECT_NAME})
-# use header only libraries: rxcpp and eigen
-xgd_use_header(${PROJECT_NAME} PRIVATE rxcpp eigen)
+# use header only libraries: eigen
+xgd_use_header(${PROJECT_NAME} PRIVATE eigen)
 # use header only boost modules, include and PUBLIC
 xgd_use_header(${PROJECT_NAME} PUBLIC boost)
 # ...
@@ -47,37 +47,27 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 
 | Library           | Source                                                                                               |
 |-------------------|------------------------------------------------------------------------------------------------------|
-| absl              | https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.1.tar.gz                             |
-| ade               | https://github.com/opencv/ade/archive/refs/tags/v0.1.2a.tar.gz                                       |
-| armadillo         | http://sourceforge.net/projects/arma/files/armadillo-11.4.4.tar.xz                                   |
 | avalontoolkit     | http://sourceforge.net/projects/avalontoolkit/files/AvalonToolkit_1.2/AvalonToolkit_1.2.0.source.tar |
 | benchmark         | https://github.com/google/benchmark/archive/refs/tags/v1.7.1.tar.gz                                  |
-| boost             | https://boostorg.jfrog.io/artifactory/main/release/1.81.0/source/boost_1_81_0.7z                     |
-| cereal            | https://github.com/USCiLab/cereal/archive/refs/tags/v1.3.2.tar.gz                                    |
-| coordgenlibs      | https://github.com/schrodinger/coordgenlibs/archive/refs/tags/v3.0.1.tar.gz                          |
+| boost             | https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.7z                     |
+| coordgenlibs      | https://github.com/schrodinger/coordgenlibs/archive/refs/tags/v3.0.2.tar.gz                          |
 | cutlass           | https://github.com/NVIDIA/cutlass/archive/refs/tags/v2.11.0.tar.gz                                   |
 | eigen3            | https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz                                 |
-| ensmallen         | https://ensmallen.org/files/ensmallen-2.19.1.tar.gz                                                  |
 | freesasa          | https://github.com/mittinatten/freesasa/releases/download/2.1.2/freesasa-2.1.2.zip                   |
-| gtest             | https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz                         |
+| gtest             | https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz                         |
 | inchi             | https://www.inchi-trust.org/wp/download/106/INCHI-1-SRC.zip                                          |
 | lbfgs             | https://github.com/yixuan/LBFGSpp/archive/refs/tags/v0.2.0.tar.gz                                    |
 | libpng            | https://github.com/glennrp/libpng/archive/refs/tags/v1.6.39.tar.gz                                   |
-| libxml            | https://github.com/GNOME/libxml2/archive/refs/tags/v2.10.3.tar.gz                                    |
-| maeparser         | https://github.com/schrodinger/maeparser/archive/refs/tags/v1.3.0.tar.gz                             |
-| mlpack            | https://github.com/mlpack/mlpack/archive/refs/tags/4.0.1.tar.gz                                      |
-| ncnn              | https://github.com/Tencent/ncnn/archive/refs/tags/20221128.tar.gz                                    |
+| libxml            | https://github.com/GNOME/libxml2/archive/refs/tags/v2.10.4.tar.gz                                    |
+| maeparser         | https://github.com/schrodinger/maeparser/archive/refs/tags/v1.3.1.tar.gz                             |
+| ncnn              | https://github.com/Tencent/ncnn/archive/refs/tags/20230223.tar.gz                                    |
 | nodeeditor        | https://github.com/paceholder/nodeeditor/archive/refs/tags/3.0.10.tar.gz                             |
 | openbabel         | https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-3-1-1.tar.gz                      |
-| opencv            | https://github.com/opencv/opencv/archive/refs/tags/4.7.0.tar.gz                                      |
-| protobuf          | https://github.com/protocolbuffers/protobuf/archive/refs/tags/v22.2.tar.gz                           |
-| rapidjson         | https://github.com/Tencent/rapidjson/archive/012be8528783cdbf4b7a9e64f78bd8f056b97e24.zip            |
-| rdkit             | https://github.com/rdkit/rdkit/archive/refs/tags/Release_2022_09_4.tar.gz                            |
+| rapidjson         | https://github.com/Tencent/rapidjson/archive/refs/tags/v1.1.0.tar.gz           |
+| rdkit             | https://github.com/rdkit/rdkit/archive/refs/tags/Release_2022_09_5.tar.gz                            |
 | RingDecomposerLib | https://github.com/rareylab/RingDecomposerLib/archive/refs/tags/v1.1.3_rdkit.tar.gz                  |
-| rxcpp             | https://github.com/ReactiveX/RxCpp/archive/refs/tags/v4.1.1.tar.gz                                   |
 | spdlog            | https://github.com/gabime/spdlog/archive/refs/tags/v1.11.0.tar.gz                                    |
-| stb               | https://github.com/nothings/stb/archive/5736b15f7ea0ffb08dd38af21067c314d6a3aae9.zip                 |
-| taskflow          | https://github.com/taskflow/taskflow/archive/refs/tags/v3.4.0.tar.gz                                 |
+| taskflow          | https://github.com/taskflow/taskflow/archive/refs/tags/v3.5.0.tar.gz                                 |
 | yaehmop           | https://github.com/greglandrum/yaehmop/archive/refs/tags/v2022.09.1.tar.gz                           |
 | yoga              | https://github.com/facebook/yoga/archive/refs/tags/v1.19.0.tar.gz                                    |
 | zlib              | https://www.zlib.net/zlib-1.2.13.tar.gz                                                              |
@@ -98,8 +88,6 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 | ncnn    | loongarch      |
 | ncnn    | mips           |
 | ncnn    | riscv          |
-| opencv  | dnn            |
-| opencv  | videoio        |
 | rdkit   | Fuzz           |
 | rdkit   | PgSQL          |
 | rdkit   | RDBoost        |
@@ -109,72 +97,52 @@ Most 3rdparty build scripts are rewritten in CMake to support building as subpro
 ```shell
 # unzip all downloads
 mkdir -p ../tmp/avalontoolkit/
-tar -xvf abseil-cpp-20230125.1.tar.gz -C ../tmp
-tar -xvf ade-0.1.2a.tar.gz -C ../tmp
-tar -xvf armadillo-11.4.4.tar.xz -C ../tmp/
 tar -xvf AvalonToolkit_1.2.0.source.tar -C ../tmp/avalontoolkit/
 tar -xvf benchmark-1.7.1.tar.gz -C ../tmp/
-tar -xvf boost_1_81_0.tar.gz -C ../tmp/
-tar -xvf cereal-1.3.2.tar.gz -C ../tmp/  
-tar -xvf coordgenlibs-3.0.1.tar.gz -C ../tmp/
+tar -xvf boost_1_82_0.tar.gz -C ../tmp/
+tar -xvf coordgenlibs-3.0.2.tar.gz -C ../tmp/
 tar -xvf cutlass-2.11.0.tar.gz -C ../tmp/
 tar -xvf eigen-3.4.0.tar.gz -C ../tmp/
-tar -xvf ensmallen-2.19.1.tar.gz -C ../tmp/
-tar -xvf googletest-release-1.12.1.tar.gz -C ../tmp/
+tar -xvf googletest-1.13.0.tar.gz -C ../tmp/
 tar -xvf LBFGSpp-0.2.0.tar.gz -C ../tmp/
 tar -xvf libpng-1.6.39.tar.gz -C ../tmp/
-tar -xvf libxml2-2.10.3.tar.gz -C ../tmp/
-tar -xvf maeparser-1.3.0.tar.gz -C ../tmp/
-tar -xvf mlpack-4.0.1.tar.gz -C ../tmp/
-tar -xvf ncnn-20221128.tar.gz -C ../tmp/
+tar -xvf libxml2-2.10.4.tar.gz -C ../tmp/
+tar -xvf maeparser-1.3.1.tar.gz -C ../tmp/
+tar -xvf ncnn-20230223.tar.gz -C ../tmp/
 tar -xvf nodeeditor-3.0.10.tar.gz -C ../tmp/
 tar -xvf openbabel-3.1.1-source.tar.bz2 -C ../tmp/
-tar -xvf opencv-4.7.0.tar.gz -C ../tmp/
-tar -xvf protobuf-22.2.tar.gz -C ../tmp/
-tar -xvf rdkit-Release_2022_09_4.tar.gz -C ../tmp/
+tar -xvf rapidjson-1.1.0.tar.gz -C ../tmp/
+tar -xvf rdkit-Release_2022_09_5.tar.gz -C ../tmp/
 tar -xvf RingDecomposerLib-1.1.3_rdkit.tar.gz -C ../tmp/
-tar -xvf RxCpp-4.1.1.tar.gz -C ../tmp/
 tar -xvf spdlog-1.11.0.tar.gz -C ../tmp/
-tar -xvf taskflow-3.4.0.tar.gz -C ../tmp/
+tar -xvf taskflow-3.5.0.tar.gz -C ../tmp/
 tar -xvf yaehmop-2022.09.1.tar.gz -C ../tmp/
 tar -xvf yoga-1.19.0.tar.gz -C ../tmp/
 tar -xvf zlib-1.2.13.tar.gz -C ../tmp/
 unzip freesasa-2.1.2.zip -d ../tmp/
 unzip INCHI-1-SRC.zip -d ../tmp/
-unzip rapidjson-012be8528783cdbf4b7a9e64f78bd8f056b97e24.zip -d ../tmp/
-unzip stb-5736b15f7ea0ffb08dd38af21067c314d6a3aae9.zip -d ../tmp/
 
 # rename dir
-mv abseil-cpp-20230125.1 abseil
-mv ade-0.1.2a ade
-mv armadillo-11.4.4 armadillo
 mv benchmark-1.7.1 benchmark
-mv boost_1_81_0 boost
-mv cereal-1.3.2 cereal
-mv coordgenlibs-3.0.1 coordgen
+mv boost_1_82_0 boost
+mv coordgenlibs-3.0.2 coordgen
 mv cutlass-2.11.0 cutlass
 mv eigen-3.4.0 eigen
-mv ensmallen-2.19.1 ensmallen
 mv freesasa-2.1.2 freesasa
-mv googletest-release-1.12.1 gtest
+mv googletest-1.13.0 gtest
 mv INCHI-1-SRC inchi
 mv LBFGSpp-0.2.0 lbfgs
 mv libpng-1.6.39 libpng
-mv libxml2-2.10.3 libxml2
-mv maeparser-1.3.0 maeparser
-mv mlpack-4.0.1 mlpack
-mv ncnn-20221128 ncnn
-mv nodeeditor-3.0.10.tar.gz nodeeditor
+mv libxml2-2.10.4 libxml2
+mv maeparser-1.3.1 maeparser
+mv ncnn-20230223 ncnn
+mv nodeeditor-3.0.10 nodeeditor
 mv openbabel-3.1.1 openbabel
-mv opencv-4.7.0 opencv
-mv protobuf-22.2 protobuf
-mv rapidjson-012be8528783cdbf4b7a9e64f78bd8f056b97e24 rapidjson
-mv rdkit-Release_2022_09_4 rdkit
+mv rapidjson-1.1.0 rapidjson
+mv rdkit-Release_2022_09_5 rdkit
 mv RingDecomposerLib-1.1.3_rdkit ringdecomposerlib
-mv RxCpp-4.1.1 rxcpp
 mv spdlog-1.11.0 spdlog
-mv stb-5736b15f7ea0ffb08dd38af21067c314d6a3aae9 stb
-mv taskflow-3.4.0 taskflow
+mv taskflow-3.5.0 taskflow
 mv yaehmop-2022.09.1 yaehmop
 mv yoga-1.19.0 yoga
 mv zlib-1.2.13 zlib
@@ -197,10 +165,7 @@ rm -rf ./rdkit/Docs/Notebooks ./rdkit/Contrib/NIBRSubstructureFilters/FilterSet_
 find . -type d -wholename ./rdkit/*/*testdata -o -wholename ./rdkit/*/*test_data -o -wholename ./rdkit/*/*testData | xargs -I {} rm -rf "{}"
 ## others
 rm -rf ./taskflow/3rd-party taskflow/docs ./cutlass/docs ./freesasa/tests/data ./ncnn/src/stb_*.h
-rm -rf ./mlpack/src/mlpack/tests/data
-rm -rf ./opencv/3rdparty ./opencv/doc ./nodeeditor/docs
-rm -rf ./abseil/absl/time/internal/cctz/testdata
-rm -rf ./protobuf/php ./protobuf/src/google/protobuf/testdata ./protobuf/csharp ./protobuf/objectivec
+rm -rf ./nodeeditor/docs
 
 # encoding
 find . -type f -name *.c -o -name *.cpp -o -name *.cc -o -name *.h -o -name *.hh -o -name *.hpp | xargs dos2unix
