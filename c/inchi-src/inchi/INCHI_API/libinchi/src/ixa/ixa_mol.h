@@ -35,7 +35,7 @@
 #ifndef __IXA_MOL_H__
 #define __IXA_MOL_H__
 
-#include "ixa.h"
+#include "../../../../INCHI_BASE/src/ixa.h"
 
 typedef struct
 {

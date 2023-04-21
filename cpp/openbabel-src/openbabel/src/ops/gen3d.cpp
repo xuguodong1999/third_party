@@ -70,10 +70,8 @@ bool OpGen3D::Do(OBBase* pOb, const char* OptionText, OpMap* pOptions, OBConvers
   bool useDistGeom = false;
 
   // first try converting OptionText to an integer
-  char *endptr = nullptr;
-  if (OptionText) {
-    speed = strtol(OptionText, &endptr, 10);
-  }
+  char *endptr;
+  speed = strtol(OptionText, &endptr, 10);
   if (endptr == OptionText) { // not a number
     speed = 3; // we'll default to balanced
     // but let's also check if it's words like "fast" or "best"
@@ -133,12 +131,12 @@ bool OpGen3D::Do(OBBase* pOb, const char* OptionText, OpMap* pOptions, OBConvers
       return true; // done
 
     // All other speed levels do some FF cleanup
-    // Try UFF first and MMFF94 if that doesn't work
-    OBForceField* pFF = OBForceField::FindForceField("UFF");
+    // Try MMFF94 first and UFF if that doesn't work
+    OBForceField* pFF = OBForceField::FindForceField("MMFF94");
     if (!pFF)
       return true;
     if (!pFF->Setup(molCopy)) {
-      pFF = OBForceField::FindForceField("MMFF94");
+      pFF = OBForceField::FindForceField("UFF");
       if (!pFF || !pFF->Setup(molCopy)) return true; // can't use either MMFF94 or UFF
     }
 

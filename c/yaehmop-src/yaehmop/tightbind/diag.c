@@ -2,9 +2,7 @@
 Produced by gmFortran V30.59(10/26/17) on 9/18/18 at 9:02:32
 */
 #define LPROTOTYPE
-#include "bind.h"
-#include <math.h>
-
+#include "fortran.h"
 void cchol(int *n,int *nd,double *a,int *fail)
 {
 static int i,ia,j,k,ka;
@@ -433,7 +431,7 @@ S24:
 */
         p = (d[l]-d[l-1])/(2.0e0*e[l-1]);
         r = sqrt(1.0e0+p*p);
-        h = d[l-1]-e[l-1]/(p+d_sign(r,p));
+        h = d[l-1]-e[l-1]/(p+fdsign(r,p));
 /*
 */
         for(i=l; i<=*n; i++) {

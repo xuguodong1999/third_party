@@ -27,10 +27,13 @@
 #ifndef RING_DECOMPOSER_LIB_H
 #define RING_DECOMPOSER_LIB_H
 
-#include <ringdecomposerlib_export.h>
-
-#ifndef RDL_API
-#define RDL_API RINGDECOMPOSERLIB_EXPORT
+#if (defined( _WIN32 ) && defined( _MSC_VER ) )
+    /* Win32 & MS VC ++ */
+    #define RDL_API __declspec(dllexport)
+#elif __GNUC__ >= 4 || defined(__clang__)
+    #define RDL_API __attribute__((visibility("default")))
+#else
+    #define RDL_API
 #endif
 
 #ifdef __cplusplus

@@ -16,19 +16,33 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ***********************************************************************/
 
+#include <stdlib.h>
+#include <string.h>
 #include <openbabel/locale.h>
-#include <string>
-#include <clocale>
+
+#if HAVE_XLOCALE_H
+#include <xlocale.h>
+#endif
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif
 
 namespace OpenBabel
 {
   class OBLocalePrivate {
   public:
-    std::string old_locale_string;
+    char *old_locale_string;
+#if HAVE_USELOCALE
+    locale_t new_c_num_locale;
+    locale_t old_locale;
+#endif
     unsigned int counter; // Reference counter -- ensures balance in SetLocale/RestoreLocale calls
 
     OBLocalePrivate(): counter(0)
     {
+#if HAVE_USELOCALE
+      new_c_num_locale = newlocale(LC_NUMERIC_MASK, NULL, NULL);
+#endif
     }
 
     ~OBLocalePrivate()
@@ -78,8 +92,21 @@ namespace OpenBabel
   void OBLocale::SetLocale()
   {
     if (d->counter == 0) {
-      d->old_locale_string = std::setlocale(LC_ALL, nullptr);
+      // Set the locale for number parsing to avoid locale issues: PR#1785463
+#if HAVE_USELOCALE
+      // Extended per-thread interface
+      d->old_locale = uselocale(d->new_c_num_locale);
+#else
+#ifndef ANDROID
+      // Original global POSIX interface
+      // regular UNIX, no USELOCALE, no ANDROID
+      d->old_locale_string = strdup(setlocale(LC_NUMERIC, nullptr));
+#else
+      // ANDROID should stay as "C" -- Igor Filippov
+      d->old_locale_string = "C";
+#endif
   	  setlocale(LC_NUMERIC, "C");
+#endif
     }
 
     ++d->counter;
@@ -90,7 +117,15 @@ namespace OpenBabel
     --d->counter;
     if(d->counter == 0) {
       // return the locale to the original one
-      std::setlocale(LC_NUMERIC, d->old_locale_string.c_str());
+#ifdef HAVE_USELOCALE
+      uselocale(d->old_locale);
+#else
+      setlocale(LC_NUMERIC, d->old_locale_string);
+#ifndef ANDROID
+      // Don't free on Android because "C" is a static ctring constant
+      free (d->old_locale_string);
+#endif
+#endif
     }
   }
 

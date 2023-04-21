@@ -74,9 +74,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __unix__
-#include <unistd.h>
-#endif
+//#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 

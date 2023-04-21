@@ -1614,7 +1614,7 @@ namespace OpenBabel {
     OBFFParameter parameter;
 
     // open data/UFF.prm
-    istringstream ifs;
+    ifstream ifs;
     if (OpenDatafile(ifs, "UFF.prm").length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open UFF.prm", obError);
       return false;
@@ -1647,10 +1647,7 @@ namespace OpenBabel {
         parameter.b = 0; // used for tracking number of angles in 5-coordinate
         parameter.c = 0;
 
-        char coord = '\0';
-        if (vs[1].size() > 2) {
-          coord = vs[1][2]; // 3rd character of atom type
-        }
+        char coord = vs[1][2]; // 3rd character of atom type
         switch (coord) {
         case '1': // linear
           parameter._ipar.push_back(1);
@@ -1683,6 +1680,8 @@ namespace OpenBabel {
       }
     }
 
+    if (ifs)
+      ifs.close();
 
     // return the locale to the original one
     obLocale.RestoreLocale();
@@ -1703,7 +1702,7 @@ namespace OpenBabel {
     _mol.SetAtomTypesPerceived();
 
     // open data/UFF.prm
-    istringstream ifs;
+    ifstream ifs;
     if (OpenDatafile(ifs, "UFF.prm").length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open UFF.prm", obError);
       return false;
@@ -1772,6 +1771,8 @@ namespace OpenBabel {
 
     }
 
+    if (ifs)
+      ifs.close();
 
     // Free memory
     for (i = _vexttyp.begin();i != _vexttyp.end();++i) {

@@ -39,7 +39,7 @@ using namespace std;
   #ifdef _LIBCPP_VERSION
     using std::unordered_map;
   #else
-    using std::unordered_map;
+    using std::tr1::unordered_map;
   #endif
 #endif
 namespace OpenBabel

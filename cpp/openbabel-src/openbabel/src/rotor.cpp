@@ -31,6 +31,8 @@ GNU General Public License for more details.
 #include <set>
 #include <assert.h>
 
+// private data headers with default parameters
+#include "torlib.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -804,7 +806,7 @@ namespace OpenBabel
     _envvar = "BABEL_DATADIR";
     _filename = "torlib.txt";
     _subdir = "data";
-    _dataptr = nullptr;
+    _dataptr = TorsionDefaults;
   }
 
   void OBRotorRules::ParseLine(const char *buffer)

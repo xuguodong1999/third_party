@@ -276,7 +276,7 @@ template <typename T> class IndexedProperty
   public:
     // Prevent copying.
     IndexedProperty(const IndexedProperty<T>&) = delete;
-    IndexedProperty<T>& operator=(const IndexedProperty<T>&) = delete;
+    IndexedProperty& operator=(const IndexedProperty<T>&) = delete;
 
     using size_type = typename std::vector<T>::size_type;
 

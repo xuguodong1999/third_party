@@ -483,7 +483,7 @@ namespace OpenBabel
     return mol.DeleteNonPolarHydrogens();
   }
 
-  bool OutputTree(OBConversion* pConv, OBMol& mol, ostream& ofs, map <size_t, branch> & tree, unsigned int depth, bool moves_many, bool preserve_original_index)
+  bool OutputTree(OBConversion* pConv, OBMol& mol, ostream& ofs, map <unsigned int, branch> & tree, unsigned int depth, bool moves_many, bool preserve_original_index)
   {
     if (tree.empty()) {return false;}
     if (depth>= tree.size()-1) {depth=tree.size()-1;}
@@ -607,7 +607,7 @@ namespace OpenBabel
     return true;
   }
 
-  void ConstructTree (map <size_t, branch>& tree, vector <vector <int> > rigid_fragments, unsigned int root_piece, const OBMol& mol, bool flexible)
+  void ConstructTree (map <unsigned int, branch>& tree, vector <vector <int> > rigid_fragments, unsigned int root_piece, const OBMol& mol, bool flexible)
   {
     unsigned int first_atom = 0;
     unsigned int second_atom = 0;
@@ -651,7 +651,7 @@ namespace OpenBabel
             sprog.rigid_with.insert(sprog.index);
 
             (*tree.find(position)).second.children.insert(tree.size()); //tells the current parent it has an extra child
-                        tree.insert(std::make_pair(tree.size(), sprog)); //adds the current branch to the tree
+                        tree.insert(pair<unsigned int, branch> (tree.size(), sprog)); //adds the current branch to the tree
 
             rigid_fragments.erase(rigid_fragments.begin() + i);
             sterile=false;
@@ -747,7 +747,7 @@ namespace OpenBabel
     return false;
   }
 
-  unsigned int AtomsSoFar(const map <size_t, branch> & tree, unsigned int depth)
+  unsigned int AtomsSoFar(const map <unsigned int, branch> & tree, unsigned int depth)
   {
     if (depth > tree.size()) {return 0;}
     unsigned int numberAtoms=0;
@@ -985,7 +985,7 @@ namespace OpenBabel
 
       vector <vector <int> > rigid_fragments; //the vector of all the rigid molecule fragments, using atom indexes
       unsigned int best_root_atom=1;
-      map <size_t, branch> tree;
+      map <unsigned int, branch> tree;
       unsigned int torsdof=0;
       unsigned int root_piece=0;
       unsigned int rotatable_bonds=0;

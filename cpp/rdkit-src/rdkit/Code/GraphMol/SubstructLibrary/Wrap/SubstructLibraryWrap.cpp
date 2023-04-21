@@ -393,6 +393,7 @@ const char *SubstructLibraryDoc =
     "Finally, the KeyFromPropHolder can be used to use external keys such as\n"
     "compound names.  By default the holder uses the '_Name' property but can\n"
     "be changed to any property.\n"
+    "\n"
     ">>> library = "
     "rdSubstructLibrary.SubstructLibrary(rdSubstructLibrary.MolHolder(), "
     "rdSubstructLibrary.KeyFromPropHolder())\n"
@@ -411,7 +412,7 @@ python::object SubstructLibrary_Serialize(const SubstructLibraryWrap &cat) {
   return retval;
 }
 
-struct substructlibrary_pickle_suite : python::pickle_suite {
+struct substructlibrary_pickle_suite : rdkit_pickle_suite {
   static python::tuple getinitargs(const SubstructLibraryWrap &self) {
     std::string res;
     if (!SubstructLibraryCanSerialize()) {

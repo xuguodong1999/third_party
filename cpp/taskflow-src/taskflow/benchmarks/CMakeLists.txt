@@ -253,8 +253,10 @@ add_executable(
   ${TF_BENCHMARK_DIR}/graph_pipeline/tbb.cpp
   ${TF_BENCHMARK_DIR}/graph_pipeline/taskflow.cpp
   ${TF_BENCHMARK_DIR}/graph_pipeline/gold.cpp
+  ${TF_BENCHMARK_DIR}/graph_pipeline/fastflow.cpp
 )
 target_include_directories(graph_pipeline PRIVATE ${PROJECT_SOURCE_DIR}/3rd-party/CLI11)
+target_include_directories(graph_pipeline PRIVATE ${PROJECT_SOURCE_DIR}/3rd-party/)
 target_link_libraries(
   graph_pipeline 
   ${PROJECT_NAME} 
@@ -278,6 +280,40 @@ target_link_libraries(
   tf::default_settings
 )
 set_target_properties(thread_pool PROPERTIES COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
+
+## benchmark 14: data_pipeline
+add_executable(
+  data_pipeline
+  ${TF_BENCHMARK_DIR}/data_pipeline/main.cpp
+  ${TF_BENCHMARK_DIR}/data_pipeline/tbb.cpp
+  ${TF_BENCHMARK_DIR}/data_pipeline/taskflow.cpp
+)
+target_include_directories(data_pipeline PRIVATE ${PROJECT_SOURCE_DIR}/3rd-party/CLI11)
+target_link_libraries(
+  data_pipeline 
+  ${PROJECT_NAME} 
+  ${TBB_IMPORTED_TARGETS} 
+  ${OpenMP_CXX_LIBRARIES} 
+  tf::default_settings
+)
+set_target_properties(data_pipeline PROPERTIES COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
+
+## benchmark 15: deferred_pipeline                                                                               
+add_executable(
+  deferred_pipeline
+  ${TF_BENCHMARK_DIR}/deferred_pipeline/main.cpp
+  ${TF_BENCHMARK_DIR}/deferred_pipeline/pthread.cpp
+  ${TF_BENCHMARK_DIR}/deferred_pipeline/taskflow.cpp
+)
+target_include_directories(deferred_pipeline PRIVATE ${PROJECT_SOURCE_DIR}/3rd-party/CLI11)
+target_link_libraries(
+  deferred_pipeline
+  ${PROJECT_NAME}
+  ${OpenMP_CXX_LIBRARIES}
+  tf::default_settings
+)
+set_target_properties(deferred_pipeline PROPERTIES COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
+
 
 ###############################################################################
 # CUDA benchmarks

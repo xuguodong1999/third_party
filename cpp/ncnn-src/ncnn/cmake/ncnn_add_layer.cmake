@@ -1,28 +1,28 @@
 
 macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CFLAGS)
-    set(NCNN_${NCNN_TARGET_ARCH}_HEADER ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.h)
-    set(NCNN_${NCNN_TARGET_ARCH}_SOURCE ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
+    set(NCNN_${NCNN_TARGET_ARCH}_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.h)
+    set(NCNN_${NCNN_TARGET_ARCH}_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
 
-    if (WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_HEADER} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE})
+    if(WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_HEADER} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE})
 
-        set(NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER ${XGD_GENERATED_DIR}/ncnn/include/ncnn/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h)
-        set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${XGD_GENERATED_DIR}/ncnn/src/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
+        set(NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER ${CMAKE_CURRENT_BINARY_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h)
+        set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
 
         add_custom_command(
-                OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER}
-                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
-                DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_HEADER}
-                COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h"
-                VERBATIM
+            OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER}
+            COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_HEADER} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} -DCLASS=${class} -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+            DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_HEADER}
+            COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.h"
+            VERBATIM
         )
         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_HEADER} PROPERTIES GENERATED TRUE)
 
         add_custom_command(
-                OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE}
-                COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${XGD_EXTERNAL_DIR}/cpp/ncnn-src/ncnn/cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
-                DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE}
-                COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp"
-                VERBATIM
+            OUTPUT ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE}
+            COMMAND ${CMAKE_COMMAND} -DSRC=${NCNN_${NCNN_TARGET_ARCH}_SOURCE} -DDST=${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} -DCLASS=${class} -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ncnn_generate_${NCNN_TARGET_ARCH_OPT}_source.cmake"
+            DEPENDS ${NCNN_${NCNN_TARGET_ARCH}_SOURCE}
+            COMMENT "Generating source ${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp"
+            VERBATIM
         )
         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} PROPERTIES GENERATED TRUE)
 
@@ -57,18 +57,17 @@ macro(ncnn_add_arch_opt_layer class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CF
 
         set(layer_registry_${NCNN_TARGET_ARCH_OPT} "${layer_registry_${NCNN_TARGET_ARCH_OPT}}#if NCNN_STRING\n{\"${class}\", ${class}_final_${NCNN_TARGET_ARCH_OPT}_layer_creator},\n#else\n{${class}_final_${NCNN_TARGET_ARCH_OPT}_layer_creator},\n#endif\n")
     else()
-        # no arm optimized version
+        # no isa optimized version
         if(WITH_LAYER_${name})
             set(layer_registry_${NCNN_TARGET_ARCH_OPT} "${layer_registry_${NCNN_TARGET_ARCH_OPT}}#if NCNN_STRING\n{\"${class}\", ${class}_final_layer_creator},\n#else\n{${class}_final_layer_creator},\n#endif\n")
         else()
             set(layer_registry_${NCNN_TARGET_ARCH_OPT} "${layer_registry_${NCNN_TARGET_ARCH_OPT}}#if NCNN_STRING\n{\"${class}\", 0},\n#else\n{0},\n#endif\n")
         endif()
     endif()
-
 endmacro()
 
 macro(ncnn_add_arch_opt_source class NCNN_TARGET_ARCH_OPT NCNN_TARGET_ARCH_OPT_CFLAGS)
-    set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
+    set(NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}_${NCNN_TARGET_ARCH_OPT}.cpp)
 
     if(WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE})
         set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} PROPERTIES COMPILE_FLAGS ${NCNN_TARGET_ARCH_OPT_CFLAGS})
@@ -91,17 +90,17 @@ macro(ncnn_add_layer class)
     endif()
 
     if(WITH_LAYER_${name})
-        list(APPEND ncnn_SRCS ${NCNN_SRC_DIR}/layer/${name}.cpp)
+        list(APPEND ncnn_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/layer/${name}.cpp)
 
         # look for arch specific implementation and append source
         # optimized implementation for armv7, aarch64 or x86
-        set(LAYER_ARCH_SRC ${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
+        set(LAYER_ARCH_SRC ${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp)
         if(EXISTS ${LAYER_ARCH_SRC})
             set(WITH_LAYER_${name}_${NCNN_TARGET_ARCH} 1)
             list(APPEND ncnn_SRCS ${LAYER_ARCH_SRC})
         endif()
 
-        set(LAYER_VULKAN_SRC ${NCNN_SRC_DIR}/layer/vulkan/${name}_vulkan.cpp)
+        set(LAYER_VULKAN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/layer/vulkan/${name}_vulkan.cpp)
         if(NCNN_VULKAN AND EXISTS ${LAYER_VULKAN_SRC})
             set(WITH_LAYER_${name}_vulkan 1)
             list(APPEND ncnn_SRCS ${LAYER_VULKAN_SRC})
@@ -115,7 +114,7 @@ macro(ncnn_add_layer class)
         set(create_pipeline_content "        { int ret = ${class}::create_pipeline(opt); if (ret) return ret; }\n")
         set(destroy_pipeline_content "        { int ret = ${class}::destroy_pipeline(opt); if (ret) return ret; }\n")
 
-        source_group("sources\\\\layers" FILES "${NCNN_SRC_DIR}/layer/${name}.cpp")
+        source_group ("sources\\\\layers" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/${name}.cpp")
     endif()
 
     if(WITH_LAYER_${name}_vulkan)
@@ -124,14 +123,14 @@ macro(ncnn_add_layer class)
         set(create_pipeline_content "${create_pipeline_content}        if (vkdev) { int ret = ${class}_vulkan::create_pipeline(opt); if (ret) return ret; }\n")
         set(destroy_pipeline_content "        if (vkdev) { int ret = ${class}_vulkan::destroy_pipeline(opt); if (ret) return ret; }\n${destroy_pipeline_content}")
 
-        file(GLOB_RECURSE NCNN_SHADER_SRCS "${NCNN_SRC_DIR}/layer/vulkan/shader/${name}.comp")
-        file(GLOB_RECURSE NCNN_SHADER_SUBSRCS "${NCNN_SRC_DIR}/layer/vulkan/shader/${name}_*.comp")
+        file(GLOB_RECURSE NCNN_SHADER_SRCS "layer/vulkan/shader/${name}.comp")
+        file(GLOB_RECURSE NCNN_SHADER_SUBSRCS "layer/vulkan/shader/${name}_*.comp")
         list(APPEND NCNN_SHADER_SRCS ${NCNN_SHADER_SUBSRCS})
-        foreach (NCNN_SHADER_SRC ${NCNN_SHADER_SRCS})
+        foreach(NCNN_SHADER_SRC ${NCNN_SHADER_SRCS})
             ncnn_add_shader(${NCNN_SHADER_SRC})
-        endforeach ()
+        endforeach()
 
-        source_group("sources\\\\layers\\\\vulkan" FILES "${NCNN_SRC_DIR}/layer/vulkan/${name}_vulkan.cpp")
+        source_group ("sources\\\\layers\\\\vulkan" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/vulkan/${name}_vulkan.cpp")
     endif()
 
     if(WITH_LAYER_${name}_${NCNN_TARGET_ARCH})
@@ -140,7 +139,7 @@ macro(ncnn_add_layer class)
         set(create_pipeline_content "${create_pipeline_content}        { int ret = ${class}_${NCNN_TARGET_ARCH}::create_pipeline(opt); if (ret) return ret; }\n")
         set(destroy_pipeline_content "        { int ret = ${class}_${NCNN_TARGET_ARCH}::destroy_pipeline(opt); if (ret) return ret; }\n${destroy_pipeline_content}")
 
-        source_group("sources\\\\layers\\\\${NCNN_TARGET_ARCH}" FILES "${NCNN_SRC_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp")
+        source_group ("sources\\\\layers\\\\${NCNN_TARGET_ARCH}" FILES "${CMAKE_CURRENT_SOURCE_DIR}/layer/${NCNN_TARGET_ARCH}/${name}_${NCNN_TARGET_ARCH}.cpp")
     endif()
 
     if(WITH_LAYER_${name})
@@ -158,40 +157,40 @@ macro(ncnn_add_layer class)
         set(layer_registry "${layer_registry}#if NCNN_STRING\n{\"${class}\", 0},\n#else\n{0},\n#endif\n")
     endif()
 
-    if(NCNN_RUNTIME_CPU AND NCNN_TARGET_ARCH STREQUAL "x86")
+    if(NCNN_TARGET_ARCH STREQUAL "x86")
         if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC" OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID MATCHES "MSVC" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC"))
-            if(NCNN_AVX512)
-                ncnn_add_arch_opt_layer(${class} avx512 "/arch:AVX512 /D__FMA__ /D__F16C__")
+            if(NCNN_RUNTIME_CPU AND NCNN_AVX512)
+                ncnn_add_arch_opt_layer(${class} avx512 "/arch:AVX512 /D__SSE4_1__ /D__FMA__ /D__F16C__")
             endif()
-            if(NCNN_FMA)
-                ncnn_add_arch_opt_layer(${class} fma "/arch:AVX /D__FMA__ /D__F16C__")
+            if(NCNN_RUNTIME_CPU AND NCNN_FMA)
+                ncnn_add_arch_opt_layer(${class} fma "/arch:AVX /D__SSE4_1__ /D__FMA__ /D__F16C__")
             endif()
-            if(NCNN_AVX)
-                ncnn_add_arch_opt_layer(${class} avx "/arch:AVX")
+            if(NCNN_RUNTIME_CPU AND NCNN_AVX)
+                ncnn_add_arch_opt_layer(${class} avx "/arch:AVX /D__SSE4_1__")
             endif()
             if(NCNN_AVX512VNNI)
-                ncnn_add_arch_opt_source(${class} avx512vnni "/arch:AVX512 /D__FMA__ /D__F16C__ /D__AVX512VNNI__")
+                ncnn_add_arch_opt_source(${class} avx512vnni "/arch:AVX512 /D__SSE4_1__ /D__FMA__ /D__F16C__ /D__AVX512VNNI__")
             endif()
             if(NCNN_AVXVNNI)
-                ncnn_add_arch_opt_source(${class} avxvnni "/arch:AVX2 /D__FMA__ /D__F16C__ /D__AVXVNNI__")
+                ncnn_add_arch_opt_source(${class} avxvnni "/arch:AVX2 /D__SSE4_1__ /D__FMA__ /D__F16C__ /D__AVXVNNI__")
             endif()
             if(NCNN_AVX2)
-                ncnn_add_arch_opt_source(${class} avx2 "/arch:AVX2 /D__FMA__ /D__F16C__")
+                ncnn_add_arch_opt_source(${class} avx2 "/arch:AVX2 /D__SSE4_1__ /D__FMA__ /D__F16C__")
             endif()
             if(NCNN_XOP)
-                ncnn_add_arch_opt_source(${class} xop "/arch:AVX /D__XOP__")
+                ncnn_add_arch_opt_source(${class} xop "/arch:AVX /D__SSE4_1__ /D__XOP__")
             endif()
             if(NCNN_F16C)
-                ncnn_add_arch_opt_source(${class} f16c "/arch:AVX /D__F16C__")
+                ncnn_add_arch_opt_source(${class} f16c "/arch:AVX /D__SSE4_1__ /D__F16C__")
             endif()
         else()
-            if(NCNN_AVX512)
+            if(NCNN_RUNTIME_CPU AND NCNN_AVX512)
                 ncnn_add_arch_opt_layer(${class} avx512 "-mavx512f -mavx512cd -mavx512bw -mavx512dq -mavx512vl -mfma -mf16c")
             endif()
-            if(NCNN_FMA)
+            if(NCNN_RUNTIME_CPU AND NCNN_FMA)
                 ncnn_add_arch_opt_layer(${class} fma "-mavx -mfma -mf16c")
             endif()
-            if(NCNN_AVX)
+            if(NCNN_RUNTIME_CPU AND NCNN_AVX)
                 ncnn_add_arch_opt_layer(${class} avx "-mavx")
             endif()
             if(NCNN_AVX512VNNI)
@@ -218,7 +217,7 @@ macro(ncnn_add_layer class)
         endif()
     endif()
 
-    if((IOS AND CMAKE_OSX_ARCHITECTURES MATCHES "arm") OR (CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm)"))
+    if(NCNN_TARGET_ARCH STREQUAL "arm" AND CMAKE_SIZEOF_VOID_P EQUAL 4)
         if(NCNN_VFPV4)
             if(NCNN_COMPILER_SUPPORT_ARM_VFPV4)
                 ncnn_add_arch_opt_source(${class} vfpv4 "-mfpu=neon-vfpv4")
@@ -228,7 +227,10 @@ macro(ncnn_add_layer class)
         endif()
     endif()
 
-    if((IOS AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64") OR (APPLE AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64") OR (CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)"))
+    if(NCNN_TARGET_ARCH STREQUAL "arm" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+        if(NOT (CMAKE_CXX_COMPILER_ID MATCHES "MSVC" OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID MATCHES "MSVC" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")))
+            ncnn_add_arch_opt_source(${class} vfpv4 " ")
+        endif()
         if(NCNN_ARM82)
             ncnn_add_arch_opt_source(${class} asimdhp "-march=armv8.2-a+fp16")
         endif()
@@ -261,8 +263,8 @@ macro(ncnn_add_layer class)
         endif()
     endif()
 
-    if(NCNN_RUNTIME_CPU AND NCNN_TARGET_ARCH STREQUAL "mips")
-        if(NCNN_MSA)
+    if(NCNN_TARGET_ARCH STREQUAL "mips")
+        if(NCNN_RUNTIME_CPU AND NCNN_MSA)
             ncnn_add_arch_opt_layer(${class} msa "-mmsa")
         endif()
         if(NCNN_MMI)
@@ -270,19 +272,21 @@ macro(ncnn_add_layer class)
         endif()
     endif()
 
-    if(NCNN_RUNTIME_CPU AND NCNN_TARGET_ARCH STREQUAL "loongarch")
-        if(NCNN_LSX)
+    if(NCNN_TARGET_ARCH STREQUAL "loongarch")
+        if(NCNN_RUNTIME_CPU AND NCNN_LSX)
             ncnn_add_arch_opt_layer(${class} lsx "-mlsx")
         endif()
     endif()
 
-    if(NCNN_RUNTIME_CPU AND NCNN_RVV AND NCNN_TARGET_ARCH STREQUAL "riscv")
-        if(NCNN_COMPILER_SUPPORT_RVV_ZFH)
-            ncnn_add_arch_opt_layer(${class} rvv "-march=rv64gcv_zfh")
-        elseif(NCNN_COMPILER_SUPPORT_RVV_ZVFH)
-            ncnn_add_arch_opt_layer(${class} rvv "-march=rv64gcv_zfh_zvfh0p1 -menable-experimental-extensions -D__fp16=_Float16")
-        elseif(NCNN_COMPILER_SUPPORT_RVV)
-            ncnn_add_arch_opt_layer(${class} rvv "-march=rv64gcv")
+    if(NCNN_TARGET_ARCH STREQUAL "riscv" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+        if(NCNN_RUNTIME_CPU AND NCNN_RVV)
+            if(NCNN_COMPILER_SUPPORT_RVV_ZFH)
+                ncnn_add_arch_opt_layer(${class} rvv "-march=rv64gcv_zfh")
+            elseif(NCNN_COMPILER_SUPPORT_RVV_ZVFH)
+                ncnn_add_arch_opt_layer(${class} rvv "-march=rv64gcv_zfh_zvfh0p1 -menable-experimental-extensions -D__fp16=_Float16")
+            elseif(NCNN_COMPILER_SUPPORT_RVV)
+                ncnn_add_arch_opt_layer(${class} rvv "-march=rv64gcv")
+            endif()
         endif()
     endif()
 

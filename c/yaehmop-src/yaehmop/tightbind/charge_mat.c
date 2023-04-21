@@ -159,7 +159,7 @@ void eval_charge_matrix(cell,eigenset,overlap,num_orbs,
  *     num_atoms * num_orbs
  *
  ****************************************************************************/
-void reduced_charge_matrix(num_atoms,num_orbs,orbital_lookup_table,Chg_matrix,RChg_matrix)
+void reduced_charge_mat(num_atoms,num_orbs,orbital_lookup_table,Chg_matrix,RChg_matrix)
   int num_atoms,num_orbs,*orbital_lookup_table;
   real *Chg_matrix;
   real *RChg_matrix;

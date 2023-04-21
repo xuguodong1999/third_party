@@ -37,8 +37,8 @@ struct midpoint_ellipse_rasterizer
     /// center respectively.
     /// \param semi_axes - Point containing positive integer lengths of horizontal semi-axis
     /// and vertical semi-axis respectively.
-    midpoint_ellipse_rasterizer(point_t center_point,
-        point_t semi_axes_values)
+    midpoint_ellipse_rasterizer(point<unsigned int> center_point,
+        point<unsigned int> semi_axes_values)
         : center(center_point)
         , semi_axes(semi_axes_values)
     {}
@@ -130,7 +130,7 @@ struct midpoint_ellipse_rasterizer
         }
 
         // mutable center copy
-        point_t center2(center);
+        point<unsigned int> center2(center);
         --center2[0], --center2[1]; // For converting center co-ordinate values to zero based indexing.
         for (point_t pnt : trajectory_points)
         {
@@ -186,8 +186,8 @@ struct midpoint_ellipse_rasterizer
         draw_curve(view, pixel, obtain_trajectory());
     }
 
-    point_t center;
-    point_t semi_axes;
+    point<unsigned int> center;
+    point<unsigned int> semi_axes;
 };
 
 namespace detail {

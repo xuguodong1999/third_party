@@ -114,7 +114,7 @@ bool getBestFitPlane(const std::vector<RDGeom::Point3D> &points,
   if (eigensolver.info() != Eigen::Success) {
     BOOST_LOG(rdErrorLog) << "eigenvalue calculation did not converge"
                           << std::endl;
-    return false;
+    return 0.0;
   }
   RDGeom::Point3D normal;
   normal.x = eigensolver.eigenvectors()(0, 0);
@@ -125,7 +125,6 @@ bool getBestFitPlane(const std::vector<RDGeom::Point3D> &points,
   plane[1] = normal.y;
   plane[2] = normal.z;
   plane[3] = -1 * normal.dotProduct(origin);
-  return true;
 }
 
 double PBFRD(ROMol &mol, int confId) {

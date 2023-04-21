@@ -21,6 +21,7 @@
 #include <GraphMol/QueryOps.h>
 #include <GraphMol/Chirality.h>
 #include <GraphMol/MonomerInfo.h>
+#include <GraphMol/MolPickler.h>
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/SequenceParsers.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
@@ -1969,6 +1970,14 @@ TEST_CASE("bridgehead queries", "[query]") {
       }
     }
   }
+  SECTION("Github #6049") {
+    auto m = "C1C=CC=C2CCCCC3CC(C3)N21"_smiles;
+    REQUIRE(m);
+    CHECK(!queryIsAtomBridgehead(m->getAtomWithIdx(13)));
+    CHECK(!queryIsAtomBridgehead(m->getAtomWithIdx(4)));
+    CHECK(queryIsAtomBridgehead(m->getAtomWithIdx(11)));
+    CHECK(queryIsAtomBridgehead(m->getAtomWithIdx(9)));
+  }
 }
 
 TEST_CASE("replaceAtom/Bond should not screw up bookmarks", "[RWMol]") {
@@ -2894,4 +2903,24 @@ TEST_CASE("Github #5849: aromatic tag allows bad valences to pass") {
       CHECK_THROWS_AS(SmilesToMol(smi), KekulizeException);
     }
   }
+}
+
+TEST_CASE("molecules with more than 255 rings produce a bad pickle") {
+  std::string pathName = getenv("RDBASE");
+  pathName += "/Code/GraphMol/test_data/";
+  bool sanitize = false;
+  std::unique_ptr<RWMol> mol(
+      MolFileToMol(pathName + "mol_with_pickle_error.mol", sanitize));
+  REQUIRE(mol);
+  mol->updatePropertyCache(false);
+  unsigned int opThatFailed = 0;
+  MolOps::sanitizeMol(*mol, opThatFailed,
+                      MolOps::SanitizeFlags::SANITIZE_ALL ^
+                          MolOps::SanitizeFlags::SANITIZE_PROPERTIES ^
+                          MolOps::SANITIZE_KEKULIZE);
+  CHECK(mol->getRingInfo()->numRings() > 300);
+  std::string pkl;
+  MolPickler::pickleMol(*mol, pkl);
+  RWMol nMol(pkl);
+  CHECK(nMol.getRingInfo()->numRings() == mol->getRingInfo()->numRings());
 }

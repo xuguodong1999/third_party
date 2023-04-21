@@ -16,12 +16,23 @@
 /* The file extension used for shared modules */
 #define MODULE_EXTENSION "@MODULE_EXTENSION@"
 
-#include <openbabel_export.hpp>
 // If we are using a recent GCC version with visibility support use it
-#ifndef OB_EXPORT
-#define OB_EXPORT OPENBABEL_EXPORT
+#ifdef HAVE_GCC_VISIBILITY
+  #define OB_EXPORT __attribute__ ((visibility("default")))
+  #define OB_IMPORT __attribute__ ((visibility("default")))
+  #define OB_HIDDEN __attribute__ ((visibility("hidden")))
+#elif defined(WIN32) && defined(USING_DYNAMIC_LIBS) && !defined(__MINGW32__)
+ #define OB_EXPORT __declspec(dllexport)
+ #define OB_IMPORT __declspec(dllimport)
+ #define OB_HIDDEN
+#else
+ #define OB_EXPORT
+ #define OB_IMPORT
+ #define OB_HIDDEN
 #endif
 
+/* Used to export symbols for DLL / shared library builds */
+#if defined(MAKE_OBDLL) // e.g. in src/main.cpp
  #ifndef OB_EXTERN
   #define OB_EXTERN   OB_EXPORT extern
  #endif
@@ -49,6 +60,39 @@
  #ifndef OBDEPICT
   #define OBDEPICT OB_EXPORT
  #endif
+
+#else   // defined(MAKE_OBDLL)
+
+ #ifndef OB_EXTERN
+  #define OB_EXTERN   OB_IMPORT extern
+ #endif
+ #ifndef OBAPI
+  #define OBAPI    OB_IMPORT
+ #endif
+ #ifndef OBCOMMON
+  #define OBCOMMON OB_IMPORT
+ #endif
+ #ifndef OBCONV
+  #define OBCONV   OB_IMPORT
+ #endif
+ #ifndef OBERROR
+  #define OBERROR  OB_IMPORT
+ #endif
+ #ifndef OBFPRT
+  #define OBFPRT   OB_IMPORT
+ #endif
+ #ifndef OBFPTR
+  #define OBFPTR   OB_IMPORT
+ #endif
+ #ifndef OBMCDL
+ #define OBMCDL    OB_IMPORT
+  #ifndef OBDEPICT
+ #define OBDEPICT  OB_IMPORT
+ #endif
+
+ #endif
+
+#endif
 
 #ifdef _MSC_VER
  // Suppress warning on deprecated functions
@@ -104,22 +148,6 @@
 
 /* have struct clock_t */
 #cmakedefine HAVE_CLOCK_T 1
-
-#cmakedefine HAVE_REGEX_H 1
-
-#cmakedefine HAVE_SHARED_POINTER 1
-
-#cmakedefine HAVE_EIGEN 1
-
-#cmakedefine HAVE_EIGEN3 1
-
-#cmakedefine HAVE_STATIC_INCHI 1
-
-#cmakedefine HAVE_LIBZ 1
-
-#cmakedefine HAVE_STATIC_LIBXML 1
-
-#cmakedefine HAVE_RPC_XDR_H 1
 
 /* shared pointer implementation to be used */
 #cmakedefine OB_SHARED_PTR_IMPLEMENTATION @OB_SHARED_PTR_IMPLEMENTATION@

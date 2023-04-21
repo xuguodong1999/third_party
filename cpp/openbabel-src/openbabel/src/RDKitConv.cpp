@@ -23,9 +23,6 @@ This code calls C++ routines in RDKit which are
 ***********************************************************************/
 
 #include <openbabel/babelconfig.h>
-#include <openbabel/oberror.h>
-#include <openbabel/bond.h>
-#include <openbabel/bondtyper.h>
 #include <RDKitConv.h>
 
 using OpenBabel::OBMolAtomIter;
@@ -48,7 +45,7 @@ RDKit::RWMol OBMolToRWMol(OpenBabel::OBMol* pOBMol)
   {
     //bond order >3 needs doing properly
     //assume RDKit atom indices start at 0
-    RDMol.addBond(b->GetBeginAtomIdx()-1, b->GetEndAtomIdx()-1, (RDKit::Bond::BondType)b->GetBondOrder());
+    RDMol.addBond(b->GetBeginAtomIdx()-1, b->GetEndAtomIdx()-1, (RDKit::Bond::BondType)b->GetBO());
   }
   std::string msg("RWMol made from ");
   if(pOBMol->GetTitle())

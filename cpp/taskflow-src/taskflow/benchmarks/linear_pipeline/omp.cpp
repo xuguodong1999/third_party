@@ -35,13 +35,13 @@ void linear_chain_omp(size_t length, unsigned num_threads) {
 }
 
 std::chrono::microseconds measure_time_omp(
-  std::string pipes,
+  std::string,
   unsigned length,
   unsigned num_threads,
-  size_t size
+  size_t
 ) {
   auto beg = std::chrono::high_resolution_clock::now();
-  //linear_chain_omp(length, num_threads);
+  linear_chain_omp(length, num_threads);
   auto end = std::chrono::high_resolution_clock::now();
   return std::chrono::duration_cast<std::chrono::microseconds>(end - beg);
 }

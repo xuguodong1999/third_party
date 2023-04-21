@@ -284,6 +284,7 @@ ALIASES                = "std_invoke=<a href=\"https://en.cppreference.com/w/cpp
                          "std_min=<a href=\"https://en.cppreference.com/w/cpp/algorithm/min\">std::min</a>" \
                          "std_max=<a href=\"https://en.cppreference.com/w/cpp/algorithm/max\">std::max</a>" \
                          "std_variant=<a href=\"https://en.cppreference.com/w/cpp/utility/variant\">std::variant</a>" \
+                         "std_variant_get=<a href=\"https://en.cppreference.com/w/cpp/utility/variant/get\">std::get</a>" \
                          "std_optional=<a href=\"https://en.cppreference.com/w/cpp/utility/optional\">std::optional</a>" \
                          "std_nullopt=<a href=\"https://en.cppreference.com/w/cpp/utility/optional/nullopt\">std::nullopt</a>" \
                          "Doxygen=<a href=\"https://www.doxygen.nl/index.html\">Doxygen</a>" \
@@ -890,6 +891,7 @@ WARN_LOGFILE           =
 
 INPUT                  = ../taskflow/utility/small_vector.hpp \
                          ../taskflow/core/graph.hpp \
+                         ../taskflow/core/tsq.hpp \
                          ../taskflow/core/flow_builder.hpp \
                          ../taskflow/core/worker.hpp \
                          ../taskflow/core/executor.hpp \
@@ -899,6 +901,7 @@ INPUT                  = ../taskflow/utility/small_vector.hpp \
                          ../taskflow/core/observer.hpp \
                          ../taskflow/algorithm/critical.hpp \
                          ../taskflow/algorithm/pipeline.hpp \
+                         ../taskflow/algorithm/data_pipeline.hpp \
                          ../taskflow/cuda/cuda_device.hpp \
                          ../taskflow/cuda/cuda_memory.hpp \
                          ../taskflow/cuda/cuda_stream.hpp \
@@ -920,6 +923,7 @@ INPUT                  = ../taskflow/utility/small_vector.hpp \
                          QuickStart.dox \
                          releases/releases.dox \
                          releases/release-roadmap.dox \
+                         releases/release-3.6.0.dox \
                          releases/release-3.5.0.dox \
                          releases/release-3.4.0.dox \
                          releases/release-3.3.0.dox \
@@ -948,6 +952,7 @@ INPUT                  = ../taskflow/utility/small_vector.hpp \
                          cookbook/conditional_tasking.dox \
                          cookbook/composable_tasking.dox \
                          cookbook/runtime_tasking.dox \
+                         cookbook/prioritized_tasking.dox \
                          cookbook/semaphore.dox \
                          cookbook/async_tasking.dox \
                          cookbook/gpu_tasking_cudaflow.dox \
@@ -962,6 +967,7 @@ INPUT                  = ../taskflow/utility/small_vector.hpp \
                          algorithms/sort.dox \
                          algorithms/pipeline.dox \
                          algorithms/scalable_pipeline.dox \
+                         algorithms/data_pipeline.dox \
                          cudaflow_algorithms/cudaflow_algorithms.dox \
                          cudaflow_algorithms/cudaflow_single_task.dox \
                          cudaflow_algorithms/cudaflow_for_each.dox \

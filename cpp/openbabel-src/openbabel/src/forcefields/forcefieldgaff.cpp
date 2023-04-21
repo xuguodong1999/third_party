@@ -1081,7 +1081,7 @@ namespace OpenBabel
     OBFFParameter parameter;
 
     // open data/gaff.dat
-    istringstream ifs;
+    ifstream ifs;
     if (OpenDatafile(ifs, "gaff.dat").length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open gaff.dat", obError);
       return false;
@@ -1204,6 +1204,8 @@ namespace OpenBabel
 	    ifs.getline(buffer, BUFF_SIZE);
       }
 
+    if (ifs)
+      ifs.close();
 
     // return the locale to the original one
     obLocale.RestoreLocale();
@@ -1228,7 +1230,7 @@ namespace OpenBabel
     _mol.SetAtomTypesPerceived();
 
     // open data/gaff.prm
-    istringstream ifs;
+    ifstream ifs;
     if (OpenDatafile(ifs, "gaff.prm").length() == 0) {
       obErrorLog.ThrowError(__FUNCTION__, "Cannot open gaff.prm", obError);
       return false;
@@ -1410,6 +1412,8 @@ namespace OpenBabel
     }
 
 
+    if (ifs)
+      ifs.close();
 
     // return the locale to the original one
     obLocale.RestoreLocale();

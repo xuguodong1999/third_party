@@ -16,6 +16,7 @@ import os
 import sys
 import tempfile
 import unittest
+import pickle
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from io import StringIO
@@ -23,6 +24,7 @@ from io import StringIO
 import rdkit.Chem.rdDepictor
 from rdkit import Chem, DataStructs, RDConfig, __version__, rdBase
 from rdkit.Chem import rdqueries
+from rdkit.Chem.Scaffolds import MurckoScaffold
 
 # Boost functions are NOT found by doctest, this "fixes" them
 #  by adding the doctests to a fake module
@@ -6927,6 +6929,27 @@ CAS<~>
     self.assertNotEqual(m.GetAtomWithIdx(9).GetChiralTag(), Chem.ChiralType.CHI_UNSPECIFIED)
 
     Chem.SetUseLegacyStereoPerception(origVal)
+
+  def test_picklingWithAddedAttribs(self):
+    m = Chem.MolFromSmiles("C")
+    m.foo = 1
+    m.SetIntProp("bar",2)
+    pkl = pickle.dumps(m)
+    nm = pickle.loads(pkl)
+    self.assertEqual(nm.GetIntProp("bar"), 2)
+    self.assertEqual(nm.foo, 1)
+
+  def testGithubIssue6306(self):
+    # test of unpickling
+    props = Chem.GetDefaultPickleProperties()
+    try:
+      Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps) 
+      mols = [Chem.MolFromSmiles(s) for s in ["C","CC"]]
+      scaffolds = [MurckoScaffold.GetScaffoldForMol(m) for m in mols]
+      # this shouldn't throw an exception
+      unpickler = [pickle.loads(pickle.dumps(m)) for m in mols]
+    finally:
+      Chem.SetDefaultPickleProperties(props)
 
 
 if __name__ == '__main__':
