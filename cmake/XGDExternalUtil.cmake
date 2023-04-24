@@ -14,33 +14,34 @@ function(xgd_disable_warnings TARGET)
 endfunction()
 
 function(xgd_target_global_options TARGET)
-    cmake_parse_arguments(param "" "" "" ${ARGN})
-    set(COMPILE_OPTIONS "")
-    set(COMPILE_DEFINITIONS "")
-    set(LINK_OPTIONS "")
+    cmake_parse_arguments(param "" "CXX_STANDARD" "" ${ARGN})
+    set(_XGD_COMPILE_OPTIONS "")
+    set(_XGD_COMPILE_DEFINITIONS "")
+    set(_XGD_LINK_OPTIONS "")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # _GLIBCXX_USE_CXX11_ABI=1
-        list(APPEND COMPILE_OPTIONS -Werror=return-type)
+        list(APPEND _XGD_COMPILE_OPTIONS -Werror=return-type)
     endif ()
     if (WIN32)
-        list(APPEND COMPILE_DEFINITIONS _USE_MATH_DEFINES) # for M_PI macro
+        list(APPEND _XGD_COMPILE_DEFINITIONS _USE_MATH_DEFINES) # for M_PI macro
     endif ()
     if (MSVC)
-        list(APPEND COMPILE_OPTIONS
+        list(APPEND _XGD_COMPILE_OPTIONS
                 /MP             # multi processor build
                 /utf-8          # correct msvc charset
                 /bigobj         # big obj
                 # get correct __cplusplus macro
                 /Zc:__cplusplus)
-        list(APPEND LINK_OPTIONS /manifest:no) # do not generate manifest
+        list(APPEND _XGD_LINK_OPTIONS /manifest:no) # do not generate manifest
         # crt
         # set_target_properties(${TARGET} PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-    elseif (EMSCRIPTEN)
-        list(APPEND COMPILE_OPTIONS
+    endif ()
+    if (EMSCRIPTEN)
+        list(APPEND _XGD_COMPILE_OPTIONS
                 -frtti
                 -fexceptions
                 -sUSE_PTHREADS=1)
-        list(APPEND LINK_OPTIONS
+        list(APPEND _XGD_LINK_OPTIONS
                 -fexceptions
                 -frtti
                 -sALLOW_BLOCKING_ON_MAIN_THREAD=1
@@ -52,59 +53,61 @@ function(xgd_target_global_options TARGET)
                 -sTOTAL_MEMORY=1024MB
                 -sTOTAL_STACK=4MB
                 -sUSE_PTHREADS=1)
-        if (EMSCRIPTEN AND XGD_WASM_NODE)
-            list(APPEND LINK_OPTIONS
-                    -sPROXY_TO_PTHREAD
-                    -sEXIT_RUNTIME=1
-                    -sPTHREAD_POOL_SIZE=${XGD_HOST_PROCESSOR_NUM}
-                    -sENVIRONMENT=node)
+        if (XGD_WASM_ENV)
+            list(APPEND _XGD_LINK_OPTIONS
+                    # -sPROXY_TO_PTHREAD
+                    # -sEXIT_RUNTIME=1
+                    # -sPTHREAD_POOL_SIZE=16
+                    -sENVIRONMENT=${XGD_WASM_ENV})
         endif ()
     endif ()
 
-    if (XGD_FLAG_MARCH_NATIVE)
-        list(APPEND COMPILE_OPTIONS -march=native)
+    if (XGD_ENABLE_FLAG_MARCH_NATIVE)
+        list(APPEND _XGD_COMPILE_OPTIONS -march=native)
     endif ()
-    if (XGD_EMSCRIPTEN_SIMD)
-        list(APPEND COMPILE_OPTIONS -msimd128)
-    elseif (XGD_ARCH_X86)
+    if (XGD_ENABLE_EMSCRIPTEN_SIMD)
+        list(APPEND _XGD_COMPILE_OPTIONS -msimd128)
+    elseif (XGD_ENABLE_ARCH_X86)
         if (MSVC)
-            if (XGD_FLAG_AVX)
-                list(APPEND COMPILE_OPTIONS /arch:AVX)
+            if (XGD_ENABLE_FLAG_AVX)
+                list(APPEND _XGD_COMPILE_OPTIONS /arch:AVX)
             endif ()
-            if (XGD_FLAG_AVX2)
-                list(APPEND COMPILE_OPTIONS /arch:AVX2)
+            if (XGD_ENABLE_FLAG_AVX2)
+                list(APPEND _XGD_COMPILE_OPTIONS /arch:AVX2)
             endif ()
         else ()
-            if (XGD_FLAG_SSE)
-                list(APPEND COMPILE_OPTIONS
+            if (XGD_ENABLE_FLAG_SSE)
+                list(APPEND _XGD_COMPILE_OPTIONS
                         -mf16c -mfma
                         -msse3 -msse4.1 -msse4.2 -mssse3
                         -msse -msse2)
             endif ()
-            if (XGD_FLAG_AVX)
-                list(APPEND COMPILE_OPTIONS -mavx)
+            if (XGD_ENABLE_FLAG_AVX)
+                list(APPEND _XGD_COMPILE_OPTIONS -mavx)
             endif ()
-            if (XGD_FLAG_AVX2)
-                list(APPEND COMPILE_OPTIONS -mavx2)
+            if (XGD_ENABLE_FLAG_AVX2)
+                list(APPEND _XGD_COMPILE_OPTIONS -mavx2)
             endif ()
         endif ()
     endif ()
 
-    if (XGD_FLAG_SSE)
-        list(APPEND COMPILE_DEFINITIONS __SSE__ __SSE2__)
-        if (NOT EMSCRIPTEN)
-            list(APPEND COMPILE_DEFINITIONS __SSE3__ __SSSE3__ __SSE4_1__ __SSE4_2__ __FMA__ __F16C__)
+    if (EMSCRIPTEN)
+        list(APPEND _XGD_COMPILE_DEFINITIONS __SSE__ __SSE2__ __AVX__)
+    else ()
+        if (XGD_ENABLE_FLAG_SSE)
+            list(APPEND _XGD_COMPILE_DEFINITIONS __SSE__ __SSE2__)
+            list(APPEND _XGD_COMPILE_DEFINITIONS __SSE3__ __SSSE3__ __SSE4_1__ __SSE4_2__ __FMA__ __F16C__)
         endif ()
-    endif ()
-    if (XGD_FLAG_AVX)
-        list(APPEND COMPILE_DEFINITIONS __AVX__)
-    endif ()
-    if (XGD_FLAG_AVX2)
-        list(APPEND COMPILE_DEFINITIONS __AVX2__)
+        if (XGD_ENABLE_FLAG_AVX)
+            list(APPEND _XGD_COMPILE_DEFINITIONS __AVX__)
+        endif ()
+        if (XGD_ENABLE_FLAG_AVX2)
+            list(APPEND _XGD_COMPILE_DEFINITIONS __AVX2__)
+        endif ()
     endif ()
 
     if (COMPILE_DEFINITIONS)
-         target_compile_definitions(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${COMPILE_DEFINITIONS}>)
+        target_compile_definitions(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${COMPILE_DEFINITIONS}>)
     endif ()
     if (COMPILE_OPTIONS)
         target_compile_options(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${COMPILE_OPTIONS}>)
@@ -112,11 +115,15 @@ function(xgd_target_global_options TARGET)
     if (LINK_OPTIONS)
         target_link_options(${TARGET} PRIVATE ${LINK_OPTIONS})
     endif ()
+    set(_XGD_CXX_STANDARD 20)
+    if (param_CXX_STANDARD)
+        set(_XGD_CXX_STANDARD ${param_CXX_STANDARD})
+    endif ()
     set_target_properties(
             ${TARGET} PROPERTIES
             C_STANDARD 11       # C11
             C_STANDARD_REQUIRED ON
-            CXX_STANDARD 20     # C++20
+            CXX_STANDARD ${_XGD_CXX_STANDARD}
             CXX_STANDARD_REQUIRED ON
             CUDA_STANDARD 17    # CUDA C++17
             CUDA_STANDARD_REQUIRED ON
@@ -131,76 +138,179 @@ function(xgd_target_global_options TARGET)
     endif ()
 endfunction()
 
+function(xgd_print_global_options)
+    message(STATUS "Summary:
+    XGD_USE_OPENMP:\t${XGD_USE_OPENMP}
+    XGD_USE_CUDA:\t${XGD_USE_CUDA}
+    XGD_USE_QT:\t${XGD_USE_QT}
+    XGD_USE_VK:\t${XGD_USE_VK}
+    XGD_USE_TORCH:\t${XGD_USE_TORCH}
+    XGD_USE_OPENCV:\t${XGD_USE_OPENCV}
+    XGD_USE_CCACHE:\t${XGD_USE_CCACHE}
+    
+    XGD_ENABLE_ARCH_X86:\t${XGD_ENABLE_ARCH_X86}
+    XGD_ENABLE_ARCH_ARM:\t${XGD_ENABLE_ARCH_ARM}
+    XGD_ENABLE_ARCH_MIPS:\t${XGD_ENABLE_ARCH_MIPS}
+    XGD_ENABLE_ARCH_POWER:\t${XGD_ENABLE_ARCH_POWER}
+    XGD_ENABLE_ARCH_32:\t${XGD_ENABLE_ARCH_32}
+    XGD_ENABLE_ARCH_64:\t${XGD_ENABLE_ARCH_64}
+    XGD_ENABLE_FLAG_NEON:\t${XGD_ENABLE_FLAG_NEON}
+    XGD_ENABLE_FLAG_SSE:\t${XGD_ENABLE_FLAG_SSE}
+    XGD_ENABLE_FLAG_AVX:\t${XGD_ENABLE_FLAG_AVX}
+    XGD_ENABLE_FLAG_AVX2:\t${XGD_ENABLE_FLAG_AVX2}
+    XGD_ENABLE_FLAG_MARCH_NATIVE:\t${XGD_ENABLE_FLAG_MARCH_NATIVE}
+    XGD_ENABLE_EMSCRIPTEN_SIMD:\t${XGD_ENABLE_EMSCRIPTEN_SIMD}
+    
+    XGD_BUILD_WITH_GRADLE:\t${XGD_BUILD_WITH_GRADLE}
+    XGD_NO_DEBUG_CONSOLE:\t${XGD_NO_DEBUG_CONSOLE}
+
+    XGD_WINE64_RUNTIME:\t${XGD_WINE64_RUNTIME}
+    XGD_NODEJS_RUNTIME:\t${XGD_NODEJS_RUNTIME}
+    XGD_POSTFIX:\t${XGD_POSTFIX}
+    XGD_WASM_ENV:\t${XGD_WASM_ENV}
+    XGD_QT_MODULES:\t${XGD_QT_MODULES}
+    ")
+endfunction()
+
 function(xgd_check_global_options)
     include(CheckCXXCompilerFlag)
+    include(CheckIncludeFile)
+    include(CheckIncludeFiles)
+    include(CheckSymbolExists)
+    include(CheckFunctionExists)
+
+    set(_XGD_BOOST_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs)
+    set(_XGD_BOOST_CHECK_DIR ${_XGD_BOOST_DIR}/config/checks/architecture)
+    check_cxx_source_compiles("
+            #include <${_XGD_BOOST_CHECK_DIR}/64.cpp>
+            int main() {}" _XGD_BOOST_ARCH_64)
+    if (NOT _XGD_BOOST_ARCH_64)
+        check_cxx_source_compiles("
+            #include <${_XGD_BOOST_CHECK_DIR}/32.cpp>
+            int main() {}" _XGD_BOOST_ARCH_32)
+    endif ()
+
     while (1)
         if (EMSCRIPTEN)
-            set(XGD_ARCH_X86 ON CACHE INTERNAL "" FORCE)
-            break()
-        endif ()
-        set(CHECK_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs/config/checks/architecture)
-        check_cxx_source_compiles("
-                #include <${CHECK_SRC_DIR}/x86.cpp>
-                int main() {}" XGD_ARCH_X86)
-        if (XGD_ARCH_X86)
             break()
         endif ()
         check_cxx_source_compiles("
-                #include <${CHECK_SRC_DIR}/arm.cpp>
-                int main() {}" XGD_ARCH_ARM)
-        if (XGD_ARCH_ARM)
+                #include <${_XGD_BOOST_CHECK_DIR}/x86.cpp>
+                int main() {}" _XGD_BOOST_ARCH_X86)
+        if (_XGD_BOOST_ARCH_X86)
+            break()
+        endif ()
+        check_cxx_source_compiles("
+                #include <${_XGD_BOOST_CHECK_DIR}/arm.cpp>
+                int main() {}" _XGD_BOOST_ARCH_ARM)
+        if (_XGD_BOOST_ARCH_ARM)
             break()
         endif ()
         check_cxx_source_compiles("
                 #include <${CHECK_SRC_DIR}/mips.cpp>
-                int main() {}" XGD_ARCH_MIPS)
-        if (XGD_ARCH_MIPS)
+                int main() {}" _XGD_BOOST_ARCH_MIPS)
+        if (_XGD_BOOST_ARCH_MIPS)
             break()
         endif ()
         check_cxx_source_compiles("
                 #include <${CHECK_SRC_DIR}/power.cpp>
-                int main() {}" XGD_ARCH_POWER)
-        break()
+                int main() {}" _XGD_BOOST_ARCH_POWER)
     endwhile ()
 
-    if (XGD_ARCH_ARM)
-        check_cxx_source_compiles("
-            #include <${CHECK_SRC_DIR}/32.cpp>
-            int main() {}" XGD_ARCH_ARM32)
-        check_cxx_source_compiles("
-            #include <${CHECK_SRC_DIR}/64.cpp>
-            int main() {}" XGD_ARCH_ARM64)
+    if (XGD_ENABLE_ARCH_32 AND NOT _XGD_BOOST_ARCH_32)
+        set(XGD_ENABLE_ARCH_32 OFF CACHE INTERNAL "" FORCE)
+    endif ()
+    if (XGD_ENABLE_ARCH_64 AND NOT _XGD_BOOST_ARCH_64)
+        set(XGD_ENABLE_ARCH_64 OFF CACHE INTERNAL "" FORCE)
+    endif ()
+    if (XGD_ENABLE_ARCH_X86 AND NOT _XGD_BOOST_ARCH_X86)
+        set(XGD_ENABLE_ARCH_X86 OFF CACHE INTERNAL "" FORCE)
+    endif ()
+    if (XGD_ENABLE_ARCH_ARM AND NOT _XGD_BOOST_ARCH_ARM)
+        set(XGD_ENABLE_ARCH_ARM OFF CACHE INTERNAL "" FORCE)
+    endif ()
+    if (XGD_ENABLE_ARCH_MIPS AND NOT _XGD_BOOST_ARCH_MIPS)
+        set(XGD_ENABLE_ARCH_MIPS OFF CACHE INTERNAL "" FORCE)
+    endif ()
+    if (XGD_ENABLE_ARCH_POWER AND NOT _XGD_BOOST_ARCH_POWER)
+        set(XGD_ENABLE_ARCH_POWER OFF CACHE INTERNAL "" FORCE)
+    endif ()
+
+    if (XGD_ENABLE_FLAG_NEON AND NOT (XGD_ENABLE_ARCH_64 AND XGD_ENABLE_ARCH_ARM))
+        set(XGD_ENABLE_FLAG_NEON OFF CACHE INTERNAL "" FORCE)
     endif ()
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        check_cxx_compiler_flag("-march=native" XGD_FLAG_MARCH_NATIVE)
+        check_cxx_compiler_flag("-march=native" _XGD_MARCH_NATIVE)
     endif ()
-    if (EMSCRIPTEN)
-        check_cxx_compiler_flag("-msimd128" XGD_EMSCRIPTEN_SIMD)
-        if (XGD_EMSCRIPTEN_SIMD)
-            set(XGD_FLAG_SSE ON CACHE INTERNAL "" FORCE)
-            set(XGD_FLAG_AVX OFF CACHE INTERNAL "" FORCE)
-            set(XGD_FLAG_AVX2 OFF CACHE INTERNAL "" FORCE)
-        endif ()
-    elseif (XGD_ARCH_X86)
-        if (MSVC)
-            # /arch:SSE and /arch:SSE2 doesn't work and is enabled by default
-            set(XGD_FLAG_SSE ON CACHE INTERNAL "" FORCE)
-            check_cxx_compiler_flag("/arch:AVX" XGD_FLAG_AVX)
-            check_cxx_compiler_flag("/arch:AVX2" XGD_FLAG_AVX2)
-        else ()
-            check_cxx_compiler_flag("-msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mfma -mf16c" XGD_FLAG_SSE)
-            check_cxx_compiler_flag("-mavx" XGD_FLAG_AVX)
-            check_cxx_compiler_flag("-mavx2" XGD_FLAG_AVX2)
-        endif ()
-    elseif (XGD_ARCH_ARM64)
-        set(XGD_FLAG_NEON ON CACHE INTERNAL "" FORCE)
+    if (XGD_ENABLE_FLAG_MARCH_NATIVE AND NOT _XGD_MARCH_NATIVE)
+        set(XGD_ENABLE_FLAG_MARCH_NATIVE OFF CACHE INTERNAL "" FORCE)
     endif ()
 
-    if (EMSCRIPTEN AND XGD_WASM_NODE)
-        include(ProcessorCount)
-        ProcessorCount(_N)
-        set(XGD_HOST_PROCESSOR_NUM ${_N} CACHE INTERNAL "")
+    if (EMSCRIPTEN)
+        check_cxx_compiler_flag("-msimd128" _XGD_WASM_SIMD128)
+    endif ()
+    if (XGD_ENABLE_EMSCRIPTEN_SIMD AND NOT _XGD_WASM_SIMD128)
+        set(XGD_ENABLE_EMSCRIPTEN_SIMD OFF CACHE INTERNAL "" FORCE)
+    endif ()
+
+    if (XGD_ENABLE_ARCH_X86 AND NOT EMSCRIPTEN)
+        if (MSVC)
+            # /arch:SSE and /arch:SSE2 doesn't work and is enabled by default
+            set(_XGD_SSE ON)
+            check_cxx_compiler_flag("/arch:AVX" _XGD_AVX)
+            check_cxx_compiler_flag("/arch:AVX2" _XGD_AVX2)
+        else ()
+            check_cxx_compiler_flag("-msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mfma -mf16c" _XGD_SSE)
+            check_cxx_compiler_flag("-mavx" _XGD_AVX)
+            check_cxx_compiler_flag("-mavx2" _XGD_AVX2)
+        endif ()
+    endif ()
+    if (XGD_ENABLE_FLAG_SSE AND NOT _XGD_SSE)
+        set(XGD_ENABLE_FLAG_SSE OFF CACHE INTERNAL "" FORCE)
+    endif ()
+    if (XGD_ENABLE_FLAG_AVX AND NOT _XGD_AVX)
+        set(XGD_ENABLE_FLAG_AVX OFF CACHE INTERNAL "" FORCE)
+    endif ()
+    if (XGD_ENABLE_FLAG_AVX2 AND NOT _XGD_AVX2)
+        set(XGD_ENABLE_FLAG_AVX2 OFF CACHE INTERNAL "" FORCE)
+    endif ()
+
+    # include(ProcessorCount)
+    # ProcessorCount(_XGD_PROCESSOR_COUNT)
+
+    # boost check
+    if (XGD_ENABLE_ARCH_X86 AND NOT EMSCRIPTEN)
+        check_cxx_source_compiles(
+                "#include <${_XGD_BOOST_DIR}/atomic/config/has_sse2.cpp>"
+                XGD_CPP_HAS_SSE2
+        )
+        check_cxx_source_compiles(
+                "#include <${_XGD_BOOST_DIR}/atomic/config/has_sse41.cpp>"
+                XGD_CPP_HAS_SSE41
+        )
+    endif ()
+    check_cxx_source_compiles(
+            "#include <${_XGD_BOOST_DIR}/filesystem/config/has_cxx20_atomic_ref.cpp>"
+            XGD_CPP_HAS_CXX20_ATOMIC_REF
+    )
+    if (NOT MSVC)
+        # openbabel
+        check_include_file(sys/time.h XGD_HAVE_SYS_TIME_H)
+        check_include_file(rpc/xdr.h XGD_HAVE_RPC_XDR_H)
+        check_symbol_exists(rint "math.h" XGD_HAVE_RINT)
+        check_symbol_exists(snprintf "stdio.h" XGD_HAVE_SNPRINTF)
+        check_symbol_exists(sranddev "stdlib.h" XGD_HAVE_SRANDDEV)
+        check_symbol_exists(strcasecmp "string.h" XGD_HAVE_STRCASECMP)
+        check_symbol_exists(strncasecmp "string.h" XGD_HAVE_STRNCASECMP)
+
+        # xml
+        check_include_files(unistd.h XGD_HAVE_UNISTD_H)
+        check_include_files(stdint.h XGD_HAVE_STDINT_H)
+        check_include_files(pthread.h XGD_HAVE_PTHREAD_H)
+        check_include_files(fcntl.h XGD_HAVE_FCNTL_H)
+        check_include_files(sys/stat.h XGD_HAVE_SYS_STAT_H)
+        check_function_exists(stat XGD_HAVE_STAT)
     endif ()
 endfunction()
 

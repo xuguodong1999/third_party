@@ -60,21 +60,11 @@ function(xgd_build_boost_atomic)
     if (WIN32)
         list(APPEND BOOST_ATOMIC_SRC_FILES wait_on_address.cpp)
     endif ()
-    if (XGD_ARCH_X86)
-        check_cxx_source_compiles(
-                "#include <${BOOST_SRC_DIR}/atomic/config/has_sse2.cpp>"
-                BOOST_ATOMIC_COMPILER_HAS_SSE2
-        )
-        if (BOOST_ATOMIC_COMPILER_HAS_SSE2)
-            list(APPEND BOOST_ATOMIC_SRC_FILES find_address_sse2.cpp)
-        endif ()
-        check_cxx_source_compiles(
-                "#include <${BOOST_SRC_DIR}/atomic/config/has_sse41.cpp>"
-                BOOST_ATOMIC_COMPILER_HAS_SSE41
-        )
-        if (BOOST_ATOMIC_COMPILER_HAS_SSE41)
-            list(APPEND BOOST_ATOMIC_SRC_FILES find_address_sse41.cpp)
-        endif ()
+    if (XGD_CPP_HAS_SSE2)
+        list(APPEND BOOST_ATOMIC_SRC_FILES find_address_sse2.cpp)
+    endif ()
+    if (XGD_CPP_HAS_SSE41)
+        list(APPEND BOOST_ATOMIC_SRC_FILES find_address_sse41.cpp)
     endif ()
     xgd_internal_build_boost(atomic SRC_FILES ${BOOST_ATOMIC_SRC_FILES})
     target_compile_definitions(boost_atomic PRIVATE BOOST_ATOMIC_SOURCE)
@@ -82,10 +72,6 @@ endfunction()
 
 function(xgd_build_boost_filesystem)
     set(BOOST_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/boost-src/boost/libs)
-    check_cxx_source_compiles(
-            "#include <${BOOST_SRC_DIR}/filesystem/config/has_cxx20_atomic_ref.cpp>"
-            BOOST_FILESYSTEM_HAS_CXX20_ATOMIC_REF
-    )
 
     set(BOOST_FILESYSTEM_SOURCES
             codecvt_error_category.cpp
@@ -113,7 +99,7 @@ function(xgd_build_boost_filesystem)
     endif ()
 
     target_compile_definitions(boost_filesystem PUBLIC BOOST_FILESYSTEM_NO_DEPRECATED)
-    if (NOT BOOST_FILESYSTEM_HAS_CXX20_ATOMIC_REF)
+    if (NOT XGD_CPP_HAS_CXX20_ATOMIC_REF)
         target_compile_definitions(boost_filesystem PRIVATE BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF)
         xgd_link_boost(boost_filesystem PRIVATE atomic)
     endif ()

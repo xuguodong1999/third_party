@@ -13,34 +13,34 @@ function(xgd_build_png_library)
     if (WIN32 AND BUILD_SHARED_LIBS)
         target_compile_definitions(png PRIVATE PNG_BUILD_DLL)
     endif ()
-    if (XGD_ARCH_X86)
+    if (XGD_ENABLE_ARCH_X86)
         set(LIBPNG_INTEL_SOURCES
                 intel/intel_init.c
                 intel/filter_sse2_intrinsics.c)
-        if (XGD_FLAG_SSE)
+        if (XGD_ENABLE_FLAG_SSE)
             target_compile_definitions(png PRIVATE PNG_INTEL_SSE_OPT=1)
         else ()
             target_compile_definitions(png PRIVATE PNG_INTEL_SSE_OPT=0)
         endif ()
-    elseif (XGD_ARCH_ARM32 OR XGD_ARCH_ARM64)
+    elseif (XGD_ENABLE_ARCH_ARM)
         set(LIBPNG_ARM_SOURCES
                 arm/arm_init.c
                 arm/filter_neon.S
                 arm/filter_neon_intrinsics.c
                 arm/palette_neon_intrinsics.c)
-        if (XGD_FLAG_NEON)
+        if (XGD_ENABLE_FLAG_NEON)
             target_compile_definitions(png PRIVATE PNG_ARM_NEON_OPT=2)
         else ()
             target_compile_definitions(png PRIVATE PNG_ARM_NEON_CHECK_SUPPORTED)
             # target_compile_definitions(png PRIVATE PNG_ARM_NEON_OPT=0)
         endif ()
-    elseif (XGD_ARCH_POWER)
+    elseif (XGD_ENABLE_ARCH_POWER)
         set(LIBPNG_POWERPC_SOURCES
                 powerpc/powerpc_init.c
                 powerpc/filter_vsx_intrinsics.c)
         target_compile_definitions(png PRIVATE PNG_POWERPC_VSX_OPT=2)
         # target_compile_definitions(png PRIVATE PNG_POWERPC_VSX_OPT=0)
-    elseif (XGD_ARCH_MIPS)
+    elseif (XGD_ENABLE_ARCH_MIPS)
         set(LIBPNG_MIPS_SOURCES
                 mips/mips_init.c
                 mips/filter_msa_intrinsics.c)
