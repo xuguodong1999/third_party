@@ -40,7 +40,7 @@ function(xgd_build_openbabel_library)
 
     xgd_generate_export_header(openbabel "openbabel" ".hpp")
 
-    set(HAVE_SYS_TIME_H)
+    set(HAVE_SYS_TIME_H ${XGD_HAVE_SYS_TIME_H})
     set(HAVE_RPC_XDR_H ${XGD_HAVE_RPC_XDR_H})
     set(HAVE_RINT ${XGD_HAVE_RINT})
     set(HAVE_SNPRINTF ${XGD_HAVE_SNPRINTF})

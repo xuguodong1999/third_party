@@ -1,0 +1,38 @@
+if (NOT XGD_NODEJS_RUNTIME)
+    find_program(_XGD_NODEJS_RUNTIME NAMES node QUIET)
+    if (_XGD_NODEJS_RUNTIME)
+        set(XGD_NODEJS_RUNTIME ${_XGD_NODEJS_RUNTIME} CACHE INTERNAL "" FORCE)
+    else ()
+        message(STATUS "node not found. XGD_NODEJS_RUNTIME set to \"${XGD_NODEJS_RUNTIME}\"")
+    endif ()
+endif ()
+if (XGD_NODEJS_RUNTIME)
+    message(STATUS "node: use \"${XGD_NODEJS_RUNTIME}\"")
+endif ()
+
+if (NOT XGD_WINE64_RUNTIME)
+    find_program(_XGD_WINE64_RUNTIME NAMES wine64 QUIET)
+    if (_XGD_WINE64_RUNTIME)
+        set(XGD_WINE64_RUNTIME ${_XGD_WINE64_RUNTIME} CACHE INTERNAL "" FORCE)
+    else ()
+        message(STATUS "wine64 not found. XGD_WINE64_RUNTIME set to \"${XGD_WINE64_RUNTIME}\"")
+    endif ()
+endif ()
+if (XGD_WINE64_RUNTIME)
+    message(STATUS "wine64: use \"${XGD_WINE64_RUNTIME}\"")
+endif ()
+
+if (XGD_USE_CCACHE)
+    find_program(_XGD_CCACHE_RUNTIME ccache QUIET)
+    if (MSVC OR (EMSCRIPTEN AND CMAKE_HOST_WIN32) OR (NOT _XGD_CCACHE_RUNTIME)) # skip windows-rc, windows-emcc
+        set(XGD_USE_CCACHE OFF CACHE INTERNAL "" FORCE)
+        message(WARNING "XGD_USE_CCACHE set to OFF:"
+                " CCACHE_RUNTIME=\"${CCACHE_RUNTIME}\""
+                " MSVC=\"${MSVC}\" EMSCRIPTEN=\"${EMSCRIPTEN}\""
+                " CMAKE_HOST_WIN32=\"${CMAKE_HOST_WIN32}\"")
+    else ()
+        set(XGD_CCACHE_RUNTIME ${_XGD_CCACHE_RUNTIME} CACHE INTERNAL "" FORCE)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${XGD_CCACHE_RUNTIME})
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${XGD_CCACHE_RUNTIME})
+    endif ()
+endif ()

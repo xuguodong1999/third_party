@@ -1,7 +1,8 @@
-project(external-c LANGUAGES C)
+project(xgd-project-external-c LANGUAGES C)
 
 xgd_build_avalontoolkit_library()
 xgd_build_freesasa_library()
+xgd_build_ggml_library()
 xgd_build_inchi_library()
 xgd_build_png_library()
 xgd_build_ringdecomposerlib_library()

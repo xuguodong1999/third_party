@@ -1,8 +1,9 @@
-project(external-cpp LANGUAGES CXX)
+project(xgd-project-external-cpp LANGUAGES CXX)
 
 xgd_build_benchmark_library()
 xgd_build_boost_library()
 xgd_build_coordgenlibs_library()
+xgd_build_ggml_examples_library()
 xgd_build_gtest_library()
 xgd_build_maeparser_library()
 xgd_build_ncnn_library()

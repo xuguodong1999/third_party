@@ -28,61 +28,68 @@ endfunction()
 
 # gtest
 function(xgd_link_gtest TARGET)
-    cmake_parse_arguments(param "NO_MAIN" "" "" ${ARGN})
-    add_dependencies(${TARGET} gtest)
-    target_link_libraries(${TARGET} PRIVATE gtest)
-    if (NOT param_NO_MAIN)
-        target_sources(
-                ${TARGET}
-                PRIVATE ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/src/gtest_main.cc
-        )
+    cmake_parse_arguments(param "GTEST;GTEST_MAIN;GMOCK_MAIN;DONT_ADD_TEST" "" "" ${ARGN})
+    if (BUILD_SHARED_LIBS)
+        target_compile_definitions(${TARGET} PRIVATE GTEST_LINKED_AS_SHARED_LIBRARY)
     endif ()
-    set(TEST_COMMAND "${TARGET}")
-    get_target_property(RUNTIME_OUTPUT_DIRECTORY ${TARGET} RUNTIME_OUTPUT_DIRECTORY)
-    if (NOT RUNTIME_OUTPUT_DIRECTORY)
-        if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-            set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-        else ()
-            set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+    if (param_GTEST)
+        add_dependencies(${TARGET} gtest)
+        target_link_libraries(${TARGET} PRIVATE gtest)
+    elseif (param_GMOCK_MAIN)
+        add_dependencies(${TARGET} gmock_main)
+        target_link_libraries(${TARGET} PRIVATE gtest gmock_main)
+    else () # elseif (param_GTEST_MAIN)
+        add_dependencies(${TARGET} gtest_main)
+        target_link_libraries(${TARGET} PRIVATE gtest gtest_main)
+    endif ()
+    if (NOT param_DONT_ADD_TEST)
+        set(TEST_COMMAND "${TARGET}")
+        get_target_property(RUNTIME_OUTPUT_DIRECTORY ${TARGET} RUNTIME_OUTPUT_DIRECTORY)
+        if (NOT RUNTIME_OUTPUT_DIRECTORY)
+            if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+                set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+            else ()
+                set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+            endif ()
         endif ()
-    endif ()
-    if (EMSCRIPTEN AND NODEJS_RUNTIME)
-        set(OUTPUT_JS ${RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.js)
-        if (CMAKE_HOST_WIN32)
-            set(OUTPUT_JS "file://${OUTPUT_JS}")
+        if (EMSCRIPTEN AND NODEJS_RUNTIME)
+            set(OUTPUT_JS ${RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.js)
+            if (CMAKE_HOST_WIN32)
+                set(OUTPUT_JS "file://${OUTPUT_JS}")
+            endif ()
+            set(TEST_COMMAND
+                    "${NODEJS_RUNTIME}"
+                    "--experimental-wasm-threads"
+                    "-e"
+                    "import('${OUTPUT_JS}').then(m => ('function' === typeof m?.default) ? m.default() : 0)")
+
+        elseif (XGD_WINE64_RUNTIME AND MINGW AND (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")) # mxe
+            set(TEST_COMMAND
+                    "${XGD_WINE64_RUNTIME}"
+                    "${RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.exe")
         endif ()
-        set(TEST_COMMAND
-                "${NODEJS_RUNTIME}"
-                "--experimental-wasm-threads"
-                "-e"
-                "import('${OUTPUT_JS}').then(m => ('function' === typeof m?.default) ? m.default() : 0)")
-    elseif (XGD_WINE64_RUNTIME)
-        set(TEST_COMMAND
-                "${XGD_WINE64_RUNTIME}"
-                "${RUNTIME_OUTPUT_DIRECTORY}/${TARGET}.exe")
+        add_test(NAME ${TARGET} COMMAND ${TEST_COMMAND} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+        if (NOT TARGET gtest_all)
+            add_custom_target(gtest_all)
+        endif ()
+        add_dependencies(gtest_all ${TARGET})
     endif ()
-    add_test(NAME ${TARGET} COMMAND ${TEST_COMMAND} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-    if (NOT TARGET gtest_programs_all)
-        add_custom_target(gtest_programs_all)
-    endif ()
-    add_dependencies(gtest_programs_all ${TARGET})
 endfunction()
 
 # benchmark
 function(xgd_link_benchmark TARGET)
-    cmake_parse_arguments(param "NO_MAIN" "" "" ${ARGN})
-    add_dependencies(${TARGET} benchmark)
-    target_link_libraries(${TARGET} PRIVATE benchmark)
-    if (NOT param_NO_MAIN)
-        target_sources(
-                ${TARGET}
-                PRIVATE ${XGD_EXTERNAL_DIR}/cpp/benchmark-src/benchmark/src/benchmark_main.cc
-        )
+    cmake_parse_arguments(param "MAIN" "" "" ${ARGN})
+    if (param_MAIN)
+        add_dependencies(${TARGET} benchmark_main)
+        target_link_libraries(${TARGET} PRIVATE benchmark benchmark_main)
+    else ()
+        add_dependencies(${TARGET} benchmark)
+        target_link_libraries(${TARGET} PRIVATE benchmark)
     endif ()
-    if (NOT TARGET benchmark_programs_all)
-        add_custom_target(benchmark_programs_all)
+    if (NOT TARGET bm_all)
+        add_custom_target(bm_all)
     endif ()
-    add_dependencies(benchmark_programs_all ${TARGET})
+    add_dependencies(bm_all ${TARGET})
 endfunction()
 
 # zlib
@@ -280,6 +287,18 @@ function(xgd_link_omp TARGET)
         set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 0)
     endif ()
     set_target_properties(${TARGET} PROPERTIES XGD_OMP_TRY_LINKED 1)
+endfunction()
+
+# ggml
+function(xgd_link_ggml TARGET)
+    add_dependencies(${TARGET} ggml)
+    target_link_libraries(${TARGET} PRIVATE ggml)
+endfunction()
+
+# ggml-examples
+function(xgd_link_ggml_examples TARGET EXAMPLE)
+    add_dependencies(${TARGET} ggml_${EXAMPLE})
+    target_link_libraries(${TARGET} PRIVATE ggml_${EXAMPLE})
 endfunction()
 
 function(xgd_link_ncnn_omp TARGET)

@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.22)
-project(external LANGUAGES)
+project(xgd-project-external LANGUAGES)
 
 if (NOT Threads_FOUND)
     find_package(Threads REQUIRED)
 endif ()
 if (NOT OpenMP_CXX_FOUND)
     find_package(OpenMP QUIET)
+endif ()
+
+if (NOT ("${CMAKE_CURRENT_SOURCE_DIR}/cmake" IN_LIST CMAKE_MODULE_PATH))
+    list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 endif ()
 
 include(XGDBuildBoost)

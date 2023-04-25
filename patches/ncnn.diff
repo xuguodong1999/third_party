@@ -396,29 +396,3 @@ index fdcff2aa6..31019bc26 100644
          return m;
      }
      else
-diff --git a/cpp/ncnn-src/ncnn/src/simpleocv.cpp b/cpp/ncnn-src/ncnn/src/simpleocv.cpp
-index f1270633d..c0e0dc67c 100644
---- a/cpp/ncnn-src/ncnn/src/simpleocv.cpp
-+++ b/cpp/ncnn-src/ncnn/src/simpleocv.cpp
-@@ -29,7 +29,7 @@
- #define STB_IMAGE_WRITE_IMPLEMENTATION
- #include "stb_image_write.h"
- 
--namespace cv {
-+namespace ncnn::cv {
- 
- Mat imread(const std::string& path, int flags)
- {
-diff --git a/cpp/ncnn-src/ncnn/src/simpleocv.h b/cpp/ncnn-src/ncnn/src/simpleocv.h
-index 55ede15b7..6a6214127 100644
---- a/cpp/ncnn-src/ncnn/src/simpleocv.h
-+++ b/cpp/ncnn-src/ncnn/src/simpleocv.h
-@@ -52,7 +52,7 @@ enum
- };
- 
- // minimal opencv style data structure implementation
--namespace cv {
-+namespace ncnn::cv {
- 
- template<typename _Tp>
- static inline _Tp saturate_cast(int v)

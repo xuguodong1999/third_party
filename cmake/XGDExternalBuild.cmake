@@ -62,18 +62,32 @@ endfunction()
 
 # gtest
 function(xgd_build_gtest_library)
-    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/include)
-    set(SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/src)
+    set(_GTEST_INC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/include)
+    set(_GTEST_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googletest/src)
+    set(_GMOCK_INC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googlemock/include)
+    set(_GMOCK_SRC_DIR ${XGD_EXTERNAL_DIR}/cpp/gtest-src/gtest/googlemock/src)
     xgd_add_library(
             gtest
-            SRC_FILES ${SRC_DIR}/gtest-all.cc
-            INCLUDE_DIRS ${INC_DIR}
-            PRIVATE_INCLUDE_DIRS ${SRC_DIR}/..
+            SRC_FILES ${_GTEST_SRC_DIR}/gtest-all.cc ${_GMOCK_SRC_DIR}/gmock-all.cc
+            INCLUDE_DIRS ${_GTEST_INC_DIR} ${_GMOCK_INC_DIR}
+            PRIVATE_INCLUDE_DIRS ${_GTEST_SRC_DIR}/.. ${_GMOCK_SRC_DIR}/..
     )
     if (BUILD_SHARED_LIBS)
         target_compile_definitions(gtest PRIVATE "GTEST_CREATE_SHARED_LIBRARY=1")
     endif ()
     xgd_link_threads(gtest)
+    xgd_add_library(
+            gtest_main
+            STATIC
+            SRC_FILES ${_GTEST_SRC_DIR}/gtest_main.cc
+    )
+    xgd_link_gtest(gtest_main GTEST DONT_ADD_TEST)
+    xgd_add_library(
+            gmock_main
+            STATIC
+            SRC_FILES ${_GMOCK_SRC_DIR}/gmock_main.cc
+    )
+    xgd_link_gtest(gmock_main GTEST DONT_ADD_TEST)
 endfunction()
 
 # benchmark
@@ -94,6 +108,13 @@ function(xgd_build_benchmark_library)
         target_compile_definitions(benchmark PUBLIC BENCHMARK_STATIC_DEFINE)
     endif ()
     xgd_link_threads(benchmark)
+    xgd_add_library(
+            benchmark_main
+            STATIC
+            SRC_FILES ${SRC_DIR}/benchmark_main.cc
+            PRIVATE_INCLUDE_DIRS ${INC_DIR}
+    )
+    xgd_link_benchmark(benchmark_main)
 endfunction()
 
 # zlib
@@ -228,4 +249,42 @@ function(xgd_build_freesasa_library)
     )
     xgd_link_xml2(freesasa)
     xgd_disable_warnings(freesasa)
+endfunction()
+
+# ggml
+function(xgd_build_ggml_library)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/c/ggml-src/ggml)
+    set(SRC_DIR ${INC_DIR})
+    xgd_add_library(
+            ggml
+            STATIC
+            SRC_FILES
+            ${SRC_DIR}/ggml.c
+            INCLUDE_DIRS
+            ${INC_DIR}
+    )
+endfunction()
+
+# ggml-examples
+function(xgd_build_ggml_examples_library)
+    set(INC_DIR ${XGD_EXTERNAL_DIR}/cpp/ggml-examples-src/ggml-examples)
+    set(SRC_DIR ${INC_DIR})
+    xgd_add_library(
+            ggml_llama
+            STATIC
+            SRC_FILES
+            ${SRC_DIR}/llama/llama.cpp
+            INCLUDE_DIRS
+            ${INC_DIR}/llama
+    )
+    xgd_link_ggml(ggml_llama)
+    xgd_add_library(
+            ggml_whisper
+            STATIC
+            SRC_FILES
+            ${SRC_DIR}/whisper/whisper.cpp
+            INCLUDE_DIRS
+            ${INC_DIR}/whisper
+    )
+    xgd_link_ggml(ggml_whisper)
 endfunction()
