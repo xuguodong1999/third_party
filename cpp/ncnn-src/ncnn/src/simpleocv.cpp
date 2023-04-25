@@ -32,7 +32,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-namespace ncnn::cv {
+namespace cv {
 
 Mat imread(const std::string& path, int flags)
 {

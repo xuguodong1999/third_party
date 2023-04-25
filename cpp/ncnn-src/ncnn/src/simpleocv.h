@@ -52,7 +52,7 @@ enum
 };
 
 // minimal opencv style data structure implementation
-namespace ncnn::cv {
+namespace cv {
 
 template<typename _Tp>
 static inline _Tp saturate_cast(int v)
