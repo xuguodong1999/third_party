@@ -2237,7 +2237,7 @@ static ncnn::ThreadLocalStorage tls_flush_denormals;
 
 int get_flush_denormals()
 {
-#if defined(__SSE3__)
+#if defined(__SSE3__) && not defined(__EMSCRIPTEN__)
     return (int)reinterpret_cast<size_t>(tls_flush_denormals.get());
 #else
     return 0;
@@ -2251,7 +2251,7 @@ int set_flush_denormals(int flush_denormals)
         NCNN_LOGE("denormals_zero %d not supported", flush_denormals);
         return -1;
     }
-#if defined(__SSE3__)
+#if defined(__SSE3__) && not defined(__EMSCRIPTEN__)
     if (flush_denormals == 0)
     {
         _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
