@@ -29,7 +29,7 @@ endfunction()
 # gtest
 function(xgd_link_gtest TARGET)
     cmake_parse_arguments(param "GTEST;GTEST_MAIN;GMOCK_MAIN;DONT_ADD_TEST" "" "" ${ARGN})
-    if (BUILD_SHARED_LIBS)
+    if (BUILD_SHARED_LIBS AND (NOT param_GTEST_MAIN) AND (NOT param_GMOCK_MAIN) AND (NOT param_DONT_ADD_TEST))
         target_compile_definitions(${TARGET} PRIVATE GTEST_LINKED_AS_SHARED_LIBRARY)
     endif ()
     if (param_GTEST)

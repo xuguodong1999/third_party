@@ -140,16 +140,16 @@ check_cxx_source_compiles(
         "#include <${_XGD_BOOST_DIR}/filesystem/config/has_cxx20_atomic_ref.cpp>"
         XGD_BOOST_HAS_CXX20_ATOMIC_REF
 )
+
+# openbabel
+check_symbol_exists(rint "math.h" XGD_HAVE_RINT)
+check_symbol_exists(snprintf "stdio.h" XGD_HAVE_SNPRINTF)
+check_symbol_exists(sranddev "stdlib.h" XGD_HAVE_SRANDDEV)
+check_symbol_exists(strcasecmp "string.h" XGD_HAVE_STRCASECMP)
+check_symbol_exists(strncasecmp "string.h" XGD_HAVE_STRNCASECMP)
 if (NOT MSVC)
-    # openbabel
     check_include_files(sys/time.h XGD_HAVE_SYS_TIME_H)
     check_include_files(rpc/xdr.h XGD_HAVE_RPC_XDR_H)
-    check_symbol_exists(rint "math.h" XGD_HAVE_RINT)
-    check_symbol_exists(snprintf "stdio.h" XGD_HAVE_SNPRINTF)
-    check_symbol_exists(sranddev "stdlib.h" XGD_HAVE_SRANDDEV)
-    check_symbol_exists(strcasecmp "string.h" XGD_HAVE_STRCASECMP)
-    check_symbol_exists(strncasecmp "string.h" XGD_HAVE_STRNCASECMP)
-
     # xml
     check_include_files(unistd.h XGD_HAVE_UNISTD_H)
     check_include_files(stdint.h XGD_HAVE_STDINT_H)

@@ -1,4 +1,4 @@
-project(xgd-project-external-cpp LANGUAGES CXX)
+enable_language(CXX)
 
 xgd_build_benchmark_library()
 xgd_build_boost_library()

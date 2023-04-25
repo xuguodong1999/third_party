@@ -1,4 +1,4 @@
-project(xgd-project-external-c LANGUAGES C)
+enable_language(C)
 
 xgd_build_avalontoolkit_library()
 xgd_build_freesasa_library()
