@@ -11,9 +11,7 @@ endif ()
 if (XGD_USE_CUDA)
     if (MSVC OR ((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
         find_package(CUDAToolkit QUIET)
-        if (CUDAToolkit_FOUND)
-            enable_language(CUDA)
-        else ()
+        if (NOT CUDAToolkit_FOUND)
             set(XGD_USE_CUDA OFF CACHE INTERNAL "" FORCE)
             message(WARNING "XGD_USE_CUDA set to OFF:"
                     " CUDAToolkit_FOUND=\"${CUDAToolkit_FOUND}\"")
@@ -97,6 +95,9 @@ if (XGD_USE_TORCH)
         message(WARNING "XGD_USE_TORCH set to OFF:"
                 " Torch_DIR=\"${Torch_DIR}\""
                 " Torch_FOUND=\"${Torch_FOUND}\"")
+    else ()
+        set(TORCH_INCLUDE_DIRS ${TORCH_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+        set(TORCH_LIBRARIES ${TORCH_LIBRARIES} CACHE INTERNAL "" FORCE)
     endif ()
 endif ()
 

@@ -4,6 +4,35 @@ function(xgd_link_qtnodes TARGET)
     target_link_libraries(${TARGET} PRIVATE QtNodes)
 endfunction()
 
+function(xgd_link_torch TARGET)
+    cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
+    if (param_PUBLIC)
+        target_include_directories(${TARGET} PUBLIC ${TORCH_INCLUDE_DIRS})
+        target_link_libraries(${TARGET} PUBLIC ${TORCH_INCLUDE_DIRS})
+    else ()
+        target_include_directories(${TARGET} PRIVATE ${Torch_DIR}/../../../include ${Torch_DIR}/../../../include/torch/csrc/api/include)
+        target_link_libraries(${TARGET} PRIVATE ${TORCH_LIBRARIES})
+    endif ()
+endfunction()
+
+# opencv
+function(xgd_link_opencv TARGET)
+    cmake_parse_arguments(param "" "" "PRIVATE;PUBLIC" ${ARGN})
+    if (${param_PUBLIC})
+        target_include_directories(${TARGET} PUBLIC ${OpenCV_INCLUDE_DIR})
+    else ()
+        target_include_directories(${TARGET} PRIVATE ${OpenCV_INCLUDE_DIR})
+    endif ()
+    foreach (COMPONENT ${param_PRIVATE})
+        # add_dependencies(${TARGET} opencv_${COMPONENT})
+        target_link_libraries(${TARGET} PRIVATE opencv_${COMPONENT})
+    endforeach ()
+    foreach (COMPONENT ${param_PUBLIC})
+        # add_dependencies(${TARGET} opencv_${COMPONENT})
+        target_link_libraries(${TARGET} PUBLIC opencv_${COMPONENT})
+    endforeach ()
+endfunction()
+
 # yoga
 function(xgd_link_yoga TARGET)
     add_dependencies(${TARGET} yoga)
@@ -129,7 +158,34 @@ function(xgd_link_boost TARGET)
     if ((NOT param_PRIVATE) AND (NOT param_PUBLIC))
         message(FATAL "xgd_link_boost: no components given")
     endif ()
-    foreach (COMPONENT ${param_PRIVATE})
+    set(_XGD_BOOST_ALL
+            atomic
+            chrono container contract
+            date_time
+            exception
+            filesystem
+            graph gil
+            iostreams
+            json
+            nowide
+            program_options
+            random regex
+            serialization system
+            thread timer type_erasure
+            stacktrace
+            url
+            wave)
+    if (param_PRIVATE AND "all" IN_LIST param_PRIVATE)
+        set(_XGD_BOOST_PRIVATE_COMPONENTS ${_XGD_BOOST_ALL})
+    else ()
+        set(_XGD_BOOST_PRIVATE_COMPONENTS ${param_PRIVATE})
+    endif ()
+    if (param_PUBLIC AND "all" IN_LIST param_PUBLIC)
+        set(_XGD_BOOST_PUBLIC_COMPONENTS ${_XGD_BOOST_ALL})
+    else ()
+        set(_XGD_BOOST_PUBLIC_COMPONENTS ${param_PUBLIC})
+    endif ()
+    foreach (COMPONENT ${_XGD_BOOST_PRIVATE_COMPONENTS})
         if (NOT TARGET Boost::${COMPONENT})
             message(STATUS "boost: use Boost::${COMPONENT} as an interface")
             xgd_use_header(${TARGET} PRIVATE boost)
@@ -138,7 +194,7 @@ function(xgd_link_boost TARGET)
         add_dependencies(${TARGET} Boost::${COMPONENT})
         target_link_libraries(${TARGET} PRIVATE Boost::${COMPONENT})
     endforeach ()
-    foreach (COMPONENT ${param_PUBLIC})
+    foreach (COMPONENT ${_XGD_BOOST_PUBLIC_COMPONENTS})
         if (NOT TARGET Boost::${COMPONENT})
             message(STATUS "boost: use Boost::${COMPONENT} as an interface")
             xgd_use_header(${TARGET} PUBLIC boost)
@@ -147,6 +203,12 @@ function(xgd_link_boost TARGET)
         add_dependencies(${TARGET} Boost::${COMPONENT})
         target_link_libraries(${TARGET} PUBLIC Boost::${COMPONENT})
     endforeach ()
+    if ("gil" IN_LIST _XGD_BOOST_PRIVATE_COMPONENTS)
+        xgd_link_png(${TARGET} PRIVATE)
+    endif ()
+    if ("gil" IN_LIST _XGD_BOOST_PUBLIC_COMPONENTS)
+        xgd_link_png(${TARGET} PUBLIC)
+    endif ()
 endfunction()
 
 # qt
@@ -356,6 +418,7 @@ function(xgd_use_header TARGET)
         elseif (${HEADER_DIR} STREQUAL "eigen")
             target_compile_definitions(${TARGET} PRIVATE EIGEN_USE_THREADS)
             xgd_link_omp(${TARGET})
+            xgd_link_threads(${TARGET})
         elseif (${HEADER_DIR} STREQUAL "taskflow")
             xgd_link_threads(${TARGET})
         endif ()
