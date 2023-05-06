@@ -313,7 +313,7 @@ function(xgd_add_executable TARGET)
             param
             "BUNDLE_QT_GUI"
             ""
-            "SRC_DIRS;SRC_FILES;INCLUDE_DIRS;PRIVATE_INCLUDE_DIRS;EXCLUDE_SRC_FILES;EXCLUDE_REGEXES"
+            "SRC_DIRS;SRC_FILES;INCLUDE_DIRS;EXCLUDE_SRC_FILES;EXCLUDE_REGEXES"
             ${ARGN}
     )
     foreach (SRC_DIR ${param_SRC_DIRS})
@@ -369,6 +369,7 @@ function(xgd_add_executable TARGET)
             add_executable(${TARGET} ${${TARGET}_SOURCES})
         endif ()
     endif ()
+    target_include_directories(${TARGET} PRIVATE ${param_INCLUDE_DIRS})
     xgd_target_global_options(${TARGET})
     set_target_properties(${TARGET} PROPERTIES BUNDLE_QT_GUI "${param_BUNDLE_QT_GUI}")
     if (ANDROID AND param_BUNDLE_QT_GUI)
