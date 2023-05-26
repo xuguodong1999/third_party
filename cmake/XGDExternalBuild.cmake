@@ -43,11 +43,10 @@ function(xgd_build_qtnodes_library)
     set(INC_DIR ${ROOT_DIR}/include)
     set(SRC_DIR ${ROOT_DIR}/include/QtNodes/internal)
     set(RES_DIR ${ROOT_DIR}/resources)
-    qt_add_resources(QtNodes_RESOURCES_SRC ${RES_DIR}/resources.qrc)
     xgd_add_library(
             QtNodes
             SRC_DIRS ${SRC_DIR}
-            SRC_FILES ${QtNodes_RESOURCES_SRC}
+            SRC_FILES ${RES_DIR}/resources.qrc
             INCLUDE_DIRS ${INC_DIR}
             PRIVATE_INCLUDE_DIRS ${INC_DIR}/QtNodes/internal
     )
