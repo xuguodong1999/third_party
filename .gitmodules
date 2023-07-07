@@ -1,0 +1,111 @@
+[submodule "boost-src/boost"]
+	path = boost-src/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "benchmark-src/benchmark"]
+	path = benchmark-src/benchmark
+	url = https://github.com/google/benchmark.git
+[submodule "coordgen-src/coordgen"]
+	path = coordgen-src/coordgen
+	url = https://github.com/schrodinger/coordgenlibs.git
+[submodule "cutlass-src/cutlass"]
+	path = cutlass-src/cutlass
+	url = https://github.com/NVIDIA/cutlass.git
+[submodule "eigen-src/eigen"]
+	path = eigen-src/eigen
+	url = https://gitlab.com/libeigen/eigen.git
+[submodule "freesasa-src/freesasa"]
+	path = freesasa-src/freesasa
+	url = https://github.com/mittinatten/freesasa.git
+[submodule "gtest-src/gtest"]
+	path = gtest-src/gtest
+	url = https://github.com/google/googletest.git
+[submodule "lbfgs-src/lbfgs"]
+	path = lbfgs-src/lbfgs
+	url = https://github.com/yixuan/LBFGSpp.git
+[submodule "libpng-src/libpng"]
+	path = libpng-src/libpng
+	url = https://github.com/glennrp/libpng.git
+[submodule "libxml2-src/libxml2"]
+	path = libxml2-src/libxml2
+	url = https://github.com/GNOME/libxml2.git
+[submodule "maeparser-src/maeparser"]
+	path = maeparser-src/maeparser
+	url = https://github.com/schrodinger/maeparser.git
+[submodule "ncnn-src/ncnn"]
+	path = ncnn-src/ncnn
+	url = https://github.com/Tencent/ncnn.git
+[submodule "nodeeditor-src/nodeeditor"]
+	path = nodeeditor-src/nodeeditor
+	url = https://github.com/paceholder/nodeeditor.git
+[submodule "openbabel-src/openbabel"]
+	path = openbabel-src/openbabel
+	url = https://github.com/openbabel/openbabel.git
+[submodule "rapidjson-src/rapidjson"]
+	path = rapidjson-src/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "rdkit-src/rdkit"]
+	path = rdkit-src/rdkit
+	url = https://github.com/rdkit/rdkit.git
+[submodule "ringdecomposerlib-src/ringdecomposerlib"]
+	path = ringdecomposerlib-src/ringdecomposerlib
+	url = https://github.com/rareylab/RingDecomposerLib.git
+[submodule "spdlog-src/spdlog"]
+	path = spdlog-src/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "taskflow-src/taskflow"]
+	path = taskflow-src/taskflow
+	url = https://github.com/taskflow/taskflow.git
+[submodule "yaehmop-src/yaehmop"]
+	path = yaehmop-src/yaehmop
+	url = https://github.com/greglandrum/yaehmop.git
+[submodule "yoga-src/yoga"]
+	path = yoga-src/yoga
+	url = https://github.com/facebook/yoga.git
+[submodule "zlib-src/zlib"]
+	path = zlib-src/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "inchi-src/inchi"]
+	path = inchi-src/inchi
+	url = https://github.com/metamolecular/inchi.git
+[submodule "opencv-src/opencv"]
+	path = opencv-src/opencv
+	url = https://github.com/opencv/opencv.git
+[submodule "protobuf-src/protobuf"]
+	path = protobuf-src/protobuf
+	url = https://github.com/protocolbuffers/protobuf.git
+[submodule "rxcpp-src/rxcpp"]
+	path = rxcpp-src/rxcpp
+	url = https://github.com/ReactiveX/RxCpp.git
+[submodule "ggml-src/ggml"]
+	path = ggml-src/ggml
+	url = https://github.com/ggerganov/ggml.git
+[submodule "cpufeatures-src/cpufeatures"]
+	path = cpufeatures-src/cpufeatures
+	url = https://github.com/google/cpu_features.git
+[submodule "libjpegturbo-src/libjpegturbo"]
+	path = libjpegturbo-src/libjpegturbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
+[submodule "indigo-src/indigo"]
+	path = indigo-src/indigo
+	url = https://github.com/epam/Indigo.git
+[submodule "pixman-src/pixman"]
+	path = pixman-src/pixman
+	url = https://gitee.com/mirrors/Pixman.git
+[submodule "freetype-src/freetype"]
+	path = freetype-src/freetype
+	url = https://github.com/freetype/freetype.git
+[submodule "tinyxml2-src/tinyxml2"]
+	path = tinyxml2-src/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git
+[submodule "cairo-src/cairo"]
+	path = cairo-src/cairo
+	url = https://gitee.com/mirrors/cairo.git
+[submodule "ade-src/ade"]
+	path = ade-src/ade
+	url = https://github.com/opencv/ade.git
+[submodule "abseil-src/abseil"]
+	path = abseil-src/abseil
+	url = https://github.com/abseil/abseil-cpp.git
+[submodule "openssl-src/openssl"]
+	path = openssl-src/openssl
+	url = https://github.com/openssl/openssl.git
