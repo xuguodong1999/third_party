@@ -82,9 +82,6 @@
 [submodule "cpufeatures-src/cpufeatures"]
 	path = cpufeatures-src/cpufeatures
 	url = https://github.com/google/cpu_features.git
-[submodule "libjpegturbo-src/libjpegturbo"]
-	path = libjpegturbo-src/libjpegturbo
-	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
 [submodule "indigo-src/indigo"]
 	path = indigo-src/indigo
 	url = https://github.com/epam/Indigo.git
