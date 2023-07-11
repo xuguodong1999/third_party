@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.22)
 
 project(xgd-third_party VERSION 1.0.1 LANGUAGES C CXX)
 
-#if(NOT XXX)
-#    include(config.cmake)
-#endif()
+if(XGD_BUILD_THIRD_PARTY_PROJECT_ALONE)
+   include(utils.cmake)
+   include(config.cmake)
+endif()
 
 #
 include(ade-src/build.cmake)
@@ -103,15 +104,17 @@ xgd_build_yoga_library()
 #
 include(zlib-src/build.cmake)
 xgd_build_zlib_library()
-#
-# xgd_add_executable(example SRC_FILES example.cpp)
 
-# xgd_add_executable(asio_ssl_server SRC_FILES boost-src/boost/libs/asio/example/cpp11/ssl/server.cpp)
-# add_dependencies(asio_ssl_server ssl)
-# target_link_libraries(asio_ssl_server PRIVATE ssl)
-# xgd_use_header(asio_ssl_server PRIVATE boost)
-# xgd_link_boost(asio_ssl_server PRIVATE thread)
-# target_compile_definitions(asio_ssl_server PRIVATE _WIN32_WINNT=0x0601)
-# if (EMSCRIPTEN)
-#     target_compile_definitions(asio_ssl_server PRIVATE BOOST_HAS_PTHREADS)
-# endif ()
+if(XGD_BUILD_THIRD_PARTY_PROJECT_ALONE)
+    xgd_add_executable(example SRC_FILES example.cpp)
+
+    xgd_add_executable(asio_ssl_server SRC_FILES boost-src/boost/libs/asio/example/cpp11/ssl/server.cpp)
+    add_dependencies(asio_ssl_server ssl)
+    target_link_libraries(asio_ssl_server PRIVATE ssl)
+    xgd_use_header(asio_ssl_server PRIVATE boost)
+    xgd_link_boost(asio_ssl_server PRIVATE thread)
+    target_compile_definitions(asio_ssl_server PRIVATE _WIN32_WINNT=0x0601)
+    if (EMSCRIPTEN)
+        target_compile_definitions(asio_ssl_server PRIVATE BOOST_HAS_PTHREADS)
+    endif ()
+endif()
