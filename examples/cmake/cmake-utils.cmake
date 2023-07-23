@@ -160,7 +160,7 @@ function(xgd_external_check_env)
     include(CheckSymbolExists)
     include(CheckFunctionExists)
 
-    set(_XGD_BOOST_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/boost-src/boost/libs)
+    set(_XGD_BOOST_DIR ${XGD_THIRD_PARTY_DIR}/boost-src/boost/libs)
     set(_XGD_BOOST_CHECK_DIR ${_XGD_BOOST_DIR}/config/checks/architecture)
 
     set(_CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD})
@@ -584,8 +584,8 @@ function(xgd_generate_export_header_modules TARGET BASE_NAME MODULE_NAME EXT)
 endfunction()
 
 function(xgd_lib_apply_release_info TARGET)
-    set(RC_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/msvc_release.rc)
-    if (NOT (XGD_PRODUCTION_BUILD AND EXISTS ${RC_FILE}))
+    set(RC_FILE ${XGD_THIRD_PARTY_DIR}/assets/msvc_release.rc)
+    if (NOT (XGD_OPT_RC AND EXISTS ${RC_FILE}))
         return()
     endif ()
     if (WIN32)
@@ -715,7 +715,7 @@ function(xgd_add_executable TARGET)
             qt_add_executable(${TARGET} ${${TARGET}_SOURCES})
             set_target_properties(
                     ${TARGET} PROPERTIES
-                    RUNTIME_OUTPUT_DIRECTORY ${XGD_FRONTEND_DIR}/homepage/dist-qt/${TARGET}
+                    # RUNTIME_OUTPUT_DIRECTORY ${XGD_FRONTEND_DIR}/homepage/dist-qt/${TARGET}
                     # QT_WASM_PTHREAD_POOL_SIZE navigator.hardwareConcurrency
                     QT_WASM_PTHREAD_POOL_SIZE 4
             )
@@ -730,7 +730,9 @@ function(xgd_add_executable TARGET)
     else ()
         if (param_BUNDLE_QT_GUI)
             qt_add_executable(${TARGET} ${${TARGET}_SOURCES})
-            xgd_program_apply_release_info(${TARGET})
+            if (XGD_OPT_RC)
+                xgd_lib_apply_release_info(${TARGET})
+            endif ()
         else ()
             add_executable(${TARGET} ${${TARGET}_SOURCES})
         endif ()
@@ -743,6 +745,24 @@ function(xgd_add_executable TARGET)
         set_target_properties(${TARGET} PROPERTIES CXX_VISIBILITY_PRESET default)
     endif ()
 endfunction()
+
+# wrapper around target_link_libraries with add_dependencies before
+function(xgd_link_libraries TARGET)
+    cmake_parse_arguments(param "" "" "PUBLIC;PRIVATE;INTERFACE" ${ARGN})
+    foreach (LIB_NAME ${param_PUBLIC} ${param_PRIVATE} ${param_INTERFACE})
+        add_dependencies(${TARGET} ${LIB_NAME})
+    endforeach ()
+    foreach (LIB_NAME ${param_PUBLIC})
+        target_link_libraries(${TARGET} PUBLIC ${LIB_NAME})
+    endforeach ()
+    foreach (LIB_NAME ${param_PRIVATE})
+        target_link_libraries(${TARGET} PRIVATE ${LIB_NAME})
+    endforeach ()
+    foreach (LIB_NAME ${param_INTERFACE})
+        target_link_libraries(${TARGET} INTERFACE ${LIB_NAME})
+    endforeach ()
+endfunction()
+
 # qtnodes
 function(xgd_link_qtnodes TARGET)
     add_dependencies(${TARGET} QtNodes)
@@ -810,8 +830,10 @@ endfunction()
 
 # Threads::Threads
 function(xgd_link_threads TARGET)
-    cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
-    if (param_PUBLIC)
+    cmake_parse_arguments(param "PUBLIC" "LINK_TYPE" "" ${ARGN})
+    if (param_LINK_TYPE)
+        target_link_libraries(${TARGET} ${param_LINK_TYPE} Threads::Threads)
+    elseif (param_PUBLIC)
         target_link_libraries(${TARGET} PUBLIC Threads::Threads)
     else ()
         target_link_libraries(${TARGET} PRIVATE Threads::Threads)
@@ -884,23 +906,6 @@ function(xgd_link_benchmark TARGET)
     add_dependencies(bm_all ${TARGET})
 endfunction()
 
-# zlib
-function(xgd_link_zlib TARGET)
-    cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
-    add_dependencies(${TARGET} zlib)
-    if (param_PUBLIC)
-        target_link_libraries(${TARGET} PUBLIC zlib)
-    else ()
-        target_link_libraries(${TARGET} PRIVATE zlib)
-    endif ()
-endfunction()
-
-# libxml2
-function(xgd_link_xml2 TARGET)
-    add_dependencies(${TARGET} xml2)
-    target_link_libraries(${TARGET} PRIVATE xml2)
-endfunction()
-
 # libpng
 function(xgd_link_png TARGET)
     cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
@@ -911,66 +916,6 @@ function(xgd_link_png TARGET)
     endif ()
     if (WIN32 AND BUILD_SHARED_LIBS)
         target_compile_definitions(${TARGET} PRIVATE PNG_USE_DLL)
-    endif ()
-endfunction()
-
-# boost
-function(xgd_link_boost TARGET)
-    # usage: xgd_link_boost(your-awesome-target PRIVATE [iostreams json ...])
-    cmake_parse_arguments(param "" "" "PRIVATE;PUBLIC" ${ARGN})
-    if ((NOT param_PRIVATE) AND (NOT param_PUBLIC))
-        message(FATAL "xgd_link_boost: no components given")
-    endif ()
-    set(_XGD_BOOST_ALL
-            atomic
-            chrono container contract
-            date_time
-            exception
-            filesystem
-            graph gil
-            iostreams
-            json
-            nowide
-            program_options
-            random regex
-            serialization system
-            thread timer type_erasure
-            stacktrace
-            url
-            wave)
-    if (param_PRIVATE AND "all" IN_LIST param_PRIVATE)
-        set(_XGD_BOOST_PRIVATE_COMPONENTS ${_XGD_BOOST_ALL})
-    else ()
-        set(_XGD_BOOST_PRIVATE_COMPONENTS ${param_PRIVATE})
-    endif ()
-    if (param_PUBLIC AND "all" IN_LIST param_PUBLIC)
-        set(_XGD_BOOST_PUBLIC_COMPONENTS ${_XGD_BOOST_ALL})
-    else ()
-        set(_XGD_BOOST_PUBLIC_COMPONENTS ${param_PUBLIC})
-    endif ()
-    foreach (COMPONENT ${_XGD_BOOST_PRIVATE_COMPONENTS})
-        if (NOT TARGET Boost::${COMPONENT})
-            message(STATUS "boost: use Boost::${COMPONENT} as an interface")
-            xgd_use_header(${TARGET} PRIVATE boost)
-            continue()
-        endif ()
-        add_dependencies(${TARGET} Boost::${COMPONENT})
-        target_link_libraries(${TARGET} PRIVATE Boost::${COMPONENT})
-    endforeach ()
-    foreach (COMPONENT ${_XGD_BOOST_PUBLIC_COMPONENTS})
-        if (NOT TARGET Boost::${COMPONENT})
-            message(STATUS "boost: use Boost::${COMPONENT} as an interface")
-            xgd_use_header(${TARGET} PUBLIC boost)
-            continue()
-        endif ()
-        add_dependencies(${TARGET} Boost::${COMPONENT})
-        target_link_libraries(${TARGET} PUBLIC Boost::${COMPONENT})
-    endforeach ()
-    if ("gil" IN_LIST _XGD_BOOST_PRIVATE_COMPONENTS)
-        xgd_link_png(${TARGET} PRIVATE)
-    endif ()
-    if ("gil" IN_LIST _XGD_BOOST_PUBLIC_COMPONENTS)
-        xgd_link_png(${TARGET} PUBLIC)
     endif ()
 endfunction()
 
@@ -1014,59 +959,6 @@ function(xgd_link_vulkan TARGET)
     endif ()
 endfunction()
 
-# inchi
-function(xgd_link_inchi TARGET)
-    add_dependencies(${TARGET} inchi)
-    target_link_libraries(${TARGET} PRIVATE inchi)
-endfunction()
-
-# maeparser
-function(xgd_link_maeparser TARGET)
-    add_dependencies(${TARGET} maeparser)
-    target_link_libraries(${TARGET} PRIVATE maeparser)
-endfunction()
-
-# coordgenlibs
-function(xgd_link_coordgen TARGET)
-    add_dependencies(${TARGET} coordgenlibs)
-    target_link_libraries(${TARGET} PRIVATE coordgenlibs)
-endfunction()
-
-# openbabel
-function(xgd_link_openbabel TARGET)
-    add_dependencies(${TARGET} openbabel)
-    target_link_libraries(${TARGET} PRIVATE openbabel)
-endfunction()
-
-# yaehmop
-function(xgd_link_yaehmop TARGET)
-    add_dependencies(${TARGET} yaehmop)
-    target_link_libraries(${TARGET} PRIVATE yaehmop)
-endfunction()
-
-# avalontoolkit
-function(xgd_link_avalontoolkit TARGET)
-    add_dependencies(${TARGET} avalontoolkit)
-    target_link_libraries(${TARGET} PRIVATE avalontoolkit)
-endfunction()
-
-# freesasa
-function(xgd_link_freesasa TARGET)
-    add_dependencies(${TARGET} freesasa)
-    target_link_libraries(${TARGET} PRIVATE freesasa)
-endfunction()
-
-# ringdecomposerlib
-function(xgd_link_ringdecomposerlib TARGET)
-    cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
-    add_dependencies(${TARGET} ringdecomposerlib)
-    if (param_PUBLIC)
-        target_link_libraries(${TARGET} PUBLIC ringdecomposerlib)
-    else ()
-        target_link_libraries(${TARGET} PRIVATE ringdecomposerlib)
-    endif ()
-endfunction()
-
 # rdkit
 function(xgd_link_rdkit TARGET)
     cmake_parse_arguments(param "" "" "PRIVATE;PUBLIC" ${ARGN})
@@ -1097,15 +989,21 @@ endfunction()
 
 # openmp
 function(xgd_link_omp TARGET)
+    cmake_parse_arguments(param "" "LINK_TYPE" "" ${ARGN})
     get_target_property(XGD_OMP_TRY_LINKED ${TARGET} XGD_OMP_TRY_LINKED)
     if (XGD_OMP_TRY_LINKED)
         return()
     endif ()
+    if (param_LINK_TYPE)
+        set(LINK_TYPE ${param_LINK_TYPE})
+    else ()
+        set(LINK_TYPE PRIVATE)
+    endif ()
     if (ANDROID)
-        target_link_libraries(${TARGET} PRIVATE -static-openmp)
+        target_link_libraries(${TARGET} ${LINK_TYPE} -static-openmp)
         set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 1)
     elseif (OpenMP_CXX_FOUND)
-        target_link_libraries(${TARGET} PRIVATE OpenMP::OpenMP_CXX)
+        target_link_libraries(${TARGET} ${LINK_TYPE} OpenMP::OpenMP_CXX)
         set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 1)
     else ()
         message(STATUS "openmp: OpenMP_CXX not found for ${TARGET}")
@@ -1114,17 +1012,6 @@ function(xgd_link_omp TARGET)
     set_target_properties(${TARGET} PROPERTIES XGD_OMP_TRY_LINKED 1)
 endfunction()
 
-# ggml
-function(xgd_link_ggml TARGET)
-    add_dependencies(${TARGET} ggml)
-    target_link_libraries(${TARGET} PRIVATE ggml)
-endfunction()
-
-# ggml-examples
-function(xgd_link_ggml_examples TARGET EXAMPLE)
-    add_dependencies(${TARGET} ggml_${EXAMPLE})
-    target_link_libraries(${TARGET} PRIVATE ggml_${EXAMPLE})
-endfunction()
 
 function(xgd_link_ncnn_omp TARGET)
     get_target_property(XGD_OMP_LINKED ${TARGET} XGD_OMP_LINKED)
@@ -1136,68 +1023,6 @@ function(xgd_link_ncnn_omp TARGET)
         target_link_libraries(${TARGET} PRIVATE ncnn_omp)
         message(STATUS "openmp: link ${TARGET} to ncnn simpleomp")
     endif ()
-endfunction()
-
-function(xgd_use_header TARGET)
-    cmake_parse_arguments(param "" "" "PUBLIC;PRIVATE" ${ARGN})
-    macro(xgd_internal_include_header HEADER PUBLIC)
-        string(TOLOWER ${HEADER} HEADER_DIR)
-        set(HEADER_DIRS)
-        if (${HEADER_DIR} STREQUAL "boost")
-            set(_BOOST_ALL_COMPONENTS accumulators algorithm align any array asio assert assign atomic beast bimap bind callable_traits chrono circular_buffer compatibility compute concept_check config container_hash container context contract conversion convert core coroutine coroutine2 crc date_time describe detail dll dynamic_bitset endian exception fiber filesystem flyweight foreach format function_types function functional fusion geometry gil graph_parallel graph hana headers heap histogram hof icl integer interprocess intrusive io iostreams iterator json lambda lambda2 leaf lexical_cast local_function locale lockfree log logic math metaparse move mp11 mpi mpl msm multi_array multi_index multiprecision mysql nowide numeric/conversion numeric/interval numeric/odeint numeric/ublas optional outcome parameter_python parameter pfr phoenix poly_collection polygon pool predef preprocessor process program_options property_map_parallel property_map property_tree proto ptr_container python qvm random range ratio rational regex safe_numerics scope_exit serialization signals2 smart_ptr sort spirit stacktrace statechart static_assert static_string stl_interfaces system test thread throw_exception timer tokenizer tti tuple type_erasure type_index type_traits typeof units unordered url utility uuid variant variant2 vmd wave winapi xpressive yap)
-            foreach (_BOOST_COMPONENT ${_BOOST_ALL_COMPONENTS})
-                list(APPEND HEADER_DIRS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/boost-src/boost/libs/${_BOOST_COMPONENT}/include)
-            endforeach ()
-        elseif (${HEADER_DIR} STREQUAL "cutlass")
-            list(APPEND HEADER_DIRS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/cutlass-src/cutlass/include)
-            list(APPEND HEADER_DIRS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/cutlass-src/cutlass/tools/util/include)
-        elseif (${HEADER_DIR} STREQUAL "eigen")
-            list(APPEND HEADER_DIRS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/eigen-src/eigen)
-        elseif (${HEADER_DIR} STREQUAL "lbfgs")
-            list(APPEND HEADER_DIRS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lbfgs-src/lbfgs/include)
-        elseif (${HEADER_DIR} STREQUAL "rapidjson")
-            list(APPEND HEADER_DIRS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/rapidjson-src/rapidjson/include)
-        elseif (${HEADER_DIR} STREQUAL "taskflow")
-            list(APPEND HEADER_DIRS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/taskflow-src/taskflow)
-        else ()
-            message(FATAL_ERROR "${HEADER_DIR} is not a valid 3rdparty header library")
-        endif ()
-        if (${PUBLIC})
-            target_include_directories(${TARGET} PUBLIC ${HEADER_DIRS})
-        else ()
-            target_include_directories(${TARGET} PRIVATE ${HEADER_DIRS})
-        endif ()
-    endmacro()
-    macro(xgd_internal_link_header_deps HEADER)
-        string(TOLOWER ${HEADER} HEADER_DIR)
-        if (${HEADER_DIR} STREQUAL "armadillo")
-            target_compile_definitions(${TARGET} PRIVATE ARMA_DONT_USE_LAPACK ARMA_DONT_USE_BLAS)
-            xgd_link_omp(${TARGET})
-            if (MSVC)
-                # enable openmp 3.0, which fix C3016
-                target_compile_options(${TARGET} PRIVATE /openmp:llvm)
-            endif ()
-        elseif (${HEADER_DIR} STREQUAL "boost")
-            target_compile_definitions(${TARGET} PRIVATE "_HAS_AUTO_PTR_ETC=0")
-        elseif (${HEADER_DIR} STREQUAL "cutlass")
-            xgd_link_cuda(${TARGET} PRIVATE cudart)
-        elseif (${HEADER_DIR} STREQUAL "eigen")
-            target_compile_definitions(${TARGET} PRIVATE EIGEN_USE_THREADS)
-            xgd_link_omp(${TARGET})
-            xgd_link_threads(${TARGET})
-        elseif (${HEADER_DIR} STREQUAL "taskflow")
-            xgd_link_threads(${TARGET})
-        endif ()
-    endmacro()
-    foreach (HEADER ${param_PUBLIC})
-        xgd_internal_include_header(${HEADER} 1)
-    endforeach ()
-    foreach (HEADER ${param_PRIVATE})
-        xgd_internal_include_header(${HEADER} 0)
-    endforeach ()
-    foreach (HEADER ${param_PUBLIC} ${param_PRIVATE})
-        xgd_internal_link_header_deps(${HEADER})
-    endforeach ()
 endfunction()
 
 function(xgd_link_cuda TARGET)
