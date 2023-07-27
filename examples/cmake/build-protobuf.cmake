@@ -30,5 +30,5 @@ if (BUILD_SHARED_LIBS)
             PRIVATE LIBPROTOBUF_EXPORTS
     )
 endif ()
-xgd_link_absl(protobuf PUBLIC)
+xgd_link_libraries(protobuf PUBLIC absl)
 target_link_libraries(protobuf PRIVATE $<$<BOOL:${ANDROID}>:log>)

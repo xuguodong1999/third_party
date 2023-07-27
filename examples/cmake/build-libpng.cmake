@@ -10,8 +10,9 @@ xgd_add_library(
         ${SRC_DIR}/pngtest.c
 )
 if (WIN32 AND BUILD_SHARED_LIBS)
-    target_compile_definitions(png PRIVATE PNG_BUILD_DLL)
+    target_compile_definitions(png PRIVATE PNG_BUILD_DLL PUBLIC PNG_USE_DLL)
 endif ()
+
 if (XGD_OPT_ARCH_X86)
     set(LIBPNG_INTEL_SOURCES
             intel/intel_init.c

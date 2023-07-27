@@ -174,6 +174,18 @@ macro(ocv_compiler_optimization_process_sources)
     # set(${SOURCES_VAR_NAME} "${__result}")
 endmacro()
 
+function(xgd_link_opencv_internal TARGET)
+    cmake_parse_arguments(param "" "" "PRIVATE;PUBLIC" ${ARGN})
+    foreach (COMPONENT ${param_PRIVATE})
+        add_dependencies(${TARGET} opencv_${COMPONENT})
+        target_link_libraries(${TARGET} PRIVATE opencv_${COMPONENT})
+    endforeach ()
+    foreach (COMPONENT ${param_PUBLIC})
+        add_dependencies(${TARGET} opencv_${COMPONENT})
+        target_link_libraries(${TARGET} PUBLIC opencv_${COMPONENT})
+    endforeach ()
+endfunction()
+
 # opencv
 set(SUPPORTED_MODULES
         opencv_calib3d
@@ -363,9 +375,9 @@ function(xgd_internal_build_opencv OCV_COMPONENT)
     ocv_compiler_optimization_process_sources(${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED})
 
     if (NOT TARGET opencv_all)
-        add_custom_target(opencv_all)
+        add_library(opencv_all INTERFACE)
     endif ()
-    add_dependencies(opencv_all opencv_${OCV_COMPONENT})
+    xgd_link_libraries(opencv_all INTERFACE opencv_${OCV_COMPONENT})
 endfunction()
 
 function(xgd_build_opencv_core)
@@ -549,7 +561,7 @@ function(xgd_build_opencv_gapi)
             SRC_FILES
             ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
     )
-    xgd_link_ade(opencv_gapi)
+    xgd_link_libraries(opencv_gapi PRIVATE ade)
     if (WIN32)
         target_link_libraries(opencv_gapi PRIVATE wsock32 ws2_32)
     endif ()
@@ -591,7 +603,7 @@ function(xgd_build_opencv_dnn)
             ${OCV_MODULE_DIR}/${OCV_COMPONENT}/misc/tensorflow
     )
     target_compile_definitions(opencv_dnn PRIVATE "HAVE_PROTOBUF=1")
-    xgd_link_protobuf(opencv_dnn)
+    xgd_link_libraries(opencv_dnn PRIVATE protobuf)
 endfunction()
 xgd_build_opencv_dnn()
 
@@ -694,23 +706,23 @@ if (XGD_USE_QT)
     set(HAVE_QT6 ON)
     list(APPEND SUPPORTED_MODULES opencv_highgui)
     xgd_build_opencv_highgui()
-    xgd_link_opencv(opencv_highgui PUBLIC imgproc imgcodecs) # optional videoio
+    xgd_link_opencv_internal(opencv_highgui PUBLIC imgproc imgcodecs) # optional videoio
 endif ()
 
-xgd_link_opencv(opencv_calib3d PUBLIC imgproc features2d flann) # optional highgui on debug
-xgd_link_opencv(opencv_features2d PUBLIC imgproc flann) # optional highgui on debug
-xgd_link_opencv(opencv_flann PUBLIC core)
-xgd_link_opencv(opencv_gapi PUBLIC imgproc video calib3d)
-xgd_link_opencv(opencv_imgcodecs PUBLIC imgproc)
-xgd_link_opencv(opencv_imgproc PUBLIC core)
-xgd_link_opencv(opencv_ml PUBLIC core)
-xgd_link_opencv(opencv_objdetect PUBLIC core imgproc calib3d dnn)
-xgd_link_opencv(opencv_photo PUBLIC imgproc)
-xgd_link_opencv(opencv_stitching PUBLIC imgproc features2d calib3d flann)
-xgd_link_opencv(opencv_video PUBLIC imgproc calib3d dnn)
+xgd_link_opencv_internal(opencv_calib3d PUBLIC imgproc features2d flann) # optional highgui on debug
+xgd_link_opencv_internal(opencv_features2d PUBLIC imgproc flann) # optional highgui on debug
+xgd_link_opencv_internal(opencv_flann PUBLIC core)
+xgd_link_opencv_internal(opencv_gapi PUBLIC imgproc video calib3d)
+xgd_link_opencv_internal(opencv_imgcodecs PUBLIC imgproc)
+xgd_link_opencv_internal(opencv_imgproc PUBLIC core)
+xgd_link_opencv_internal(opencv_ml PUBLIC core)
+xgd_link_opencv_internal(opencv_objdetect PUBLIC core imgproc calib3d dnn)
+xgd_link_opencv_internal(opencv_photo PUBLIC imgproc)
+xgd_link_opencv_internal(opencv_stitching PUBLIC imgproc features2d calib3d flann)
+xgd_link_opencv_internal(opencv_video PUBLIC imgproc calib3d dnn)
 
-xgd_link_opencv(opencv_dnn PUBLIC core imgproc)
-# xgd_link_opencv(opencv_videoio PUBLIC imgproc imgcodecs)
+xgd_link_opencv_internal(opencv_dnn PUBLIC core imgproc)
+# xgd_link_opencv_internal(opencv_videoio PUBLIC imgproc imgcodecs)
 
 set(OPENCV_MODULE_DEFINITIONS_CONFIGMAKE "")
 foreach (m ${SUPPORTED_MODULES})

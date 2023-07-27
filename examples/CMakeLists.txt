@@ -25,7 +25,7 @@ function(xgd_build_third_party)
             spdlog
             taskflow tinyxml2
             yaehmop yoga
-            zlib)
+            zlib zstd)
     foreach (XGD_THIRD_PARTY_LIB ${XGD_THIRD_PARTY_LIBS})
         include(cmake/build-${XGD_THIRD_PARTY_LIB}.cmake)
     endforeach ()

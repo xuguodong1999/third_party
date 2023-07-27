@@ -29,8 +29,11 @@ xgd_add_library(
 )
 
 xgd_link_omp(openbabel)
-xgd_link_libraries(openbabel PRIVATE zlib xml2 inchi maeparser rapidjson lbfgs cairo PUBLIC eigen)
-xgd_link_rdkit(openbabel PRIVATE Depictor GraphMol RDGeometryLib)
+xgd_link_libraries(openbabel
+        PRIVATE
+        zlib xml2 inchi maeparser rapidjson lbfgs cairo
+        rdkit_Depictor rdkit_GraphMol rdkit_RDGeometryLib
+        PUBLIC eigen)
 
 xgd_generate_export_header(openbabel "openbabel" ".hpp")
 

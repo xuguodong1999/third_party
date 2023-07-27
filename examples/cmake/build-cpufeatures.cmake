@@ -1,3 +1,8 @@
+if(XGD_OPT_ARCH_ARM AND (APPLE OR IOS))
+    message(STATUS "skip building cpufeatures")
+    return()
+endif()
+
 # cpufeatures
 set(ROOT_DIR ${XGD_THIRD_PARTY_DIR}/cpufeatures-src/cpufeatures)
 set(INC_DIR ${ROOT_DIR}/include)

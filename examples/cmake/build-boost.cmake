@@ -32,26 +32,24 @@ function(xgd_internal_build_boost BOOST_COMPONENT)
     add_library(Boost::${BOOST_COMPONENT} ALIAS boost_${BOOST_COMPONENT})
     target_include_directories(boost_${BOOST_COMPONENT} PRIVATE ${${BOOST_COMPONENT}_SRC_DIR})
     target_compile_definitions(boost_${BOOST_COMPONENT} PUBLIC BOOST_ALL_NO_LIB _HAS_AUTO_PTR_ETC=0)
+    if (BUILD_SHARED_LIBS)
+        target_compile_definitions(boost_${BOOST_COMPONENT} PUBLIC BOOST_ALL_DYN_LINK)
+    endif ()
     if (WIN32 AND BUILD_SHARED_LIBS)
-        target_compile_definitions(
-                boost_${BOOST_COMPONENT}
-                PUBLIC
-                BOOST_ALL_DYN_LINK
-                BOOST_THREAD_USE_DLL
-        )
+        target_compile_definitions(boost_${BOOST_COMPONENT} PUBLIC BOOST_THREAD_USE_DLL)
     else ()
-        target_compile_definitions(
-                boost_${BOOST_COMPONENT}
-                PRIVATE
-                BOOST_ALL_DYN_LINK
-                BOOST_THREAD_USE_LIB
-        )
+        target_compile_definitions(boost_${BOOST_COMPONENT} PRIVATE BOOST_THREAD_USE_LIB)
     endif ()
-    if (NOT TARGET boost_all)
-        add_custom_target(boost_all)
-    endif ()
-    add_dependencies(boost_all boost_${BOOST_COMPONENT})
     xgd_link_libraries(boost_${BOOST_COMPONENT} PUBLIC boost_header)
+    xgd_add_to_boost_all(boost_${BOOST_COMPONENT})
+endfunction()
+
+function(xgd_add_to_boost_all TARGET)
+    if (NOT TARGET boost_all)
+        add_library(boost_all INTERFACE)
+        xgd_link_libraries(boost_all INTERFACE boost_header)
+    endif ()
+    xgd_link_libraries(boost_all INTERFACE ${TARGET})
 endfunction()
 
 function(xgd_build_boost_header)
@@ -65,9 +63,12 @@ function(xgd_build_boost_header)
 
     add_library(boost_gil INTERFACE)
     xgd_link_libraries(boost_gil INTERFACE boost_header png)
+    xgd_add_to_boost_all(boost_gil)
 
     add_library(boost_asio INTERFACE)
     xgd_link_libraries(boost_asio INTERFACE boost_header ssl boost_thread)
+    xgd_add_to_boost_all(boost_asio)
+
     target_compile_definitions(boost_asio INTERFACE _WIN32_WINNT=0x0601)
     if (EMSCRIPTEN)
         target_compile_definitions(boost_asio INTERFACE BOOST_HAS_PTHREADS)
@@ -207,7 +208,7 @@ xgd_internal_build_boost(
         iostreams
         SRC_FILES file_descriptor.cpp gzip.cpp mapped_file.cpp zlib.cpp
 )
-xgd_link_libraries(boost_iostreams PRIVATE zlib)
+xgd_link_libraries(boost_iostreams PRIVATE zlib zstd)
 
 xgd_internal_build_boost(json)
 

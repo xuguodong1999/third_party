@@ -338,6 +338,7 @@ function(xgd_external_check_env)
             XGD_OPT_ARCH_POWER
             XGD_OPT_ARCH_32
             XGD_OPT_ARCH_64
+            XGD_OPT_RC
 
             XGD_FLAG_NEON
             XGD_FLAG_FMA
@@ -366,6 +367,48 @@ endfunction()
 function(xgd_configure_file_copy_only TARGET IN_FILE OUT_FILE)
     configure_file(${IN_FILE} ${OUT_FILE} COPYONLY)
     target_sources(${TARGET} PRIVATE ${OUT_FILE})
+endfunction()
+function(xgd_generate_shader TARGET)
+    set(SUB_TARGET ${TARGET}_generate_shader)
+    cmake_parse_arguments(param "" "" "SHADERS" ${ARGN})
+    string(REPLACE "-" "_" TARGET_FILE_NAME ${TARGET})
+    set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
+    set(SPV_ROOT ${GEN_DIR}/${TARGET_FILE_NAME}/spv)
+    set(CPP_ROOT ${GEN_DIR}/${TARGET_FILE_NAME}/include)
+    target_include_directories(${TARGET} PRIVATE ${CPP_ROOT})
+    foreach (SHADER ${param_SHADERS})
+        get_filename_component(SHADER_NAME ${SHADER} NAME)
+        string(REPLACE "." "_" HEADER_NAME ${SHADER_NAME})
+        string(TOUPPER ${HEADER_NAME} CPP_VARIABLE_NAME)
+        set(SPV_FILE ${SPV_ROOT}/${SHADER_NAME}.spv)
+        set(CPP_FILE ${CPP_ROOT}/${HEADER_NAME}.hpp)
+        add_custom_command(
+                OUTPUT ${SPV_FILE}
+                COMMAND ${Vulkan_GLSLC_EXECUTABLE} -o ${SPV_FILE} ${SHADER}
+                DEPENDS ${SHADER}
+                WORKING_DIRECTORY ${GEN_DIR}
+        )
+        list(APPEND ALL_GENERATED_SPV_FILES ${SPV_FILE})
+        add_custom_command(
+                OUTPUT ${CPP_FILE}
+                COMMAND
+                ${CMAKE_COMMAND}
+                -DBINARY_FILE=${SPV_FILE}
+                -DCPP_FILE=${CPP_FILE}
+                -DCPP_VARIABLE_NAME=${CPP_VARIABLE_NAME}
+                -DNAMESPACE=${TARGET_FILE_NAME}
+                -P ${CMAKE_SOURCE_DIR}/cmake/add_binary_target.cmake
+                DEPENDS ${SPV_FILE}
+                WORKING_DIRECTORY ${GEN_DIR}
+        )
+        list(APPEND ALL_GENERATED_CPP_FILES ${CPP_FILE})
+    endforeach ()
+    add_custom_target(
+            ${SUB_TARGET}
+            DEPENDS ${ALL_GENERATED_SPV_FILES} ${ALL_GENERATED_CPP_FILES}
+            SOURCES ${param_SHADERS}
+    )
+    add_dependencies(${TARGET} ${SUB_TARGET})
 endfunction()
 
 # disable compiler warning ! only for 3rdparty libs
@@ -543,7 +586,7 @@ function(xgd_add_library TARGET)
     else ()
         add_library(${TARGET} ${${TARGET}_SOURCES})
     endif ()
-    xgd_lib_apply_release_info(${TARGET})
+    xgd_add_release_info(${TARGET})
     target_include_directories(
             ${TARGET}
             PUBLIC ${param_INCLUDE_DIRS}
@@ -583,9 +626,14 @@ function(xgd_generate_export_header_modules TARGET BASE_NAME MODULE_NAME EXT)
     )
 endfunction()
 
-function(xgd_lib_apply_release_info TARGET)
-    set(RC_FILE ${XGD_THIRD_PARTY_DIR}/assets/msvc_release.rc)
-    if (NOT (XGD_OPT_RC AND EXISTS ${RC_FILE}))
+function(xgd_add_release_info TARGET)
+#    if (NOT XGD_OPT_RC)
+        return()
+#    endif ()
+    message(FATAL_ERROR "XGD_OPT_RC=${XGD_OPT_RC} for ${TARGET}")
+    set(RC_FILE ${CMAKE_SOURCE_DIR}/platforms/windows/msvc_release.rc)
+    if (NOT EXISTS ${RC_FILE})
+        message(WARNING "RC_FILE=\"${RC_FILE}\" not exist")
         return()
     endif ()
     if (WIN32)
@@ -730,9 +778,7 @@ function(xgd_add_executable TARGET)
     else ()
         if (param_BUNDLE_QT_GUI)
             qt_add_executable(${TARGET} ${${TARGET}_SOURCES})
-            if (XGD_OPT_RC)
-                xgd_lib_apply_release_info(${TARGET})
-            endif ()
+            xgd_add_release_info(${TARGET})
         else ()
             add_executable(${TARGET} ${${TARGET}_SOURCES})
         endif ()
@@ -763,12 +809,6 @@ function(xgd_link_libraries TARGET)
     endforeach ()
 endfunction()
 
-# qtnodes
-function(xgd_link_qtnodes TARGET)
-    add_dependencies(${TARGET} QtNodes)
-    target_link_libraries(${TARGET} PRIVATE QtNodes)
-endfunction()
-
 function(xgd_link_torch TARGET)
     cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
     if (param_PUBLIC)
@@ -778,54 +818,7 @@ function(xgd_link_torch TARGET)
         target_include_directories(${TARGET} PRIVATE ${Torch_DIR}/../../../include ${Torch_DIR}/../../../include/torch/csrc/api/include)
         target_link_libraries(${TARGET} PRIVATE ${TORCH_LIBRARIES})
     endif ()
-endfunction()
-
-# ade
-function(xgd_link_ade TARGET)
-    add_dependencies(${TARGET} ade)
-    target_link_libraries(${TARGET} PRIVATE ade)
-endfunction()
-
-# protobuf
-function(xgd_link_protobuf TARGET)
-    add_dependencies(${TARGET} protobuf)
-    target_link_libraries(${TARGET} PRIVATE protobuf)
-endfunction()
-
-# absl
-function(xgd_link_absl TARGET)
-    add_dependencies(${TARGET} absl)
-    cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
-    if (param_PUBLIC)
-        target_link_libraries(${TARGET} PUBLIC absl)
-    else ()
-        target_link_libraries(${TARGET} PRIVATE absl)
-    endif ()
-endfunction()
-
-# opencv
-function(xgd_link_opencv TARGET)
-    cmake_parse_arguments(param "" "" "PRIVATE;PUBLIC" ${ARGN})
-    foreach (COMPONENT ${param_PRIVATE})
-        add_dependencies(${TARGET} opencv_${COMPONENT})
-        target_link_libraries(${TARGET} PRIVATE opencv_${COMPONENT})
-    endforeach ()
-    foreach (COMPONENT ${param_PUBLIC})
-        add_dependencies(${TARGET} opencv_${COMPONENT})
-        target_link_libraries(${TARGET} PUBLIC opencv_${COMPONENT})
-    endforeach ()
-endfunction()
-
-# yoga
-function(xgd_link_yoga TARGET)
-    add_dependencies(${TARGET} yoga)
-    target_link_libraries(${TARGET} PRIVATE yoga)
-endfunction()
-
-# spdlog
-function(xgd_link_spdlog TARGET)
-    add_dependencies(${TARGET} spdlog)
-    target_link_libraries(${TARGET} PRIVATE spdlog)
+    # target_precompile_headers(testTorch PRIVATE "<torch/torch.h>")
 endfunction()
 
 # Threads::Threads
@@ -906,19 +899,6 @@ function(xgd_link_benchmark TARGET)
     add_dependencies(bm_all ${TARGET})
 endfunction()
 
-# libpng
-function(xgd_link_png TARGET)
-    cmake_parse_arguments(param "PUBLIC" "" "" ${ARGN})
-    if (param_PUBLIC)
-        target_link_libraries(${TARGET} PUBLIC png)
-    else ()
-        target_link_libraries(${TARGET} PRIVATE png)
-    endif ()
-    if (WIN32 AND BUILD_SHARED_LIBS)
-        target_compile_definitions(${TARGET} PRIVATE PNG_USE_DLL)
-    endif ()
-endfunction()
-
 # qt
 function(xgd_link_qt TARGET)
     # usage: xgd_link_qt(your-awesome-target COMPONENTS [Core Widgets ...])
@@ -942,49 +922,27 @@ endfunction()
 
 # vulkan
 function(xgd_link_vulkan TARGET)
-    if (TARGET Vulkan::Vulkan)
-        target_link_libraries(${TARGET} PRIVATE Vulkan::Vulkan)
+    cmake_parse_arguments(param "" "LINK_TYPE" "" ${ARGN})
+    if (param_LINK_TYPE)
+        set(LINK_TYPE ${param_LINK_TYPE})
     else ()
-        target_include_directories(${TARGET} PRIVATE ${Vulkan_INCLUDE_DIR})
-        target_link_libraries(${TARGET} PRIVATE ${Vulkan_LIBRARIES})
+        set(LINK_TYPE PRIVATE)
+    endif ()
+    if (TARGET Vulkan::Vulkan)
+        target_link_libraries(${TARGET} ${LINK_TYPE} Vulkan::Vulkan)
+    else ()
+        target_include_directories(${TARGET} ${LINK_TYPE} ${Vulkan_INCLUDE_DIR})
+        target_link_libraries(${TARGET} ${LINK_TYPE} ${Vulkan_LIBRARIES})
     endif ()
     if (TARGET Vulkan::shaderc_combined)
-        target_link_libraries(${TARGET} PRIVATE Vulkan::shaderc_combined)
+        target_link_libraries(${TARGET} ${LINK_TYPE} Vulkan::shaderc_combined)
     else ()
-        target_include_directories(${TARGET} PRIVATE ${Vulkan_INCLUDE_DIR})
-        target_link_libraries(${TARGET} PRIVATE ${Vulkan_shaderc_combined_LIBRARY})
+        target_include_directories(${TARGET} ${LINK_TYPE} ${Vulkan_INCLUDE_DIR})
+        target_link_libraries(${TARGET} ${LINK_TYPE} ${Vulkan_shaderc_combined_LIBRARY})
     endif ()
     if (ANDROID)
-        target_include_directories(${TARGET} PRIVATE ${Vulkan_ANDROID_INCLUDE_DIR})
+        target_include_directories(${TARGET} ${LINK_TYPE} ${Vulkan_ANDROID_INCLUDE_DIR})
     endif ()
-endfunction()
-
-# rdkit
-function(xgd_link_rdkit TARGET)
-    cmake_parse_arguments(param "" "" "PRIVATE;PUBLIC" ${ARGN})
-    if ((NOT param_PRIVATE) AND (NOT param_PUBLIC))
-        message(FATAL "xgd_link_rdkit: no components given")
-    endif ()
-    foreach (RDKIT_COMPONENT ${param_PRIVATE})
-        # string(TOLOWER ${RDKIT_COMPONENT} RDKIT_COMPONENT_TARGET)
-        set(RDKIT_COMPONENT_TARGET ${RDKIT_COMPONENT})
-        set(RDKIT_COMPONENT_TARGET rdkit_${RDKIT_COMPONENT_TARGET})
-        add_dependencies(${TARGET} ${RDKIT_COMPONENT_TARGET})
-        target_link_libraries(${TARGET} PRIVATE ${RDKIT_COMPONENT_TARGET})
-    endforeach ()
-    foreach (RDKIT_COMPONENT ${param_PUBLIC})
-        # string(TOLOWER ${RDKIT_COMPONENT} RDKIT_COMPONENT_TARGET)
-        set(RDKIT_COMPONENT_TARGET ${RDKIT_COMPONENT})
-        set(RDKIT_COMPONENT_TARGET rdkit_${RDKIT_COMPONENT_TARGET})
-        add_dependencies(${TARGET} ${RDKIT_COMPONENT_TARGET})
-        target_link_libraries(${TARGET} PUBLIC ${RDKIT_COMPONENT_TARGET})
-    endforeach ()
-endfunction()
-
-# ncnn
-function(xgd_link_ncnn TARGET)
-    add_dependencies(${TARGET} ncnn)
-    target_link_libraries(${TARGET} PRIVATE ncnn)
 endfunction()
 
 # openmp
@@ -1011,7 +969,6 @@ function(xgd_link_omp TARGET)
     endif ()
     set_target_properties(${TARGET} PROPERTIES XGD_OMP_TRY_LINKED 1)
 endfunction()
-
 
 function(xgd_link_ncnn_omp TARGET)
     get_target_property(XGD_OMP_LINKED ${TARGET} XGD_OMP_LINKED)
