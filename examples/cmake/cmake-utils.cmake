@@ -627,18 +627,109 @@ function(xgd_generate_export_header_modules TARGET BASE_NAME MODULE_NAME EXT)
 endfunction()
 
 function(xgd_add_release_info TARGET)
-#    if (NOT XGD_OPT_RC)
-        return()
-#    endif ()
-    message(FATAL_ERROR "XGD_OPT_RC=${XGD_OPT_RC} for ${TARGET}")
-    set(RC_FILE ${CMAKE_SOURCE_DIR}/platforms/windows/msvc_release.rc)
-    if (NOT EXISTS ${RC_FILE})
-        message(WARNING "RC_FILE=\"${RC_FILE}\" not exist")
+    if (NOT XGD_OPT_RC)
         return()
     endif ()
     if (WIN32)
+        set(RC_FILE ${CMAKE_SOURCE_DIR}/platforms/windows/msvc_release.rc)
+        if (NOT EXISTS ${RC_FILE})
+            message(WARNING "RC_FILE=\"${RC_FILE}\" not exist")
+            return()
+        endif ()
         target_sources(${TARGET} PRIVATE ${RC_FILE})
+        #        set_target_properties(
+        #                ${TARGET} PROPERTIES
+        #                WIN32_EXECUTABLE TRUE # remove console
+        #        )
+    elseif (APPLE)
+        set(RC_DIR ${CMAKE_SOURCE_DIR}/platforms/macos)
+        set(META_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/${TARGET}/meta/)
+        set(RC_FILE ${RC_DIR}/Info.plist)
+        set(ICON_FILE ${CMAKE_SOURCE_DIR}/assets/images/avatar.png)
+        if (NOT EXISTS ${RC_FILE} OR NOT EXISTS ${ICON_FILE})
+            message(WARNING "RC_FILE=\"${RC_FILE}\" OR ICON_FILE=${ICON_FILE} not exist")
+            return()
+        endif ()
+        xgd_macos_production_build(
+                ${TARGET}
+                INPUT_INFO_PATH ${RC_FILE}
+                INPUT_ICON_PATH ${ICON_FILE}
+                OUTPUT_DIR ${META_DIR}
+        )
     endif ()
+endfunction()
+
+function(xgd_macos_production_build TARGET)
+    cmake_parse_arguments(param "" "INPUT_INFO_PATH;INPUT_ICON_PATH;OUTPUT_DIR" "" ${ARGN})
+    set(OUTPUT_ICON_NAME "${TARGET}.icns")
+    set(OUTPUT_ICON_PATH "${param_OUTPUT_DIR}/${OUTPUT_ICON_NAME}")
+    if (EXISTS ${OUTPUT_ICON_PATH})
+        if (${OUTPUT_ICON_PATH} IS_NEWER_THAN "${param_INPUT_ICON_PATH}")
+            return()
+        endif ()
+    endif ()
+
+    set(SUB_TARGET1 ${TARGET}_generate_iconset)
+    set(SUB_TARGET2 ${TARGET}_generate_icns)
+    set(ICONSET_DIR ${param_OUTPUT_DIR}/${TARGET}.iconset)
+    set(SIZE_LIST 16 32 32 64 128
+            256 256 512 512 1024)
+    set(SUFFIX_LIST 16x16 16x16@2x 32x32 32x32@2x 128x128
+            128x128@2x 256x256 256x256@2x 512x512 512x512@2x)
+
+    set(ALL_ICONSET_FILES)
+    foreach (i RANGE 9)
+        list(GET SIZE_LIST ${i} SIZE_STRING)
+        list(GET SUFFIX_LIST ${i} SUFFIX_STRING)
+        set(OUTPUT_FILE "${ICONSET_DIR}/icon_${SUFFIX_STRING}.png")
+        # sips -z 1024 1024 $1.png -o $1.iconset/icon_512x512@2x.png
+        add_custom_command(
+                OUTPUT ${OUTPUT_FILE}
+                COMMAND sips -z ${SIZE_STRING} ${SIZE_STRING} ${param_INPUT_ICON_PATH} -o ${OUTPUT_FILE}
+                DEPENDS ${param_INPUT_ICON_PATH}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
+        list(APPEND ALL_ICONSET_FILES ${OUTPUT_FILE})
+    endforeach ()
+    add_custom_target(
+            ${SUB_TARGET1}
+            DEPENDS ${ALL_ICONSET_FILES}
+            SOURCES ${param_INPUT_ICON_PATH}
+    )
+    # iconutil -c icns $1.iconset -o $1.icns
+    add_custom_command(
+            OUTPUT ${OUTPUT_ICON_PATH}
+            COMMAND iconutil -c icns ${ICONSET_DIR} -o ${OUTPUT_ICON_PATH}
+            DEPENDS ${ALL_ICONSET_FILES}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+    set(MACOSX_BUNDLE_ICON_FILE ${OUTPUT_ICON_NAME})
+    set_source_files_properties(
+            ${OUTPUT_ICON_PATH}
+            PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+    )
+    target_sources(${TARGET} PRIVATE ${OUTPUT_ICON_PATH})
+
+    file(READ "${param_INPUT_INFO_PATH}" RAW_INFO_PLIST)
+    string(REPLACE "XGD_TARGET.icns" "${OUTPUT_ICON_NAME}" INFO_PLIST ${RAW_INFO_PLIST})
+    file(WRITE ${param_OUTPUT_DIR}/Info.plist "${INFO_PLIST}")
+    set_target_properties(
+            ${TARGET} PROPERTIES
+            MACOSX_BUNDLE_GUI_IDENTIFIER io.github.xuguodong1999.${TARGET}
+            MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_PROJECT_VERSION}
+            MACOSX_BUNDLE_SHORT_VERSION_STRING ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}
+            MACOSX_BUNDLE_INFO_PLIST "${param_OUTPUT_DIR}/Info.plist"
+            MACOSX_BUNDLE TRUE
+    )
+    add_custom_target(
+            ${SUB_TARGET2}
+            DEPENDS ${OUTPUT_ICON_PATH}
+            SOURCES ${ALL_ICONSET_FILES}
+    )
+    add_dependencies(${SUB_TARGET2} ${SUB_TARGET1})
+    add_dependencies(${TARGET} ${SUB_TARGET2})
 endfunction()
 
 # remove unused 3rdparty lib from cmake "all" target

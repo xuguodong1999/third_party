@@ -67,7 +67,7 @@ function(xgd_build_boost_header)
 
     add_library(boost_asio INTERFACE)
     xgd_link_libraries(boost_asio INTERFACE boost_header ssl boost_thread)
-    xgd_add_to_boost_all(boost_asio)
+    # xgd_add_to_boost_all(boost_asio)
 
     target_compile_definitions(boost_asio INTERFACE _WIN32_WINNT=0x0601)
     if (EMSCRIPTEN)
@@ -239,13 +239,11 @@ xgd_build_boost_stacktrace()
 
 xgd_internal_build_boost(url)
 
-if (NOT EMSCRIPTEN)
-    xgd_internal_build_boost(
-            wave
-            SRC_DIRS cpplexer/re2clex
-    )
-    xgd_link_libraries(boost_wave PUBLIC boost_thread boost_filesystem)
-endif ()
+xgd_internal_build_boost(
+        wave
+        SRC_DIRS cpplexer/re2clex
+)
+xgd_link_libraries(boost_wave PUBLIC boost_thread boost_filesystem)
 # boost libs not work with my cmake build script yet
 
 # xgd_internal_build_boost(context)
