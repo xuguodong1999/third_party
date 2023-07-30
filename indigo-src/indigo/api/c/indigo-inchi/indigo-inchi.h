@@ -21,9 +21,7 @@
 
 #include "indigo.h"
 #include <indigo_inchi_export.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 INDIGO_INCHI_EXPORT const char *indigoInchiVersion();
 
 INDIGO_INCHI_EXPORT int indigoInchiInit(qword id);
@@ -42,7 +40,5 @@ INDIGO_INCHI_EXPORT const char *indigoInchiGetWarning();
 INDIGO_INCHI_EXPORT const char *indigoInchiGetLog();
 
 INDIGO_INCHI_EXPORT const char *indigoInchiGetAuxInfo();
-#ifdef __cplusplus
-}
-#endif
+
 #endif // __indigo_inchi__

@@ -456,9 +456,9 @@ void IndigoPluginContext::validate()
 // Debug methods
 //
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include <Windows.h>
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__MINGW32__)
 #include <fcntl.h>
 #include <unistd.h>
 #elif defined(__APPLE__)
@@ -472,7 +472,7 @@ namespace
 {
     void sleepMs(int ms)
     {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
         Sleep(ms);
 #else
         sleep(ms * 1e-3);
@@ -481,7 +481,7 @@ namespace
 
     bool debuggerIsAttached()
     {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
         return IsDebuggerPresent();
 #elif defined(__APPLE__)
         int mib[4];
@@ -516,7 +516,7 @@ namespace
 
 void indigoDbgBreakpoint(void)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
     if (!IsDebuggerPresent())
     {
         char msg[200];
