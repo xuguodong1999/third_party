@@ -727,8 +727,8 @@ extern "C" int fileno(FILE*);
 #endif
 
 #include <cstdio>
-#ifdef WIN32
-#include <io.h> 	 
+#if defined(WIN32) || defined(__MINGW32__)
+#include <io.h>
 #endif
 
 #include <RDGeneral/Exceptions.h>
