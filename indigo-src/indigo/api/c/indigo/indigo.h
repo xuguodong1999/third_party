@@ -20,7 +20,7 @@
 #define __indigo__
 
 #include <stdint.h>
-#include <indigo_export.h>
+#include "indigo_export.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #define qword unsigned __int64

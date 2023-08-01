@@ -20,7 +20,7 @@
 #define __indigo_inchi__
 
 #include "indigo.h"
-#include <indigo_inchi_export.h>
+#include "indigo_inchi_export.h"
 
 INDIGO_INCHI_EXPORT const char *indigoInchiVersion();
 

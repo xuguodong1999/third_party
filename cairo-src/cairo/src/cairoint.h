@@ -48,8 +48,10 @@
 
 #include "config.h"
 
-#ifdef _MSC_VER
-#define cairo_public __declspec(dllexport)
+#include "cairo_export.h"
+
+#ifndef cairo_public
+#define cairo_public CAIRO_EXPORT
 #endif
 
 #include <assert.h>

@@ -322,16 +322,9 @@
  * PNG_IMPEXP must be set here when building the library to prevent pngconf.h
  * setting it to the "import" setting for a DLL build.
  */
-#ifndef PNG_IMPEXP
-#  ifdef PNG_BUILD_DLL
-#     define PNG_IMPEXP PNG_DLL_EXPORT
-#  else
-      /* Not building a DLL, or the DLL doesn't require specific export
-       * definitions.
-       */
-#     define PNG_IMPEXP
+#  ifndef PNG_IMPEXP
+#    define PNG_IMPEXP LIBPNG_EXPORT
 #  endif
-#endif
 
 /* No warnings for private or deprecated functions in the build: */
 #ifndef PNG_DEPRECATED
@@ -390,11 +383,6 @@
 #endif
 
 #include "png.h"
-
-/* pngconf.h does not set PNG_DLL_EXPORT unless it is required, so: */
-#ifndef PNG_DLL_EXPORT
-#  define PNG_DLL_EXPORT
-#endif
 
 /* This is a global switch to set the compilation for an installed system
  * (a release build).  It can be set for testing debug builds to ensure that

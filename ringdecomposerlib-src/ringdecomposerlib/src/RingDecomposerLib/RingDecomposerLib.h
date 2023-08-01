@@ -27,7 +27,7 @@
 #ifndef RING_DECOMPOSER_LIB_H
 #define RING_DECOMPOSER_LIB_H
 
-#include <ringdecomposerlib_export.h>
+#include "ringdecomposerlib_export.h"
 
 #ifndef RDL_API
 #define RDL_API RINGDECOMPOSERLIB_EXPORT

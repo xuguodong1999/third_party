@@ -8,18 +8,11 @@
 #ifndef __XML_EXPORTS_H__
 #define __XML_EXPORTS_H__
 
-/** DOC_DISABLE */
-#if defined(_WIN32) || defined(__CYGWIN__)
-  #ifdef LIBXML_STATIC
-    #define XMLPUBLIC
-  #elif defined(IN_LIBXML)
-    #define XMLPUBLIC __declspec(dllexport)
-  #else
-    #define XMLPUBLIC __declspec(dllimport)
-  #endif
-#else /* not Windows */
-  #define XMLPUBLIC
-#endif /* platform switch */
+#include "xml2_export.h"
+#ifndef XMLPUBLIC
+#define XMLPUBLIC XML2_EXPORT
+#endif
+
 /** DOC_ENABLE */
 
 /*

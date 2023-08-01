@@ -681,7 +681,7 @@ void FreeInChIExtInput( inchi_Input_Polymer    *polymer, inchi_Input_V3000 *v300
  *************************************************/
 
 
-#include <inchi_export.h>
+#include "inchi_export.h"
 
 #ifdef _MSC_VER
 #define EXPIMP_TEMPLATE extern

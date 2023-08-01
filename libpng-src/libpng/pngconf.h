@@ -21,6 +21,7 @@
 #ifndef PNGCONF_H
 #define PNGCONF_H
 
+#include "libpng_export.h"
 #ifndef PNG_BUILDING_SYMBOL_TABLE /* else includes may cause problems */
 
 /* From libpng 1.6.0 libpng requires an ANSI X3.159-1989 ("ISOC90") compliant C
@@ -162,14 +163,6 @@
  * PNG_EXPORT_TYPE(type) A macro that pre or appends PNG_IMPEXP to
  *                       'type', compiler specific.
  *
- * PNG_DLL_EXPORT Set to the magic to use during a libpng build to
- *                make a symbol exported from the DLL.  Not used in the
- *                public header files; see pngpriv.h for how it is used
- *                in the libpng build.
- *
- * PNG_DLL_IMPORT Set to the magic to force the libpng symbols to come
- *                from a DLL - used to define PNG_IMPEXP when
- *                PNG_USE_DLL is set.
  */
 
 /* System specific discovery.
@@ -180,6 +173,7 @@
  * compiler-specific macros to the values required to change the calling
  * conventions of the various functions.
  */
+
 #if defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || \
     defined(__CYGWIN__)
   /* Windows system (DOS doesn't support DLLs).  Includes builds under Cygwin or
@@ -223,23 +217,6 @@
 #     error "PNG_USER_PRIVATEBUILD must be defined if PNGAPI is changed"
 #  endif
 
-#  if (defined(_MSC_VER) && _MSC_VER < 800) ||\
-      (defined(__BORLANDC__) && __BORLANDC__ < 0x500)
-   /* older Borland and MSC
-    * compilers used '__export' and required this to be after
-    * the type.
-    */
-#    ifndef PNG_EXPORT_TYPE
-#      define PNG_EXPORT_TYPE(type) type PNG_IMPEXP
-#    endif
-#    define PNG_DLL_EXPORT __export
-#  else /* newer compiler */
-#    define PNG_DLL_EXPORT __declspec(dllexport)
-#    ifndef PNG_DLL_IMPORT
-#      define PNG_DLL_IMPORT __declspec(dllimport)
-#    endif
-#  endif /* compiler */
-
 #else /* !Windows */
 #  if (defined(__IBMC__) || defined(__IBMCPP__)) && defined(__OS2__)
 #    define PNGAPI _System
@@ -265,16 +242,9 @@
  * then in an internal header file when building the library, otherwise (when
  * using the library) it is set here.
  */
-#ifndef PNG_IMPEXP
-#  if defined(PNG_USE_DLL) && defined(PNG_DLL_IMPORT)
-   /* This forces use of a DLL, disallowing static linking */
-#    define PNG_IMPEXP PNG_DLL_IMPORT
-#  endif
-
 #  ifndef PNG_IMPEXP
-#    define PNG_IMPEXP
+#    define PNG_IMPEXP LIBPNG_EXPORT
 #  endif
-#endif
 
 /* In 1.5.2 the definition of PNG_FUNCTION has been changed to always treat
  * 'attributes' as a storage class - the attributes go at the start of the

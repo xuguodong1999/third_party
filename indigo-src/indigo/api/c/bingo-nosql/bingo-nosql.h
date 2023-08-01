@@ -20,7 +20,7 @@
 #define __indigo_bingo__
 
 #include "indigo.h"
-#include <bingo_nosql_export.h>
+#include "bingo_nosql_export.h"
 
 BINGO_NOSQL_EXPORT const char* bingoVersion();
 

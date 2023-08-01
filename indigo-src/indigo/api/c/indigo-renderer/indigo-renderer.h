@@ -20,7 +20,7 @@
 #define __indigo_render__
 
 #include "indigo.h"
-#include <indigo_renderer_export.h>
+#include "indigo_renderer_export.h"
 
 INDIGO_RENDERER_EXPORT int indigoRendererInit(qword id);
 INDIGO_RENDERER_EXPORT int indigoRendererDispose(qword id);
