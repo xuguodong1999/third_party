@@ -423,6 +423,7 @@ public:
   OB_STATIC_PLUGIN(PDBQTFormat, thePDBQTFormat)
 #ifdef HAVE_LIBZ
   OB_STATIC_PLUGIN(PNGFormat, thePNGFormat)
+  OB_STATIC_PLUGIN(PNG2Format, thePNG2Format)
 #endif
   OB_STATIC_PLUGIN(PointCloudFormat, thePointCloudFormat)
   OB_STATIC_PLUGIN(PovrayFormat, thePovrayFormat)
