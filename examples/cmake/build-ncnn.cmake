@@ -29,7 +29,7 @@ xgd_add_library(
         INCLUDE_DIRS ${NCNN_INC_DIR}
         EXCLUDE_SRC_FILES ${NCNN_OMP_SRC}
 )
-if (XGD_USE_VK)
+if (XGD_USE_VK AND NOT (MSVC AND NOT BUILD_SHARED_LIBS))
     set(NCNN_VULKAN ON)
     set(NCNN_SYSTEM_GLSLANG ON)
 endif ()

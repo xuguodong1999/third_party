@@ -357,6 +357,7 @@ function(xgd_external_check_env)
             XGD_NODEJS_RUNTIME
             XGD_POSTFIX
             XGD_WASM_ENV
+            XGD_OPTIONAL_QT_MODULES
             XGD_QT_MODULES)
 
     message(STATUS "Summary: ")
@@ -637,10 +638,9 @@ function(xgd_add_release_info TARGET)
             return()
         endif ()
         target_sources(${TARGET} PRIVATE ${RC_FILE})
-        #        set_target_properties(
-        #                ${TARGET} PROPERTIES
-        #                WIN32_EXECUTABLE TRUE # remove console
-        #        )
+        if (XGD_NO_DEBUG_CONSOLE)
+            set_target_properties(${TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
+        endif ()
     elseif (APPLE)
         set(RC_DIR ${CMAKE_SOURCE_DIR}/platforms/macos)
         set(META_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/${TARGET}/meta/)
@@ -866,6 +866,8 @@ function(xgd_add_executable TARGET)
             add_executable(${TARGET} ${${TARGET}_SOURCES})
             target_link_options(${TARGET} PRIVATE -sPTHREAD_POOL_SIZE=4)
         endif ()
+        set_target_properties(${TARGET} PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET})
     else ()
         if (param_BUNDLE_QT_GUI)
             qt_add_executable(${TARGET} ${${TARGET}_SOURCES})

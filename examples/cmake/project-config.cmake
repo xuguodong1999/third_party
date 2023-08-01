@@ -15,7 +15,7 @@ option(XGD_OPT_ARCH_MIPS "" ON)
 option(XGD_OPT_ARCH_POWER "" ON)
 option(XGD_OPT_ARCH_32 "" ON)
 option(XGD_OPT_ARCH_64 "" ON)
-option(XGD_OPT_RC "" OFF)
+option(XGD_OPT_RC "" ON)
 
 option(XGD_FLAG_NEON "" ON)
 option(XGD_FLAG_FMA "" ON)
@@ -30,7 +30,7 @@ option(XGD_FLAG_WASM_SIMD128 "" ON)
 
 # detailed project config
 option(XGD_BUILD_WITH_GRADLE "" OFF)
-option(XGD_NO_DEBUG_CONSOLE "" ON)
+option(XGD_NO_DEBUG_CONSOLE "" OFF)
 
 if (NOT DEFINED XGD_WINE64_RUNTIME)
     set(XGD_WINE64_RUNTIME "" CACHE FILEPATH "path to wine64")
@@ -48,14 +48,14 @@ if (NOT DEFINED XGD_QT_MODULES)
     set(XGD_QT_MODULES "Core;Gui;Qml;OpenGL;Widgets;Test;Core5Compat;Concurrent" CACHE STRING "")
 endif ()
 if (NOT DEFINED XGD_OPTIONAL_QT_MODULES)
-    set(XGD_OPTIONAL_QT_MODULES "Multimedia;MultimediaWidgets;3DCore;3DExtras" CACHE STRING "")
+    set(XGD_OPTIONAL_QT_MODULES "3DCore;3DExtras" CACHE STRING "")
 endif ()
 
 # directory layout
 if (NOT XGD_BUILD_WITH_GRADLE) # gradle relies on directory layout to copy libraries
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/archive)
 endif ()
 
 # find system packages

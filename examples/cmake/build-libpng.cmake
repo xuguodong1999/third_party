@@ -1,10 +1,17 @@
 # libpng
 set(INC_DIR ${XGD_THIRD_PARTY_DIR}/libpng-src/libpng)
 set(SRC_DIR ${INC_DIR})
+set(PNG_CONF_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/png/include)
+
+configure_file(
+        ${SRC_DIR}/scripts/pnglibconf.h.prebuilt
+        ${PNG_CONF_DIR}/pnglibconf.h
+        COPYONLY
+)
 xgd_add_library(
         png
         SRC_DIRS ${SRC_DIR}
-        INCLUDE_DIRS ${INC_DIR}
+        INCLUDE_DIRS ${INC_DIR} ${PNG_CONF_DIR}
         EXCLUDE_SRC_FILES
         ${SRC_DIR}/example.c
         ${SRC_DIR}/pngtest.c
@@ -51,11 +58,4 @@ endif ()
 foreach (SRC_FILE ${LIBPNG_ARM_SOURCES} ${LIBPNG_INTEL_SOURCES} ${LIBPNG_MIPS_SOURCES} ${LIBPNG_POWERPC_SOURCES})
     target_sources(png PRIVATE ${SRC_DIR}/${SRC_FILE})
 endforeach ()
-set(PNG_CONF_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/png/include)
-configure_file(
-        ${SRC_DIR}/scripts/pnglibconf.h.prebuilt
-        ${PNG_CONF_DIR}/pnglibconf.h
-        COPYONLY
-)
-target_include_directories(png PUBLIC ${PNG_CONF_DIR})
-xgd_link_libraries(png PUBLIC zlib)
+xgd_link_libraries(png PRIVATE zlib)

@@ -57,6 +57,7 @@ xgd_generate_export_header(indigo-core "indigo_core" ".h")
 
 xgd_add_library(
         bingo-nosql
+        STATIC
         SRC_DIRS
         ${API_LIB_DIR}/c/bingo-nosql/src
         ${API_LIB_DIR}/c/bingo-nosql/src/mmf
@@ -72,6 +73,7 @@ xgd_link_libraries(bingo-nosql PUBLIC indigo PRIVATE indigo-core)
 
 xgd_add_library(
         indigo
+        STATIC
         SRC_DIRS
         ${API_LIB_DIR}/c/indigo/src
         INCLUDE_DIRS
@@ -90,6 +92,7 @@ xgd_link_libraries(indigo PRIVATE indigo-core tinyxml2)
 
 xgd_add_library(
         indigo-inchi
+        STATIC
         SRC_DIRS
         ${API_LIB_DIR}/c/indigo-inchi/src
         INCLUDE_DIRS
@@ -104,6 +107,7 @@ xgd_link_libraries(indigo-inchi PRIVATE indigo indigo-core inchi)
 
 xgd_add_library(
         indigo-renderer
+        STATIC
         SRC_DIRS
         ${API_LIB_DIR}/c/indigo-renderer/src
         INCLUDE_DIRS
@@ -125,4 +129,10 @@ xgd_add_library(
         ${API_LIB_DIR}/cpp/src
 )
 xgd_link_libraries(indigo-cpp PUBLIC indigo indigo-inchi indigo-renderer bingo-nosql)
-
+xgd_disable_warnings(indigo-core)
+xgd_disable_warnings(indigo-render2d)
+xgd_disable_warnings(indigo)
+xgd_disable_warnings(indigo-inchi)
+xgd_disable_warnings(indigo-renderer)
+xgd_disable_warnings(indigo-cpp)
+xgd_disable_warnings(bingo-nosql)
