@@ -68,10 +68,9 @@ function(xgd_build_boost_header)
     add_library(boost_asio INTERFACE)
     xgd_link_libraries(boost_asio INTERFACE boost_header ssl boost_thread)
     # xgd_add_to_boost_all(boost_asio)
-
-    target_compile_definitions(boost_asio INTERFACE _WIN32_WINNT=0x0601)
-    if (EMSCRIPTEN)
-        target_compile_definitions(boost_asio INTERFACE BOOST_HAS_PTHREADS)
+    if (WIN32)
+        xgd_link_libraries(boost_asio INTERFACE ws2_32 wsock32)
+        target_compile_definitions(boost_asio INTERFACE _WIN32_WINNT=0x0601)
     endif ()
 endfunction()
 
