@@ -454,7 +454,8 @@ function(xgd_target_global_options TARGET)
                 -fexceptions
                 -frtti
                 -sALLOW_BLOCKING_ON_MAIN_THREAD=1
-                -sASSERTIONS=1
+                -sASSERTIONS=0
+                -sDEMANGLE_SUPPORT=1
                 -sASYNCIFY
                 -sPTHREAD_POOL_SIZE_STRICT=0
                 -sSAFE_HEAP=1
@@ -543,6 +544,7 @@ function(xgd_target_global_options TARGET)
             CUDA_STANDARD 17    # CUDA C++17
             CUDA_STANDARD_REQUIRED ON
             # Export only public symbols
+            C_VISIBILITY_PRESET hidden
             CXX_VISIBILITY_PRESET hidden
             VISIBILITY_INLINES_HIDDEN ON
             POSITION_INDEPENDENT_CODE ON

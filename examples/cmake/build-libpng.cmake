@@ -1,21 +1,22 @@
 # libpng
 set(INC_DIR ${XGD_THIRD_PARTY_DIR}/libpng-src/libpng)
 set(SRC_DIR ${INC_DIR})
-set(PNG_CONF_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/png/include)
+set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/png/include)
 
 configure_file(
         ${SRC_DIR}/scripts/pnglibconf.h.prebuilt
-        ${PNG_CONF_DIR}/pnglibconf.h
+        ${GEN_DIR}/pnglibconf.h
         COPYONLY
 )
 xgd_add_library(
         png
         SRC_DIRS ${SRC_DIR}
-        INCLUDE_DIRS ${INC_DIR} ${PNG_CONF_DIR}
+        INCLUDE_DIRS ${INC_DIR} ${GEN_DIR}
         EXCLUDE_SRC_FILES
         ${SRC_DIR}/example.c
         ${SRC_DIR}/pngtest.c
 )
+xgd_generate_export_header(png "libpng" ".h")
 if (WIN32 AND BUILD_SHARED_LIBS)
     target_compile_definitions(png PRIVATE PNG_BUILD_DLL PUBLIC PNG_USE_DLL)
 endif ()

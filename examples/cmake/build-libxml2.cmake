@@ -3,6 +3,7 @@
 set(ROOT_DIR ${XGD_THIRD_PARTY_DIR}/libxml2-src/libxml2)
 set(INC_DIR ${ROOT_DIR}/include)
 set(SRC_DIR ${ROOT_DIR})
+set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/xml2/include)
 
 set(_XML_SRC_FILES buf.c c14n.c catalog.c chvalid.c debugXML.c dict.c encoding.c entities.c error.c
         globals.c hash.c HTMLparser.c HTMLtree.c legacy.c list.c nanoftp.c nanohttp.c parser.c
@@ -16,8 +17,9 @@ endforeach ()
 xgd_add_library(
         xml2
         SRC_FILES ${SRC_FILES}
-        INCLUDE_DIRS ${INC_DIR}
+        INCLUDE_DIRS ${INC_DIR} ${GEN_DIR}
 )
+xgd_generate_export_header(xml2 "xml2" ".h")
 xgd_link_libraries(xml2 PRIVATE zlib)
 xgd_link_threads(xml2)
 target_compile_definitions(xml2 PRIVATE _REENTRANT)

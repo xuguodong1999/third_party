@@ -22,9 +22,11 @@ xgd_add_library(
         ${OB_SRC_DIR}/dlhandler_unix.cpp
         ${OB_SRC_DIR}/dlhandler_win32.cpp
         ${OB_SRC_DIR}/snprintf.c
-        ${OB_SRC_DIR}/formats/png2format.cpp
         ${OB_SRC_DIR}/formats/xtcformat.cpp
         ${OB_SRC_DIR}/formats/exampleformat.cpp
+        ${OB_SRC_DIR}/formats/ArrayList.c
+        ${OB_SRC_DIR}/memcpy.c
+        ${OB_SRC_DIR}/strncasecmp.c
         INCLUDE_DIRS ${OB_INC_DIR}
 )
 

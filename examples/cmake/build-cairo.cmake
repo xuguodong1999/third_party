@@ -188,6 +188,6 @@ if (APPLE)
 elseif (WIN32)
     target_link_libraries(cairo PRIVATE msimg32 gdi32)
 endif ()
-
+xgd_link_threads(cairo)
 xgd_link_libraries(cairo PRIVATE png freetype pixman zlib)
 xgd_disable_warnings(cairo)
