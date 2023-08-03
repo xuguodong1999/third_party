@@ -851,6 +851,7 @@ function(xgd_add_executable TARGET)
     elseif (EMSCRIPTEN) # web environment
         if (XGD_WASM_NODE)
             add_executable(${TARGET} ${${TARGET}_SOURCES})
+            target_link_options(${TARGET} PRIVATE -sNODERAWFS=1)
         elseif (param_BUNDLE_QT_GUI)
             qt_add_executable(${TARGET} ${${TARGET}_SOURCES})
             set_target_properties(

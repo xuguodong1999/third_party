@@ -9,12 +9,17 @@ include(CMakeParseArguments)
 # build static openssl and never link to dl
 set(HAVE_DLFCN_H OFF)
 set(DSO_DLFCN OFF)
-set(DSO_NONE ON)
-
-set(SIXTY_FOUR_BIT_LONG ON)
 
 if (MSVC OR (WIN32 AND MINGW AND NOT CYGWIN))
     set(OPENSSL_EXPORT_VAR_AS_FUNCTION 1)
+endif ()
+
+if (WIN32)
+    set(SIXTY_FOUR_BIT ON)
+    set(DSO_WIN32 ON)
+else ()
+    set(SIXTY_FOUR_BIT_LONG ON)
+    set(DSO_NONE ON)
 endif ()
 
 
@@ -301,7 +306,7 @@ xgd_disable_warnings(ssl)
 #    endif ()
 add_dependencies(ssl crypto)
 target_link_libraries(ssl PRIVATE crypto)
-set(OPENSSL_COMPILE_DEFINITIONS OPENSSL_NO_ASM OPENSSL_NO_STATIC_ENGINE)
+set(OPENSSL_COMPILE_DEFINITIONS OPENSSL_NO_ASM OPENSSL_NO_DYNAMIC_ENGINE)
 if (WIN32 AND NOT CYGWIN)
     list(APPEND OPENSSL_COMPILE_DEFINITIONS OPENSSL_SYSNAME_WIN32 WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS)
     #        if (BUILD_SHARED_LIBS)
