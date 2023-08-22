@@ -1845,6 +1845,18 @@ diff --git a/ncnn-src/ncnn/cmake/ncnn_add_layer.cmake b/ncnn-src/ncnn/cmake/ncnn
  
      if(WITH_LAYER_${name} AND EXISTS ${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE})
          set_source_files_properties(${NCNN_${NCNN_TARGET_ARCH_OPT}_SOURCE} PROPERTIES COMPILE_FLAGS ${NCNN_TARGET_ARCH_OPT_CFLAGS})
+@@ -80,9 +80,9 @@ macro(ncnn_add_layer class)
+ 
+     # WITH_LAYER_xxx option
+     if(${ARGC} EQUAL 2)
+-        option(WITH_LAYER_${name} "build with layer ${name}" ${ARGV1})
++        set(WITH_LAYER_${name} ${ARGV1})
+     else()
+-        option(WITH_LAYER_${name} "build with layer ${name}" ON)
++        set(WITH_LAYER_${name} ON)
+     endif()
+ 
+     if(NCNN_CMAKE_VERBOSE)
 @@ -90,17 +90,17 @@
      endif()
  
