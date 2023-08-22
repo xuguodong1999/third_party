@@ -80,9 +80,9 @@ macro(ncnn_add_layer class)
 
     # WITH_LAYER_xxx option
     if(${ARGC} EQUAL 2)
-        option(WITH_LAYER_${name} "build with layer ${name}" ${ARGV1})
+        set(WITH_LAYER_${name} ${ARGV1})
     else()
-        option(WITH_LAYER_${name} "build with layer ${name}" ON)
+        set(WITH_LAYER_${name} ON)
     endif()
 
     if(NCNN_CMAKE_VERBOSE)
