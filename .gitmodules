@@ -109,3 +109,9 @@
 [submodule "zstd-src/zstd"]
 	path = zstd-src/zstd
 	url = https://github.com/facebook/zstd.git
+[submodule "fluentui-src/fluentui"]
+	path = fluentui-src/fluentui
+	url = https://github.com/zhuzichu520/FluentUI.git
+[submodule "zxing-src/zxing"]
+	path = zxing-src/zxing
+	url = https://github.com/zxing-cpp/zxing-cpp.git
