@@ -15,7 +15,7 @@ option(XGD_OPT_ARCH_MIPS "" ON)
 option(XGD_OPT_ARCH_POWER "" ON)
 option(XGD_OPT_ARCH_32 "" ON)
 option(XGD_OPT_ARCH_64 "" ON)
-option(XGD_OPT_RC "" ON)
+option(XGD_OPT_RC "" OFF)
 
 option(XGD_FLAG_NEON "" ON)
 option(XGD_FLAG_FMA "" ON)
@@ -45,10 +45,12 @@ if (NOT DEFINED XGD_WASM_ENV)
     set(XGD_WASM_ENV "" CACHE STRING "param passed to -sENVIRONMENT")
 endif ()
 if (NOT DEFINED XGD_QT_MODULES)
-    set(XGD_QT_MODULES "Core;Gui;Qml;OpenGL;Widgets;Test;Core5Compat;Concurrent" CACHE STRING "")
+    set(XGD_QT_MODULES
+            "Core;Gui;Qml;Quick;QuickControls2;OpenGL;Widgets;Test;Core5Compat;Concurrent"
+            CACHE STRING "")
 endif ()
 if (NOT DEFINED XGD_OPTIONAL_QT_MODULES)
-    set(XGD_OPTIONAL_QT_MODULES "3DCore;3DExtras" CACHE STRING "")
+    set(XGD_OPTIONAL_QT_MODULES "3DCore;3DExtras;Multimedia;Quick3D;Quick3DPhysics" CACHE STRING "")
 endif ()
 
 # directory layout
