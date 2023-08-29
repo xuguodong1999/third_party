@@ -76,7 +76,7 @@
     #include <thread>
 #endif
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(HAVE_OPENMP)
     #define HAVE_OPENMP
 #endif
 
