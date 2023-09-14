@@ -24,10 +24,15 @@
 #ifndef LIBBF_H
 #define LIBBF_H
 
+#include "quickjs-defs.h"
 #include <stddef.h>
 #include <stdint.h>
 
-#if INTPTR_MAX >= INT64_MAX
+#if _MSC_VER
+#undef __AVX2__
+#endif
+
+#if INTPTR_MAX >= INT64_MAX && __AVX2__
 #define LIMB_LOG2_BITS 6
 #else
 #define LIMB_LOG2_BITS 5

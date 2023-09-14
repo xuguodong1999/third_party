@@ -25,6 +25,7 @@
 #ifndef QUICKJS_H
 #define QUICKJS_H
 
+#include "quickjs-defs.h"
 #include <stdio.h>
 #include <stdint.h>
 
@@ -32,17 +33,10 @@
 extern "C" {
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
-#define js_likely(x)          __builtin_expect(!!(x), 1)
-#define js_unlikely(x)        __builtin_expect(!!(x), 0)
-#define js_force_inline       inline __attribute__((always_inline))
-#define __js_printf_like(f, a)   __attribute__((format(printf, f, a)))
-#else
-#define js_likely(x)     (x)
-#define js_unlikely(x)   (x)
-#define js_force_inline  inline
-#define __js_printf_like(a, b)
-#endif
+#define js_likely(x)           PLATFORM_LIKELY(x)
+#define js_unlikely(x)         PLATFORM_UNLIKELY(x)
+#define js_force_inline        PLATFORM_FORCE_INLINE
+#define __js_printf_like(f, a) PLATFORM_PRINTF_LIKE(f, a)
 
 #define JS_BOOL int
 
@@ -215,8 +209,14 @@ typedef struct JSValue {
 #define JS_VALUE_GET_FLOAT64(v) ((v).u.float64)
 #define JS_VALUE_GET_PTR(v) ((v).u.ptr)
 
+// error C4576: a parenthesized type followed by an initializer list is a non-standard explicit type conversion syntax
+#if _MSC_VER && __cplusplus
+#define JS_MKVAL(tag, val) JSValue{ JSValueUnion{ .int32 = val }, tag }
+#define JS_MKPTR(tag, p) JSValue{ JSValueUnion{ .ptr = p }, tag }
+#else
 #define JS_MKVAL(tag, val) (JSValue){ (JSValueUnion){ .int32 = val }, tag }
 #define JS_MKPTR(tag, p) (JSValue){ (JSValueUnion){ .ptr = p }, tag }
+#endif
 
 #define JS_TAG_IS_FLOAT64(tag) ((unsigned)(tag) == JS_TAG_FLOAT64)
 
@@ -497,6 +497,7 @@ typedef struct JSClassDef {
 } JSClassDef;
 
 JSClassID JS_NewClassID(JSClassID *pclass_id);
+JSClassID JS_GetClassID(JSValueConst v);
 int JS_NewClass(JSRuntime *rt, JSClassID class_id, const JSClassDef *class_def);
 int JS_IsRegisteredClass(JSRuntime *rt, JSClassID class_id);
 
@@ -666,7 +667,7 @@ static inline JSValue JS_DupValue(JSContext *ctx, JSValueConst v)
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
         p->ref_count++;
     }
-    return (JSValue)v;
+    return v;
 }
 
 static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
@@ -675,7 +676,7 @@ static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
         p->ref_count++;
     }
-    return (JSValue)v;
+    return v;
 }
 
 int JS_ToBool(JSContext *ctx, JSValueConst val); /* return -1 for JS_EXCEPTION */
@@ -838,6 +839,7 @@ typedef void JSHostPromiseRejectionTracker(JSContext *ctx, JSValueConst promise,
                                            JSValueConst reason,
                                            JS_BOOL is_handled, void *opaque);
 void JS_SetHostPromiseRejectionTracker(JSRuntime *rt, JSHostPromiseRejectionTracker *cb, void *opaque);
+void JS_SetHostUnhandledPromiseRejectionTracker(JSRuntime *rt, JSHostPromiseRejectionTracker *cb, void *opaque);
 
 /* return != 0 if the JS code needs to be interrupted */
 typedef int JSInterruptHandler(JSRuntime *rt, void *opaque);
