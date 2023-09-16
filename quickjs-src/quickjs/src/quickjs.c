@@ -77,7 +77,7 @@
 #define CONFIG_ATOMICS
 #endif
 
-#if !defined(EMSCRIPTEN)
+#if !defined(EMSCRIPTEN) && !_MSC_VER
 /* enable stack limitation */
 #define CONFIG_STACK_CHECK
 #endif
