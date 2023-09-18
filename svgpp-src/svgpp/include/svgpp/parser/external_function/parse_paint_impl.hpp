@@ -51,13 +51,13 @@ bool parse_paint(
       | qi::lit("currentColor")   [phx::ref(out_main_option) = paint_option_currentColor]
       | qi::lit("inherit")        [phx::ref(out_main_option) = paint_option_inherit]
       | color_optional_icc_color(boost::phoenix::ref(icc_color_factory))  
-          [phx::ref(out_color) = qi::_1, phx::ref(out_main_option) = paint_option_color]
+          [(phx::ref(out_color) = qi::_1, phx::ref(out_main_option) = paint_option_color)]
       | ( funciri_rule [phx::ref(out_iri) = qi::_1]
           >> - ( +space
                   >> ( qi::lit("none")          [phx::ref(out_funciri_suboption) = paint_option_none]
                       | qi::lit("currentColor")  [phx::ref(out_funciri_suboption) = paint_option_currentColor]
                       | color_optional_icc_color(boost::phoenix::ref(icc_color_factory)) 
-                        [phx::ref(out_color) = qi::_1, phx::ref(out_funciri_suboption) = paint_option_color]
+                        [(phx::ref(out_color) = qi::_1, phx::ref(out_funciri_suboption) = paint_option_color)]
                       )
                 )
         ) [phx::ref(out_main_option) = paint_option_funciri]

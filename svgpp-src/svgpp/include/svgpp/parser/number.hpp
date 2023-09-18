@@ -15,7 +15,7 @@
 #include <svgpp/parser/detail/value_parser_parameters.hpp>
 #include <svgpp/parser/value_parser_fwd.hpp>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
+#include <boost/phoenix.hpp>
 
 namespace svgpp { 
 
@@ -105,7 +105,7 @@ struct value_parser<tag::type::number_optional_number, SVGPP_TEMPLATE_ARGS_PASS>
           number [phx::ref(value1) = _1] 
           >> -(
               comma_wsp 
-              >> number [phx::ref(value2) = _1, phx::ref(two_values) = true]
+              >> number [(phx::ref(value2) = _1, phx::ref(two_values) = true)]
               )
       ) && it == end)
     {
