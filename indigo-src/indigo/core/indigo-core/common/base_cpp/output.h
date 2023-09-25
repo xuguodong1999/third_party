@@ -22,6 +22,7 @@
 #include "base_cpp/array.h"
 #include "base_cpp/exception.h"
 #include "base_cpp/io_base.h"
+#include <cstdint>
 
 namespace indigo
 {
@@ -45,7 +46,7 @@ namespace indigo
         void writeChar(char value);
         void writeBinaryInt(int value);
         void writeBinaryWord(word value);
-        void writeBinaryUInt16(uint16_t value);
+        void writeBinaryUInt16(std::uint16_t value);
 
         void writeBinaryFloat(float value);
         void writePackedShort(short value);

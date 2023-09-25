@@ -61,7 +61,7 @@ void Output::writeBinaryWord(word value)
     write(&value, sizeof(word));
 }
 
-void Output::writeBinaryUInt16(uint16_t value)
+void Output::writeBinaryUInt16(std::uint16_t value)
 {
     // value = htons(value);
     write(&value, sizeof(value));

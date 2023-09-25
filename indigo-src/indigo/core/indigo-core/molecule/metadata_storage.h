@@ -19,13 +19,14 @@
 #define __metadata_storage__
 
 #include "base_cpp/ptr_array.h"
+#include <cstdint>
 
 namespace indigo
 {
     class MetaObject
     {
     public:
-        explicit MetaObject(uint32_t class_id) : _class_id(class_id)
+        explicit MetaObject(std::uint32_t class_id) : _class_id(class_id)
         {
         }
         uint32_t _class_id;
