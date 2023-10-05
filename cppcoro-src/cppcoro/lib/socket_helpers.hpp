@@ -13,6 +13,9 @@ struct sockaddr;
 struct sockaddr_storage;
 #endif
 
+# include <cstring>
+# include <memory>
+
 namespace cppcoro
 {
 	namespace net
