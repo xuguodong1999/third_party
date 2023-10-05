@@ -9,7 +9,7 @@
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif
-# include <Windows.h>
+# include <windows.h>
 
 cppcoro::write_only_file cppcoro::write_only_file::open(
 	io_service& ioService,
