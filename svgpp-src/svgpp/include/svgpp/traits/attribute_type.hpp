@@ -432,6 +432,9 @@ template<class Element> struct attribute_type<Element, tag::attribute::baseProfi
 template<class Element> struct attribute_type<Element, tag::attribute::class_                > { typedef tag::type::string type; }; // TODO: parse list of strings
 template<class Element> struct attribute_type<Element, tag::attribute::contentScriptType     > { typedef tag::type::string type; };
 template<class Element> struct attribute_type<Element, tag::attribute::contentStyleType      > { typedef tag::type::string type; };
+template<class Element> struct attribute_type<Element, tag::attribute::data_c                > { typedef tag::type::string type; };
+template<class Element> struct attribute_type<Element, tag::attribute::data_mjx_texclass     > { typedef tag::type::string type; };
+template<class Element> struct attribute_type<Element, tag::attribute::data_mml_node         > { typedef tag::type::string type; };
 template<class Element> struct attribute_type<Element, tag::attribute::id                    > { typedef tag::type::string type; };
 template<class Element> struct attribute_type<Element, tag::attribute::attributeName         > { typedef tag::type::string type; };
 template<class Element> struct attribute_type<Element, tag::attribute::font_family           > { typedef tag::type::string type; };
