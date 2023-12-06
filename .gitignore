@@ -1,5 +1,2 @@
-.idea/
 .vscode/
-cmake-build-*/
 .DS_Store
-*.txt.user

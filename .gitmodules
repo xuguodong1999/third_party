@@ -115,3 +115,21 @@
 [submodule "zxing-src/zxing"]
 	path = zxing-src/zxing
 	url = https://github.com/zxing-cpp/zxing-cpp.git
+[submodule "agg-src/agg"]
+	path = agg-src/agg
+	url = https://github.com/ghaerr/agg-2.6.git
+[submodule "cppcoro-src/cppcoro"]
+	path = cppcoro-src/cppcoro
+	url = https://github.com/lewissbaker/cppcoro.git
+[submodule "nanosvg-src/nanosvg"]
+	path = nanosvg-src/nanosvg
+	url = https://github.com/memononen/nanosvg.git
+[submodule "quickjs-src/quickjs"]
+	path = quickjs-src/quickjs
+	url = https://github.com/bellard/quickjs.git
+[submodule "skia-src/skia"]
+	path = skia-src/skia
+	url = https://github.com/google/skia.git
+[submodule "svgpp-src/svgpp"]
+	path = svgpp-src/svgpp
+	url = https://github.com/svgpp/svgpp.git
