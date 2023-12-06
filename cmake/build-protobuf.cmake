@@ -22,6 +22,7 @@ xgd_add_library(
         EXCLUDE_REGEXES
         "^(.*)test(.*)\\.c"
         "(.*)lazy_field_heavy.cc"
+        "(.*)map_probe_benchmark.cc"
 )
 if (BUILD_SHARED_LIBS)
     target_compile_definitions(

@@ -126,11 +126,11 @@ ncnn_add_layer(SPP OFF)
 set(_NCNN_LAYER_NAMES
         AbsVal
         BatchNorm Bias BinaryOp BNLL
-        Cast Clip Concat Convolution Convolution1D Convolution3D ConvolutionDepthWise
+        Cast CELU Clip Concat Convolution Convolution1D Convolution3D ConvolutionDepthWise
         ConvolutionDepthWise1D ConvolutionDepthWise3D CopyTo Crop CumulativeSum
-        Deconvolution Deconvolution1D Deconvolution3D DeconvolutionDepthWise
+        Deconvolution Deconvolution1D Deconvolution3D DeconvolutionDepthWise Diag
         DeconvolutionDepthWise1D DeconvolutionDepthWise3D DeepCopy DeformableConv2D Dequantize DetectionOutput Dropout
-        Einsum Eltwise ELU Embed Exp ExpandDims
+        Einsum Eltwise ELU Embed Erf Exp ExpandDims
         Flatten Fold
         GELU Gemm GLU GridSample GroupNorm GRU
         HardSigmoid HardSwish
@@ -141,7 +141,7 @@ set(_NCNN_LAYER_NAMES
         Packing Padding Permute PixelShuffle Pooling Pooling1D Pooling3D Power PReLU PriorBox Proposal PSROIPooling
         Quantize
         Reduction ReLU Reorg Requantize Reshape RNN ROIAlign ROIPooling
-        Scale SELU ShuffleChannel Sigmoid Slice Softmax Softplus Split Squeeze StatisticsPooling Swish
+        Scale SELU Shrink ShuffleChannel Sigmoid Slice Softmax Softplus Split Squeeze StatisticsPooling Swish
         TanH Threshold Tile
         UnaryOp Unfold
         YoloDetectionOutput Yolov3DetectionOutput)

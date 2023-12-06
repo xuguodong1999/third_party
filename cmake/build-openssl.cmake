@@ -23,7 +23,11 @@ else ()
 endif ()
 
 
-string(TIMESTAMP BUILDINF_DATE "%Y-%m-%d %H:%M:%S UTC" UTC)
+if (XGD_OPT_RC)
+    string(TIMESTAMP BUILDINF_DATE "%Y-%m-%d %H:%M:%S UTC" UTC)
+else ()
+    string(TIMESTAMP BUILDINF_DATE "%Y-%m-%d UTC" UTC)
+endif ()
 configure_file(${ROOT_DIR}/crypto/buildinf.h.cmake
         ${GEN_DIR}/crypto/buildinf.h)
 configure_file(${ROOT_DIR}/crypto/bn_conf.h.cmake
@@ -284,7 +288,7 @@ set(LIBSRC
         statem/extensions.c statem/extensions_clnt.c statem/extensions_cust.c
         statem/extensions_srvr.c statem/statem.c statem/statem_clnt.c statem/statem_dtls.c
         statem/statem_lib.c statem/statem_srvr.c
-        )
+)
 set(SSL_SRC_FILES "")
 foreach (LIBSRC_FILE ${LIBSRC})
     list(APPEND SSL_SRC_FILES ${ROOT_DIR}/ssl/${LIBSRC_FILE})

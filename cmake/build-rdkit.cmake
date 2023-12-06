@@ -175,6 +175,7 @@ set(RDKIT_GRAPH_MOL_SUBMODULES
         Fingerprints
         FMCS
         FragCatalog
+        GeneralizedSubstruct
         GenericGroups
         MMPA
         MolCatalog
@@ -375,10 +376,10 @@ xgd_link_rdkit_internal(rdkit_ChemReactions PUBLIC FilterCatalog Descriptors Fin
 xgd_link_rdkit_internal(rdkit_ChemTransforms PUBLIC SubstructMatch SmilesParse GraphMol RDGeometryLib RDGeneral Depictor)
 xgd_link_rdkit_internal(rdkit_CIPLabeler PUBLIC GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_DataStructs PUBLIC RDGeneral)
-xgd_link_rdkit_internal(rdkit_Depictor PUBLIC SmilesParse SubstructMatch MolTransforms GraphMol RDGeometryLib RDGeneral)
+xgd_link_rdkit_internal(rdkit_Depictor PUBLIC SmilesParse SubstructMatch MolTransforms GraphMol MolAlign RDGeneral)
 xgd_link_rdkit_internal(rdkit_Deprotect PUBLIC ChemReactions GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_Descriptors PUBLIC PartialCharges Subgraphs MolTransforms SmilesParse SubstructMatch GraphMol RDGeometryLib RDGeneral)
-xgd_link_rdkit_internal(rdkit_DetermineBonds PUBLIC EHTLIB GraphMol RDGeneral)
+xgd_link_rdkit_internal(rdkit_DetermineBonds PUBLIC EHTLIB GraphMol FileParsers RDGeneral)
 xgd_link_rdkit_internal(rdkit_DistGeometry PUBLIC EigenSolvers ForceFieldHelpers ForceField RDGeometryLib RDGeneral)
 xgd_link_rdkit_internal(rdkit_DistGeomHelpers PUBLIC DistGeometry Alignment ForceFieldHelpers SubstructMatch ForceField GraphMol RDGeometryLib RDGeneral)
 xgd_link_rdkit_internal(rdkit_EHTLIB PUBLIC GraphMol RDGeometryLib)
@@ -391,6 +392,7 @@ xgd_link_rdkit_internal(rdkit_FMCS PUBLIC SmilesParse SubstructMatch GraphMol RD
 xgd_link_rdkit_internal(rdkit_ForceField PUBLIC Trajectory RDGeometryLib RDGeneral)
 xgd_link_rdkit_internal(rdkit_ForceFieldHelpers PUBLIC SmilesParse SubstructMatch ForceField GraphMol RDGeometryLib RDGeneral)
 xgd_link_rdkit_internal(rdkit_FragCatalog PUBLIC Subgraphs SubstructMatch SmilesParse Catalogs GraphMol DataStructs RDGeneral)
+xgd_link_rdkit_internal(rdkit_GeneralizedSubstruct PUBLIC MolEnumerator TautomerQuery SubstructMatch SmilesParse GraphMol)
 xgd_link_rdkit_internal(rdkit_FreeSASALib PUBLIC GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_GenericGroups PUBLIC GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_GraphMol PUBLIC RDGeometryLib DataStructs RDGeneral)
@@ -410,14 +412,14 @@ xgd_link_rdkit_internal(rdkit_PartialCharges PUBLIC GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_RDGeometryLib PUBLIC DataStructs RDGeneral)
 xgd_link_rdkit_internal(rdkit_RDInchiLib PUBLIC SubstructMatch SmilesParse GraphMol RDGeometryLib RDGeneral)
 xgd_link_rdkit_internal(rdkit_ReducedGraphs PUBLIC SubstructMatch SmilesParse GraphMol RDGeneral)
-xgd_link_rdkit_internal(rdkit_RGroupDecomposition PUBLIC FMCS Fingerprints ga ChemTransforms SubstructMatch SmilesParse GraphMol RDGeometryLib RDGeneral)
+xgd_link_rdkit_internal(rdkit_RGroupDecomposition PUBLIC FMCS Fingerprints ga ChemTransforms SubstructMatch SmilesParse GraphMol MolEnumerator TautomerQuery RDGeneral)
 xgd_link_rdkit_internal(rdkit_ScaffoldNetwork PUBLIC MolStandardize ChemReactions ChemTransforms SmilesParse GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_ShapeHelpers PUBLIC MolTransforms GraphMol RDGeometryLib DataStructs)
 xgd_link_rdkit_internal(rdkit_SimDivPickers PUBLIC GraphMol RDGeneral hc)
 xgd_link_rdkit_internal(rdkit_SLNParse PUBLIC GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_SmilesParse PUBLIC GraphMol RDGeometryLib RDGeneral)
 xgd_link_rdkit_internal(rdkit_Subgraphs PUBLIC GraphMol RDGeneral)
-xgd_link_rdkit_internal(rdkit_SubstructLibrary PUBLIC TautomerQuery Fingerprints SubstructMatch SmilesParse GraphMol DataStructs RDGeneral)
+xgd_link_rdkit_internal(rdkit_SubstructLibrary PUBLIC GeneralizedSubstruct TautomerQuery Fingerprints SubstructMatch SmilesParse GraphMol DataStructs RDGeneral)
 xgd_link_rdkit_internal(rdkit_SubstructMatch PUBLIC GenericGroups GraphMol RDGeneral)
 xgd_link_rdkit_internal(rdkit_TautomerQuery PUBLIC MolStandardize Fingerprints SubstructMatch GraphMol RDGeneral)
 

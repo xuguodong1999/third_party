@@ -1,8 +1,8 @@
 function(xgd_build_third_party)
     set(XGD_THIRD_PARTY_LIBS
-            abseil ade avalontoolkit
+            abseil ade agg avalontoolkit
             benchmark boost
-            cairo coordgen cpufeatures cutlass
+            cairo coordgen cppcoro cpufeatures cutlass
             eigen
             # fluentui
             freesasa freetype
@@ -10,11 +10,13 @@ function(xgd_build_third_party)
             inchi indigo
             lbfgs libpng libxml2
             maeparser
-            ncnn nodeeditor
+            nanosvg ncnn nodeeditor
             openbabel opencv openssl
             pixman protobuf
+            quickjs
             rapidjson rdkit ringdecomposerlib rxcpp
-            spdlog
+            skia
+            spdlog svgpp
             taskflow tinyxml2
             yaehmop yoga
             zlib zstd zxing)

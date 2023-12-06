@@ -288,6 +288,14 @@ if (NOT OPENCV_DATA_CONFIG_STR STREQUAL "${__content}")
     file(WRITE "${OPENCV_DATA_CONFIG_FILE}" "${OPENCV_DATA_CONFIG_STR}")
 endif ()
 
+function(xgd_opencv_try_link_omp TARGET)
+    xgd_link_omp(${TARGET})
+    get_target_property(XGD_OMP_LINKED ${TARGET} XGD_OMP_LINKED)
+    if (XGD_OMP_LINKED)
+        target_compile_definitions(${TARGET} PRIVATE "HAVE_OPENMP=1")
+    endif ()
+endfunction()
+
 function(xgd_internal_build_opencv OCV_COMPONENT)
     set(OCV_COMPONENT_DIR ${OCV_MODULE_DIR}/${OCV_COMPONENT})
     if (NOT EXISTS ${OCV_COMPONENT_DIR})
@@ -355,19 +363,9 @@ function(xgd_internal_build_opencv OCV_COMPONENT)
             EXCLUDE_REGEXES
             ${IGNORE_FILE_REGEXES}
     )
-    set(CXX20_NO_WARNING_FLAGS -Wno-deprecated-enum-enum-conversion)
-    list(APPEND CXX20_NO_WARNING_FLAGS -Wno-deprecated-enum-float-conversion)
-    set(CXX20_NO_WARNING_FLAGS_CLANG -Wno-deprecated-anon-enum-enum-conversion)
-    target_compile_options(
-            opencv_${OCV_COMPONENT} PUBLIC
-            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:${CXX20_NO_WARNING_FLAGS}>
-            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:${CXX20_NO_WARNING_FLAGS_CLANG}>
-    )
-    if (MSVC)
-        target_compile_options(opencv_${OCV_COMPONENT} PUBLIC /wd5055)
-    endif ()
+    xgd_disable_weak_warnings(opencv_${OCV_COMPONENT})
     xgd_link_libraries(opencv_${OCV_COMPONENT} PRIVATE eigen)
-    xgd_link_omp(opencv_${OCV_COMPONENT})
+    # xgd_link_omp(opencv_${OCV_COMPONENT})
     if (EMSCRIPTEN)
         target_compile_definitions(opencv_${OCV_COMPONENT} PRIVATE CV_FORCE_SIMD128_CPP)
     endif ()
@@ -425,6 +423,7 @@ function(xgd_build_opencv_core)
     endif ()
 endfunction()
 xgd_build_opencv_core()
+xgd_opencv_try_link_omp(opencv_core)
 
 function(xgd_build_opencv_imgproc)
     set(OCV_COMPONENT imgproc)
@@ -670,6 +669,7 @@ function(xgd_build_opencv_video)
     )
 endfunction()
 xgd_build_opencv_video()
+xgd_opencv_try_link_omp(opencv_video)
 
 function(xgd_build_opencv_highgui)
     set(OCV_COMPONENT highgui)

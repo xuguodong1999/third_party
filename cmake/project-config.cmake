@@ -46,7 +46,7 @@ if (NOT DEFINED XGD_WASM_ENV)
 endif ()
 if (NOT DEFINED XGD_QT_MODULES)
     set(XGD_QT_MODULES
-            "Core;Gui;Qml;Quick;QuickControls2;OpenGL;Widgets;Test;Core5Compat;Concurrent"
+            "Core;Svg;Gui;Qml;Quick;QuickControls2;OpenGL;Widgets;Test;Core5Compat;Concurrent"
             CACHE STRING "")
 endif ()
 if (NOT DEFINED XGD_OPTIONAL_QT_MODULES)

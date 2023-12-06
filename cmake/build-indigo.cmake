@@ -81,6 +81,7 @@ xgd_add_library(
         ${GEN_DIR}
         PRIVATE_INCLUDE_DIRS
         ${CORE_LIB_DIR}/common
+        ${THIRD_LIB_DIR}/cppcodec
         ${THIRD_LIB_DIR}/object_threadsafe
 )
 configure_file(

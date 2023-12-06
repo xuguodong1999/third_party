@@ -5,7 +5,7 @@ set(CAIRO_COMPILE_DEFINITIONS "")
 set(CAIRO_BOILERPLATE_SRC_FILES
         boilerplate/cairo-boilerplate-test-surfaces.c
         boilerplate/check-link.c
-        )
+)
 set(CAIRO_SRC_FILES
         boilerplate/cairo-boilerplate.c boilerplate/cairo-boilerplate.c boilerplate/cairo-boilerplate-getopt.c boilerplate/cairo-boilerplate-system.c
         src/cairo-analysis-surface.c src/cairo-arc.c src/cairo-array.c src/cairo-atomic.c

@@ -152,6 +152,103 @@ function(xgd_build_boost_filesystem)
     endif ()
 endfunction()
 
+function(xgd_build_boost_locale)
+    set(BOOST_SRC_DIR ${XGD_THIRD_PARTY_DIR}/boost-src/boost/libs)
+
+    set(BOOST_LOCALE_SOURCES
+            encoding/codepage.cpp
+            shared/date_time.cpp
+            shared/format.cpp
+            shared/formatting.cpp
+            shared/generator.cpp
+            shared/iconv_codecvt.cpp
+            shared/ids.cpp
+            shared/localization_backend.cpp
+            shared/message.cpp
+            shared/mo_lambda.cpp
+            util/codecvt_converter.cpp
+            util/default_locale.cpp
+            util/encoding.cpp
+            util/info.cpp
+            util/locale_data.cpp
+            # BOOST_LOCALE_ENABLE_STD
+            util/gregorian.cpp
+            std/codecvt.cpp
+            std/collate.cpp
+            std/converter.cpp
+            std/numeric.cpp
+            std/std_backend.cpp)
+    if (UNIX AND NOT ANDROID)
+        set(BOOST_LOCALE_ENABLE_POSIX ON)
+    else ()
+        set(BOOST_LOCALE_ENABLE_POSIX OFF)
+    endif ()
+    set(BOOST_LOCALE_ENABLE_WINAPI ${WIN32})
+
+    find_package(Iconv QUIET)
+    set(BOOST_LOCALE_ENABLE_ICONV ${Iconv_FOUND})
+
+    # find_package(ICU COMPONENTS data i18n uc QUIET)
+    set(BOOST_LOCALE_ENABLE_ICU ${ICU_FOUND})
+    if (BOOST_LOCALE_ENABLE_ICU)
+        list(APPEND BOOST_LOCALE_SOURCES
+                icu/boundary.cpp
+                icu/codecvt.cpp
+                icu/collator.cpp
+                icu/conversion.cpp
+                icu/date_time.cpp
+                icu/formatter.cpp
+                icu/formatters_cache.cpp
+                icu/icu_backend.cpp
+                icu/numeric.cpp
+                icu/time_zone.cpp)
+    endif ()
+    if (BOOST_LOCALE_ENABLE_WINAPI)
+        list(APPEND BOOST_LOCALE_SOURCES
+                win32/collate.cpp
+                win32/converter.cpp
+                win32/numeric.cpp
+                win32/win_backend.cpp)
+    endif ()
+    if (WIN32)
+        list(APPEND BOOST_LOCALE_SOURCES win32/lcid.cpp)
+    endif ()
+    if (BOOST_LOCALE_ENABLE_POSIX)
+        list(APPEND BOOST_LOCALE_SOURCES
+                posix/codecvt.cpp
+                posix/collate.cpp
+                posix/converter.cpp
+                posix/numeric.cpp
+                posix/posix_backend.cpp)
+    endif ()
+    set(_BOOST_LOCALE_SOURCES)
+    foreach (BOOST_LOCALE_SOURCE ${BOOST_LOCALE_SOURCES})
+        list(APPEND _BOOST_LOCALE_SOURCES boost/locale/${BOOST_LOCALE_SOURCE})
+    endforeach ()
+    xgd_internal_build_boost(locale SRC_FILES ${_BOOST_LOCALE_SOURCES})
+    if (NOT BOOST_LOCALE_ENABLE_POSIX)
+        target_compile_definitions(boost_locale PRIVATE BOOST_LOCALE_NO_POSIX_BACKEND=1)
+    endif ()
+    if (NOT BOOST_LOCALE_ENABLE_WINAPI)
+        target_compile_definitions(boost_locale PRIVATE BOOST_LOCALE_NO_WINAPI_BACKEND=1)
+    endif ()
+    if (BOOST_LOCALE_ENABLE_ICU)
+        target_compile_definitions(boost_locale PRIVATE BOOST_LOCALE_WITH_ICU=1)
+        target_link_libraries(boost_locale PRIVATE ICU::data ICU::i18n ICU::uc)
+    endif ()
+    if (BOOST_LOCALE_ENABLE_ICONV)
+        target_compile_definitions(boost_locale PRIVATE BOOST_LOCALE_WITH_ICONV=1)
+        target_link_libraries(boost_locale PRIVATE Iconv::Iconv)
+    endif ()
+    target_compile_definitions(boost_locale PRIVATE
+            BOOST_LOCALE_SOURCE _CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
+    if (BUILD_SHARED_LIBS)
+        target_compile_definitions(boost_locale PUBLIC BOOST_LOCALE_DYN_LINK)
+    else ()
+        target_compile_definitions(boost_locale PUBLIC BOOST_LOCALE_STATIC_LINK)
+    endif ()
+endfunction()
+
 function(xgd_build_boost_thread)
     if (WIN32 OR CYGWIN)
         set(BOOST_THREAD_BACKENDS win32/thread.cpp win32/thread_primitives.cpp win32/tss_dll.cpp win32/tss_pe.cpp)
@@ -169,7 +266,7 @@ function(xgd_build_boost_thread)
 endfunction()
 
 function(xgd_build_boost_stacktrace)
-    if (WIN32)
+    if (MSVC)
         set(BOOST_STACKTRACE_SRC windbg.cpp)
         set(BOOST_STACKTRACE_LIB ole32 dbgeng)
     elseif (EMSCRIPTEN)
@@ -220,6 +317,8 @@ xgd_internal_build_boost(exception STATIC)
 
 xgd_build_boost_filesystem()
 
+xgd_build_boost_locale()
+
 xgd_build_boost_gil()
 
 xgd_internal_build_boost(graph)
@@ -257,7 +356,12 @@ xgd_internal_build_boost(type_erasure)
 
 xgd_build_boost_stacktrace()
 
-xgd_internal_build_boost(url)
+xgd_internal_build_boost(url SRC_DIRS
+        grammar
+        grammar/detail
+        rfc
+        rfc/detail
+        detail)
 
 xgd_internal_build_boost(
         wave
@@ -271,7 +375,6 @@ xgd_internal_build_boost(
 # xgd_internal_build_boost(coroutine)
 # xgd_internal_build_boost(fiber)
 # xgd_internal_build_boost(graph_parallel)
-# xgd_internal_build_boost(locale)
 # xgd_internal_build_boost(log)
 # xgd_internal_build_boost(mpi)
 # xgd_internal_build_boost(python)
@@ -384,7 +487,7 @@ xgd_create_boost_deps(lambda INTERFACE bind config core detail iterator mpl prep
 xgd_create_boost_deps(lexical_cast INTERFACE array assert config container core integer numeric_conversion
         range static_assert throw_exception type_traits)
 xgd_create_boost_deps(local_function INTERFACE config mpl preprocessor scope_exit type_traits typeof utility)
-xgd_create_boost_deps(locale INTERFACE core predef thread assert config iterator)
+xgd_create_boost_deps(locale PRIVATE core predef thread PUBLIC assert config iterator)
 xgd_create_boost_deps(lockfree INTERFACE align array assert atomic config core integer iterator mpl parameter predef
         static_assert tuple type_traits utility)
 xgd_create_boost_deps(log INTERFACE atomic thread)
@@ -437,6 +540,7 @@ xgd_create_boost_deps(ptr_container INTERFACE array assert circular_buffer confi
 xgd_create_boost_deps(python INTERFACE graph integer property_map align bind config conversion core detail
         foreach function iterator lexical_cast mpl numeric_conversion preprocessor
         smart_ptr static_assert tuple type_traits utility)
+xgd_create_boost_deps(qvm)
 xgd_create_boost_deps(random PUBLIC array assert config core dynamic_bitset integer io range static_assert
         system throw_exception type_traits utility)
 xgd_create_boost_deps(range INTERFACE array assert concept_check config container_hash conversion core
@@ -487,6 +591,9 @@ xgd_create_boost_deps(url PUBLIC align assert config core mp11 optional
 xgd_create_boost_deps(utility INTERFACE config core io preprocessor static_assert throw_exception type_traits)
 xgd_create_boost_deps(uuid INTERFACE assert config container_hash core io move
         numeric_conversion predef random static_assert throw_exception tti type_traits winapi)
+if (WIN32)
+    target_link_libraries(boost_uuid INTERFACE bcrypt)
+endif ()
 xgd_create_boost_deps(variant INTERFACE assert bind config container_hash core detail integer move mpl
         preprocessor static_assert throw_exception type_index type_traits utility)
 xgd_create_boost_deps(variant2 INTERFACE assert config mp11)

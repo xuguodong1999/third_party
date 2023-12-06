@@ -1,135 +1,181 @@
 [submodule "boost-src/boost"]
 	path = boost-src/boost
 	url = https://github.com/boostorg/boost.git
+    ignore = dirty
 [submodule "benchmark-src/benchmark"]
 	path = benchmark-src/benchmark
 	url = https://github.com/google/benchmark.git
+    ignore = dirty
 [submodule "coordgen-src/coordgen"]
 	path = coordgen-src/coordgen
 	url = https://github.com/schrodinger/coordgenlibs.git
+    ignore = dirty
 [submodule "cutlass-src/cutlass"]
 	path = cutlass-src/cutlass
 	url = https://github.com/NVIDIA/cutlass.git
+    ignore = dirty
 [submodule "eigen-src/eigen"]
 	path = eigen-src/eigen
 	url = https://gitlab.com/libeigen/eigen.git
+    ignore = dirty
 [submodule "freesasa-src/freesasa"]
 	path = freesasa-src/freesasa
 	url = https://github.com/mittinatten/freesasa.git
+    ignore = dirty
 [submodule "gtest-src/gtest"]
 	path = gtest-src/gtest
 	url = https://github.com/google/googletest.git
+    ignore = dirty
 [submodule "lbfgs-src/lbfgs"]
 	path = lbfgs-src/lbfgs
 	url = https://github.com/yixuan/LBFGSpp.git
+    ignore = dirty
 [submodule "libpng-src/libpng"]
 	path = libpng-src/libpng
 	url = https://github.com/glennrp/libpng.git
+    ignore = dirty
 [submodule "libxml2-src/libxml2"]
 	path = libxml2-src/libxml2
 	url = https://github.com/GNOME/libxml2.git
+    ignore = dirty
 [submodule "maeparser-src/maeparser"]
 	path = maeparser-src/maeparser
 	url = https://github.com/schrodinger/maeparser.git
+    ignore = dirty
 [submodule "ncnn-src/ncnn"]
 	path = ncnn-src/ncnn
 	url = https://github.com/Tencent/ncnn.git
+    ignore = dirty
 [submodule "nodeeditor-src/nodeeditor"]
 	path = nodeeditor-src/nodeeditor
 	url = https://github.com/paceholder/nodeeditor.git
+    ignore = dirty
 [submodule "openbabel-src/openbabel"]
 	path = openbabel-src/openbabel
 	url = https://github.com/openbabel/openbabel.git
+    ignore = dirty
 [submodule "rapidjson-src/rapidjson"]
 	path = rapidjson-src/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+    ignore = dirty
 [submodule "rdkit-src/rdkit"]
 	path = rdkit-src/rdkit
 	url = https://github.com/rdkit/rdkit.git
+    ignore = dirty
 [submodule "ringdecomposerlib-src/ringdecomposerlib"]
 	path = ringdecomposerlib-src/ringdecomposerlib
 	url = https://github.com/rareylab/RingDecomposerLib.git
+    ignore = dirty
 [submodule "spdlog-src/spdlog"]
 	path = spdlog-src/spdlog
 	url = https://github.com/gabime/spdlog.git
+    ignore = dirty
 [submodule "taskflow-src/taskflow"]
 	path = taskflow-src/taskflow
 	url = https://github.com/taskflow/taskflow.git
+    ignore = dirty
 [submodule "yaehmop-src/yaehmop"]
 	path = yaehmop-src/yaehmop
 	url = https://github.com/greglandrum/yaehmop.git
+    ignore = dirty
 [submodule "yoga-src/yoga"]
 	path = yoga-src/yoga
 	url = https://github.com/facebook/yoga.git
+    ignore = dirty
 [submodule "zlib-src/zlib"]
 	path = zlib-src/zlib
 	url = https://github.com/madler/zlib.git
+    ignore = dirty
 [submodule "inchi-src/inchi"]
 	path = inchi-src/inchi
 	url = https://github.com/metamolecular/inchi.git
+    ignore = dirty
 [submodule "opencv-src/opencv"]
 	path = opencv-src/opencv
 	url = https://github.com/opencv/opencv.git
+    ignore = dirty
 [submodule "protobuf-src/protobuf"]
 	path = protobuf-src/protobuf
 	url = https://github.com/protocolbuffers/protobuf.git
+    ignore = dirty
 [submodule "rxcpp-src/rxcpp"]
 	path = rxcpp-src/rxcpp
 	url = https://github.com/ReactiveX/RxCpp.git
+    ignore = dirty
 [submodule "ggml-src/ggml"]
 	path = ggml-src/ggml
 	url = https://github.com/ggerganov/ggml.git
+    ignore = dirty
 [submodule "cpufeatures-src/cpufeatures"]
 	path = cpufeatures-src/cpufeatures
 	url = https://github.com/google/cpu_features.git
+    ignore = dirty
 [submodule "indigo-src/indigo"]
 	path = indigo-src/indigo
 	url = https://github.com/epam/Indigo.git
+    ignore = dirty
 [submodule "pixman-src/pixman"]
 	path = pixman-src/pixman
 	url = https://gitee.com/mirrors/Pixman.git
+    ignore = dirty
 [submodule "freetype-src/freetype"]
 	path = freetype-src/freetype
 	url = https://github.com/freetype/freetype.git
+    ignore = dirty
 [submodule "tinyxml2-src/tinyxml2"]
 	path = tinyxml2-src/tinyxml2
 	url = https://github.com/leethomason/tinyxml2.git
+    ignore = dirty
 [submodule "cairo-src/cairo"]
 	path = cairo-src/cairo
 	url = https://gitee.com/mirrors/cairo.git
+    ignore = dirty
 [submodule "ade-src/ade"]
 	path = ade-src/ade
 	url = https://github.com/opencv/ade.git
+    ignore = dirty
 [submodule "abseil-src/abseil"]
 	path = abseil-src/abseil
 	url = https://github.com/abseil/abseil-cpp.git
+    ignore = dirty
 [submodule "openssl-src/openssl"]
 	path = openssl-src/openssl
 	url = https://github.com/openssl/openssl.git
+    ignore = dirty
 [submodule "zstd-src/zstd"]
 	path = zstd-src/zstd
 	url = https://github.com/facebook/zstd.git
+    ignore = dirty
 [submodule "fluentui-src/fluentui"]
 	path = fluentui-src/fluentui
 	url = https://github.com/zhuzichu520/FluentUI.git
+    ignore = dirty
 [submodule "zxing-src/zxing"]
 	path = zxing-src/zxing
 	url = https://github.com/zxing-cpp/zxing-cpp.git
+    ignore = dirty
 [submodule "agg-src/agg"]
 	path = agg-src/agg
 	url = https://github.com/ghaerr/agg-2.6.git
+    ignore = dirty
 [submodule "cppcoro-src/cppcoro"]
 	path = cppcoro-src/cppcoro
 	url = https://github.com/lewissbaker/cppcoro.git
+    ignore = dirty
 [submodule "nanosvg-src/nanosvg"]
 	path = nanosvg-src/nanosvg
 	url = https://github.com/memononen/nanosvg.git
+    ignore = dirty
 [submodule "quickjs-src/quickjs"]
 	path = quickjs-src/quickjs
 	url = https://github.com/bellard/quickjs.git
+	ignore = dirty
+    ignore = dirty
 [submodule "skia-src/skia"]
 	path = skia-src/skia
 	url = https://github.com/google/skia.git
+    ignore = dirty
 [submodule "svgpp-src/svgpp"]
 	path = svgpp-src/svgpp
 	url = https://github.com/svgpp/svgpp.git
+	ignore = dirty
