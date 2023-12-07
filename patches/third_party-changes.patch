@@ -33732,6 +33732,23 @@ diff --git a/rdkit-src/rdkit/Code/RDGeneral/RDLog.cpp b/rdkit-src/rdkit/Code/RDG
    strftime(buffer, 16, "[%T] ", localtime(&t));
  #else
    struct tm buf;
+Index: protobuf-src/protobuf/src/google/protobuf/repeated_ptr_field.cc
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/protobuf-src/protobuf/src/google/protobuf/repeated_ptr_field.cc b/protobuf-src/protobuf/src/google/protobuf/repeated_ptr_field.cc
+--- a/protobuf-src/protobuf/src/google/protobuf/repeated_ptr_field.cc	(revision 7f94235e552599141950d7a4a3eaf93bc87d1b22)
++++ b/protobuf-src/protobuf/src/google/protobuf/repeated_ptr_field.cc	(date 1701960563055)
+@@ -184,7 +184,7 @@
+     char* PROTOBUF_RESTRICT, char* PROTOBUF_RESTRICT);
+
+ template <>
+-void RepeatedPtrFieldBase::MergeFrom<std::string>(
++PROTOBUF_EXPORT_TEMPLATE_DEFINE void RepeatedPtrFieldBase::MergeFrom<std::string>(
+     const RepeatedPtrFieldBase& from) {
+   ABSL_DCHECK_NE(&from, this);
+   int new_size = current_size_ + from.current_size_;
 Index: protobuf-src/protobuf/third_party/utf8_range/range2-sse.c
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -33741,14 +33758,32 @@ diff --git a/protobuf-src/protobuf/third_party/utf8_range/range2-sse.c b/protobu
 --- a/protobuf-src/protobuf/third_party/utf8_range/range2-sse.c	(revision 7f94235e552599141950d7a4a3eaf93bc87d1b22)
 +++ b/protobuf-src/protobuf/third_party/utf8_range/range2-sse.c	(date 1696647929595)
 @@ -6,7 +6,7 @@
- 
+
  #include <stdio.h>
  #include <stdint.h>
 -#include <x86intrin.h>
 +#include <smmintrin.h>
- 
+
  int utf8_naive(const unsigned char *data, int len);
- 
+
+Index: protobuf-src/protobuf/src/google/protobuf/map_field.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/protobuf-src/protobuf/src/google/protobuf/map_field.h b/protobuf-src/protobuf/src/google/protobuf/map_field.h
+--- a/protobuf-src/protobuf/src/google/protobuf/map_field.h	(revision 7f94235e552599141950d7a4a3eaf93bc87d1b22)
++++ b/protobuf-src/protobuf/src/google/protobuf/map_field.h	(date 1701951638974)
+@@ -678,7 +678,7 @@
+ template <typename Derived, typename Key, typename T,
+           WireFormatLite::FieldType kKeyFieldType_,
+           WireFormatLite::FieldType kValueFieldType_>
+-constexpr MapFieldBase::VTable
++PROTOBUF_CONSTINIT const MapFieldBase::VTable
+     MapField<Derived, Key, T, kKeyFieldType_, kValueFieldType_>::kVTable =
+         MapField::template MakeVTable<MapField>();
+
+
 Index: svgpp-src/svgpp/include/svgpp/detail/dict/enumerate_all_attributes.inc
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
