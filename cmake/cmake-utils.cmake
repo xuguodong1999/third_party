@@ -161,6 +161,7 @@ function(xgd_external_check_env)
     include(CheckIncludeFiles)
     include(CheckSymbolExists)
     include(CheckFunctionExists)
+    include(CheckIPOSupported)
 
     set(_XGD_BOOST_DIR ${XGD_THIRD_PARTY_DIR}/boost-src/boost/libs)
     set(_XGD_BOOST_CHECK_DIR ${_XGD_BOOST_DIR}/config/checks/architecture)
@@ -321,6 +322,11 @@ function(xgd_external_check_env)
     # check_include_file(dlfcn.h XGD_HAVE_DLFCN_H)
     check_symbol_exists(getauxval "sys/auxv.h" XGD_HAVE_STRONG_GETAUXVAL)
 
+    check_ipo_supported(RESULT _XGD_FLAG_IPO)
+    if (XGD_FLAG_IPO AND NOT _XGD_FLAG_IPO)
+        set(XGD_FLAG_IPO OFF CACHE INTERNAL "" FORCE)
+    endif ()
+
     set(CMAKE_CXX_STANDARD ${_CMAKE_CXX_STANDARD})
     set(CMAKE_CXX_STANDARD_REQUIRED ${_CMAKE_CXX_STANDARD_REQUIRED})
     unset(_CMAKE_CXX_STANDARD)
@@ -351,6 +357,7 @@ function(xgd_external_check_env)
             XGD_FLAG_AVX2
             XGD_FLAG_MARCH_NATIVE
             XGD_FLAG_WASM_SIMD128
+            XGD_FLAG_IPO
 
             XGD_BUILD_WITH_GRADLE
             XGD_NO_DEBUG_CONSOLE
@@ -562,13 +569,16 @@ function(xgd_target_global_options TARGET)
     if (param_CXX_STANDARD)
         set(_XGD_CXX_STANDARD ${param_CXX_STANDARD})
     endif ()
+    if (XGD_FLAG_IPO)
+        set_target_properties(${TARGET} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+    endif ()
     set_target_properties(
             ${TARGET} PROPERTIES
-            C_STANDARD 11       # C11
+            C_STANDARD 17       # C17
             C_STANDARD_REQUIRED ON
             CXX_STANDARD ${_XGD_CXX_STANDARD}
             CXX_STANDARD_REQUIRED ON
-            CUDA_STANDARD 17    # CUDA C++17
+            CUDA_STANDARD 20    # require CUDA 12.x
             CUDA_STANDARD_REQUIRED ON
             # Export only public symbols
             C_VISIBILITY_PRESET hidden

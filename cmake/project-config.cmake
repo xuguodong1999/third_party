@@ -24,6 +24,7 @@ option(XGD_FLAG_XOP "" ON)
 option(XGD_FLAG_SSE_ALL "" ON)
 option(XGD_FLAG_AVX "" ON)
 option(XGD_FLAG_AVX2 "" ON)
+option(XGD_FLAG_IPO "" ON)
 
 option(XGD_FLAG_MARCH_NATIVE "" ON)
 option(XGD_FLAG_WASM_SIMD128 "" ON)
