@@ -362,6 +362,7 @@ xgd_internal_build_boost(url SRC_DIRS
         rfc
         rfc/detail
         detail)
+target_compile_definitions(boost_url PRIVATE BOOST_URL_SOURCE)
 
 xgd_internal_build_boost(
         wave
