@@ -3,6 +3,7 @@
 #endif
 #include <assert.h>
 #include <errno.h>
+#include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 #include <stdlib.h>

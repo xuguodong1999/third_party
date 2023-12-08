@@ -642,7 +642,7 @@ int IndigoMoleculeComponent::getIndex()
 
 IndigoObject* IndigoMoleculeComponent::clone()
 {
-    std::unique_ptr<IndigoObject> res;
+    std::unique_ptr<IndigoBaseMolecule> res;
     BaseMolecule* newmol;
 
     if (mol.isQueryMolecule())
@@ -658,6 +658,12 @@ IndigoObject* IndigoMoleculeComponent::clone()
 
     Filter filter(mol.getDecomposition().ptr(), Filter::EQ, index);
     newmol->makeSubmolecule(mol, filter, 0, 0);
+    for (auto it = newmol->properties().begin(); it != newmol->properties().end(); ++it)
+    {
+        auto& props = newmol->properties().value(it);
+        res->getProperties().merge(props);
+    }
+
     return res.release();
 }
 
@@ -1189,6 +1195,18 @@ int indigoCountRGroups(int molecule)
     {
         BaseMolecule& mol = self.getObject(molecule).getBaseMolecule();
         return mol.rgroups.getRGroupCount();
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoCopyRGroups(int molecule_from, int molecule_to)
+{
+    INDIGO_BEGIN
+    {
+        BaseMolecule& mol_from = self.getObject(molecule_from).getBaseMolecule();
+        BaseMolecule& mol_to = self.getObject(molecule_to).getBaseMolecule();
+        mol_from.rgroups.copyRGroupsFromMolecule(mol_to.rgroups);
+        return 0;
     }
     INDIGO_END(-1);
 }
@@ -3204,8 +3222,8 @@ int indigoGetSGroupDisplayOption(int sgroup)
     INDIGO_BEGIN
     {
         Superatom& sup = IndigoSuperatom::cast(self.getObject(sgroup)).get();
-        if (sup.contracted > -1)
-            return sup.contracted;
+        if (sup.contracted > DisplayOption::Undefined)
+            return (int)sup.contracted;
 
         return 0;
     }
@@ -3217,7 +3235,7 @@ int indigoSetSGroupDisplayOption(int sgroup, int option)
     INDIGO_BEGIN
     {
         Superatom& sup = IndigoSuperatom::cast(self.getObject(sgroup)).get();
-        sup.contracted = option;
+        sup.contracted = (DisplayOption)option;
 
         return 1;
     }

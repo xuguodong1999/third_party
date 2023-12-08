@@ -365,7 +365,7 @@ static int get_hw_capability(const char* cap)
 #if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)
 static inline void x86_cpuid(int level, unsigned int out[4])
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     __cpuid((int*)out, level);
 #elif defined(__clang__) || defined(__GNUC__)
     __get_cpuid(level, out, out + 1, out + 2, out + 3);
@@ -1291,7 +1291,7 @@ static bool is_smt_cpu(int cpuid)
 static int set_sched_affinity(const ncnn::CpuSet& thread_affinity_mask)
 {
     // set affinity for thread
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) && !defined(__OHOS__)
     pid_t pid = gettid();
 #else
     pid_t pid = syscall(SYS_gettid);
@@ -1677,7 +1677,7 @@ static unsigned int get_midr_from_register()
 static int get_sched_affinity(ncnn::CpuSet& thread_affinity_mask)
 {
     // get affinity for thread
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) && !defined(__OHOS__)
     pid_t pid = gettid();
 #else
     pid_t pid = syscall(SYS_gettid);

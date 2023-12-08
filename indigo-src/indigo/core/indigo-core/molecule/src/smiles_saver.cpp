@@ -25,9 +25,9 @@
 #include "molecule/canonical_smiles_saver.h"
 #include "molecule/elements.h"
 #include "molecule/molecule.h"
-#include "molecule/molecule_arom_match.h"
 #include "molecule/molecule_rgroups.h"
 #include "molecule/molecule_savers.h"
+#include "molecule/molecule_stereocenter_options.h"
 #include "molecule/molecule_stereocenters.h"
 #include "molecule/query_molecule.h"
 
@@ -263,7 +263,7 @@ void SmilesSaver::_saveMolecule()
 
         stereocenters.get(i, atom_idx, type, group, pyramid);
 
-        if (type < MoleculeStereocenters::ATOM_AND)
+        if (type < MoleculeStereocenters::ATOM_AND || !stereocenters.isTetrahydral(atom_idx))
             continue;
 
         int implicit_h_idx = -1;
@@ -385,7 +385,7 @@ void SmilesSaver::_saveMolecule()
 
             int idx = _written_atoms[i];
 
-            if (_atoms[idx].chirality == 0)
+            if (_atoms[idx].chirality == 0 || !stereocenters.isTetrahydral(idx))
                 continue;
 
             int type = stereocenters.getType(idx);
@@ -626,6 +626,8 @@ void SmilesSaver::_saveMolecule()
         _writeRingBonds();
         _writeUnsaturated();
         _writeSubstitutionCounts();
+        if (_bmol->hasAtropoStereoBonds())
+            _writeWedges();
 
         if (_comma)
             _output.writeChar('|');
@@ -879,6 +881,11 @@ void SmilesSaver::_writeSmartsAtom(int idx, QueryMolecule::Atom* atom, int chira
     case QueryMolecule::OP_AND: {
         for (i = 0; i < atom->children.size(); i++)
         {
+            if (atom->children[i]->type == QueryMolecule::ATOM_RADICAL || atom->children[i]->type == QueryMolecule::ATOM_VALENCE)
+            {
+                continue;
+            }
+
             if (i > 0)
                 _output.writeChar(has_or_parent ? '&' : ';');
             _writeSmartsAtom(idx, (QueryMolecule::Atom*)atom->children[i], chirality, depth + 1, has_or_parent, has_not_parent);
@@ -888,6 +895,11 @@ void SmilesSaver::_writeSmartsAtom(int idx, QueryMolecule::Atom* atom, int chira
     case QueryMolecule::OP_OR: {
         for (i = 0; i < atom->children.size(); i++)
         {
+            if (atom->children[i]->type == QueryMolecule::ATOM_RADICAL || atom->children[i]->type == QueryMolecule::ATOM_VALENCE)
+            {
+                continue;
+            }
+
             if (i > 0)
                 _output.printf(has_not_parent ? "!" : ",");
             _writeSmartsAtom(idx, (QueryMolecule::Atom*)atom->children[i], chirality, depth + 1, true, has_not_parent);
@@ -1005,7 +1017,8 @@ void SmilesSaver::_writeSmartsAtom(int idx, QueryMolecule::Atom* atom, int chira
         break;
     }
 
-    case QueryMolecule::ATOM_PSEUDO: {
+    case QueryMolecule::ATOM_PSEUDO:
+    case QueryMolecule::ATOM_RSITE: {
         _output.printf("*", atom->alias.ptr());
         break;
     }
@@ -1489,7 +1502,6 @@ void SmilesSaver::_writeStereogroups()
     {
         int atom, type, group;
         stereocenters.get(i, atom, type, group, 0);
-
         if (type != MoleculeStereocenters::ATOM_ABS)
             break;
     }
@@ -1624,7 +1636,8 @@ void SmilesSaver::_writePseudoAtoms()
     {
         for (i = 0; i < _written_atoms.size(); i++)
         {
-            if (mol.isPseudoAtom(_written_atoms[i]) || (mol.isRSite(_written_atoms[i]) && mol.getRSiteBits(_written_atoms[i]) != 0))
+            if (mol.isAlias(_written_atoms[i]) || mol.isPseudoAtom(_written_atoms[i]) ||
+                (mol.isRSite(_written_atoms[i]) && mol.getRSiteBits(_written_atoms[i]) != 0))
                 break;
             if (_qmol != 0)
             {
@@ -1649,7 +1662,9 @@ void SmilesSaver::_writePseudoAtoms()
             _output.writeChar(';');
 
         if (mol.isPseudoAtom(_written_atoms[i]))
+        {
             writePseudoAtom(mol.getPseudoAtom(_written_atoms[i]), _output);
+        }
         else if (mol.isRSite(_written_atoms[i]) && mol.getRSiteBits(_written_atoms[i]) != 0)
         // ChemAxon's Extended SMILES notation for R-sites
         // and added support of multiple R-groups on one R-site
@@ -1664,7 +1679,13 @@ void SmilesSaver::_writePseudoAtoms()
             }
         }
         else if ((_qmol != 0) && (QueryMolecule::queryAtomIsSpecial(*_qmol, _written_atoms[i])))
+        {
             writeSpecialAtom(_written_atoms[i], _output);
+        }
+        else if (mol.isAlias(_written_atoms[i]))
+        {
+            writePseudoAtom(mol.getAlias(_written_atoms[i]), _output);
+        }
     }
 
     for (i = 0; i < _attachment_indices.size(); i++)
@@ -1818,6 +1839,72 @@ void SmilesSaver::_writeSubstitutionCounts()
     }
 }
 
+void SmilesSaver::_writeBondDirs(const std::string& tag, const std::vector<std::pair<int, int>>& bonds)
+{
+    bool is_first = true;
+    for (const auto& kvp : bonds)
+    {
+        if (is_first)
+        {
+            _startExtension();
+            _output.writeString(tag.c_str());
+            is_first = false;
+        }
+        else
+            _output.writeString(",");
+        _output.printf("%d.%d", kvp.first, kvp.second);
+    }
+}
+
+void SmilesSaver::_writeWedges()
+{
+    if (_bmol)
+    {
+        std::vector<std::pair<int, int>> down_dirs, up_dirs, wiggy_dirs;
+        for (int i = 0; i < _written_bonds.size(); ++i)
+        {
+            auto bond_idx = _written_bonds[i];
+            auto& e = _bmol->getEdge(bond_idx);
+            auto bdir = _bmol->getBondDirection(bond_idx);
+            if (bdir)
+            {
+                const auto& edge = _bmol->getEdge(bond_idx);
+                auto wa_idx = _written_atoms.find(edge.beg);
+                switch (bdir)
+                {
+                case BOND_UP:
+                    up_dirs.emplace_back(wa_idx, i);
+                    break;
+                case BOND_DOWN:
+                    down_dirs.emplace_back(wa_idx, i);
+                    break;
+                case BOND_EITHER:
+                    wiggy_dirs.emplace_back(wa_idx, i);
+                    break;
+                }
+            }
+        }
+
+        _writeBondDirs("wU:", up_dirs);
+        _writeBondDirs("wD:", down_dirs);
+        _writeBondDirs("w:", wiggy_dirs);
+
+        if ((down_dirs.size() || up_dirs.size() || wiggy_dirs.size()) && BaseMolecule::hasCoord(*_mol))
+        {
+            _output.writeString(",(");
+            for (int i = 0; i < _written_atoms.size(); ++i)
+            {
+                if (i)
+                    _output.writeString(";");
+                auto atom_idx = _written_atoms[i];
+                const auto& pos = _mol->getAtomXyz(atom_idx);
+                _output.printf("%.2f,%.2f,", pos.x, pos.y);
+            }
+            _output.writeString(")");
+        }
+    }
+}
+
 void SmilesSaver::_writeRingBonds()
 {
     bool is_first = true;
@@ -1862,19 +1949,41 @@ void SmilesSaver::_writeSGroups()
     for (int i = _bmol->sgroups.begin(); i != _bmol->sgroups.end(); i = _bmol->sgroups.next(i))
     {
         SGroup& sg = _bmol->sgroups.getSGroup(i);
-        if (!sg.atoms.size() || (sg.sgroup_type != SGroup::SG_TYPE_GEN && sg.sgroup_type != SGroup::SG_TYPE_SRU))
+        if (!sg.atoms.size() || (sg.sgroup_type != SGroup::SG_TYPE_DAT && sg.sgroup_type != SGroup::SG_TYPE_GEN && sg.sgroup_type != SGroup::SG_TYPE_SRU))
             continue;
         _startExtension();
-        _output.writeString("Sg:");
+        _output.writeString(sg.sgroup_type == SGroup::SG_TYPE_DAT ? "SgD:" : "Sg:");
         switch (sg.sgroup_type)
         {
+        case SGroup::SG_TYPE_DAT:
+            _writeSGroupAtoms(sg);
+            _output.writeChar(':');
+            {
+                DataSGroup& dsg = static_cast<DataSGroup&>(sg);
+                if (dsg.name.size() > 0)
+                    _output.writeString(dsg.name.ptr());
+                _output.writeChar(':');
+                if (dsg.data.size() > 0)
+                    _output.writeString(dsg.data.ptr());
+                _output.writeChar(':');
+                if (dsg.queryoper.size() > 0)
+                    _output.writeString(dsg.queryoper.ptr());
+                _output.writeChar(':');
+                if (dsg.description.size() > 0)
+                    _output.writeString(dsg.description.ptr());
+                _output.writeChar(':');
+                _output.writeChar(dsg.tag);
+                _output.writeChar(':');
+                // No coords output for now
+            }
+            break;
         case SGroup::SG_TYPE_GEN:
             _output.writeString("gen:");
             _writeSGroupAtoms(sg);
             _output.writeString(":");
             break;
         case SGroup::SG_TYPE_SRU: {
-            RepeatingUnit& ru = (RepeatingUnit&)sg;
+            RepeatingUnit& ru = static_cast<RepeatingUnit&>(sg);
             _output.writeString("n:");
             _writeSGroupAtoms(sg);
             _output.printf(":%s:", ru.subscript.ptr() ? ru.subscript.ptr() : "");

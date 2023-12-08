@@ -57,15 +57,19 @@ namespace indigo_cpp
         void setOption(const std::string& key, bool value) const;
 
         std::string version() const;
+        std::string versionInfo() const;
 
         static IndigoSessionPtr create();
 
         IndigoMolecule loadMolecule(const std::string& data);
         IndigoMolecule loadMoleculeFromFile(const std::string& path);
 
+        IndigoQueryMolecule loadQueryMolecule(const std::string& data);
+
         IndigoReaction loadReaction(const std::string& data);
 
-        IndigoQueryMolecule loadQueryMolecule(const std::string& data);
+        IndigoReaction loadQueryReaction(const std::string& data);
+
         IndigoWriteBuffer writeBuffer();
         IndigoIterator<IndigoReaction> iterateRDFile(const std::string& path);
         IndigoIterator<IndigoMolecule> iterateSDFile(const std::string& path);

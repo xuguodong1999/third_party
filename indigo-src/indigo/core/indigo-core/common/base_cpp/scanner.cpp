@@ -19,17 +19,18 @@
 #include <algorithm>
 #include <ctype.h>
 #include <errno.h>
+#include <limits>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <array>
+#include <cppcodec/base64_default_rfc4648.hpp>
 
 #include "base_c/defs.h"
 #include "base_cpp/scanner.h"
 #include "base_cpp/tlscont.h"
 #include "reusable_obj_array.h"
-
-#include <cppcodec/base64_default_rfc4648.hpp>
-#include <limits>
 
 using namespace indigo;
 
@@ -128,10 +129,12 @@ int Scanner::readInt(void)
     return result;
 }
 
-int Scanner::readUnsigned()
+// Try to read unsigned int. Return readed value, on error return -1 and restore position
+int Scanner::tryReadUnsigned()
 {
     int result = 0;
     bool was_digit = false;
+    long long pos = tell();
 
     while (!isEOF())
     {
@@ -147,8 +150,19 @@ int Scanner::readUnsigned()
             break;
         }
     }
-
     if (!was_digit)
+    {
+        seek(pos, SEEK_SET);
+        return -1;
+    }
+
+    return result;
+}
+
+int Scanner::readUnsigned()
+{
+    int result = tryReadUnsigned();
+    if (result < 0)
         throw Error("readUnsigned(): no digits");
 
     return result;
@@ -368,6 +382,20 @@ void Scanner::skipSpace()
 {
     while (isspace(lookNext()))
         skip(1);
+}
+
+void Scanner::skipBom()
+{
+    long long pos = tell();
+    const int kBOMSize = 3;
+    const std::array<unsigned char, kBOMSize> kBOM = {0xEF, 0xBB, 0xBF};
+    if (length() >= kBOMSize)
+    {
+        std::array<unsigned char, kBOMSize> bom;
+        readCharsFix(kBOMSize, (char*)bom.data());
+        if (bom != kBOM)
+            seek(pos, SEEK_SET);
+    }
 }
 
 void Scanner::skipUntil(const char* delimiters)

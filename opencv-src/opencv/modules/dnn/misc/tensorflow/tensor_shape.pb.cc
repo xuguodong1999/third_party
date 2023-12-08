@@ -11,24 +11,28 @@
 #include "google/protobuf/generated_message_reflection.h"
 #include "google/protobuf/reflection_ops.h"
 #include "google/protobuf/wire_format.h"
+#include "google/protobuf/generated_message_tctable_impl.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
 #include "google/protobuf/port_def.inc"
 PROTOBUF_PRAGMA_INIT_SEG
-namespace _pb = ::PROTOBUF_NAMESPACE_ID;
-namespace _pbi = ::PROTOBUF_NAMESPACE_ID::internal;
+namespace _pb = ::google::protobuf;
+namespace _pbi = ::google::protobuf::internal;
+namespace _fl = ::google::protobuf::internal::field_layout;
 namespace opencv_tensorflow {
+
+inline constexpr TensorShapeProto_Dim::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        size_{::int64_t{0}},
+        _cached_size_{0} {}
+
 template <typename>
-PROTOBUF_CONSTEXPR TensorShapeProto_Dim::TensorShapeProto_Dim(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.name_)*/ {
-    &::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized {}
-  }
-
-  , /*decltype(_impl_.size_)*/ ::int64_t{0}
-
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+PROTOBUF_CONSTEXPR TensorShapeProto_Dim::TensorShapeProto_Dim(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
 struct TensorShapeProto_DimDefaultTypeInternal {
   PROTOBUF_CONSTEXPR TensorShapeProto_DimDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
   ~TensorShapeProto_DimDefaultTypeInternal() {}
@@ -39,13 +43,16 @@ struct TensorShapeProto_DimDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 TensorShapeProto_DimDefaultTypeInternal _TensorShapeProto_Dim_default_instance_;
-template <typename>
-PROTOBUF_CONSTEXPR TensorShapeProto::TensorShapeProto(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.dim_)*/{}
-  , /*decltype(_impl_.unknown_rank_)*/ false
 
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+inline constexpr TensorShapeProto::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : dim_{},
+        unknown_rank_{false},
+        _cached_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR TensorShapeProto::TensorShapeProto(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
 struct TensorShapeProtoDefaultTypeInternal {
   PROTOBUF_CONSTEXPR TensorShapeProtoDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
   ~TensorShapeProtoDefaultTypeInternal() {}
@@ -88,8 +95,8 @@ const ::uint32_t TableStruct_tensor_5fshape_2eproto::offsets[] PROTOBUF_SECTION_
 
 static const ::_pbi::MigrationSchema
     schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-        { 0, -1, -1, sizeof(::opencv_tensorflow::TensorShapeProto_Dim)},
-        { 10, -1, -1, sizeof(::opencv_tensorflow::TensorShapeProto)},
+        {0, -1, -1, sizeof(::opencv_tensorflow::TensorShapeProto_Dim)},
+        {10, -1, -1, sizeof(::opencv_tensorflow::TensorShapeProto)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -147,150 +154,135 @@ class TensorShapeProto_Dim::_Internal {
  public:
 };
 
-TensorShapeProto_Dim::TensorShapeProto_Dim(::PROTOBUF_NAMESPACE_ID::Arena* arena)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+TensorShapeProto_Dim::TensorShapeProto_Dim(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
   SharedCtor(arena);
   // @@protoc_insertion_point(arena_constructor:opencv_tensorflow.TensorShapeProto.Dim)
 }
-TensorShapeProto_Dim::TensorShapeProto_Dim(const TensorShapeProto_Dim& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  TensorShapeProto_Dim* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.name_) {}
+inline PROTOBUF_NDEBUG_INLINE TensorShapeProto_Dim::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from)
+      : name_(arena, from.name_),
+        _cached_size_{0} {}
 
-    , decltype(_impl_.size_) {}
+TensorShapeProto_Dim::TensorShapeProto_Dim(
+    ::google::protobuf::Arena* arena,
+    const TensorShapeProto_Dim& from)
+    : ::google::protobuf::Message(arena) {
+  TensorShapeProto_Dim* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_);
+  _impl_.size_ = from._impl_.size_;
 
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.name_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-        _impl_.name_.Set("", GetArenaForAllocation());
-  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_name().empty()) {
-    _this->_impl_.name_.Set(from._internal_name(), _this->GetArenaForAllocation());
-  }
-  _this->_impl_.size_ = from._impl_.size_;
   // @@protoc_insertion_point(copy_constructor:opencv_tensorflow.TensorShapeProto.Dim)
 }
+inline PROTOBUF_NDEBUG_INLINE TensorShapeProto_Dim::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : name_(arena),
+        _cached_size_{0} {}
 
 inline void TensorShapeProto_Dim::SharedCtor(::_pb::Arena* arena) {
-  (void)arena;
-  new (&_impl_) Impl_{
-      decltype(_impl_.name_) {}
-
-    , decltype(_impl_.size_) { ::int64_t{0} }
-
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-  _impl_.name_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-        _impl_.name_.Set("", GetArenaForAllocation());
-  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.size_ = {};
 }
-
 TensorShapeProto_Dim::~TensorShapeProto_Dim() {
   // @@protoc_insertion_point(destructor:opencv_tensorflow.TensorShapeProto.Dim)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   SharedDtor();
 }
-
 inline void TensorShapeProto_Dim::SharedDtor() {
-  ABSL_DCHECK(GetArenaForAllocation() == nullptr);
+  ABSL_DCHECK(GetArena() == nullptr);
   _impl_.name_.Destroy();
+  _impl_.~Impl_();
 }
 
-void TensorShapeProto_Dim::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void TensorShapeProto_Dim::Clear() {
+PROTOBUF_NOINLINE void TensorShapeProto_Dim::Clear() {
 // @@protoc_insertion_point(message_clear_start:opencv_tensorflow.TensorShapeProto.Dim)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   _impl_.name_.ClearToEmpty();
   _impl_.size_ = ::int64_t{0};
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
-const char* TensorShapeProto_Dim::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // int64 size = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 8)) {
-          _impl_.size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else {
-          goto handle_unusual;
-        }
-        continue;
-      // string name = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 18)) {
-          auto str = _internal_mutable_name();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "opencv_tensorflow.TensorShapeProto.Dim.name"));
-        } else {
-          goto handle_unusual;
-        }
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
+const char* TensorShapeProto_Dim::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
 }
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 51, 2> TensorShapeProto_Dim::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_TensorShapeProto_Dim_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    // string name = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(TensorShapeProto_Dim, _impl_.name_)}},
+    // int64 size = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(TensorShapeProto_Dim, _impl_.size_), 63>(),
+     {8, 63, 0, PROTOBUF_FIELD_OFFSET(TensorShapeProto_Dim, _impl_.size_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int64 size = 1;
+    {PROTOBUF_FIELD_OFFSET(TensorShapeProto_Dim, _impl_.size_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kInt64)},
+    // string name = 2;
+    {PROTOBUF_FIELD_OFFSET(TensorShapeProto_Dim, _impl_.name_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\46\0\4\0\0\0\0\0"
+    "opencv_tensorflow.TensorShapeProto.Dim"
+    "name"
+  }},
+};
 
 ::uint8_t* TensorShapeProto_Dim::_InternalSerialize(
-    ::uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:opencv_tensorflow.TensorShapeProto.Dim)
   ::uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
+  (void)cached_has_bits;
 
   // int64 size = 1;
   if (this->_internal_size() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt64ToArray(
-        1, this->_internal_size(), target);
+    target = ::google::protobuf::internal::WireFormatLite::
+        WriteInt64ToArrayWithField<1>(
+            stream, this->_internal_size(), target);
   }
 
   // string name = 2;
   if (!this->_internal_name().empty()) {
     const std::string& _s = this->_internal_name();
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-        _s.data(), static_cast<int>(_s.length()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE, "opencv_tensorflow.TensorShapeProto.Dim.name");
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "opencv_tensorflow.TensorShapeProto.Dim.name");
     target = stream->WriteStringMaybeAliased(2, _s, target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:opencv_tensorflow.TensorShapeProto.Dim)
   return target;
@@ -306,7 +298,7 @@ failure:
 
   // string name = 2;
   if (!this->_internal_name().empty()) {
-    total_size += 1 + ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+    total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                     this->_internal_name());
   }
 
@@ -319,14 +311,15 @@ failure:
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData TensorShapeProto_Dim::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    TensorShapeProto_Dim::MergeImpl
+const ::google::protobuf::Message::ClassData TensorShapeProto_Dim::_class_data_ = {
+    TensorShapeProto_Dim::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*TensorShapeProto_Dim::GetClassData() const { return &_class_data_; }
+const ::google::protobuf::Message::ClassData* TensorShapeProto_Dim::GetClassData() const {
+  return &_class_data_;
+}
 
-
-void TensorShapeProto_Dim::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+void TensorShapeProto_Dim::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
   auto* const _this = static_cast<TensorShapeProto_Dim*>(&to_msg);
   auto& from = static_cast<const TensorShapeProto_Dim&>(from_msg);
   // @@protoc_insertion_point(class_specific_merge_from_start:opencv_tensorflow.TensorShapeProto.Dim)
@@ -340,7 +333,7 @@ void TensorShapeProto_Dim::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, c
   if (from._internal_size() != 0) {
     _this->_internal_set_size(from._internal_size());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void TensorShapeProto_Dim::CopyFrom(const TensorShapeProto_Dim& from) {
@@ -350,22 +343,23 @@ void TensorShapeProto_Dim::CopyFrom(const TensorShapeProto_Dim& from) {
   MergeFrom(from);
 }
 
-bool TensorShapeProto_Dim::IsInitialized() const {
+PROTOBUF_NOINLINE bool TensorShapeProto_Dim::IsInitialized() const {
   return true;
 }
 
-void TensorShapeProto_Dim::InternalSwap(TensorShapeProto_Dim* other) {
+::_pbi::CachedSize* TensorShapeProto_Dim::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void TensorShapeProto_Dim::InternalSwap(TensorShapeProto_Dim* PROTOBUF_RESTRICT other) {
   using std::swap;
-  auto* lhs_arena = GetArenaForAllocation();
-  auto* rhs_arena = other->GetArenaForAllocation();
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, lhs_arena,
-                                       &other->_impl_.name_, rhs_arena);
-
-  swap(_impl_.size_, other->_impl_.size_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+        swap(_impl_.size_, other->_impl_.size_);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata TensorShapeProto_Dim::GetMetadata() const {
+::google::protobuf::Metadata TensorShapeProto_Dim::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_tensor_5fshape_2eproto_getter, &descriptor_table_tensor_5fshape_2eproto_once,
       file_level_metadata_tensor_5fshape_2eproto[0]);
@@ -376,127 +370,117 @@ class TensorShapeProto::_Internal {
  public:
 };
 
-TensorShapeProto::TensorShapeProto(::PROTOBUF_NAMESPACE_ID::Arena* arena)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+TensorShapeProto::TensorShapeProto(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
   SharedCtor(arena);
   // @@protoc_insertion_point(arena_constructor:opencv_tensorflow.TensorShapeProto)
 }
-TensorShapeProto::TensorShapeProto(const TensorShapeProto& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  TensorShapeProto* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.dim_){from._impl_.dim_}
-    , decltype(_impl_.unknown_rank_) {}
+inline PROTOBUF_NDEBUG_INLINE TensorShapeProto::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from)
+      : dim_{visibility, arena, from.dim_},
+        _cached_size_{0} {}
 
-    , /*decltype(_impl_._cached_size_)*/{}};
+TensorShapeProto::TensorShapeProto(
+    ::google::protobuf::Arena* arena,
+    const TensorShapeProto& from)
+    : ::google::protobuf::Message(arena) {
+  TensorShapeProto* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_);
+  _impl_.unknown_rank_ = from._impl_.unknown_rank_;
 
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.unknown_rank_ = from._impl_.unknown_rank_;
   // @@protoc_insertion_point(copy_constructor:opencv_tensorflow.TensorShapeProto)
 }
+inline PROTOBUF_NDEBUG_INLINE TensorShapeProto::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : dim_{visibility, arena},
+        _cached_size_{0} {}
 
 inline void TensorShapeProto::SharedCtor(::_pb::Arena* arena) {
-  (void)arena;
-  new (&_impl_) Impl_{
-      decltype(_impl_.dim_){arena}
-    , decltype(_impl_.unknown_rank_) { false }
-
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.unknown_rank_ = {};
 }
-
 TensorShapeProto::~TensorShapeProto() {
   // @@protoc_insertion_point(destructor:opencv_tensorflow.TensorShapeProto)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   SharedDtor();
 }
-
 inline void TensorShapeProto::SharedDtor() {
-  ABSL_DCHECK(GetArenaForAllocation() == nullptr);
-  _internal_mutable_dim()->~RepeatedPtrField();
+  ABSL_DCHECK(GetArena() == nullptr);
+  _impl_.~Impl_();
 }
 
-void TensorShapeProto::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void TensorShapeProto::Clear() {
+PROTOBUF_NOINLINE void TensorShapeProto::Clear() {
 // @@protoc_insertion_point(message_clear_start:opencv_tensorflow.TensorShapeProto)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _internal_mutable_dim()->Clear();
+  _impl_.dim_.Clear();
   _impl_.unknown_rank_ = false;
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
-const char* TensorShapeProto::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // repeated .opencv_tensorflow.TensorShapeProto.Dim dim = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 18)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_dim(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
-        } else {
-          goto handle_unusual;
-        }
-        continue;
-      // bool unknown_rank = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 24)) {
-          _impl_.unknown_rank_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else {
-          goto handle_unusual;
-        }
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
+const char* TensorShapeProto::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
 }
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 1, 0, 2> TensorShapeProto::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    3, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967289,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    &_TensorShapeProto_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    // repeated .opencv_tensorflow.TensorShapeProto.Dim dim = 2;
+    {::_pbi::TcParser::FastMtR1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(TensorShapeProto, _impl_.dim_)}},
+    // bool unknown_rank = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(TensorShapeProto, _impl_.unknown_rank_), 63>(),
+     {24, 63, 0, PROTOBUF_FIELD_OFFSET(TensorShapeProto, _impl_.unknown_rank_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // repeated .opencv_tensorflow.TensorShapeProto.Dim dim = 2;
+    {PROTOBUF_FIELD_OFFSET(TensorShapeProto, _impl_.dim_), 0, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // bool unknown_rank = 3;
+    {PROTOBUF_FIELD_OFFSET(TensorShapeProto, _impl_.unknown_rank_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kBool)},
+  }}, {{
+    {::_pbi::TcParser::GetTable<::opencv_tensorflow::TensorShapeProto_Dim>()},
+  }}, {{
+  }},
+};
 
 ::uint8_t* TensorShapeProto::_InternalSerialize(
-    ::uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:opencv_tensorflow.TensorShapeProto)
   ::uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
+  (void)cached_has_bits;
 
   // repeated .opencv_tensorflow.TensorShapeProto.Dim dim = 2;
   for (unsigned i = 0,
       n = static_cast<unsigned>(this->_internal_dim_size()); i < n; i++) {
-    const auto& repfield = this->_internal_dim(i);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+    const auto& repfield = this->_internal_dim().Get(i);
+    target = ::google::protobuf::internal::WireFormatLite::
         InternalWriteMessage(2, repfield, repfield.GetCachedSize(), target, stream);
   }
 
@@ -508,8 +492,9 @@ failure:
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:opencv_tensorflow.TensorShapeProto)
   return target;
@@ -527,9 +512,8 @@ failure:
   total_size += 1UL * this->_internal_dim_size();
   for (const auto& msg : this->_internal_dim()) {
     total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+      ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
   }
-
   // bool unknown_rank = 3;
   if (this->_internal_unknown_rank() != 0) {
     total_size += 2;
@@ -538,14 +522,15 @@ failure:
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData TensorShapeProto::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    TensorShapeProto::MergeImpl
+const ::google::protobuf::Message::ClassData TensorShapeProto::_class_data_ = {
+    TensorShapeProto::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*TensorShapeProto::GetClassData() const { return &_class_data_; }
+const ::google::protobuf::Message::ClassData* TensorShapeProto::GetClassData() const {
+  return &_class_data_;
+}
 
-
-void TensorShapeProto::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+void TensorShapeProto::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
   auto* const _this = static_cast<TensorShapeProto*>(&to_msg);
   auto& from = static_cast<const TensorShapeProto&>(from_msg);
   // @@protoc_insertion_point(class_specific_merge_from_start:opencv_tensorflow.TensorShapeProto)
@@ -553,11 +538,12 @@ void TensorShapeProto::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const
   ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  _this->_internal_mutable_dim()->MergeFrom(from._internal_dim());
+  _this->_internal_mutable_dim()->MergeFrom(
+      from._internal_dim());
   if (from._internal_unknown_rank() != 0) {
     _this->_internal_set_unknown_rank(from._internal_unknown_rank());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void TensorShapeProto::CopyFrom(const TensorShapeProto& from) {
@@ -567,34 +553,30 @@ void TensorShapeProto::CopyFrom(const TensorShapeProto& from) {
   MergeFrom(from);
 }
 
-bool TensorShapeProto::IsInitialized() const {
+PROTOBUF_NOINLINE bool TensorShapeProto::IsInitialized() const {
   return true;
 }
 
-void TensorShapeProto::InternalSwap(TensorShapeProto* other) {
+::_pbi::CachedSize* TensorShapeProto::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void TensorShapeProto::InternalSwap(TensorShapeProto* PROTOBUF_RESTRICT other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  _internal_mutable_dim()->InternalSwap(other->_internal_mutable_dim());
-
-  swap(_impl_.unknown_rank_, other->_impl_.unknown_rank_);
+  _impl_.dim_.InternalSwap(&other->_impl_.dim_);
+        swap(_impl_.unknown_rank_, other->_impl_.unknown_rank_);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata TensorShapeProto::GetMetadata() const {
+::google::protobuf::Metadata TensorShapeProto::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_tensor_5fshape_2eproto_getter, &descriptor_table_tensor_5fshape_2eproto_once,
       file_level_metadata_tensor_5fshape_2eproto[1]);
 }
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace opencv_tensorflow
-PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::opencv_tensorflow::TensorShapeProto_Dim*
-Arena::CreateMaybeMessage< ::opencv_tensorflow::TensorShapeProto_Dim >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::opencv_tensorflow::TensorShapeProto_Dim >(arena);
-}
-template<> PROTOBUF_NOINLINE ::opencv_tensorflow::TensorShapeProto*
-Arena::CreateMaybeMessage< ::opencv_tensorflow::TensorShapeProto >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::opencv_tensorflow::TensorShapeProto >(arena);
-}
-PROTOBUF_NAMESPACE_CLOSE
+namespace google {
+namespace protobuf {
+}  // namespace protobuf
+}  // namespace google
 // @@protoc_insertion_point(global_scope)
 #include "google/protobuf/port_undef.inc"

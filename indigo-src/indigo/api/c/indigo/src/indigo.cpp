@@ -32,8 +32,8 @@
 
 #include "indigo_abbreviations.h"
 
-//#define INDIGO_DEBUG
-//#define INDIGO_OBJECT_DEBUG
+// #define INDIGO_DEBUG
+// #define INDIGO_OBJECT_DEBUG
 
 #ifdef INDIGO_DEBUG
 #include <iostream>
@@ -49,6 +49,40 @@ Indigo& indigoGetInstance()
 const char* indigoVersion()
 {
     return INDIGO_VERSION "-" INDIGO_PLATFORM;
+}
+
+CEXPORT const char* indigoVersionInfo()
+{
+    INDIGO_BEGIN
+    {
+        std::string version = indigoVersion();
+
+        const std::string digits = "0123456789";
+        const auto parse = [&](const auto& shift) { return version.substr(shift, version.find_first_of("-\\")); };
+        const auto slice = [&](const auto& value) {
+            version.erase(0, value.size() + 1);
+            return value;
+        };
+
+        const std::string base_version = slice(parse(0));
+        const std::string major_version = base_version.substr(0, base_version.find_last_of(".\\"));
+        const std::string minor_version = base_version.substr(base_version.find_last_of(".\\") + 1);
+        const std::string dev_tag = slice(parse(0));
+        const std::string commit_hash = slice(parse(0));
+        std::string complier_platform = slice(parse(1));
+
+        const std::string os = parse(0);
+        complier_platform.append(slice(os));
+
+        char buf[1024];
+        snprintf(buf, sizeof(buf),
+                 R"({"majorVersion": "%s", "minorVersion": "%s", "devTag": "%s", "commitHash": "%s", "compilerPlatform": "%s", "compilerVersion": "%s"})",
+                 major_version.c_str(), minor_version.c_str(), dev_tag.c_str(), commit_hash.c_str(), complier_platform.c_str(), version.c_str());
+        auto& tmp = self.getThreadTmpData();
+        tmp.string.readString(buf, true);
+        return tmp.string.ptr();
+    }
+    INDIGO_END(0);
 }
 
 void Indigo::init()
@@ -266,7 +300,6 @@ qword indigoAllocSessionId()
     sf::xlock_safe_ptr(IndigoLocaleHandler::handler())->setLocale(LC_NUMERIC, "C");
     IndigoOptionManager::getIndigoOptionManager().createOrGetLocalCopy(id);
     IndigoOptionHandlerSetter::setBasicOptionHandlers(id);
-    abbreviations::indigoCreateAbbreviationsInstance();
 #ifdef INDIGO_DEBUG
     std::stringstream ss;
     ss << "IndigoSession(" << id << ")";
@@ -576,3 +609,12 @@ qword indigoDbgProfilingGetCounter(const char* name, int whole_session)
     }
     INDIGO_END(-1);
 }
+
+auto Indigo::getAbbreviations() -> const abbreviations::IndigoAbbreviations&
+{
+    if (_abbreviations == nullptr)
+    {
+        _abbreviations = std::make_unique<abbreviations::IndigoAbbreviations>();
+    }
+    return *_abbreviations;
+};

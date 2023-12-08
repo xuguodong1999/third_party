@@ -491,7 +491,7 @@ GrMtlPipelineState* GrMtlPipelineStateBuilder::finalize(
         cached = persistentCache->load(*key);
     }
     if (persistentCache && !cached) {
-        writer.reset(new SkBinaryWriteBuffer({}));
+        writer = std::make_unique<SkBinaryWriteBuffer>(SkSerialProcs{});
     }
 
     // Ordering in how we set these matters. If it changes adjust read_pipeline_data, above.
@@ -519,7 +519,7 @@ GrMtlPipelineState* GrMtlPipelineStateBuilder::finalize(
                                                                      writer.get());
     pipelineDescriptor.rasterSampleCount = programInfo.numSamples();
 
-    GrMtlCaps* mtlCaps = (GrMtlCaps*)this->caps();
+    const GrMtlCaps* mtlCaps = (const GrMtlCaps*)this->caps();
     pipelineDescriptor.stencilAttachmentPixelFormat = mtlCaps->getStencilPixelFormat(desc);
     if (writer) {
         writer->writeInt(pipelineDescriptor.stencilAttachmentPixelFormat);

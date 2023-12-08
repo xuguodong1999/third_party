@@ -28,23 +28,31 @@ Button {
     Accessible.name: control.text
     Accessible.description: contentDescription
     Accessible.onPressAction: control.clicked()
-    height: 20
     enabled: !disabled
-    implicitHeight: height
     focusPolicy:Qt.TabFocus
     onClicked: clickListener()
-    contentItem: Item{}
-    background : RowLayout{
+    padding: 0
+    horizontalPadding: 0
+    onCheckableChanged: {
+        if(checkable){
+            checkable = false
+        }
+    }
+    background : Item{
+        implicitHeight: 20
+        implicitWidth: 40
+    }
+    contentItem: RowLayout{
         spacing: control.textSpacing
         layoutDirection:control.textRight ? Qt.LeftToRight : Qt.RightToLeft
         Rectangle {
             id:control_backgound
-            width: 40
-            height: control.height
+            width: background.width
+            height: background.height
             radius: height / 2
             FluFocusRectangle{
                 visible: control.activeFocus
-                radius: 20
+                radius: parent.radius
             }
             color: {
                 if(!enabled){
@@ -68,12 +76,12 @@ Button {
                 }
                 return borderNormalColor
             }
-            Rectangle {
-                width:  20
+            FluIcon {
+                width:  parent.height
                 x:checked ? control_backgound.width-width : 0
-                height: 20
-                radius: 10
                 scale: hovered&enabled ? 7/10 : 6/10
+                iconSource: FluentIcons.FullCircleMask
+                iconSize: 20
                 color: {
                     if(!enabled){
                         return dotDisableColor
@@ -84,14 +92,9 @@ Button {
                     return dotNormalColor
                 }
                 Behavior on x  {
-                    enabled:  FluTheme.enableAnimation
-                    NumberAnimation {
-                        easing.type: Easing.OutCubic
-                    }
-                }
-                Behavior on scale {
                     enabled: FluTheme.enableAnimation
                     NumberAnimation {
+                        duration: 167
                         easing.type: Easing.OutCubic
                     }
                 }

@@ -34,6 +34,7 @@
 class FilterResultTestAccess;  // for testing
 class SkBitmap;
 class SkBlender;
+class SkBlurEngine;
 class SkDevice;
 class SkImage;
 class SkImageFilter;
@@ -392,6 +393,10 @@ public:
         }
         return output;
     }
+
+    // Utility function to calculate the smallest relevant subset of this rect to fill `dstRect`
+    // given the provided tile mode.
+    LayerSpace<SkIRect> relevantSubset(const LayerSpace<SkIRect> dstRect, SkTileMode) const;
 
     // Parrot the SkIRect API while preserving coord space
     bool isEmpty() const { return fData.isEmpty64(); }
@@ -832,6 +837,19 @@ private:
                                    /*blendAffectsTransparentBlack=*/false);
     }
 
+    // Return an equivalent FilterResult such that its backing image dimensions have been reduced
+    // by the X and Y scale factors in 'scale' (assumed to be in [0, 1]). The returned FilterResult
+    // will have a transform that aligns it with the original FilterResult (i.e. a deferred upscale)
+    // and may also have a deferred tilemode. If 'enforceDecal' is true, the returned
+    // FilterResult will be kDecal sampled and any tiling will already be applied.
+    //
+    // All deferred effects, other than potentially tile mode, will be applied. The FilterResult
+    // will also be converted to the color type and color space of 'ctx' so the result is suitable
+    // to pass to the blur engine.
+    FilterResult rescale(const Context& ctx,
+                         const LayerSpace<SkSize>& scale,
+                         bool enforceDecal) const;
+
     // Draw directly to the device, which draws the same image as produced by resolve() but can be
     // useful if multiple operations need to be performed on the canvas.
     //
@@ -992,18 +1010,8 @@ public:
     // For internal data to be accessed by filter implementations
     virtual sk_sp<SkImage> getCachedBitmap(const SkBitmap& data) const = 0;
 
-    // For backend-optimized blurring implementations (TODO: Possibly replaced by a SkBlurEngine).
-    // The srcRect and dstRect are relative to (0,0) of 'input's logical image (which may have its
-    // own offset to backing data). The returned image should have a width and height equal to the
-    // dstRect's dimensions and its (0,0) pixel is assumed to be located at dstRect.topLeft().
-    virtual sk_sp<SkSpecialImage> blur(SkSize sigma,
-                                       sk_sp<SkSpecialImage> input,
-                                       SkIRect srcRect,
-                                       SkIRect dstRect,
-                                       sk_sp<SkColorSpace>) const = 0;
-
-    // Temporary, until SkBlurImageFilter always delegates to FilterResult::blur()
-    virtual bool isBlurSupported() const = 0;
+    // TODO: Once all Backends provide a blur engine, maybe just have Backend extend it.
+    virtual const SkBlurEngine* getBlurEngine() const = 0;
 
     // Properties controlling the pixel data for offscreen surfaces rendered to during filtering.
     const SkSurfaceProps& surfaceProps() const { return fSurfaceProps; }

@@ -17,7 +17,6 @@
 #include "include/core/SkTextureCompressionType.h"
 #include "include/core/SkTypes.h"
 #include "include/gpu/GpuTypes.h"
-#include "include/gpu/GrBackendSemaphore.h"
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrContextOptions.h"
 #include "include/gpu/GrDirectContext.h"
@@ -1279,7 +1278,7 @@ bool GrGLGpu::uploadCompressedTexData(SkTextureCompressionType compressionType,
                                                           dimensions.height(),
                                                           internalFormat,
                                                           SkToInt(levelDataSize),
-                                                          &((char*)data)[offset]));
+                                                          &((const char*)data)[offset]));
 
             if (error != GR_GL_NO_ERROR) {
                 return false;
@@ -1295,7 +1294,7 @@ bool GrGLGpu::uploadCompressedTexData(SkTextureCompressionType compressionType,
             size_t levelDataSize = SkCompressedDataSize(compressionType, dimensions,
                                                         nullptr, false);
 
-            const char* rawLevelData = &((char*)data)[offset];
+            const char* rawLevelData = &((const char*)data)[offset];
             GrGLenum error = GL_ALLOC_CALL(CompressedTexImage2D(target,
                                                                 level,
                                                                 internalFormat,
@@ -4327,11 +4326,10 @@ void GrGLGpu::deleteFence(GrFence fence) {
     return GrGLSemaphore::Make(this, isOwned);
 }
 
-std::unique_ptr<GrSemaphore> GrGLGpu::wrapBackendSemaphore(const GrBackendSemaphore& semaphore,
-                                                           GrSemaphoreWrapType /* wrapType */,
-                                                           GrWrapOwnership ownership) {
-    SkASSERT(this->caps()->semaphoreSupport());
-    return GrGLSemaphore::MakeWrapped(this, semaphore.glSync(), ownership);
+std::unique_ptr<GrSemaphore> GrGLGpu::wrapBackendSemaphore(const GrBackendSemaphore&,
+                                                           GrSemaphoreWrapType,
+                                                           GrWrapOwnership) {
+    SK_ABORT("Unsupported");
 }
 
 void GrGLGpu::insertSemaphore(GrSemaphore* semaphore) {

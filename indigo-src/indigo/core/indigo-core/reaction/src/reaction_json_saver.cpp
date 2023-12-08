@@ -17,11 +17,13 @@
  ***************************************************************************/
 
 #include <memory>
+#include <numeric>
 #include <vector>
 
 #include <rapidjson/document.h>
 
 #include "base_cpp/output.h"
+#include "layout/reaction_layout.h"
 #include "molecule/molecule_json_saver.h"
 #include "molecule/query_molecule.h"
 #include "reaction/reaction.h"
@@ -33,9 +35,39 @@ using namespace rapidjson;
 
 IMPL_ERROR(ReactionJsonSaver, "reaction KET saver");
 
+void ReactionJsonSaver::_fixLayout(BaseReaction& rxn)
+{
+    Vec2f rmax{Vec2f::min_coord(), Vec2f::min_coord()}, pmin{Vec2f::max_coord(), Vec2f::max_coord()};
+    Rect2f bb;
+    // Calculate rightTop of reactant bounding box
+    for (int i = rxn.reactantBegin(); i != rxn.reactantEnd(); i = rxn.reactantNext(i))
+    {
+        rxn.getBaseMolecule(i).getBoundingBox(bb);
+        rmax.max(bb.rightTop());
+    }
+
+    // Calculate leftBottom of product bounding box
+    for (int i = rxn.productBegin(); i != rxn.productEnd(); i = rxn.productNext(i))
+    {
+        rxn.getBaseMolecule(i).getBoundingBox(bb);
+        pmin.min(bb.leftBottom());
+    }
+
+    // if left side of product bb at left of right side of reactant bb - fix layout
+    if (rmax.x > pmin.x)
+    {
+        ReactionLayout rl(rxn, true);
+        rl.preserve_molecule_layout = true;
+        rl.make();
+    }
+}
+
 void ReactionJsonSaver::_getBounds(BaseMolecule& mol, Vec2f& min_vec, Vec2f& max_vec, float scale)
 {
-    mol.getBoundingBox(min_vec, max_vec);
+    Rect2f bbox;
+    mol.getBoundingBox(bbox);
+    min_vec.copy(bbox.leftBottom());
+    max_vec.copy(bbox.rightTop());
     min_vec.scale(scale);
     max_vec.scale(scale);
 }
@@ -61,95 +93,64 @@ void ReactionJsonSaver::saveReactionWithMetaData(BaseReaction& rxn, BaseMolecule
     _output.printf("%s", s.GetString());
 }
 
+static void _processSideBoxes(std::unique_ptr<BaseReaction>& reaction, BaseMolecule& merged, std::vector<Vec2f>& pluses, Rect2f& type_box, int side)
+{
+    int begin = reaction->sideBegin(side);
+    std::vector<Rect2f> boxes;
+
+    for (int i = begin; i != reaction->sideEnd(); i = reaction->sideNext(side, i))
+    {
+        BaseMolecule& mol = reaction->getBaseMolecule(i);
+        merged.mergeWithMolecule(mol, 0, 0);
+
+        Rect2f box;
+        mol.getBoundingBox(box);
+        if (i == begin)
+            type_box.copy(box);
+        else
+            type_box.extend(box);
+
+        if (side != BaseReaction::CATALYST)
+            boxes.emplace_back(box);
+    }
+
+    // For REACTANT and PRODUCT insert pluses between boxes
+    if (side != BaseReaction::CATALYST && boxes.size() > 1)
+    {
+        std::accumulate(std::next(boxes.begin()), boxes.end(), boxes[0], [&pluses](Rect2f left, Rect2f right) {
+            pluses.emplace_back(right.between_left_box(left), left.middleY());
+            return right;
+        });
+    }
+}
+
 void ReactionJsonSaver::saveReaction(BaseReaction& rxn, BaseMolecule& merged, MoleculeJsonSaver& json_saver)
 {
     std::vector<Vec2f> pluses;
-    Vec2f rmin(0, 0), rmax(0, 0), pmin(0, 0), pmax(0, 0), cmin(0, 0), cmax(0, 0);
+    Rect2f react_box, product_box, catalyst_box;
     bool last_single_reactant = false;
     bool first_single_product = false;
-
-    if (rxn.reactantsCount() > 0)
+    std::unique_ptr<BaseReaction> reaction(rxn.neu());
+    reaction->clone(rxn);
+    _fixLayout(*reaction);
+    if (reaction->reactantsCount() > 0)
     {
-        int rcount = 1;
-        for (int i = rxn.reactantBegin(); i != rxn.reactantEnd(); i = rxn.reactantNext(i))
+        _processSideBoxes(reaction, merged, pluses, react_box, BaseReaction::REACTANT);
+        for (int i = reaction->reactantBegin(); i != reaction->reactantEnd(); i = reaction->reactantNext(i))
         {
-            Vec2f min1, max1;
-            _getBounds(rxn.getBaseMolecule(i), min1, max1, 1.0);
-            merged.mergeWithMolecule(rxn.getBaseMolecule(i), 0, 0);
-
-            if (i == rxn.reactantBegin())
-            {
-                rmin = min1;
-                rmax = max1;
-            }
-            else
-            {
-                rmin.min(min1);
-                rmax.max(max1);
-            }
-
-            if (rcount < rxn.reactantsCount())
-            {
-                Vec2f min2, max2;
-                _getBounds(rxn.getBaseMolecule(rxn.reactantNext(i)), min2, max2, 1.0);
-                pluses.emplace_back((max1.x + min2.x) / 2, (min1.y + max1.y) / 2);
-                rcount++;
-            }
-            last_single_reactant = rxn.getBaseMolecule(i).vertexCount() == 1;
+            last_single_reactant = reaction->getBaseMolecule(i).vertexCount() == 1;
         }
     }
 
-    if (rxn.productsCount() > 0)
+    if (reaction->productsCount() > 0)
     {
-        int rcount = 1;
-        Vec2f min1, max1;
-
-        for (int i = rxn.productBegin(); i != rxn.productEnd(); i = rxn.productNext(i))
-        {
-            Vec2f min1, max1;
-            _getBounds(rxn.getBaseMolecule(i), min1, max1, 1.0);
-            merged.mergeWithMolecule(rxn.getBaseMolecule(i), 0, 0);
-
-            if (i == rxn.productBegin())
-            {
-                pmin = min1;
-                pmax = max1;
-                first_single_product = rxn.getBaseMolecule(i).vertexCount() == 1;
-            }
-            else
-            {
-                pmin.min(min1);
-                pmax.max(max1);
-            }
-
-            if (rcount < rxn.productsCount())
-            {
-                Vec2f min2, max2;
-                _getBounds(rxn.getBaseMolecule(rxn.productNext(i)), min2, max2, 1.0);
-                pluses.emplace_back((max1.x + min2.x) / 2, (min1.y + max1.y) / 2);
-                rcount++;
-            }
-        }
+        _processSideBoxes(reaction, merged, pluses, product_box, BaseReaction::PRODUCT);
+        first_single_product = reaction->getBaseMolecule(reaction->productBegin()).vertexCount() == 1;
     }
 
-    if (rxn.catalystCount() > 0)
+    if (reaction->catalystCount() > 0)
     {
-        for (int i = rxn.catalystBegin(); i != rxn.catalystEnd(); i = rxn.catalystNext(i))
-        {
-            Vec2f min1, max1;
-            _getBounds(rxn.getBaseMolecule(i), min1, max1, 1.0);
-            merged.mergeWithMolecule(rxn.getBaseMolecule(i), 0, 0);
-            if (i == rxn.catalystBegin())
-            {
-                cmin = min1;
-                cmax = max1;
-            }
-            else
-            {
-                cmin.min(min1);
-                cmax.max(max1);
-            }
-        }
+        _processSideBoxes(reaction, merged, pluses, catalyst_box, BaseReaction::CATALYST);
     }
 
     // dump molecules
@@ -180,39 +181,40 @@ void ReactionJsonSaver::saveReaction(BaseReaction& rxn, BaseMolecule& merged, Mo
     // calculate arrow
     Vec2f arrow_head(0, 0);
     Vec2f arrow_tail(0, 0);
-    if (rxn.reactantsCount() || rxn.productsCount())
+    if (reaction->reactantsCount() || reaction->productsCount())
     {
-        if (rxn.productsCount() == 0)
+        constexpr float shift = 1.0f;
+        if (reaction->productsCount() == 0)
         {
-            arrow_tail.x = rmax.x + 1.0f;
-            arrow_tail.y = (rmin.y + rmax.y) / 2;
-            arrow_head.x = arrow_tail.x + 1.0f;
+            arrow_tail.x = react_box.right() + shift;
+            arrow_tail.y = react_box.middleY();
+            arrow_head.x = arrow_tail.x + shift;
             arrow_head.y = arrow_tail.y;
         }
-        else if (rxn.reactantsCount() == 0)
+        else if (reaction->reactantsCount() == 0)
         {
-            arrow_head.x = pmin.x - 1.0f;
-            arrow_head.y = (pmin.y + pmax.y) / 2;
-            arrow_tail.x = arrow_head.x - 1.0f;
+            arrow_head.x = product_box.left() - shift;
+            arrow_head.y = product_box.middleY();
+            arrow_tail.x = arrow_head.x - shift;
             arrow_tail.y = arrow_head.y;
         }
         else
         {
-            double ptab = first_single_product ? 2.0f : 1.0;
-            double rtab = last_single_reactant ? 2.0f : 1.0;
+            const float ptab = first_single_product ? 2.0f : 1.0f;
+            const float rtab = last_single_reactant ? 2.0f : 1.0f;
 
-            arrow_head.y = (pmin.y + pmax.y) / 2;
-            arrow_tail.y = (rmin.y + rmax.y) / 2;
+            arrow_head.y = product_box.middleY();
+            arrow_tail.y = react_box.middleY();
 
-            if (pmin.x > rmax.x)
+            if (product_box.left() > react_box.right())
             {
-                arrow_head.x = pmin.x - ptab;
-                arrow_tail.x = rmax.x + rtab;
+                arrow_head.x = product_box.left() - ptab;
+                arrow_tail.x = react_box.right() + rtab;
             }
             else
             {
-                arrow_head.x = rmax.x + rtab;
-                arrow_tail.x = pmin.x - ptab;
+                arrow_head.x = react_box.right() + rtab;
+                arrow_tail.x = product_box.left() - ptab;
             }
         }
 

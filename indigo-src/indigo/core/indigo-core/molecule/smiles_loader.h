@@ -65,6 +65,7 @@ namespace indigo
         StereocentersOptions stereochemistry_options;
         bool ignore_cistrans_errors;
         bool ignore_bad_valence;
+        bool ignore_no_chiral_flag{false};
 
     protected:
         enum
@@ -110,6 +111,7 @@ namespace indigo
 
         struct _BondDesc
         {
+            _BondDesc();
             int beg;
             int end;
             int type;
@@ -154,6 +156,8 @@ namespace indigo
         int _balance;
         int _current_compno;
         bool _inside_smarts_component;
+        bool _has_atom_coordinates = false;
+        bool _has_directions_on_rings = false;
 
         BaseMolecule* _bmol;
         QueryMolecule* _qmol;
@@ -162,6 +166,7 @@ namespace indigo
         void _loadMolecule();
         void _parseMolecule();
         void _loadParsedMolecule();
+        void _validateStereoCenters();
 
         void _calcStereocenters();
         void _calcCisTrans();

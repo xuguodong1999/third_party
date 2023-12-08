@@ -8,6 +8,7 @@
 #include "src/core/SkPictureData.h"
 
 #include "include/core/SkFlattenable.h"
+#include "include/core/SkFontMgr.h"
 #include "include/core/SkSerialProcs.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkString.h"
@@ -344,13 +345,22 @@ bool SkPictureData::parseStreamTag(SkStream* stream,
                 sk_sp<SkTypeface> tf;
                 if (procs.fTypefaceProc) {
                     tf = procs.fTypefaceProc(&stream, sizeof(stream), procs.fTypefaceCtx);
-                } else {
-                    tf = SkTypeface::MakeDeserialize(stream);
+                }
+                else {
+#if !defined(SK_DISABLE_LEGACY_FONTMGR_REFDEFAULT)
+                    tf = SkTypeface::MakeDeserialize(stream, SkFontMgr::RefDefault());
+#else
+                    tf = SkTypeface::MakeDeserialize(stream, nullptr);
+#endif
                 }
                 if (!tf) {    // failed to deserialize
                     // fTFPlayback asserts it never has a null, so we plop in
-                    // the default here.
+                    // a default here.
+#if !defined(SK_DISABLE_LEGACY_DEFAULT_TYPEFACE)
                     tf = SkTypeface::MakeDefault();
+#else
+                    tf = SkTypeface::MakeEmpty();
+#endif
                 }
                 fTFPlayback[i] = std::move(tf);
             }

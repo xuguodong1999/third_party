@@ -26,6 +26,8 @@ namespace indigo
     const char kCDXReserved[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     const float kColorMult = ((1 << 16) - 1);
     const float kCDXMLFonsSizeMultiplier = 1.5;
+    const std::uint16_t KCDXMLFontStyleSubscript = 0x20;
+    const std::uint16_t KCDXMLFontStyleSuperscript = 0x40;
 
 #pragma pack(push, 1)
 
@@ -713,6 +715,10 @@ namespace indigo
         {kCDXProp_ChemicalPropertyHenrysLaw, {"ChemPropHenry", ECDXType::CDXString}},
         {kCDXProp_ChemicalPropertyHeatOfForm, {"ChemPropEForm", ECDXType::CDXString}},
         {kCDXProp_ChemicalPropertytPSA, {"ChemProptPSA", ECDXType::CDXString}},
+        {kCDXProp_ChemicalPropertyCLogP, {"ChemPropCLogP", ECDXType::CDXString}},
+        {kCDXProp_ChemicalPropertyCMR, {"ChemPropCMR", ECDXType::CDXString}},
+        {kCDXProp_ChemicalPropertyLogS, {"ChemPropLogS", ECDXType::CDXString}},
+        {kCDXProp_ChemicalPropertyPKa, {"ChemPropPKa", ECDXType::CDXString}},
         {kCDXProp_ChemicalPropertyID, {"ChemPropID", ECDXType::CDXString}},
         {kCDXProp_ChemicalPropertyFragmentLabel, {"ChemPropFragmentLabel", ECDXType::CDXString}},
         {kCDXProp_ReactionStep_Atom_Map, {"ReactionStepAtomMap", ECDXType::CDXObjectIDArray}},
@@ -1011,6 +1017,10 @@ namespace indigo
         {"ChemPropHenry", {kCDXProp_ChemicalPropertyHenrysLaw, ECDXType::CDXString}},
         {"ChemPropEForm", {kCDXProp_ChemicalPropertyHeatOfForm, ECDXType::CDXString}},
         {"ChemProptPSA", {kCDXProp_ChemicalPropertytPSA, ECDXType::CDXString}},
+        {"ChemPropCLogP", {kCDXProp_ChemicalPropertyCLogP, ECDXType::CDXString}},
+        {"ChemPropCMR", {kCDXProp_ChemicalPropertyCMR, ECDXType::CDXString}},
+        {"ChemPropLogS", {kCDXProp_ChemicalPropertyLogS, ECDXType::CDXString}},
+        {"ChemPropPKa", {kCDXProp_ChemicalPropertyPKa, ECDXType::CDXString}},
         {"ChemPropID", {kCDXProp_ChemicalPropertyID, ECDXType::CDXString}},
         {"ChemPropFragmentLabel", {kCDXProp_ChemicalPropertyFragmentLabel, ECDXType::CDXString}},
         {"ReactionStepAtomMap", {kCDXProp_ReactionStep_Atom_Map, ECDXType::CDXObjectIDArray}},

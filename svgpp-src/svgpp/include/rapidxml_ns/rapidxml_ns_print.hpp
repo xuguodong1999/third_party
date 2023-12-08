@@ -28,10 +28,10 @@ namespace rapidxml_ns
     //! \cond internal
     namespace internal
     {
-        
+
         ///////////////////////////////////////////////////////////////////////////
         // Internal character operations
-    
+
         // Copy characters from given range to given output iterator
         template<class OutIt, class Ch>
         inline OutIt copy_chars(const Ch *begin, const Ch *end, OutIt out)
@@ -40,7 +40,7 @@ namespace rapidxml_ns
                 *out++ = *begin++;
             return out;
         }
-        
+
         // Copy characters from given range to given output iterator and expand
         // characters into references (&lt; &gt; &apos; &quot; &amp;)
         template<class OutIt, class Ch>
@@ -59,17 +59,17 @@ namespace rapidxml_ns
                     case Ch('<'):
                         *out++ = Ch('&'); *out++ = Ch('l'); *out++ = Ch('t'); *out++ = Ch(';');
                         break;
-                    case Ch('>'): 
+                    case Ch('>'):
                         *out++ = Ch('&'); *out++ = Ch('g'); *out++ = Ch('t'); *out++ = Ch(';');
                         break;
-                    case Ch('\''): 
+                    case Ch('\''):
                         *out++ = Ch('&'); *out++ = Ch('a'); *out++ = Ch('p'); *out++ = Ch('o'); *out++ = Ch('s'); *out++ = Ch(';');
                         break;
-                    case Ch('"'): 
+                    case Ch('"'):
                         *out++ = Ch('&'); *out++ = Ch('q'); *out++ = Ch('u'); *out++ = Ch('o'); *out++ = Ch('t'); *out++ = Ch(';');
                         break;
-                    case Ch('&'): 
-                        *out++ = Ch('&'); *out++ = Ch('a'); *out++ = Ch('m'); *out++ = Ch('p'); *out++ = Ch(';'); 
+                    case Ch('&'):
+                        *out++ = Ch('&'); *out++ = Ch('a'); *out++ = Ch('m'); *out++ = Ch('p'); *out++ = Ch(';');
                         break;
                     default:
                         *out++ = *begin;    // No expansion, copy character
@@ -101,7 +101,7 @@ namespace rapidxml_ns
 
         ///////////////////////////////////////////////////////////////////////////
         // Internal printing operations
-   
+
         // Printing function declarations (fix for clang bug in gcc and others: http://sourceforge.net/p/rapidxml/bugs/16/)
 
         template<class OutIt, class Ch> inline OutIt print_children(OutIt out, const xml_node<Ch> *node, int flags, int indent);
@@ -112,7 +112,7 @@ namespace rapidxml_ns
         template<class OutIt, class Ch> inline OutIt print_comment_node(OutIt out, const xml_node<Ch> *node, int flags, int indent);
         template<class OutIt, class Ch> inline OutIt print_doctype_node(OutIt out, const xml_node<Ch> *node, int flags, int indent);
         template<class OutIt, class Ch> inline OutIt print_pi_node(OutIt out, const xml_node<Ch> *node, int flags, int indent);
- 
+
         // Print node
         template<class OutIt, class Ch>
         inline OutIt print_node(OutIt out, const xml_node<Ch> *node, int flags, int indent)
@@ -130,12 +130,12 @@ namespace rapidxml_ns
             case node_element:
                 out = print_element_node(out, node, flags, indent);
                 break;
-            
+
             // Data
             case node_data:
                 out = print_data_node(out, node, flags, indent);
                 break;
-            
+
             // CDATA
             case node_cdata:
                 out = print_cdata_node(out, node, flags, indent);
@@ -150,7 +150,7 @@ namespace rapidxml_ns
             case node_comment:
                 out = print_comment_node(out, node, flags, indent);
                 break;
-            
+
             // Doctype
             case node_doctype:
                 out = print_doctype_node(out, node, flags, indent);
@@ -166,7 +166,7 @@ namespace rapidxml_ns
                 assert(0);
                 break;
             }
-            
+
             // If indenting not disabled, add line break after node
             if (!(flags & print_no_indenting))
                 *out = Ch('\n'), ++out;
@@ -174,8 +174,8 @@ namespace rapidxml_ns
             // Return modified iterator
             return out;
         }
-        
-        // Print children of the node                               
+
+        // Print children of the node
         template<class OutIt, class Ch>
         inline OutIt print_children(OutIt out, const xml_node<Ch> *node, int flags, int indent)
         {
@@ -260,7 +260,7 @@ namespace rapidxml_ns
             *out = Ch('<'), ++out;
             out = copy_chars(node->name(), node->name() + node->name_size(), out);
             out = print_attributes(out, node, flags);
-            
+
             // If node is childless
             if (node->value_size() == 0 && !node->first_node())
             {
@@ -319,11 +319,11 @@ namespace rapidxml_ns
 
             // Print attributes
             out = print_attributes(out, node, flags);
-            
+
             // Print declaration end
             *out = Ch('?'), ++out;
             *out = Ch('>'), ++out;
-            
+
             return out;
         }
 
@@ -395,7 +395,7 @@ namespace rapidxml_ns
     //! \param node Node to be printed. Pass xml_document to print entire document.
     //! \param flags Flags controlling how XML is printed.
     //! \return Output iterator pointing to position immediately after last character of printed text.
-    template<class OutIt, class Ch> 
+    template<class OutIt, class Ch>
     inline OutIt print(OutIt out, const xml_node<Ch> &node, int flags = 0)
     {
         return internal::print_node(out, &node, flags, 0);
@@ -408,7 +408,7 @@ namespace rapidxml_ns
     //! \param node Node to be printed. Pass xml_document to print entire document.
     //! \param flags Flags controlling how XML is printed.
     //! \return Output stream.
-    template<class Ch> 
+    template<class Ch>
     inline std::basic_ostream<Ch> &print(std::basic_ostream<Ch> &out, const xml_node<Ch> &node, int flags = 0)
     {
         print(std::ostream_iterator<Ch>(out), node, flags);
@@ -419,7 +419,7 @@ namespace rapidxml_ns
     //! \param out Output stream to print to.
     //! \param node Node to be printed.
     //! \return Output stream.
-    template<class Ch> 
+    template<class Ch>
     inline std::basic_ostream<Ch> &operator <<(std::basic_ostream<Ch> &out, const xml_node<Ch> &node)
     {
         return print(out, node);

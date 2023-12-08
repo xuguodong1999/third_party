@@ -8,7 +8,6 @@
 #include <spdlog/details/null_mutex.h>
 #include <spdlog/details/file_helper-inl.h>
 #include <spdlog/sinks/basic_file_sink-inl.h>
-#include <spdlog/sinks/base_sink-inl.h>
 
 #include <mutex>
 

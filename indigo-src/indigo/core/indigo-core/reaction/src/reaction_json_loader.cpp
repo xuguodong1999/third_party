@@ -37,11 +37,6 @@ ReactionJsonLoader::ReactionJsonLoader(Document& ket)
     : _loader(ket), _molecule(kArrayType), _prxn(nullptr), _pqrxn(nullptr), ignore_noncritical_query_features(false)
 {
     ignore_bad_valence = false;
-
-    _loader.stereochemistry_options = stereochemistry_options;
-    _loader.ignore_noncritical_query_features = ignore_noncritical_query_features;
-    _loader.treat_x_as_pseudoatom = treat_x_as_pseudoatom;
-    _loader.ignore_no_chiral_flag = ignore_no_chiral_flag;
 }
 
 ReactionJsonLoader::~ReactionJsonLoader()
@@ -50,6 +45,11 @@ ReactionJsonLoader::~ReactionJsonLoader()
 
 void ReactionJsonLoader::loadReaction(BaseReaction& rxn)
 {
+    _loader.stereochemistry_options = stereochemistry_options;
+    _loader.ignore_noncritical_query_features = ignore_noncritical_query_features;
+    _loader.treat_x_as_pseudoatom = treat_x_as_pseudoatom;
+    _loader.ignore_no_chiral_flag = ignore_no_chiral_flag;
+
     if (rxn.isQueryReaction())
         _pqrxn = &rxn.asQueryReaction();
     else
@@ -232,16 +232,7 @@ void ReactionJsonLoader::parseMultipleArrowReaction(BaseReaction& rxn)
         BaseMolecule& mol = *component;
         mol.makeSubmolecule(*_pmol, filter, 0, 0);
         Rect2f bbox;
-        mol.getBoundingBox(bbox);
-
-        if (bbox.width() < MIN_MOL_SIZE.x || bbox.height() < MIN_MOL_SIZE.y)
-        {
-            Vec2f center(bbox.center());
-            const auto hw = std::max(bbox.width() / 2, MIN_MOL_SIZE.x / 2);
-            const auto hh = std::max(bbox.height() / 2, MIN_MOL_SIZE.y / 2);
-            Rect2f new_bbox(Vec2f(center.x - hw, center.y - hh), Vec2f(center.x + hw, center.y + hh));
-            bbox.copy(new_bbox);
-        }
+        mol.getBoundingBox(bbox, MIN_MOL_SIZE);
 
         mol_tops.emplace_back(bbox.top(), i);
         mol_bottoms.emplace_back(bbox.bottom(), i);

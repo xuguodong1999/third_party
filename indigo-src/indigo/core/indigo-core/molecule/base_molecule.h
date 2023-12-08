@@ -19,7 +19,11 @@
 #ifndef __base_molecule__
 #define __base_molecule__
 
+#include <map>
+#include <set>
+
 #include "base_cpp/obj_array.h"
+#include "base_cpp/properties_map.h"
 #include "base_cpp/red_black.h"
 #include "graph/graph.h"
 #include "math/algebra.h"
@@ -34,8 +38,6 @@
 #include "molecule/molecule_standardize.h"
 #include "molecule/molecule_stereocenters.h"
 #include "molecule/molecule_tgroups.h"
-#include <map>
-#include <set>
 
 #ifdef _WIN32
 #pragma warning(push)
@@ -114,6 +116,12 @@ namespace indigo
         {
             return _meta;
         }
+
+        RedBlackObjMap<int, PropertiesMap>& properties()
+        {
+            return _properties;
+        }
+
         // Casting methods. Invalid casting throws exceptions.
         virtual Molecule& asMolecule();
         virtual QueryMolecule& asQueryMolecule();
@@ -187,7 +195,6 @@ namespace indigo
         void removeAttachmentPointsFromAtom(int atom_index);
         int attachmentPointCount() const;
         void removeAttachmentPoints();
-
         void getAttachmentIndicesForAtom(int atom_idx, Array<int>& res);
 
         virtual bool isSaturatedAtom(int idx) = 0;
@@ -239,6 +246,7 @@ namespace indigo
         void clearCIP();
         CIPDesc getAtomCIP(int atom_idx);
         CIPDesc getBondCIP(int bond_idx);
+
         void setAtomCIP(int atom_idx, CIPDesc cip);
         void setBondCIP(int bond_idx, CIPDesc cip);
 
@@ -326,6 +334,7 @@ namespace indigo
         void clone_KeepIndices(BaseMolecule& other, int skip_flags = 0);
 
         void mergeWithMolecule(BaseMolecule& other, Array<int>* mapping, int skip_flags = 0);
+        void copyProperties(BaseMolecule& other, const Array<int>& mapping);
 
         void removeAtoms(const Array<int>& indices);
         void removeAtoms(const Filter& filter);
@@ -409,6 +418,7 @@ namespace indigo
         const int* getPyramidStereocenters(int idx) const;
         void markBondsStereocenters();
         void markBondStereocenters(int atom_idx);
+        bool hasAtropoStereoBonds();
 
         void addStereocenters(int atom_idx, int type, int group, const int pyramid[4]);
         void addStereocenters(int atom_idx, int type, int group, bool inverse_pyramid);
@@ -420,6 +430,8 @@ namespace indigo
         void buildFromBondsStereocenters(const StereocentersOptions& options, int* sensible_bonds_out);
         void buildFrom3dCoordinatesStereocenters(const StereocentersOptions& options);
         bool isPossibleStereocenter(int atom_idx, bool* possible_implicit_h = 0, bool* possible_lone_pair = 0);
+        bool isPossibleAtropocenter(int atom_idx, int& possible_atropo_bond);
+
         void buildOnSubmoleculeStereocenters(const BaseMolecule& super, int* mapping);
 
         // proxy methods for cis_trans
@@ -442,7 +454,14 @@ namespace indigo
 
         // calc bounding box
         void getBoundingBox(Rect2f& bbox) const;
+        void getBoundingBox(Rect2f& bbox, const Vec2f& minbox) const;
         void getBoundingBox(Vec2f& a, Vec2f& b) const;
+
+        // aliases
+        bool isAlias(int atom_idx) const;
+        const char* getAlias(int atom_idx) const;
+        void setAlias(int atom_idx, const char* alias);
+        void removeAlias(int atom_idx);
 
         DECL_ERROR;
 
@@ -510,6 +529,9 @@ namespace indigo
         int _edit_revision;
 
         MetaDataStorage _meta;
+
+        RedBlackObjMap<int, Array<char>> aliases;
+        RedBlackObjMap<int, PropertiesMap> _properties;
     };
 
 } // namespace indigo

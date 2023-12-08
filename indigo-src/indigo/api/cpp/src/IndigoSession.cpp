@@ -30,7 +30,7 @@
 
 using namespace indigo_cpp;
 
-//#define INDIGO_CPP_DEBUG
+// #define INDIGO_CPP_DEBUG
 
 #ifdef INDIGO_CPP_DEBUG
 #include <iostream>
@@ -64,11 +64,11 @@ unsigned long long IndigoSession::getSessionId() const
 
 void IndigoSession::setSessionId() const
 {
-    //#ifdef INDIGO_CPP_DEBUG
-    //    std::stringstream ss;
-    //    ss << "T_" << std::this_thread::get_id() << ": IndigoSession::_setSessionId(" << id << ")\n";
-    //    std:: cout << ss.str();
-    //#endif
+    // #ifdef INDIGO_CPP_DEBUG
+    //     std::stringstream ss;
+    //     ss << "T_" << std::this_thread::get_id() << ": IndigoSession::_setSessionId(" << id << ")\n";
+    //     std:: cout << ss.str();
+    // #endif
     indigoSetSessionId(id);
 }
 
@@ -142,6 +142,12 @@ std::string IndigoSession::version() const
     return _checkResultString(indigoVersion());
 }
 
+std::string IndigoSession::versionInfo() const
+{
+    setSessionId();
+    return _checkResultString(indigoVersionInfo());
+}
+
 IndigoMolecule IndigoSession::loadMolecule(const std::string& data)
 {
     setSessionId();
@@ -199,4 +205,10 @@ IndigoReaction IndigoSession::loadReaction(const std::string& data)
 {
     setSessionId();
     return {_checkResult(indigoLoadReactionFromString(data.c_str())), shared_from_this()};
+}
+
+IndigoReaction IndigoSession::loadQueryReaction(const std::string& data)
+{
+    setSessionId();
+    return {_checkResult(indigoLoadQueryReactionFromString(data.c_str())), shared_from_this()};
 }

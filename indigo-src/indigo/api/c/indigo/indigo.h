@@ -44,7 +44,8 @@ extern "C" {
 
 /* System */
 
-INDIGO_EXPORT const char *indigoVersion();
+INDIGO_EXPORT const char* indigoVersion();
+INDIGO_EXPORT const char* indigoVersionInfo();
 
 // Allocate a new session. Each session has its own
 // set of objects created and options set up.
@@ -351,6 +352,7 @@ INDIGO_EXPORT int indigoIterateAlleneCenters(int molecule);
 INDIGO_EXPORT int indigoIterateRGroups(int molecule);
 
 INDIGO_EXPORT int indigoCountRGroups(int molecule);
+INDIGO_EXPORT int indigoCopyRGroups(int molecule_from, int molecule_to);
 
 INDIGO_EXPORT int indigoIsPseudoatom(int atom);
 INDIGO_EXPORT int indigoIsRSite(int atom);

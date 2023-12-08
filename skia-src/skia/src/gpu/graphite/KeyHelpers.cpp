@@ -424,14 +424,30 @@ void LocalMatrixShaderBlock::BeginBlock(const KeyContext& keyContext,
 
 namespace {
 
-void add_color_space_uniforms(const SkColorSpaceXformSteps& steps, PipelineDataGatherer* gatherer) {
+static constexpr int kColorSpaceXformFlagAlphaSwizzle = 0x20;
+
+void add_color_space_uniforms(const SkColorSpaceXformSteps& steps,
+                              ReadSwizzle readSwizzle,
+                              PipelineDataGatherer* gatherer) {
     // We have 7 source coefficients and 7 destination coefficients. We pass them via a 4x4 matrix;
     // the first two columns hold the source values, and the second two hold the destination.
     // (The final value of each 8-element group is ignored.)
     // In std140, this arrangement is much more efficient than a simple array of scalars.
     SkM44 coeffs;
 
-    gatherer->write(SkTo<int>(steps.flags.mask()));
+    int colorXformFlags = SkTo<int>(steps.flags.mask());
+    if (readSwizzle != ReadSwizzle::kRGBA) {
+        // Ensure that we do the gamut step
+        SkColorSpaceXformSteps gamutSteps;
+        gamutSteps.flags.gamut_transform = true;
+        colorXformFlags |= SkTo<int>(gamutSteps.flags.mask());
+        if (readSwizzle != ReadSwizzle::kBGRA) {
+            // TODO: Maybe add a fullMask() method to XformSteps?
+            SkASSERT(colorXformFlags < kColorSpaceXformFlagAlphaSwizzle);
+            colorXformFlags |= kColorSpaceXformFlagAlphaSwizzle;
+        }
+    }
+    gatherer->write(colorXformFlags);
 
     if (steps.flags.linearize) {
         gatherer->write(SkTo<int>(skcms_TransferFunction_getType(&steps.srcTF)));
@@ -442,9 +458,26 @@ void add_color_space_uniforms(const SkColorSpaceXformSteps& steps, PipelineDataG
     }
 
     SkMatrix gamutTransform;
-    if (steps.flags.gamut_transform) {
-        // TODO: it seems odd to copy this into an SkMatrix just to write it to the gatherer
-        gamutTransform.set9(steps.src_to_dst_matrix);
+    const float identity[] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+    // TODO: it seems odd to copy this into an SkMatrix just to write it to the gatherer
+    // src_to_dst_matrix is column-major, SkMatrix is row-major.
+    const float* m = steps.flags.gamut_transform ? steps.src_to_dst_matrix : identity;
+    if (readSwizzle == ReadSwizzle::kRRR1) {
+        gamutTransform.setAll(m[0] + m[3] + m[6], 0, 0,
+                              m[1] + m[4] + m[7], 0, 0,
+                              m[2] + m[5] + m[8], 0, 0);
+    } else if (readSwizzle == ReadSwizzle::kBGRA) {
+        gamutTransform.setAll(m[6], m[3], m[0],
+                              m[7], m[4], m[1],
+                              m[8], m[5], m[2]);
+    } else if (readSwizzle == ReadSwizzle::k000R) {
+        gamutTransform.setAll(0, 0, 0,
+                              0, 0, 0,
+                              0, 0, 0);
+    } else if (steps.flags.gamut_transform) {
+        gamutTransform.setAll(m[0], m[3], m[6],
+                              m[1], m[4], m[7],
+                              m[2], m[5], m[8]);
     }
     gatherer->writeHalf(gamutTransform);
 
@@ -456,6 +489,23 @@ void add_color_space_uniforms(const SkColorSpaceXformSteps& steps, PipelineDataG
         gatherer->write(SkTo<int>(skcms_TFType::skcms_TFType_Invalid));
     }
 
+    // Pack alpha swizzle in the unused coeff entries.
+    switch (readSwizzle) {
+        case ReadSwizzle::k000R:
+            coeffs.setRC(3, 1, 1.f);
+            coeffs.setRC(3, 3, 0.f);
+            break;
+        case ReadSwizzle::kRGB1:
+        case ReadSwizzle::kRRR1:
+            coeffs.setRC(3, 1, 0.f);
+            coeffs.setRC(3, 3, 1.f);
+            break;
+        default:
+            coeffs.setRC(3, 1, 0.f);
+            coeffs.setRC(3, 3, 0.f);
+            break;
+    }
+
     gatherer->writeHalf(coeffs);
 }
 
@@ -465,14 +515,13 @@ void add_image_uniform_data(const ShaderCodeDictionary* dict,
     SkASSERT(!imgData.fSampling.useCubic);
     VALIDATE_UNIFORMS(gatherer, dict, BuiltInCodeSnippetID::kImageShader)
 
-    gatherer->write(SkSize::Make(imgData.fImgSize));
+    gatherer->write(SkSize::Make(1.f/imgData.fImgSize.width(), 1.f/imgData.fImgSize.height()));
     gatherer->write(imgData.fSubset);
     gatherer->write(SkTo<int>(imgData.fTileModes[0]));
     gatherer->write(SkTo<int>(imgData.fTileModes[1]));
     gatherer->write(SkTo<int>(imgData.fSampling.filter));
-    gatherer->write(SkTo<int>(imgData.fReadSwizzle));
 
-    add_color_space_uniforms(imgData.fSteps, gatherer);
+    add_color_space_uniforms(imgData.fSteps, imgData.fReadSwizzle, gatherer);
 }
 
 void add_cubic_image_uniform_data(const ShaderCodeDictionary* dict,
@@ -481,15 +530,25 @@ void add_cubic_image_uniform_data(const ShaderCodeDictionary* dict,
     SkASSERT(imgData.fSampling.useCubic);
     VALIDATE_UNIFORMS(gatherer, dict, BuiltInCodeSnippetID::kCubicImageShader)
 
-    gatherer->write(SkSize::Make(imgData.fImgSize));
+    gatherer->write(SkSize::Make(1.f/imgData.fImgSize.width(), 1.f/imgData.fImgSize.height()));
     gatherer->write(imgData.fSubset);
     gatherer->write(SkTo<int>(imgData.fTileModes[0]));
     gatherer->write(SkTo<int>(imgData.fTileModes[1]));
     const SkCubicResampler& cubic = imgData.fSampling.cubic;
     gatherer->writeHalf(SkImageShader::CubicResamplerMatrix(cubic.B, cubic.C));
-    gatherer->write(SkTo<int>(imgData.fReadSwizzle));
 
-    add_color_space_uniforms(imgData.fSteps, gatherer);
+    add_color_space_uniforms(imgData.fSteps, imgData.fReadSwizzle, gatherer);
+}
+
+void add_hw_image_uniform_data(const ShaderCodeDictionary* dict,
+                               const ImageShaderBlock::ImageData& imgData,
+                               PipelineDataGatherer* gatherer) {
+    SkASSERT(!imgData.fSampling.useCubic);
+    VALIDATE_UNIFORMS(gatherer, dict, BuiltInCodeSnippetID::kHWImageShader)
+
+    gatherer->write(SkSize::Make(1.f/imgData.fImgSize.width(), 1.f/imgData.fImgSize.height()));
+
+    add_color_space_uniforms(imgData.fSteps, imgData.fReadSwizzle, gatherer);
 }
 
 } // anonymous namespace
@@ -508,6 +567,14 @@ ImageShaderBlock::ImageData::ImageData(const SkSamplingOptions& sampling,
     SkASSERT(fSteps.flags.mask() == 0);   // By default, the colorspace should have no effect
 }
 
+static bool can_do_tiling_in_hw(const Caps* caps, const ImageShaderBlock::ImageData& imgData) {
+    if (!caps->clampToBorderSupport() && (imgData.fTileModes[0] == SkTileMode::kDecal ||
+                                          imgData.fTileModes[1] == SkTileMode::kDecal)) {
+        return false;
+    }
+    return imgData.fSubset.contains(SkRect::Make(imgData.fImgSize));
+}
+
 void ImageShaderBlock::AddBlock(const KeyContext& keyContext,
                                 PaintParamsKeyBuilder* builder,
                                 PipelineDataGatherer* gatherer,
@@ -518,9 +585,18 @@ void ImageShaderBlock::AddBlock(const KeyContext& keyContext,
         return;
     }
 
-    gatherer->add(imgData.fSampling, imgData.fTileModes, imgData.fTextureProxy);
+    const Caps* caps = keyContext.caps();
+    const bool doTilingInHw = !imgData.fSampling.useCubic && can_do_tiling_in_hw(caps, imgData);
 
-    if (imgData.fSampling.useCubic) {
+    static constexpr SkTileMode kDefaultTileModes[2] = {SkTileMode::kClamp, SkTileMode::kClamp};
+    gatherer->add(imgData.fSampling,
+                  doTilingInHw ? imgData.fTileModes : kDefaultTileModes,
+                  imgData.fTextureProxy);
+
+    if (doTilingInHw) {
+        add_hw_image_uniform_data(keyContext.dict(), imgData, gatherer);
+        builder->addBlock(BuiltInCodeSnippetID::kHWImageShader);
+    } else if (imgData.fSampling.useCubic) {
         add_cubic_image_uniform_data(keyContext.dict(), imgData, gatherer);
         builder->addBlock(BuiltInCodeSnippetID::kCubicImageShader);
     } else {
@@ -539,7 +615,7 @@ void add_yuv_image_uniform_data(const ShaderCodeDictionary* dict,
                                 PipelineDataGatherer* gatherer) {
     VALIDATE_UNIFORMS(gatherer, dict, BuiltInCodeSnippetID::kYUVImageShader)
 
-    gatherer->write(SkSize::Make(imgData.fImgSize));
+    gatherer->write(SkSize::Make(1.f/imgData.fImgSize.width(), 1.f/imgData.fImgSize.height()));
     gatherer->write(imgData.fSubset);
     gatherer->write(SkTo<int>(imgData.fTileModes[0]));
     gatherer->write(SkTo<int>(imgData.fTileModes[1]));
@@ -558,7 +634,7 @@ void add_yuv_image_uniform_data(const ShaderCodeDictionary* dict,
     gatherer->writeHalf(imgData.fYUVtoRGBMatrix);
     gatherer->write(imgData.fYUVtoRGBTranslate);
 
-    add_color_space_uniforms(imgData.fSteps, gatherer);
+    add_color_space_uniforms(imgData.fSteps, ReadSwizzle::kRGBA, gatherer);
 }
 
 } // anonymous namespace
@@ -783,7 +859,7 @@ void add_color_space_xform_uniform_data(
         PipelineDataGatherer* gatherer) {
 
     VALIDATE_UNIFORMS(gatherer, dict, BuiltInCodeSnippetID::kColorSpaceXformColorFilter)
-    add_color_space_uniforms(data.fSteps, gatherer);
+    add_color_space_uniforms(data.fSteps, ReadSwizzle::kRGBA, gatherer);
 }
 
 }  // anonymous namespace
@@ -1213,10 +1289,10 @@ static void add_to_key(const KeyContext& keyContext,
     SkASSERT(shader);
 
     Compose(keyContext, builder, gatherer,
-            /* emitInnerToKey= */ [&]() -> void {
+            /* addInnerToKey= */ [&]() -> void {
                 AddToKey(keyContext, builder, gatherer, shader->shader().get());
             },
-            /* emitOuterToKey= */ [&]() -> void {
+            /* addOuterToKey= */ [&]() -> void {
                 AddToKey(keyContext, builder, gatherer, shader->filter().get());
             });
 }
@@ -1319,8 +1395,6 @@ static skgpu::graphite::ReadSwizzle swizzle_class_to_read_enum(const skgpu::Swiz
         return skgpu::graphite::ReadSwizzle::kRGBA;
     } else if (swizzle == skgpu::Swizzle::RGB1()) {
         return skgpu::graphite::ReadSwizzle::kRGB1;
-    } else if (swizzle == skgpu::Swizzle("rrrr")) {
-        return skgpu::graphite::ReadSwizzle::kRRRR;
     } else if (swizzle == skgpu::Swizzle("rrr1")) {
         return skgpu::graphite::ReadSwizzle::kRRR1;
     } else if (swizzle == skgpu::Swizzle::BGRA()) {
@@ -1736,13 +1810,15 @@ static void add_gradient_to_key(const KeyContext& keyContext,
                                 float scale) {
     SkColor4fXformer xformedColors(shader, keyContext.dstColorInfo().colorSpace());
     const SkPMColor4f* colors = xformedColors.fColors.begin();
+    const float* positions = xformedColors.fPositions;
+    const int colorCount = xformedColors.fColors.size();
 
     sk_sp<TextureProxy> proxy;
 
-    if (shader->getColorCount() > GradientShaderBlocks::GradientData::kNumInternalStorageStops) {
+    if (colorCount > GradientShaderBlocks::GradientData::kNumInternalStorageStops) {
         if (shader->cachedBitmap().empty()) {
-            SkBitmap colorsAndOffsetsBitmap = create_color_and_offset_bitmap(
-                    shader->getColorCount(), colors, shader->getPositions());
+            SkBitmap colorsAndOffsetsBitmap =
+                    create_color_and_offset_bitmap(colorCount, colors, positions);
             if (colorsAndOffsetsBitmap.empty()) {
                 SKGPU_LOG_W("Couldn't create GradientShader's color and offset bitmap");
                 builder->addBlock(BuiltInCodeSnippetID::kError);
@@ -1767,9 +1843,9 @@ static void add_gradient_to_key(const KeyContext& keyContext,
                                             bias,
                                             scale,
                                             shader->getTileMode(),
-                                            shader->getColorCount(),
+                                            colorCount,
                                             colors,
-                                            shader->getPositions(),
+                                            positions,
                                             std::move(proxy),
                                             shader->getInterpolation());
 

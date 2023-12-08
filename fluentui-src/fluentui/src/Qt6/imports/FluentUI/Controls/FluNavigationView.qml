@@ -113,8 +113,16 @@ Item {
         id:com_panel_item_separatorr
         FluDivider{
             width: layout_list.width
-            spacing: model.spacing
+            spacing: {
+                if(model){
+                    return model.spacing
+                }
+                return 1
+            }
             separatorHeight: {
+                if(!model){
+                    return 1
+                }
                 if(model.parent){
                     return model.parent.isExpand ? model.size : 0
                 }
@@ -125,7 +133,6 @@ Item {
     Component{
         id:com_panel_item_header
         Item{
-            clip: true
             height: {
                 if(model.parent){
                     return model.parent.isExpand ? 30 : 0
@@ -155,7 +162,6 @@ Item {
         Item{
             height: 38
             width: layout_list.width
-            clip: true
             FluControl{
                 id:item_control
                 anchors{
@@ -171,17 +177,17 @@ Item {
                 MouseArea{
                     anchors.fill: parent
                     acceptedButtons: Qt.RightButton
-                    onClicked: function(mouse){
-                        if (mouse.button === Qt.RightButton) {
-                            if(model.menuDelegate){
-                                loader_item_menu.sourceComponent = model.menuDelegate
-                                loader_item_menu.item.popup()
+                    onClicked:
+                        (mouse) =>{
+                            if (mouse.button === Qt.RightButton) {
+                                if(model.menuDelegate){
+                                    loader_item_menu.sourceComponent = model.menuDelegate
+                                    loader_item_menu.item.popup()
+                                }
                             }
                         }
-                    }
                     z:-100
                 }
-
                 onClicked: {
                     if(d.isCompactAndNotPanel){
                         control_popup.showPopup(Qt.point(50,mapToItem(control,0,0).y),model.children)
@@ -203,6 +209,9 @@ Item {
                         verticalCenterOffset: -8
                     }
                     visible: {
+                        if(!model){
+                            return false
+                        }
                         if(!model.isExpand){
                             for(var i=0;i<model.children.length;i++){
                                 var item = model.children[i]
@@ -223,6 +232,12 @@ Item {
                         radius: 1.5
                         color: FluTheme.primaryColor.dark
                         visible: {
+                            if(!model){
+                                return false
+                            }
+                            if(!model.children){
+                                return false
+                            }
                             for(var i=0;i<model.children.length;i++){
                                 var item = model.children[i]
                                 if(item._idx === nav_list.currentIndex && !model.isExpand){
@@ -237,7 +252,7 @@ Item {
                     }
                     FluIcon{
                         id:item_icon_expand
-                        rotation: model.isExpand?0:180
+                        rotation: model&&model.isExpand?0:180
                         iconSource:FluentIcons.ChevronUp
                         iconSize: 15
                         anchors{
@@ -282,7 +297,7 @@ Item {
                         id:com_icon
                         FluIcon{
                             iconSource: {
-                                if(model.icon){
+                                if(model&&model.icon){
                                     return model.icon
                                 }
                                 return 0
@@ -302,7 +317,7 @@ Item {
                         Loader{
                             anchors.centerIn: parent
                             sourceComponent: {
-                                if(model.cusIcon){
+                                if(model&&model.cusIcon){
                                     return model.cusIcon
                                 }
                                 return com_icon
@@ -311,7 +326,12 @@ Item {
                     }
                     FluText{
                         id:item_title
-                        text:model.title
+                        text:{
+                            if(model){
+                                return model.title
+                            }
+                            return ""
+                        }
                         visible: {
                             if(d.isCompactAndNotPanel){
                                 return false
@@ -344,7 +364,7 @@ Item {
                             if(d.isCompact){
                                 return undefined
                             }
-                            return model.showEdit ? model.editDelegate : undefined
+                            return model&&model.showEdit ? model.editDelegate : undefined
                         }
                         onStatusChanged: {
                             if(status === Loader.Ready){
@@ -357,7 +377,7 @@ Item {
                             ignoreUnknownSignals:true
                             function onActiveFocusChanged(focus){
                                 if(focus === false){
-                                   model.showEdit = false
+                                    model.showEdit = false
                                 }
                             }
                             function onCommit(text){
@@ -379,21 +399,21 @@ Item {
                     duration: 83
                 }
             }
-            clip: true
             height: {
-                if(model.parent){
+                if(model&&model.parent){
                     return model.parent.isExpand ? 38 : 0
                 }
                 return 38
             }
             visible: {
-                if(model.parent){
+                if(model&&model.parent){
                     return model.parent.isExpand ? true : false
                 }
                 return true
             }
             width: layout_list.width
             FluControl{
+                property var modelData: model
                 id:item_control
                 anchors{
                     top: parent.top
@@ -405,23 +425,14 @@ Item {
                     leftMargin: 6
                     rightMargin: 6
                 }
-                MouseArea{
-                    anchors.fill: parent
-                    acceptedButtons:  Qt.RightButton
-                    onClicked: function(mouse){
-                        if (mouse.button === Qt.RightButton) {
-                            if(model.menuDelegate){
-                                loader_item_menu.sourceComponent = model.menuDelegate
-                                loader_item_menu.item.popup();
-                            }
-                        }
-                    }
-                    z:-100
-                }
-                onClicked: {
+                Drag.active: item_mouse.drag.active
+                Drag.hotSpot.x: item_control.width / 2
+                Drag.hotSpot.y: item_control.height / 2
+                Drag.dragType: Drag.Automatic
+                onClicked:{
                     if(type === 0){
-                        if(model.tapFunc){
-                            model.tapFunc()
+                        if(model.onTapListener){
+                            model.onTapListener()
                         }else{
                             nav_list.currentIndex = _idx
                             layout_footer.currentIndex = -1
@@ -431,8 +442,8 @@ Item {
                             }
                         }
                     }else{
-                        if(model.tapFunc){
-                            model.tapFunc()
+                        if(model.onTapListener){
+                            model.onTapListener()
                         }else{
                             nav_list.currentIndex = nav_list.count-layout_footer.count+_idx
                             layout_footer.currentIndex = _idx
@@ -442,6 +453,34 @@ Item {
                             }
                         }
                     }
+                }
+                MouseArea{
+                    id:item_mouse
+                    anchors.fill: parent
+                    acceptedButtons: Qt.RightButton | Qt.LeftButton
+                    drag.target: item_control
+                    onPositionChanged: {
+                        parent.grabToImage(function(result) {
+                            parent.Drag.imageSource = result.url;
+                        })
+                    }
+                    drag.onActiveChanged:
+                        if (active) {
+                            parent.grabToImage(function(result) {
+                                parent.Drag.imageSource = result.url;
+                            })
+                        }
+                    onClicked:
+                        (mouse)=>{
+                            if (mouse.button === Qt.RightButton) {
+                                if(model.menuDelegate){
+                                    loader_item_menu.sourceComponent = model.menuDelegate
+                                    loader_item_menu.item.popup();
+                                }
+                            }else{
+                                item_control.clicked()
+                            }
+                        }
                 }
                 Rectangle{
                     radius: 4
@@ -481,7 +520,7 @@ Item {
                         id:com_icon
                         FluIcon{
                             iconSource: {
-                                if(model.icon){
+                                if(model&&model.icon){
                                     return model.icon
                                 }
                                 return 0
@@ -501,7 +540,7 @@ Item {
                         Loader{
                             anchors.centerIn: parent
                             sourceComponent: {
-                                if(model.cusIcon){
+                                if(model&&model.cusIcon){
                                     return model.cusIcon
                                 }
                                 return com_icon
@@ -510,7 +549,12 @@ Item {
                     }
                     FluText{
                         id:item_title
-                        text:model.title
+                        text:{
+                            if(model){
+                                return model.title
+                            }
+                            return ""
+                        }
                         visible: {
                             if(d.isCompactAndNotPanel){
                                 return false
@@ -519,7 +563,7 @@ Item {
                         }
                         elide: Text.ElideRight
                         color:{
-                            if(item_control.pressed){
+                            if(item_mouse.pressed){
                                 return FluTheme.dark ? FluColors.Grey80 : FluColors.Grey120
                             }
                             return FluTheme.dark ? FluColors.White : FluColors.Grey220
@@ -543,6 +587,9 @@ Item {
                             if(d.isCompact){
                                 return undefined
                             }
+                            if(!model){
+                                return undefined
+                            }
                             return model.showEdit ? model.editDelegate : undefined
                         }
                         onStatusChanged: {
@@ -556,7 +603,7 @@ Item {
                             ignoreUnknownSignals:true
                             function onActiveFocusChanged(focus){
                                 if(focus === false){
-                                   model.showEdit = false
+                                    model.showEdit = false
                                 }
                             }
                             function onCommit(text){
@@ -575,7 +622,7 @@ Item {
                             verticalCenterOffset: isDot ? -8 : 0
                         }
                         sourceComponent: {
-                            if(model.infoBadge){
+                            if(model&&model.infoBadge){
                                 return model.infoBadge
                             }
                             return undefined
@@ -736,7 +783,12 @@ Item {
                 id:nav_stack2
                 anchors.fill: nav_stack
                 clip: true
-                visible: nav_stack.currentItem?.launchMode === FluPageType.SingleInstance
+                visible: {
+                    if(!nav_stack.currentItem){
+                        return false
+                    }
+                    return FluPageType.SingleInstance === nav_stack.currentItem.launchMode
+                }
             }
             function navStack(){
                 return nav_stack
@@ -746,7 +798,15 @@ Item {
             }
         }
     }
-
+    DropArea{
+        anchors.fill: loader_content
+        onDropped:
+            (drag)=>{
+                if(drag.source.modelData){
+                    drag.source.modelData.dropped(drag)
+                }
+            }
+    }
     Loader{
         id:loader_content
         anchors{
@@ -881,6 +941,12 @@ Item {
             ListView{
                 id:nav_list
                 clip: true
+                displaced: Transition {
+                    NumberAnimation {
+                        properties: "x,y"
+                        easing.type: Easing.OutQuad
+                    }
+                }
                 anchors.fill: parent
                 model:d.handleItems()
                 boundsBehavior: ListView.StopAtBounds
@@ -900,12 +966,13 @@ Item {
                     }
                 }
                 currentIndex: -1
-
                 delegate: Loader{
                     property var model: modelData
                     property var _idx: index
                     property int type: 0
                     sourceComponent: {
+                        if(model === null || !model)
+                            return undefined
                         if(modelData instanceof FluPaneItem){
                             return com_panel_item
                         }
@@ -921,6 +988,7 @@ Item {
                         if(modelData instanceof FluPaneItemEmpty){
                             return com_panel_item_empty
                         }
+                        return undefined
                     }
                 }
             }
@@ -1052,8 +1120,8 @@ Item {
                         }
                     }
                     onClicked: {
-                        if(modelData.tapFunc){
-                            modelData.tapFunc()
+                        if(modelData.onTapListener){
+                            modelData.onTapListener()
                         }else{
                             modelData.tap()
                             nav_list.currentIndex = _idx

@@ -18,6 +18,8 @@
 
 #include <cctype>
 #include <memory>
+#include <regex>
+#include <unordered_set>
 
 #include "base_cpp/scanner.h"
 #include "graph/cycle_basis.h"
@@ -38,6 +40,7 @@ SmilesLoader::SmilesLoader(Scanner& scanner) : _scanner(scanner)
     ignore_closing_bond_direction_mismatch = false;
     ignore_cistrans_errors = false;
     ignore_bad_valence = false;
+    ignore_no_chiral_flag = false;
     _mol = 0;
     _qmol = 0;
     _bmol = 0;
@@ -59,6 +62,7 @@ void SmilesLoader::loadMolecule(Molecule& mol)
     _bmol = &mol;
     _mol = &mol;
     _qmol = 0;
+    _has_atom_coordinates = false;
     _loadMolecule();
 
     mol.setIgnoreBadValenceFlag(ignore_bad_valence);
@@ -71,6 +75,32 @@ void SmilesLoader::loadQueryMolecule(QueryMolecule& mol)
     _mol = 0;
     _qmol = &mol;
     _loadMolecule();
+}
+
+static char readSgChar(Scanner& scanner)
+{
+    char c = scanner.readChar();
+    constexpr int min_ascii = 0;
+    constexpr int max_ascii = 127;
+    if (c == '&' && scanner.lookNext() == '#') // Escaped char - &#code;
+    {
+        long long pos = scanner.tell();
+        scanner.skip(1); // Skip '#'
+        int code = scanner.tryReadUnsigned();
+        if (code >= min_ascii && code <= max_ascii && scanner.lookNext() == ';')
+        {
+            std::string sgroup_field_sep = ",;:|{}";
+            // Decode only ,;:|{}
+            if (sgroup_field_sep.find(code) != std::string::npos)
+            {
+                scanner.skip(1); // skip ';'
+                return code;     // return decoded character
+            }
+        }
+        // no decoded char returned - restore position and return '&' as is.
+        scanner.seek(pos, SEEK_SET);
+    }
+    return c;
 }
 
 void SmilesLoader::_calcStereocenters()
@@ -260,6 +290,8 @@ void SmilesLoader::_readOtherStuff()
 
     QS_DEF(Array<int>, to_remove);
 
+    std::unordered_set<int> _overtly_defined_abs;
+
     to_remove.clear();
 
     while (1)
@@ -271,33 +303,32 @@ void SmilesLoader::_readOtherStuff()
 
         if (c == 'w') // 'ANY' stereocenters
         {
-            bool skip = true;
-
-            // TODO: up/down designators (usually come atom coordinates) -- skipped for now
+            char wmode = 0;
             if (_scanner.lookNext() == 'U')
+                wmode = 'U';
+            if (_scanner.lookNext() == 'D')
+                wmode = 'D';
+
+            if (wmode)
                 _scanner.skip(1);
-            else if (_scanner.lookNext() == 'D')
-                _scanner.skip(1);
-            else
-                skip = false;
 
             if (_scanner.readChar() != ':')
-                throw Error("colon expected after 'w'");
+                throw Error("colon expected after 'w%c'", wmode);
 
             while (isdigit(_scanner.lookNext()))
             {
-                int idx = _scanner.readUnsigned();
-
-                if (!skip)
+                int atom_idx = _scanner.readUnsigned();
+                // handle wiggly bonds
+                if (!wmode)
                 {
                     // This either bond can mark stereocenter or cis-trans double bond
                     // For example CC=CN |w:1.0|
-                    const Vertex& v = _bmol->getVertex(idx);
+                    const Vertex& v = _bmol->getVertex(atom_idx);
                     bool found = false;
                     for (int nei : v.neighbors())
                     {
                         int edge_idx = v.neiEdge(nei);
-                        if (_bmol->getBondOrder(edge_idx) == BOND_DOUBLE)
+                        if (_bmol->getBondOrder(edge_idx) == BOND_DOUBLE && _bmol->getBondTopology(edge_idx) != TOPOLOGY_RING)
                         {
                             cis_trans.ignore(edge_idx);
                             found = true;
@@ -306,25 +337,31 @@ void SmilesLoader::_readOtherStuff()
 
                     if (!found)
                     {
-                        if (!_bmol->isPossibleStereocenter(idx))
-                        {
-                            if (!stereochemistry_options.ignore_errors)
-                                throw Error("chirality not possible on atom #%d", idx);
-                        }
-                        else
+                        if (_bmol->isPossibleStereocenter(atom_idx))
                         {
                             // Check if the stereocenter has already been marked as any
                             // For example [H]C1(O)c2ccnn2[C@@H](O)c2ccnn12 |r,w:1.0,1.1|
-                            if (_bmol->stereocenters.getType(idx) != MoleculeStereocenters::ATOM_ANY)
-                                _bmol->addStereocenters(idx, MoleculeStereocenters::ATOM_ANY, 0, false);
+                            if (!_bmol->stereocenters.exists(atom_idx))
+                                _bmol->addStereocenters(atom_idx, MoleculeStereocenters::ATOM_ANY, 0, false);
                         }
                     }
                 }
 
-                if (_scanner.lookNext() == '.') // skip the bond index
+                if (_scanner.lookNext() == '.')
                 {
                     _scanner.skip(1);
-                    _scanner.readUnsigned();
+                    auto bond_idx = _scanner.readUnsigned();
+                    if (!_has_directions_on_rings)
+                        _has_directions_on_rings = _bmol->getBondTopology(bond_idx) == TOPOLOGY_RING;
+                    if (bond_idx < _bmol->edgeCount() && atom_idx < _bmol->vertexCount())
+                    {
+                        auto& v = _bmol->getEdge(bond_idx);
+                        if (v.end == atom_idx)
+                            _bmol->swapEdgeEnds(bond_idx);
+
+                        if (v.beg == atom_idx)
+                            _bmol->setBondDirection(bond_idx, wmode == 'U' ? BOND_UP : (wmode == 'D' ? BOND_DOWN : BOND_EITHER));
+                    }
                 }
 
                 if (_scanner.lookNext() == ',')
@@ -341,9 +378,15 @@ void SmilesLoader::_readOtherStuff()
                 int idx = _scanner.readUnsigned();
 
                 if (_bmol->stereocenters.exists(idx))
+                {
                     _bmol->stereocenters.setType(idx, MoleculeStereocenters::ATOM_ABS, 0);
-                else if (!stereochemistry_options.ignore_errors)
-                    throw Error("atom %d is not a stereocenter", idx);
+                }
+                else
+                {
+                    _bmol->addStereocenters(idx, MoleculeStereocenters::ATOM_ABS, 0, false);
+                    _bmol->stereocenters.setTetrahydral(idx, false);
+                }
+                _overtly_defined_abs.insert(idx);
 
                 if (_scanner.lookNext() == ',')
                     _scanner.skip(1);
@@ -362,8 +405,11 @@ void SmilesLoader::_readOtherStuff()
 
                 if (_bmol->stereocenters.exists(idx))
                     _bmol->stereocenters.setType(idx, MoleculeStereocenters::ATOM_OR, groupno);
-                else if (!stereochemistry_options.ignore_errors)
-                    throw Error("atom %d is not a stereocenter", idx);
+                else
+                {
+                    _bmol->addStereocenters(idx, MoleculeStereocenters::ATOM_OR, groupno, false);
+                    _bmol->stereocenters.setTetrahydral(idx, false);
+                }
 
                 if (_scanner.lookNext() == ',')
                     _scanner.skip(1);
@@ -379,12 +425,13 @@ void SmilesLoader::_readOtherStuff()
             while (isdigit(_scanner.lookNext()))
             {
                 int idx = _scanner.readUnsigned();
-
                 if (_bmol->stereocenters.exists(idx))
                     _bmol->stereocenters.setType(idx, MoleculeStereocenters::ATOM_AND, groupno);
-                else if (!stereochemistry_options.ignore_errors)
-                    throw Error("atom %d is not a stereocenter", idx);
-
+                else
+                {
+                    _bmol->addStereocenters(idx, MoleculeStereocenters::ATOM_AND, groupno, false);
+                    _bmol->stereocenters.setTetrahydral(idx, false);
+                }
                 if (_scanner.lookNext() == ',')
                     _scanner.skip(1);
             }
@@ -490,7 +537,17 @@ void SmilesLoader::_readOtherStuff()
                         }
 
                         if (_mol != 0)
-                            _mol->setPseudoAtom(i, label.ptr());
+                        {
+                            const auto atomNumber = _mol->getAtomNumber(i);
+                            if (ELEM_MIN < atomNumber && atomNumber < ELEM_MAX)
+                            {
+                                _mol->setAlias(i, label.ptr());
+                            }
+                            else
+                            {
+                                _mol->setPseudoAtom(i, label.ptr());
+                            }
+                        }
                         else
                         {
                             if (label.size() == 2 && label[0] == 'Q')
@@ -602,9 +659,18 @@ void SmilesLoader::_readOtherStuff()
                             }
                             else
                             {
-                                std::unique_ptr<QueryMolecule::Atom> atom(_qmol->releaseAtom(i));
-                                atom->removeConstraints(QueryMolecule::ATOM_NUMBER);
-                                _qmol->resetAtom(i, QueryMolecule::Atom::und(atom.release(), new QueryMolecule::Atom(QueryMolecule::ATOM_PSEUDO, label.ptr())));
+                                const auto atomNumber = _qmol->getAtomNumber(i);
+                                if (ELEM_MIN < atomNumber && atomNumber < ELEM_MAX)
+                                {
+                                    _qmol->setAlias(i, label.ptr());
+                                }
+                                else
+                                {
+                                    std::unique_ptr<QueryMolecule::Atom> atom(_qmol->releaseAtom(i));
+                                    atom->removeConstraints(QueryMolecule::ATOM_NUMBER);
+                                    _qmol->resetAtom(
+                                        i, QueryMolecule::Atom::und(atom.release(), new QueryMolecule::Atom(QueryMolecule::ATOM_PSEUDO, label.ptr())));
+                                }
                             }
                         }
                     }
@@ -686,8 +752,7 @@ void SmilesLoader::_readOtherStuff()
             }
             if (_scanner.readChar() != ')')
                 throw Error("expected ')' after coordinates");
-            _bmol->markBondsStereocenters();
-            _bmol->markBondsAlleneStereo();
+            _has_atom_coordinates = true;
         }
         else if (c == 'h') // highlighting (Indigo's own extension)
         {
@@ -771,7 +836,8 @@ void SmilesLoader::_readOtherStuff()
                 for (int i = s.begin(); i != s.end(); i = s.next(i))
                 {
                     int atom = s.getAtomIndex(i);
-                    if (s.getType(atom) == MoleculeStereocenters::ATOM_ABS)
+                    if (s.getType(atom) == MoleculeStereocenters::ATOM_ABS && !ignore_no_chiral_flag &&
+                        _overtly_defined_abs.find(atom) == _overtly_defined_abs.end())
                         s.setType(atom, MoleculeStereocenters::ATOM_AND, 1);
                 }
             }
@@ -780,35 +846,62 @@ void SmilesLoader::_readOtherStuff()
         {
             // SGroup block found
             _scanner.skip(1);
-            if (_scanner.readChar() != ':')
-                throw Error("colon expected after 'Sg'");
-            char sg = _scanner.lookNext();
             int sg_type = -1;
-            char pchar_sg_type[3];
-            std::string sg_type_str;
-            if (sg == 'n')
+            // Data S-group - 'SgD:atomic_indexes:field_name:data_value:query_op:unit:tag:(coords)'
+            // Optional coordinates in parenthesis if necessary, separated by colon characters.
+            // The field values with special characters are escaped.
+            // If atomic coordinates are exported (with option c ) (-1) is used in the coordinate field for Data S-group attached to the atoms.
+            if (_scanner.lookNext() == 'D')
             {
                 _scanner.skip(1);
-                if (_scanner.readChar() != ':')
-                    throw Error("colon expected after 'Sg:n'");
-                sg_type = SGroup::SG_TYPE_SRU;
+                sg_type = SGroup::SG_TYPE_DAT;
             }
-            else if (sg == 'g')
+            if (_scanner.readChar() != ':')
+                throw Error("colon expected after 'Sg'");
+
+            // If not a data S-group - get group type after colon
+            //
+            // 'Sg:type:atomic_indexes:subscript:superscript:head_bond_indexes:tail_bond_indexes:bracket
+            //
+            // atomic_indexes - Atom indexes separated with commas
+            // subscript - Subscript of the S-group. If the subscript equals the keyword of the S-group this field can be empty. Escaped field.
+            // superscript - Superscript of the S-group. Only connectivity and flip information is allowed. This field can be empty. Escaped field.
+            // *_bond_indexes - The indexes of bonds that share a common bracket in case of ladder-type polymers.
+            // head_bond_indexes - Head crossing bond indexes. This field can be empty.
+            // tail_bond_indexes - Tail crossing bond indexes. This field can be empty.
+            // bracket - bracket orientation, bracket type followed by the coordinates (4 pair, separated with commas). Bracket orientation
+            //     can be s or d (single or double), bracket type can be b,c,r,s for braces, chevrons, round and square, respectively.
+            //     The brackets are written between parentheses and separated with semicolons.
+            if (sg_type == -1)
             {
-                _scanner.readCharsFix(sizeof(pchar_sg_type), pchar_sg_type);
-                sg_type_str = std::string(pchar_sg_type, sizeof(pchar_sg_type));
-                if (sg_type_str == "gen")
+                char sg = _scanner.lookNext();
+                constexpr size_t sg_type_max_len = 3;
+                char pchar_sg_type[sg_type_max_len];
+                std::string sg_type_str;
+                if (sg == 'n')
                 {
+                    sg_type = SGroup::SG_TYPE_SRU;
+                    _scanner.skip(1);
                     if (_scanner.readChar() != ':')
-                        throw Error("colon expected after 'Sg:%s'", sg_type_str.c_str());
-                    sg_type = SGroup::SG_TYPE_GEN;
+                        throw Error("colon expected after 'Sg:n'");
+                }
+                else if (sg == 'g')
+                {
+                    _scanner.readCharsFix(sizeof(pchar_sg_type), pchar_sg_type);
+                    sg_type_str = std::string(pchar_sg_type, sizeof(pchar_sg_type));
+                    if (sg_type_str == "gen")
+                    {
+                        if (_scanner.readChar() != ':')
+                            throw Error("colon expected after 'Sg:%s'", sg_type_str.c_str());
+                        sg_type = SGroup::SG_TYPE_GEN;
+                    }
+                    else
+                        throw Error("unexpected 'Sg' %s", sg_type_str.c_str());
                 }
                 else
-                    throw Error("unexpected 'Sg' %s", sg_type_str.c_str());
-            }
-            else
-            {
-                throw Error("Unsupported Sg type");
+                {
+                    throw Error("Unsupported Sg type");
+                }
             }
 
             int idx = _bmol->sgroups.addSGroup(sg_type);
@@ -822,8 +915,6 @@ void SmilesLoader::_readOtherStuff()
             p[0].set(0, 0);
             p[1].set(0, 0);
 
-            _scanner.lookNext();
-
             while (isdigit(_scanner.lookNext()))
             {
                 auto atom_idx = _scanner.readUnsigned();
@@ -832,28 +923,167 @@ void SmilesLoader::_readOtherStuff()
                     _scanner.skip(1);
             }
 
-            if (_scanner.readChar() != ':')
-                throw Error("colon expected after 'Sg'");
+            if (_scanner.lookNext() != ':')
+                continue;
 
-            if (sg_type == SGroup::SG_TYPE_SRU)
+            _scanner.skip(1); // skip ':'
+            const char* word_delimiter = ":,|";
+
+            if (sg_type == SGroup::SG_TYPE_DAT)
             {
-                RepeatingUnit& ru = (RepeatingUnit&)sgroup;
-                std::string subscript, connectivity;
-                while (_scanner.lookNext() != ':')
-                    subscript += _scanner.readChar();
+                char c;
+                DataSGroup& dsg = static_cast<DataSGroup&>(sgroup);
+                // field_name
+                _scanner.readWord(dsg.name, word_delimiter);
+                if (_scanner.lookNext() != ':') // No more fields
+                    continue;
+                _scanner.skip(1); // Skip :
+                // data_value
+                _scanner.readWord(dsg.data, word_delimiter);
+                if (_scanner.lookNext() != ':') // No more fields
+                    continue;
+                _scanner.skip(1); // Skip :
+                // query_op
+                _scanner.readWord(dsg.queryoper, word_delimiter);
+                if (_scanner.lookNext() != ':') // No more fields
+                    continue;
+                _scanner.skip(1); // Skip :
+                // unit
+                _scanner.readWord(dsg.description, word_delimiter);
+                if (_scanner.lookNext() != ':') // No more fields
+                    continue;
+                _scanner.skip(1); // Skip :
+                // tag
+                c = _scanner.lookNext();
+                if (c != ':' && c != ',')
+                {
+                    dsg.tag = c;
+                    _scanner.skip(1); // Skip tag
+                }
+                if (_scanner.lookNext() != ':') // No more fields
+                    continue;
+                _scanner.skip(1); // Skip :
+                // (coords)
+                c = _scanner.lookNext();
+                if (c != '(') // No more fields
+                    continue;
+                long long pos = _scanner.tell();
+                constexpr char minus1[] = "(-1)";
+                constexpr size_t minus1_len = sizeof(minus1) - 1;
+                if (_scanner.length() - pos >= minus1_len)
+                {
+                    // check for (-1)
+                    char buf[minus1_len];
+                    _scanner.read(minus1_len, buf);
+                    if (strncmp(buf, minus1, sizeof(buf)) == 0)
+                        continue;
+                    _scanner.seek(pos, SEEK_SET);
+                }
+                _scanner.skip(1); // Skip (
+                dsg.display_pos.x = _scanner.readFloat();
+                c = _scanner.readChar();
+                if (c != ',')
+                    throw Error("Data S-group coord error");
+                dsg.display_pos.y = _scanner.readFloat();
+                c = _scanner.readChar();
+                if (c != ')')
+                    throw Error("Data S-group coord error");
+            }
+            else
+            {
+                QS_DEF(Array<char>, subscript);
+                QS_DEF(Array<char>, conn_arr);
+                std::string connectivity, flip;
+                subscript.clear();
+                conn_arr.clear();
+                _scanner.readWord(subscript, word_delimiter);
+                if (_scanner.lookNext() == ':')
+                {
+                    _scanner.skip(1);
+                    _scanner.readWord(conn_arr, word_delimiter);
+                    if (conn_arr.find('#') >= 0)
+                    {
+                        // Possible encoded symbols. Try to decode
+                        BufferScanner word_scan{conn_arr};
+                        while (!word_scan.isEOF())
+                            connectivity += readSgChar(word_scan);
+                    }
+                    else
+                    {
+                        connectivity = conn_arr.ptr();
+                    }
+                    // If ',' in field - it is both connectivity and flip
+                    std::size_t pos = connectivity.find(',');
+                    if (pos != std::string::npos)
+                    {
+                        flip = connectivity.substr(pos + 1);
+                        connectivity = connectivity.substr(0, pos);
+                    }
+                }
 
-                if (subscript.size())
-                    ru.subscript.readString(subscript.c_str(), true);
-                _scanner.skip(1);
+                // Set fields for SRU S-Group
+                if (sg_type == SGroup::SG_TYPE_SRU)
+                {
+                    RepeatingUnit& ru = static_cast<RepeatingUnit&>(sgroup);
+                    if (subscript.size())
+                        ru.subscript.readString(subscript.ptr(), true);
+                    if (connectivity == "ht")
+                        ru.connectivity = RepeatingUnit::HEAD_TO_TAIL;
+                    else if (connectivity == "hh")
+                        ru.connectivity = RepeatingUnit::HEAD_TO_HEAD;
+                    else if (connectivity == "eu")
+                        ru.connectivity = RepeatingUnit::EITHER;
+                }
 
-                while (_scanner.lookNext() != '|')
-                    connectivity += _scanner.readChar();
-                if (connectivity == "ht")
-                    ru.connectivity = RepeatingUnit::HEAD_TO_TAIL;
-                else if (connectivity == "hh")
-                    ru.connectivity = RepeatingUnit::HEAD_TO_HEAD;
-                else if (connectivity == "eu")
-                    ru.connectivity = RepeatingUnit::EITHER;
+                if (_scanner.lookNext() != ':')
+                    continue;
+                _scanner.skip(1); // skip :
+                // head_bond_indexes - Head crossing bond indexes. This field can be empty.
+                while (isdigit(_scanner.lookNext()))
+                {
+                    auto atom_idx = _scanner.readUnsigned();
+                    // no support for now
+                    if (_scanner.lookNext() == ',')
+                        _scanner.skip(1);
+                }
+                if (_scanner.lookNext() != ':')
+                    continue;
+                _scanner.skip(1); // skip :
+                // tail_bond_indexes - Tail crossing bond indexes. This field can be empty.
+                while (isdigit(_scanner.lookNext()))
+                {
+                    auto atom_idx = _scanner.readUnsigned();
+                    // no support for now
+                    if (_scanner.lookNext() == ',')
+                        _scanner.skip(1);
+                }
+                if (_scanner.lookNext() != ':')
+                    continue;
+                _scanner.skip(1); // skip :
+                // bracket - bracket orientation, bracket type followed by the coordinates (4 pair, separated with commas).
+                if (_scanner.lookNext() != '(')
+                    continue;
+                _scanner.skip(1); // skip (
+                char br_orient = _scanner.readChar();
+                c = _scanner.readChar();
+                if (c != ',')
+                    throw Error("S-group bracket orientation format error");
+                char br_type = _scanner.readChar();
+                c = _scanner.readChar();
+                int count = 0;
+                constexpr int bracket_coord_count = 8;
+                while (c == ',' && count < bracket_coord_count)
+                {
+                    float tmp = _scanner.readFloat();
+                    c = _scanner.readChar();
+                    ++count;
+                }
+                if (count < bracket_coord_count)
+                    throw Error("S-group bracket orientation format error");
+                if (c == ',')
+                    c = _scanner.readChar();
+                if (c != ')')
+                    throw Error("S-group bracket orientation format error");
             }
         }
         else if ((c == 'R') && (_scanner.lookNext() == 'G'))
@@ -1109,6 +1339,18 @@ void SmilesLoader::_readOtherStuff()
         _bmol->removeAtoms(to_remove);
 }
 
+void SmilesLoader::_validateStereoCenters()
+{
+    for (int i = _bmol->stereocenters.begin(); i < _bmol->stereocenters.end(); i = _bmol->stereocenters.next(i))
+    {
+        auto atom_idx = _bmol->stereocenters.getAtomIndex(i);
+        if (_bmol->isPossibleStereocenter(atom_idx) || _bmol->stereocenters.isAtropisomeric(atom_idx))
+            continue;
+        if (!stereochemistry_options.ignore_errors)
+            throw Error("atom %d is not a stereocenter", atom_idx);
+    }
+}
+
 void SmilesLoader::loadSMARTS(QueryMolecule& mol)
 {
     mol.clear();
@@ -1136,11 +1378,10 @@ void SmilesLoader::_parseMolecule()
             break;
 
         _BondDesc* bond = 0;
+        bool added_bond = false;
 
         if (!first_atom)
         {
-            bool added_bond = false;
-
             while (isdigit(next) || next == '%')
             {
                 int number;
@@ -1157,13 +1398,10 @@ void SmilesLoader::_parseMolecule()
                 // closing some previously numbered atom, like the last '1' in c1ccccc1
                 if (_cycles[number].beg >= 0)
                 {
-                    bond = &_bonds.push();
-                    bond->dir = 0;
-                    bond->topology = 0;
+                    _bonds.push(_BondDesc{});
+                    bond = &_bonds.top();
                     bond->beg = _atom_stack.top();
                     bond->end = _cycles[number].beg;
-                    bond->type = -1; // will later become single or aromatic bond
-                    bond->index = -1;
                     _cycles[number].clear();
                     added_bond = true;
 
@@ -1269,18 +1507,15 @@ void SmilesLoader::_parseMolecule()
 
         if (!first_atom)
         {
-            bond = &_bonds.push();
+            _bonds.push(_BondDesc{});
+            bond = &_bonds.top();
             bond->beg = _atom_stack.top();
-            bond->end = -1;
-            bond->type = -1;
-            bond->dir = 0;
-            bond->topology = 0;
-            bond->index = -1;
+            added_bond = true;
         }
 
         std::unique_ptr<QueryMolecule::Bond> qbond;
 
-        if (bond != 0)
+        if (added_bond)
         {
             QS_DEF(Array<char>, bond_str);
 
@@ -1433,7 +1668,7 @@ void SmilesLoader::_parseMolecule()
         if (_qmol != 0)
             qatom = std::make_unique<QueryMolecule::Atom>();
 
-        if (bond != 0)
+        if (added_bond)
             bond->end = _atoms.size() - 1;
 
         QS_DEF(Array<char>, atom_str);
@@ -1483,11 +1718,11 @@ void SmilesLoader::_parseMolecule()
         {
             _qmol->addAtom(qatom.release());
 
-            if (bond != 0)
+            if (added_bond)
                 bond->index = _qmol->addBond(bond->beg, bond->end, qbond.release());
         }
 
-        if (bond != 0)
+        if (added_bond)
         {
             _atoms[bond->beg].neighbors.add(bond->end);
             _atoms[bond->end].neighbors.add(bond->beg);
@@ -1690,6 +1925,14 @@ void SmilesLoader::_loadParsedMolecule()
     {
         _scanner.skip(1);
         _readOtherStuff();
+        if (_has_atom_coordinates || _has_directions_on_rings)
+        {
+            std::vector<int> sensible_bond_directions;
+            sensible_bond_directions.resize(_bmol->edgeCount());
+            _bmol->buildFromBondsStereocenters(stereochemistry_options, sensible_bond_directions.data());
+            _bmol->markBondsStereocenters();
+            _bmol->markBondsAlleneStereo();
+        }
     }
 
     // Update attachment orders for rsites
@@ -2201,6 +2444,7 @@ void SmilesLoader::_loadMolecule()
 
     _parseMolecule();
     _loadParsedMolecule();
+    _validateStereoCenters();
 }
 
 void SmilesLoader::_readBond(Array<char>& bond_str, _BondDesc& bond, std::unique_ptr<QueryMolecule::Bond>& qbond)
@@ -2850,6 +3094,8 @@ void SmilesLoader::_readAtom(Array<char>& atom_str, bool first_in_brackets, _Ato
             else
             {
                 element = scanner.readUnsigned();
+                if (qatom.get() == 0)
+                    throw Error("'#%d' atom representation allowed only for query molecules", element);
             }
         }
         // Now we check that we have here an element from the periodic table.
@@ -2928,6 +3174,32 @@ void SmilesLoader::_readAtom(Array<char>& atom_str, bool first_in_brackets, _Ato
             {
                 atom.chirality = 2;
                 scanner.skip(1);
+            }
+            else
+            {
+                std::string current((const char*)scanner.curptr(), scanner.length() - scanner.tell());
+                std::smatch match;
+                if (std::regex_search(current, match, std::regex("^(TH|AL)([1-2])")))
+                {
+                    atom.chirality = std::stoi(match[2]);
+                    scanner.skip(3);
+                }
+                else if (std::regex_search(current, match, std::regex("^SP[1-3]")))
+                {
+                    // this type of chirality not supported. just skip it.
+                    scanner.skip(3);
+                }
+                else if (std::regex_search(current, match, std::regex(R"((TB([1-9]|1[0-9]|20)|OH([1-9]|1\d|2\d|30))(?!\d))")))
+                {
+                    const int TB_GROUP = 2;
+                    const int OH_GROUP = 3;
+                    int value = std::stoi(match.str(TB_GROUP).empty() ? match.str(OH_GROUP) : match.str(TB_GROUP));
+                    if (value <= 2)
+                        atom.chirality = value;
+                    scanner.skip(3);
+                    if (value >= 10)
+                        scanner.skip(1);
+                }
             }
         }
         else if (next == '+' || next == '-')
@@ -3262,4 +3534,8 @@ void SmilesLoader::_AtomDesc::closure(int cycle, int end)
             break;
         }
     }
+}
+
+SmilesLoader::_BondDesc::_BondDesc() : beg(-1), end(-1), type(-1), dir(0), topology(0), index(-1)
+{
 }

@@ -825,7 +825,7 @@ struct js_traits<std::shared_ptr<T>>
     inline static std::unordered_map<JSClassID, ptr_cast_fcn_t> ptrCastFcnMap;
 
     /** Register a class as a derived class.
-     * 
+     *
      * @tparam D type of the derived class
      * @param derived_class_id class id of the derived class
      * @param ptr_cast_fcn function to obtain a std::shared_ptr from the JSValue
@@ -1005,7 +1005,7 @@ struct js_traits<T *, std::enable_if_t<std::is_class_v<T>>>
     {
         if (ptr == nullptr) {
             return JS_NULL;
-        }   
+        }
         if(js_traits<std::shared_ptr<T>>::QJSClassId == 0) // not registered
         {
 #if defined(__cpp_rtti)

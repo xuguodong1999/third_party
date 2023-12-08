@@ -54,6 +54,20 @@ qt_add_qml_module(${PROJECT_NAME}
         RESOURCES ${resource_files}
         RESOURCE_PREFIX "/")
 
-if(NOT BUILD_SHARED_LIBS)
+if (NOT BUILD_SHARED_LIBS)
     target_compile_definitions(fluentui PRIVATE FLUENTUI_BUILD_STATIC_LIB)
-endif()
+endif ()
+
+# FIXME: build framelesshelper
+#xgd_add_library(framelesshelper_core
+#        INCLUDE_DIRS ${ROOT_DIR}/../../framelesshelper/include
+#        SRC_DIRS ${ROOT_DIR}/../../framelesshelper/src/core)
+#xgd_link_qt(framelesshelper_core PRIVATE Gui Core)
+#
+#xgd_add_library(framelesshelper_quick
+#        INCLUDE_DIRS ${ROOT_DIR}/../../framelesshelper/include
+#        SRC_DIRS ${ROOT_DIR}/../../framelesshelper/src/quick)
+#xgd_link_qt(framelesshelper_core PRIVATE Gui Core)
+#xgd_link_libraries(framelesshelper_quick PRIVATE framelesshelper_core)
+#
+#xgd_link_libraries(fluentui PRIVATE framelesshelper_quick framelesshelper_core)

@@ -32,11 +32,6 @@ public:
                                       const TextureInfo&,
                                       wgpu::Texture);
 
-    static sk_sp<Texture> MakeWrapped(const DawnSharedContext*,
-                                      SkISize dimensions,
-                                      const TextureInfo&,
-                                      wgpu::TextureView);
-
     ~DawnTexture() override {}
 
     const wgpu::Texture& dawnTexture() const { return fTexture; }
@@ -60,6 +55,6 @@ private:
     wgpu::TextureView fRenderTextureView;
 };
 
-} // namepsace skgpu::graphite
+}  // namespace skgpu::graphite
 
 #endif // skgpu_graphite_DawnTexture_DEFINED

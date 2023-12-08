@@ -26,6 +26,7 @@
 #include <ForceField/rdkit_export.hpp>
 #include <ForceFieldHelpers/rdkit_export.hpp>
 #include <FragCatalog/rdkit_export.hpp>
+#include <GeneralizedSubstruct/rdkit_export.hpp>
 #include <FreeSASALib/rdkit_export.hpp>
 #include <ga/rdkit_export.hpp>
 #include <GenericGroups/rdkit_export.hpp>

@@ -26,6 +26,7 @@
 #include "molecule/molecule.h"
 #include "molecule/molecule_cdxml_loader.h"
 #include "molecule/molecule_scaffold_detection.h"
+#include "molecule/parse_utils.h"
 
 using namespace indigo;
 using namespace tinyxml2;
@@ -57,20 +58,23 @@ CDXProperty CDXProperty::getNextProp()
     if (_first_id)
         return CDXProperty(_data, _data_limit, _size, 0, _style_index, _style_prop);
 
-    auto ptr16 = (uint16_t*)_data;
-    if (*ptr16 == kCDXProp_Text && _style_index >= 0 && _style_prop >= 0)
+    if (_data)
     {
-        if (++_style_prop < KStyleProperties.size())
-            return CDXProperty(_data, _data_limit, _size, 0, _style_index, _style_prop);
-        else
-            return CDXProperty();
-    }
+        auto ptr16 = (uint16_t*)_data;
+        if (*ptr16 == kCDXProp_Text && _style_index >= 0 && _style_prop >= 0)
+        {
+            if (++_style_prop < KStyleProperties.size())
+                return CDXProperty(_data, _data_limit, _size, 0, _style_index, _style_prop);
+            else
+                return CDXProperty();
+        }
 
-    ptr16 = (uint16_t*)CDXElement::skipProperty((uint8_t*)ptr16);
-    if (ptr16 < _data_limit && *ptr16 && *ptr16 < kCDXTag_Object)
-    {
-        auto sz = *(ptr16 + 1);
-        return CDXProperty(ptr16, _data_limit, sz + sizeof(uint16_t) * 2);
+        ptr16 = (uint16_t*)CDXElement::skipProperty((uint8_t*)ptr16);
+        if (ptr16 < _data_limit && *ptr16 && *ptr16 < kCDXTag_Object)
+        {
+            auto sz = *(ptr16 + 1);
+            return CDXProperty(ptr16, _data_limit, sz + sizeof(uint16_t) * 2);
+        }
     }
     return CDXProperty();
 }
@@ -80,8 +84,8 @@ CDXReader::CDXReader(Scanner& scanner) : _scanner(scanner)
     scanner.readAll(_buffer);
 }
 
-MoleculeCdxmlLoader::MoleculeCdxmlLoader(Scanner& scanner, bool is_binary)
-    : _scanner(scanner), _is_binary(is_binary), _has_bounding_box(false), _pmol(nullptr), _pqmol(nullptr), ignore_bad_valence(false)
+MoleculeCdxmlLoader::MoleculeCdxmlLoader(Scanner& scanner, bool is_binary, bool is_fragment)
+    : _scanner(scanner), _is_binary(is_binary), _is_fragment(is_fragment), _has_bounding_box(false), _pmol(nullptr), _pqmol(nullptr), ignore_bad_valence(false)
 {
 }
 
@@ -117,11 +121,16 @@ void MoleculeCdxmlLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
     _initMolecule(mol);
     std::unique_ptr<CDXReader> cdx_reader = _is_binary ? std::make_unique<CDXReader>(_scanner) : std::make_unique<CDXMLReader>(_scanner);
     cdx_reader->process();
-    parseCDXMLAttributes(cdx_reader->rootElement().firstProperty());
-    _parseCDXMLPage(cdx_reader->rootElement());
+    auto root = cdx_reader->rootElement();
 
-    if (!nodes.size())
-        throw Error("CDXML has no data");
+    if (_is_fragment)
+    {
+        loadMoleculeFromFragment(mol, root);
+        return;
+    }
+
+    parseCDXMLAttributes(root.firstProperty());
+    _parseCDXMLPage(root);
 
     _parseCollections(mol);
     int arrows_count = mol.meta().getMetaCount(KETReactionArrow::CID);
@@ -158,6 +167,7 @@ void MoleculeCdxmlLoader::_parseCollections(BaseMolecule& mol)
         case kCDXNodeType_Element:
         case kCDXNodeType_ElementList:
         case kCDXNodeType_GenericNickname:
+        case kCDXNodeType_Unspecified:
             atoms.push_back(node_idx);
             break;
         case kCDXNodeType_ExternalConnectionPoint: {
@@ -446,7 +456,7 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
                 _pmol->setExplicitValence(atom_idx, atom.valence);
             _pmol->setAtomRadical(atom_idx, atom.radical);
             _pmol->setAtomIsotope(atom_idx, atom.isotope);
-            if (atom.type == kCDXNodeType_GenericNickname)
+            if (atom.type == kCDXNodeType_GenericNickname || atom.element == ELEM_PSEUDO)
                 _pmol->setPseudoAtom(atom_idx, atom.label.c_str());
             switch (atom.enchanced_stereo)
             {
@@ -480,7 +490,6 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
             auto bond_second_it = _id_to_atom_idx.find(bond.be.second);
             auto& fn = nodes[_id_to_node_index.at(bond.be.first)];
             auto& sn = nodes[_id_to_node_index.at(bond.be.second)];
-
             if (bond_first_it != _id_to_atom_idx.end() && bond_second_it != _id_to_atom_idx.end())
             {
                 if (bond.swap_bond)
@@ -515,7 +524,7 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
                             a1 = it->second;
                         }
                         else
-                            throw Error("unable to cennect node %d", a1);
+                            throw Error("unable to connect node %d", a1);
                     }
                     else
                         throw Error("orphaned node %d", a1);
@@ -548,7 +557,7 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
                             a2 = it->second;
                         }
                         else
-                            throw Error("unable to cennect node %d", a1);
+                            throw Error("unable to connect node %d", a1);
                     }
                     else
                         throw Error("orphaned node %d", a1);
@@ -561,6 +570,24 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
                     if (bond.dir > 0)
                         _pmol->setBondDirection(bi, bond.dir);
                 }
+            }
+            else if (is_fragment(fn.type) && is_fragment(sn.type))
+            {
+                auto bit_beg = fn.bond_id_to_connection_idx.find(bond.id);
+                auto bit_end = sn.bond_id_to_connection_idx.find(bond.id);
+                if (bit_beg != fn.bond_id_to_connection_idx.end() && bit_end != sn.bond_id_to_connection_idx.end())
+                {
+                    int a1 = fn.connections[bit_beg->second].atom_idx;
+                    int a2 = sn.connections[bit_end->second].atom_idx;
+
+                    auto bi = _pmol->addBond_Silent(a1, a2, bond.order);
+                    if (bond.dir > 0)
+                        _pmol->setBondDirection(bi, bond.dir);
+                }
+            }
+            else
+            {
+                throw Error("orphaned node!!!");
             }
         }
     }
@@ -601,7 +628,7 @@ void MoleculeCdxmlLoader::_addBracket(BaseMolecule& mol, const CdxmlBracket& bra
         if (bracket.is_superatom)
         {
             Superatom& sa = (Superatom&)sgroup;
-            sa.contracted = true;
+            sa.contracted = DisplayOption::Contracted;
             sa.subscript.readString(bracket.label.c_str(), true);
         }
         else
@@ -829,7 +856,29 @@ void MoleculeCdxmlLoader::_parseNode(CdxmlNode& node, CDXElement elem)
             std::string label;
             _parseLabel(child_elem, label);
             if (label.size() > 1 && label.find("R") == 0)
-                node.rg_index = label.substr(1);
+            {
+                try
+                {
+                    node.rg_index = label.substr(1);
+                    node.type = kCDXNodeType_NamedAlternativeGroup;
+                    node.element = ELEM_RSITE;
+                }
+                catch (const std::exception& ex)
+                {
+                    // not a R-Group
+                }
+            }
+            if (node.element == ELEM_C) // overridable
+            {
+                auto elem = Element::fromString2(label.c_str());
+                if (elem > 0)
+                    node.element = elem;
+                else if (node.label.empty())
+                {
+                    node.label = label;
+                    node.element = ELEM_PSEUDO;
+                }
+            }
         }
         else if (child_elem.name() == "fragment")
         {
@@ -935,6 +984,18 @@ void MoleculeCdxmlLoader::_parseAltGroup(CDXElement elem)
 {
     std::vector<AutoInt> r_labels;
     std::vector<CDXElement> r_fragments;
+
+    std::pair<Vec2f, Vec2f> bbox, text_frame, group_frame;
+    auto bbox_lambda = [&bbox, this](const std::string& data) { this->parseSeg(data, bbox.first, bbox.second); };
+    auto text_frame_lambda = [&text_frame, this](const std::string& data) { this->parseSeg(data, text_frame.first, text_frame.second); };
+    auto group_frame_lambda = [&group_frame, this](const std::string& data) { this->parseSeg(data, group_frame.first, group_frame.second); };
+
+    std::unordered_map<std::string, std::function<void(const std::string&)>> altgroup_dispatcher = {
+        {"BoundingBox", bbox_lambda}, {"TextFrame", text_frame_lambda}, {"GroupFrame", group_frame_lambda}};
+
+    auto prop = elem.firstProperty();
+    applyDispatcher(prop, altgroup_dispatcher);
+
     for (auto r_elem = elem.firstChildElement(); r_elem.hasContent(); r_elem = r_elem.nextSiblingElement())
     {
         auto el_name = r_elem.name();
@@ -949,16 +1010,20 @@ void MoleculeCdxmlLoader::_parseAltGroup(CDXElement elem)
         }
     }
 
-    if (r_fragments.size() && r_labels.size())
+    if (r_labels.size())
     {
-        MoleculeCdxmlLoader alt_loader(_scanner, _is_binary);
-        BaseMolecule& mol = _pmol ? *(BaseMolecule*)_pmol : *(BaseMolecule*)_pqmol;
-        std::unique_ptr<BaseMolecule> fragment(mol.neu());
-        alt_loader.stereochemistry_options = stereochemistry_options;
-        alt_loader.loadMoleculeFromFragment(*fragment.get(), r_fragments.front());
-        MoleculeRGroups& rgroups = mol.rgroups;
-        RGroup& rgroup = rgroups.getRGroup(r_labels.front());
-        rgroup.fragments.add(fragment.release());
+        // TODO: check if there are some fragments inside of group_frame_lambda and put them into r_fragments
+        if (r_fragments.size())
+        {
+            MoleculeCdxmlLoader alt_loader(_scanner, _is_binary);
+            BaseMolecule& mol = _pmol ? *(BaseMolecule*)_pmol : *(BaseMolecule*)_pqmol;
+            std::unique_ptr<BaseMolecule> fragment(mol.neu());
+            alt_loader.stereochemistry_options = stereochemistry_options;
+            alt_loader.loadMoleculeFromFragment(*fragment.get(), r_fragments.front());
+            MoleculeRGroups& rgroups = mol.rgroups;
+            RGroup& rgroup = rgroups.getRGroup(r_labels.front());
+            rgroup.fragments.add(fragment.release());
+        }
     }
 }
 
@@ -1062,13 +1127,16 @@ void MoleculeCdxmlLoader::_parseArrow(CDXElement elem)
 
 void MoleculeCdxmlLoader::_parseLabel(CDXElement elem, std::string& label)
 {
+    label.clear();
     for (auto text_style = elem.firstChildElement(); text_style.hasContent(); text_style = text_style.nextSiblingElement())
     {
         std::string text_element = text_style.value();
         if (text_element == "s")
         {
-            label = text_style.getText();
-            break;
+            auto txt = text_style.getText();
+            if (!is_valid_utf8(txt))
+                txt = latin1_to_utf8(txt);
+            label += txt;
         }
     }
 }
@@ -1155,7 +1223,7 @@ void MoleculeCdxmlLoader::_parseText(CDXElement elem, std::vector<std::pair<Vec3
                     ket_text_style.styles.push_back(KETFontItalicStr);
                 if (fs.is_superscript)
                     ket_text_style.styles.push_back(KETFontSuperscriptStr);
-                if (fs.is_superscript)
+                if (fs.is_subscript)
                     ket_text_style.styles.push_back(KETFontSubscriptStr);
             }
             if (font_size > 0 && (int)font_size != KETDefaultFontSize)
@@ -1205,7 +1273,11 @@ void MoleculeCdxmlLoader::_parseText(CDXElement elem, std::vector<std::pair<Vec3
     if (text_bbox.width() > 0 && text_bbox.height() > 0)
         tpos.set(text_bbox.center().x, text_bbox.center().y, 0);
 
-    text_parsed.emplace_back(tpos, s.GetString());
+    std::string txt = s.GetString();
+    if (!is_valid_utf8(txt))
+        txt = latin1_to_utf8(txt);
+
+    text_parsed.emplace_back(tpos, txt.c_str());
 }
 
 void MoleculeCdxmlLoader::_parseBracket(CdxmlBracket& bracket, CDXProperty prop)

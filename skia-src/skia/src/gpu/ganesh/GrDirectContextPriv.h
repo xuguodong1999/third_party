@@ -34,16 +34,18 @@ class SkTaskGroup;
     data members or virtual methods. */
 class GrDirectContextPriv : public GrRecordingContextPriv {
 public:
-    static sk_sp<GrDirectContext> Make(GrBackendApi backend, const GrContextOptions& options) {
-        return sk_sp<GrDirectContext>(new GrDirectContext(backend, options));
+    static sk_sp<GrDirectContext> Make(GrBackendApi backend,
+                                       const GrContextOptions& options,
+                                       sk_sp<GrContextThreadSafeProxy> proxy) {
+        return sk_sp<GrDirectContext>(new GrDirectContext(backend, options, std::move(proxy)));
     }
 
-    static bool Init(sk_sp<GrDirectContext> ctx) {
+    static bool Init(const sk_sp<GrDirectContext>& ctx) {
         SkASSERT(ctx);
         return ctx->init();
     }
 
-    static void SetGpu(sk_sp<GrDirectContext> ctx, std::unique_ptr<GrGpu> gpu) {
+    static void SetGpu(const sk_sp<GrDirectContext>& ctx, std::unique_ptr<GrGpu> gpu) {
         SkASSERT(ctx);
         ctx->fGpu = std::move(gpu);
     }

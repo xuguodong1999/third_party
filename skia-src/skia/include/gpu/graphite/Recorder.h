@@ -18,9 +18,11 @@
 #include <chrono>
 #include <vector>
 
+struct AHardwareBuffer;
 class SkCanvas;
 struct SkImageInfo;
 class SkPixmap;
+class SkTraceMemoryDump;
 
 namespace skgpu {
 class RefCntedCallback;
@@ -65,7 +67,7 @@ struct SK_API RecorderOptions final {
 
     sk_sp<ImageProvider> fImageProvider;
 
-    const size_t kDefaultRecorderBudget = 256 * (1 << 20);
+    static constexpr size_t kDefaultRecorderBudget = 256 * (1 << 20);
     // What is the budget for GPU resources allocated and held by this Recorder.
     size_t fGpuBudgetInBytes = kDefaultRecorderBudget;
 };
@@ -96,6 +98,14 @@ public:
      * same Context to call deleteBackendTexture.
      */
     BackendTexture createBackendTexture(SkISize dimensions, const TextureInfo&);
+
+#ifdef SK_BUILD_FOR_ANDROID
+    BackendTexture createBackendTexture(AHardwareBuffer*,
+                                        bool isRenderable,
+                                        bool isProtectedContent,
+                                        SkISize dimensions,
+                                        bool fromAndroidWindow = false) const;
+#endif
 
     /**
      * If possible, updates a backend texture with the provided pixmap data. The client
@@ -158,6 +168,12 @@ public:
      * Returns the number of bytes of gpu memory currently budgeted in the Recorder's cache.
      */
     size_t currentBudgetedBytes() const;
+
+    /**
+     * Enumerates all cached GPU resources owned by the Recorder and dumps their memory to
+     * traceMemoryDump.
+     */
+    void dumpMemoryStatistics(SkTraceMemoryDump* traceMemoryDump) const;
 
     // Provides access to functions that aren't part of the public API.
     RecorderPriv priv();

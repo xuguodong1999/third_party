@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QQuickItemGrabResult>
 #include "stdafx.h"
+#include <qmath.h>
 
 class ScreenshotBackground : public QQuickPaintedItem
 {
@@ -28,7 +29,6 @@ private:
     QRect _captureRect;
 };
 
-
 class Screenshot : public QQuickPaintedItem
 {
     Q_OBJECT
@@ -39,7 +39,6 @@ class Screenshot : public QQuickPaintedItem
 public:
     Screenshot(QQuickItem* parent = nullptr);
     void paint(QPainter* painter) override;
-
 private:
     QRect _desktopGeometry;
 };

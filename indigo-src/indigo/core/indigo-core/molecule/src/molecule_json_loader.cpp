@@ -10,6 +10,7 @@
 #include "molecule/elements.h"
 #include "molecule/ket_commons.h"
 #include "molecule/molecule.h"
+#include "molecule/molecule_sgroups.h"
 #include "molecule/query_molecule.h"
 
 using namespace rapidjson;
@@ -249,6 +250,24 @@ void MoleculeJsonLoader::parseAtoms(const rapidjson::Value& atoms, BaseMolecule&
                     rsite_idx = std::stoi(ref);
                     elem = ELEM_RSITE;
                     label = "R";
+                    if (a.HasMember("attachmentOrder"))
+                    {
+                        const auto& rattachments = a["attachmentOrder"];
+                        for (SizeType j = 0; j < rattachments.Size(); ++j)
+                        {
+                            const auto& rattachment = rattachments[j];
+                            if (rattachment.HasMember("attachmentAtom"))
+                            {
+                                auto attindex = rattachment["attachmentAtom"].GetInt();
+                                int attid = -1;
+                                if (rattachment.HasMember("attachmentId"))
+                                {
+                                    attid = rattachment["attachmentId"].GetInt();
+                                }
+                                mol.setRSiteAttachmentOrder(i, attindex, attid);
+                            }
+                        }
+                    }
                 }
                 else
                     throw Error("invalid refs: %s", ref.c_str());
@@ -486,15 +505,7 @@ void MoleculeJsonLoader::parseAtoms(const rapidjson::Value& atoms, BaseMolecule&
 
         if (a.HasMember("alias"))
         {
-            Array<char> alias;
-            alias.readString(a["alias"].GetString(), true);
-            int idx = mol.sgroups.addSGroup(SGroup::SG_TYPE_DAT);
-            DataSGroup& sgroup = (DataSGroup&)mol.sgroups.getSGroup(idx);
-            sgroup.atoms.push(atom_idx);
-            sgroup.name.readString("INDIGO_ALIAS", true);
-            sgroup.data.copy(alias);
-            sgroup.display_pos.x = mol.getAtomXyz(atom_idx).x;
-            sgroup.display_pos.y = mol.getAtomXyz(atom_idx).y;
+            mol.setAlias(atom_idx, a["alias"].GetString());
         }
 
         if (a.HasMember("cip"))
@@ -713,8 +724,14 @@ void MoleculeJsonLoader::handleSGroup(SGroup& sgroup, const std::unordered_set<i
         rep->sgroups.clear(SGroup::SG_TYPE_SRU);
         rep->sgroups.clear(SGroup::SG_TYPE_MUL);
 
-        int rep_start = mapping[start];
-        int rep_end = mapping[end];
+        int rep_start{-1};
+        if (start != -1)
+            rep_start = mapping[start];
+
+        int rep_end{-1};
+        if (end != -1)
+            rep_end = mapping[end];
+
         MultipleGroup& mg = (MultipleGroup&)sgroup;
         if (mg.multiplier > 1)
         {
@@ -834,7 +851,35 @@ void MoleculeJsonLoader::parseSGroups(const rapidjson::Value& sgroups, BaseMolec
             if (s.HasMember("name"))
                 sg.subscript.readString(s["name"].GetString(), true);
             if (s.HasMember("expanded"))
-                sg.contracted = s["expanded"].GetBool() ? 0 : 1;
+                sg.contracted = s["expanded"].GetBool() ? DisplayOption::Expanded : DisplayOption::Contracted;
+            if (s.HasMember("attachmentPoints"))
+            {
+                const Value& attachmentPoints = s["attachmentPoints"];
+                assert(attachmentPoints.IsArray());
+                int attachmentAtom{-1};
+                int leavingAtom{-1};
+                std::string attachmentId{""};
+
+                for (SizeType j = 0; j < attachmentPoints.Size(); ++j)
+                {
+                    if (!attachmentPoints[j].HasMember("attachmentAtom"))
+                        throw Error("Attachment atom in a superatom is mandatory. Check input ket-file");
+                    attachmentAtom = attachmentPoints[j]["attachmentAtom"].GetInt();
+                    if (attachmentPoints[j].HasMember("leavingAtom"))
+                    {
+                        leavingAtom = attachmentPoints[j]["leavingAtom"].GetInt();
+                    }
+                    if (attachmentPoints[j].HasMember("attachmentId"))
+                    {
+                        attachmentId = attachmentPoints[j]["attachmentId"].GetString();
+                    }
+                    int ap_idx = sg.attachment_points.add();
+                    Superatom::_AttachmentPoint& ap = sg.attachment_points.at(ap_idx);
+                    ap.aidx = attachmentAtom;
+                    ap.lvidx = leavingAtom;
+                    ap.apid.readString(attachmentId.c_str(), true);
+                }
+            }
         }
         break;
         case SGroup::SG_TYPE_DAT: {
@@ -900,6 +945,17 @@ void MoleculeJsonLoader::parseSGroups(const rapidjson::Value& sgroups, BaseMolec
     }
 }
 
+void MoleculeJsonLoader::parseProperties(const rapidjson::Value& props, BaseMolecule& mol)
+{
+    auto& properties = mol.properties().insert(0);
+    for (SizeType i = 0; i < props.Size(); i++)
+    {
+        const Value& prop = props[i];
+        if (prop.HasMember("key") && prop.HasMember("value"))
+            properties.insert(prop["key"].GetString(), prop["value"].GetString());
+    }
+}
+
 void MoleculeJsonLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
 {
     for (int node_idx = 0; node_idx < _mol_nodes.Size(); ++node_idx)
@@ -918,8 +974,7 @@ void MoleculeJsonLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
         }
 
         auto& mol_node = _mol_nodes[node_idx];
-        std::string type = mol_node["type"].GetString();
-        if (type.compare("molecule") == 0 || type.compare("rgroup") == 0)
+        if (mol_node.HasMember("atoms"))
         {
             // parse atoms
             auto& atoms = mol_node["atoms"];
@@ -950,10 +1005,15 @@ void MoleculeJsonLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
             {
                 setStereoFlagPosition(mol_node["stereoFlagPosition"], node_idx, mol);
             }
+
+            if (mol_node.HasMember("properties"))
+            {
+                parseProperties(mol_node["properties"], *pmol);
+            }
         }
         else
         {
-            throw Error("unknown type: %s", type.c_str());
+            throw Error("Expected atoms block not found");
         }
 
         Array<int> mapping;
@@ -971,14 +1031,31 @@ void MoleculeJsonLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
     for (auto& rgrp : _rgroups)
     {
         RGroup& rgroup = rgroups.getRGroup(rgrp.first);
-        std::unique_ptr<BaseMolecule> fragment(mol.neu());
         Value one_rnode(kArrayType);
         Value& rnode = rgrp.second;
-        one_rnode.PushBack(rnode, data.GetAllocator());
-        MoleculeJsonLoader loader(one_rnode);
-        loader.stereochemistry_options = stereochemistry_options;
-        loader.loadMolecule(*fragment.get());
-        rgroup.fragments.add(fragment.release());
+        if (rnode.HasMember("fragments"))
+        {
+            auto& rfragments = rnode["fragments"];
+            for (SizeType i = 0; i < rfragments.Size(); i++)
+            {
+                std::unique_ptr<BaseMolecule> fragment(mol.neu());
+                one_rnode.PushBack(rfragments[i], data.GetAllocator());
+                MoleculeJsonLoader loader(one_rnode);
+                loader.stereochemistry_options = stereochemistry_options;
+                loader.loadMolecule(*fragment.get());
+                rgroup.fragments.add(fragment.release());
+                one_rnode.Clear();
+            }
+        }
+        else
+        {
+            std::unique_ptr<BaseMolecule> fragment(mol.neu());
+            one_rnode.PushBack(rnode, data.GetAllocator());
+            MoleculeJsonLoader loader(one_rnode);
+            loader.stereochemistry_options = stereochemistry_options;
+            loader.loadMolecule(*fragment.get());
+            rgroup.fragments.add(fragment.release());
+        }
     }
 
     std::vector<int> ignore_cistrans(mol.edgeCount());
@@ -1030,14 +1107,24 @@ void MoleculeJsonLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
     {
         if (mol.stereocenters.getType(sc._atom_idx) == 0)
         {
-            if (!stereochemistry_options.ignore_errors)
+            if (stereochemistry_options.ignore_errors)
+                mol.addStereocentersIgnoreBad(sc._atom_idx, sc._type, sc._group, false); // add non-valid stereocenters
+            else
                 throw Error("stereo type specified for atom #%d, but the bond "
                             "directions does not say that it is a stereocenter",
                             sc._atom_idx);
-            mol.addStereocentersIgnoreBad(sc._atom_idx, sc._type, sc._group, false); // add non-valid stereocenters
         }
         else
             mol.stereocenters.setType(sc._atom_idx, sc._type, sc._group);
+    }
+
+    for (int i : mol.edges())
+    {
+        if (mol.getBondDirection(i) > 0 && !sensible_bond_directions[i])
+        {
+            if (!stereochemistry_options.ignore_errors)
+                throw Error("direction of bond #%d makes no sense", i);
+        }
     }
 
     MoleculeLayout ml(mol, false);

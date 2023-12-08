@@ -11,25 +11,28 @@
 #include "google/protobuf/generated_message_reflection.h"
 #include "google/protobuf/reflection_ops.h"
 #include "google/protobuf/wire_format.h"
+#include "google/protobuf/generated_message_tctable_impl.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
 #include "google/protobuf/port_def.inc"
 PROTOBUF_PRAGMA_INIT_SEG
-namespace _pb = ::PROTOBUF_NAMESPACE_ID;
-namespace _pbi = ::PROTOBUF_NAMESPACE_ID::internal;
+namespace _pb = ::google::protobuf;
+namespace _pbi = ::google::protobuf::internal;
+namespace _fl = ::google::protobuf::internal::field_layout;
 namespace opencv_tensorflow {
+
+inline constexpr VersionDef::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : bad_consumers_{},
+        _bad_consumers_cached_byte_size_{0},
+        producer_{0},
+        min_consumer_{0},
+        _cached_size_{0} {}
+
 template <typename>
-PROTOBUF_CONSTEXPR VersionDef::VersionDef(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.bad_consumers_)*/ {}
-  ,/* _impl_._bad_consumers_cached_byte_size_ = */ { 0 }
-
-  , /*decltype(_impl_.producer_)*/ 0
-
-  , /*decltype(_impl_.min_consumer_)*/ 0
-
-  , /*decltype(_impl_._cached_size_)*/{}} {}
+PROTOBUF_CONSTEXPR VersionDef::VersionDef(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
 struct VersionDefDefaultTypeInternal {
   PROTOBUF_CONSTEXPR VersionDefDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
   ~VersionDefDefaultTypeInternal() {}
@@ -63,7 +66,7 @@ const ::uint32_t TableStruct_versions_2eproto::offsets[] PROTOBUF_SECTION_VARIAB
 
 static const ::_pbi::MigrationSchema
     schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-        { 0, -1, -1, sizeof(::opencv_tensorflow::VersionDef)},
+        {0, -1, -1, sizeof(::opencv_tensorflow::VersionDef)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -119,167 +122,161 @@ class VersionDef::_Internal {
  public:
 };
 
-VersionDef::VersionDef(::PROTOBUF_NAMESPACE_ID::Arena* arena)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+VersionDef::VersionDef(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
   SharedCtor(arena);
   // @@protoc_insertion_point(arena_constructor:opencv_tensorflow.VersionDef)
 }
-VersionDef::VersionDef(const VersionDef& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  VersionDef* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.bad_consumers_) { from._impl_.bad_consumers_ }
-    ,/* _impl_._bad_consumers_cached_byte_size_ = */ { 0 }
+inline PROTOBUF_NDEBUG_INLINE VersionDef::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from)
+      : bad_consumers_{visibility, arena, from.bad_consumers_},
+        _bad_consumers_cached_byte_size_{0},
+        _cached_size_{0} {}
 
-    , decltype(_impl_.producer_) {}
+VersionDef::VersionDef(
+    ::google::protobuf::Arena* arena,
+    const VersionDef& from)
+    : ::google::protobuf::Message(arena) {
+  VersionDef* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_);
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, producer_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, producer_),
+           offsetof(Impl_, min_consumer_) -
+               offsetof(Impl_, producer_) +
+               sizeof(Impl_::min_consumer_));
 
-    , decltype(_impl_.min_consumer_) {}
-
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  ::memcpy(&_impl_.producer_, &from._impl_.producer_,
-    static_cast<::size_t>(reinterpret_cast<char*>(&_impl_.min_consumer_) -
-    reinterpret_cast<char*>(&_impl_.producer_)) + sizeof(_impl_.min_consumer_));
   // @@protoc_insertion_point(copy_constructor:opencv_tensorflow.VersionDef)
 }
+inline PROTOBUF_NDEBUG_INLINE VersionDef::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : bad_consumers_{visibility, arena},
+        _bad_consumers_cached_byte_size_{0},
+        _cached_size_{0} {}
 
 inline void VersionDef::SharedCtor(::_pb::Arena* arena) {
-  (void)arena;
-  new (&_impl_) Impl_{
-      decltype(_impl_.bad_consumers_) { arena }
-    ,/* _impl_._bad_consumers_cached_byte_size_ = */ { 0 }
-
-    , decltype(_impl_.producer_) { 0 }
-
-    , decltype(_impl_.min_consumer_) { 0 }
-
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, producer_),
+           0,
+           offsetof(Impl_, min_consumer_) -
+               offsetof(Impl_, producer_) +
+               sizeof(Impl_::min_consumer_));
 }
-
 VersionDef::~VersionDef() {
   // @@protoc_insertion_point(destructor:opencv_tensorflow.VersionDef)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   SharedDtor();
 }
-
 inline void VersionDef::SharedDtor() {
-  ABSL_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.bad_consumers_.~RepeatedField();
+  ABSL_DCHECK(GetArena() == nullptr);
+  _impl_.~Impl_();
 }
 
-void VersionDef::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void VersionDef::Clear() {
+PROTOBUF_NOINLINE void VersionDef::Clear() {
 // @@protoc_insertion_point(message_clear_start:opencv_tensorflow.VersionDef)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _internal_mutable_bad_consumers()->Clear();
+  _impl_.bad_consumers_.Clear();
   ::memset(&_impl_.producer_, 0, static_cast<::size_t>(
       reinterpret_cast<char*>(&_impl_.min_consumer_) -
       reinterpret_cast<char*>(&_impl_.producer_)) + sizeof(_impl_.min_consumer_));
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
-const char* VersionDef::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // int32 producer = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 8)) {
-          _impl_.producer_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else {
-          goto handle_unusual;
-        }
-        continue;
-      // int32 min_consumer = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 16)) {
-          _impl_.min_consumer_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
-          CHK_(ptr);
-        } else {
-          goto handle_unusual;
-        }
-        continue;
-      // repeated int32 bad_consumers = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::uint8_t>(tag) == 26)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_bad_consumers(), ptr, ctx);
-          CHK_(ptr);
-        } else if (static_cast<::uint8_t>(tag) == 24) {
-          _internal_add_bad_consumers(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr));
-          CHK_(ptr);
-        } else {
-          goto handle_unusual;
-        }
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
+const char* VersionDef::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
 }
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2> VersionDef::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_VersionDef_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // int32 producer = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(VersionDef, _impl_.producer_), 63>(),
+     {8, 63, 0, PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.producer_)}},
+    // int32 min_consumer = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(VersionDef, _impl_.min_consumer_), 63>(),
+     {16, 63, 0, PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.min_consumer_)}},
+    // repeated int32 bad_consumers = 3;
+    {::_pbi::TcParser::FastV32P1,
+     {26, 63, 0, PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.bad_consumers_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 producer = 1;
+    {PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.producer_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kInt32)},
+    // int32 min_consumer = 2;
+    {PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.min_consumer_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kInt32)},
+    // repeated int32 bad_consumers = 3;
+    {PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.bad_consumers_), 0, 0,
+    (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
 
 ::uint8_t* VersionDef::_InternalSerialize(
-    ::uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:opencv_tensorflow.VersionDef)
   ::uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
+  (void)cached_has_bits;
 
   // int32 producer = 1;
   if (this->_internal_producer() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(
-        1, this->_internal_producer(), target);
+    target = ::google::protobuf::internal::WireFormatLite::
+        WriteInt32ToArrayWithField<1>(
+            stream, this->_internal_producer(), target);
   }
 
   // int32 min_consumer = 2;
   if (this->_internal_min_consumer() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(
-        2, this->_internal_min_consumer(), target);
+    target = ::google::protobuf::internal::WireFormatLite::
+        WriteInt32ToArrayWithField<2>(
+            stream, this->_internal_min_consumer(), target);
   }
 
   // repeated int32 bad_consumers = 3;
   {
     int byte_size = _impl_._bad_consumers_cached_byte_size_.Get();
     if (byte_size > 0) {
-      target = stream->WriteInt32Packed(3, _internal_bad_consumers(),
-                                                 byte_size, target);
+      target = stream->WriteInt32Packed(
+          3, _internal_bad_consumers(), byte_size, target);
     }
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:opencv_tensorflow.VersionDef)
   return target;
@@ -306,7 +303,6 @@ failure:
     ;
     total_size += tag_size + data_size;
   }
-
   // int32 producer = 1;
   if (this->_internal_producer() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
@@ -322,14 +318,15 @@ failure:
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData VersionDef::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    VersionDef::MergeImpl
+const ::google::protobuf::Message::ClassData VersionDef::_class_data_ = {
+    VersionDef::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*VersionDef::GetClassData() const { return &_class_data_; }
+const ::google::protobuf::Message::ClassData* VersionDef::GetClassData() const {
+  return &_class_data_;
+}
 
-
-void VersionDef::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+void VersionDef::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
   auto* const _this = static_cast<VersionDef*>(&to_msg);
   auto& from = static_cast<const VersionDef&>(from_msg);
   // @@protoc_insertion_point(class_specific_merge_from_start:opencv_tensorflow.VersionDef)
@@ -337,14 +334,14 @@ void VersionDef::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  _this->_impl_.bad_consumers_.MergeFrom(from._impl_.bad_consumers_);
+  _this->_internal_mutable_bad_consumers()->MergeFrom(from._internal_bad_consumers());
   if (from._internal_producer() != 0) {
     _this->_internal_set_producer(from._internal_producer());
   }
   if (from._internal_min_consumer() != 0) {
     _this->_internal_set_min_consumer(from._internal_min_consumer());
   }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
 void VersionDef::CopyFrom(const VersionDef& from) {
@@ -354,15 +351,18 @@ void VersionDef::CopyFrom(const VersionDef& from) {
   MergeFrom(from);
 }
 
-bool VersionDef::IsInitialized() const {
+PROTOBUF_NOINLINE bool VersionDef::IsInitialized() const {
   return true;
 }
 
-void VersionDef::InternalSwap(VersionDef* other) {
+::_pbi::CachedSize* VersionDef::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void VersionDef::InternalSwap(VersionDef* PROTOBUF_RESTRICT other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   _impl_.bad_consumers_.InternalSwap(&other->_impl_.bad_consumers_);
-  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+  ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.min_consumer_)
       + sizeof(VersionDef::_impl_.min_consumer_)
       - PROTOBUF_FIELD_OFFSET(VersionDef, _impl_.producer_)>(
@@ -370,18 +370,16 @@ void VersionDef::InternalSwap(VersionDef* other) {
           reinterpret_cast<char*>(&other->_impl_.producer_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata VersionDef::GetMetadata() const {
+::google::protobuf::Metadata VersionDef::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_versions_2eproto_getter, &descriptor_table_versions_2eproto_once,
       file_level_metadata_versions_2eproto[0]);
 }
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace opencv_tensorflow
-PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::opencv_tensorflow::VersionDef*
-Arena::CreateMaybeMessage< ::opencv_tensorflow::VersionDef >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::opencv_tensorflow::VersionDef >(arena);
-}
-PROTOBUF_NAMESPACE_CLOSE
+namespace google {
+namespace protobuf {
+}  // namespace protobuf
+}  // namespace google
 // @@protoc_insertion_point(global_scope)
 #include "google/protobuf/port_undef.inc"

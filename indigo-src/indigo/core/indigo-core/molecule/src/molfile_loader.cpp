@@ -16,10 +16,10 @@
  * limitations under the License.
  ***************************************************************************/
 
-#include "base_cpp/scanner.h"
-#include "base_cpp/tlscont.h"
 #include <memory>
 
+#include "base_cpp/scanner.h"
+#include "base_cpp/tlscont.h"
 #include "molecule/elements.h"
 #include "molecule/molecule.h"
 #include "molecule/molecule_3d_constraints.h"
@@ -27,8 +27,6 @@
 #include "molecule/molfile_loader.h"
 #include "molecule/query_molecule.h"
 #include "molecule/smiles_loader.h"
-
-#include "base_cpp/multimap.h"
 
 #define STRCMP(a, b) strncmp((a), (b), strlen(b))
 
@@ -59,9 +57,7 @@ void MolfileLoader::loadMolecule(Molecule& mol)
     _mol = &mol;
     _qmol = 0;
     _loadMolecule();
-
     mol.setIgnoreBadValenceFlag(ignore_bad_valence);
-
     if (mol.stereocenters.size() == 0 && !skip_3d_chirality)
         mol.buildFrom3dCoordinatesStereocenters(stereochemistry_options);
 }
@@ -268,7 +264,7 @@ void MolfileLoader::_readCtab2000()
         // Atom label can be both left-bound or right-bound: "  N", "N  " or even " N ".
         char* buf = _strtrim(atom_label_array);
 
-        //#349: make 'isotope' field optional
+        // #349: make 'isotope' field optional
         try
         {
             atom_line.skip(3 - read_chars_atom_label);
@@ -1326,7 +1322,7 @@ void MolfileLoader::_readCtab2000()
                         if (_sgroup_types[sgroup_idx] == SGroup::SG_TYPE_SUP)
                         {
                             Superatom& sup = (Superatom&)_bmol->sgroups.getSGroup(_sgroup_mapping[sgroup_idx]);
-                            sup.contracted = 0;
+                            sup.contracted = DisplayOption::Expanded;
                         }
                     }
                 }
@@ -1479,14 +1475,7 @@ void MolfileLoader::_readCtab2000()
 
             if (_atom_types[atom_idx] == _ATOM_ELEMENT)
             {
-                int idx = _bmol->sgroups.addSGroup(SGroup::SG_TYPE_DAT);
-                DataSGroup& sgroup = (DataSGroup&)_bmol->sgroups.getSGroup(idx);
-
-                sgroup.atoms.push(atom_idx);
-                sgroup.name.readString("INDIGO_ALIAS", true);
-                sgroup.data.copy(alias);
-                sgroup.display_pos.x = _bmol->getAtomXyz(atom_idx).x;
-                sgroup.display_pos.y = _bmol->getAtomXyz(atom_idx).y;
+                _bmol->setAlias(atom_idx, alias.ptr());
             }
             else
             {
@@ -1948,11 +1937,11 @@ void MolfileLoader::_postLoad()
         SGroup& sgroup = _bmol->sgroups.getSGroup(i);
         if (sgroup.sgroup_type == SGroup::SG_TYPE_DAT)
         {
-            DataSGroup& dsg = (DataSGroup&)sgroup;
-            if (dsg.name.size() > 0 && strncmp(dsg.name.ptr(), "MRV_IMPLICIT_H", 14) == 0)
+            DataSGroup& dsg = static_cast<DataSGroup&>(sgroup);
+            if (dsg.isMrv_implicit())
             {
                 BufferScanner scanner(dsg.data);
-                scanner.skip(6); // IMPL_H
+                scanner.skip(DataSGroup::impl_prefix_len); // IMPL_H
                 int hcount = scanner.readInt1();
                 int k = dsg.atoms[0];
 
@@ -2081,12 +2070,16 @@ void MolfileLoader::_postLoad()
                 _bmol->stereocenters.setType(i, _stereocenter_types[i], _stereocenter_groups[i]);
         }
 
-    if (!stereochemistry_options.ignore_errors)
-        for (i = 0; i < _bonds_num; i++)
-            if (_bmol->getBondDirection(i) > 0 && !_sensible_bond_directions[i])
-                throw Error("direction of bond #%d makes no sense", i);
-
     _bmol->buildCisTrans(_ignore_cistrans.ptr());
+
+    for (i = 0; i < _bonds_num; i++)
+    {
+        if (_bmol->getBondDirection(i) && !_sensible_bond_directions[i])
+        {
+            if (!stereochemistry_options.ignore_errors)
+                throw Error("direction of bond #%d makes no sense", i);
+        }
+    }
 
     // Remove adding default R-group logic behavior
     /*
@@ -3485,10 +3478,19 @@ void MolfileLoader::_readSGroup3000(const char* str)
         }
         else if (strcmp(entity.ptr(), "LABEL") == 0)
         {
+            bool has_quote = false;
             while (!scanner.isEOF())
             {
                 char c = scanner.readChar();
-                if (c == ' ')
+                if (c == '"')
+                {
+                    if (has_quote)
+                        break;
+                    else
+                        has_quote = true;
+                    continue;
+                }
+                if (c == ' ' && !has_quote)
                     break;
                 if (sup != 0)
                     sup->subscript.push(c);
@@ -3542,12 +3544,12 @@ void MolfileLoader::_readSGroup3000(const char* str)
                 if (c == 'E')
                 {
                     if (sup != 0)
-                        sup->contracted = 0;
+                        sup->contracted = DisplayOption::Expanded;
                 }
                 else
                 {
                     if (sup != 0)
-                        sup->contracted = 1;
+                        sup->contracted = DisplayOption::Undefined;
                 }
             }
         }

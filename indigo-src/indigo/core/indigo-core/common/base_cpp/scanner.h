@@ -66,6 +66,7 @@ namespace indigo
         float readFloatFix(int digits);
         int readIntFix(int digits);
         void skipSpace();
+        void skipBom();
 
         void skipUntil(const char* delimiters);
 
@@ -74,6 +75,7 @@ namespace indigo
         int readInt(void);
         int readInt1(void);
         int readUnsigned();
+        int tryReadUnsigned();
 
         // when delimiters = 0, any isspace() character is considered delimiter
         void readWord(Array<char>& word, const char* delimiters);

@@ -2,291 +2,453 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
 import QtQuick.Controls
+import Qt.labs.qmlmodels
 import FluentUI
 
 Item {
-    property int selectionMode: FluTreeViewType.None
-    property var currentElement
-    property var currentParentElement
-    property var rootModel: tree_model.get(0).items
-    signal itemClicked(var item)
-    id:root
-    ListModel{
+    property int currentIndex : -1
+    property var dataSource
+    property bool showLine: true
+    property bool draggable: false
+    property int cellHeight: 30
+    property int depthPadding: 30
+    property bool checkable: false
+    property color lineColor: FluTheme.dark ? Qt.rgba(111/255,111/255,111/255,1) : Qt.rgba(217/255,217/255,217/255,1)
+    id:control
+    QtObject {
+        id:d
+        property int dy
+        property var current
+        property int dropIndex: -1
+        property bool isDropTopArea: false
+        property int dragIndex: -1
+        property color hitColor: FluTheme.dark ? FluTheme.primaryColor.lighter : FluTheme.primaryColor.dark
+    }
+    onDataSourceChanged: {
+        tree_model.setDataSource(dataSource)
+    }
+    FluTreeModel{
         id:tree_model
-        ListElement{
-            text: "根节点"
-            expanded:true
-            items:[]
-            key:"123456"
-            multipSelected:false
-            multipIndex:0
-            multipParentKey:""
-        }
     }
-    Component{
-        id: delegate_root
-        Column{
-            width: calculateWidth()
-            property var itemModel: model
-            Repeater{
-                id: repeater_first_level
-                model: items
-                delegate: delegate_items
-            }
-            function calculateWidth(){
-                var w = 0;
-                for(var i = 0; i < repeater_first_level.count; i++) {
-                    var child = repeater_first_level.itemAt(i)
-                    if(w < child.width_hint){
-                        w = child.width_hint;
-                    }
-                }
-                return w;
-            }
-        }
-    }
-    Component{
-        id:delegate_items
-        Column{
-            id:item_layout
-            property real level: (mapToItem(list_root,0,0).x+list_root.contentX)/0.001
-            property var text: model.text??"Item"
-            property bool hasChild : (model.items !== undefined) && (model.items.count !== 0)
-            property var items: model.items??[]
-            property var expanded: model.expanded??true
-            property int width_hint: calculateWidth()
-            property bool singleSelected: currentElement === model
-            property var itemModel: model
-            function calculateWidth(){
-                var w = Math.max(list_root.width, item_layout_row.implicitWidth + 10);
-                if(expanded){
-                    for(var i = 0; i < repeater_items.count; i++) {
-                        var child = repeater_items.itemAt(i)
-                        if(w < child.width_hint){
-                            w = child.width_hint;
-                        }
-                    }
-                }
-                return w;
-            }
-            Item{
-                id:item_layout_rect
-                width: list_root.contentWidth
-                height: item_layout_row.implicitHeight
-                Rectangle{
-                    anchors.fill: parent
-                    anchors.margins: 2
-                    color:{
-                        if(FluTheme.dark){
-                            if(item_layout.singleSelected && selectionMode === FluTreeViewType.Single){
-                                return Qt.rgba(62/255,62/255,62/255,1)
-                            }
-                            return (item_layout_mouse.containsMouse || item_layout_expanded.hovered || item_layout_checkbox.hovered)?Qt.rgba(62/255,62/255,62/255,1):Qt.rgba(0,0,0,0)
-                        }else{
-                            if(item_layout.singleSelected && selectionMode === FluTreeViewType.Single){
-                                return Qt.rgba(0,0,0,0.06)
-                            }
-                            return (item_layout_mouse.containsMouse || item_layout_expanded.hovered || item_layout_checkbox.hovered)?Qt.rgba(0,0,0,0.03):Qt.rgba(0,0,0,0)
-                        }
-                    }
-                    Rectangle{
-                        width: 3
-                        color:FluTheme.primaryColor.dark
-                        visible: item_layout.singleSelected && (selectionMode === FluTreeViewType.Single)
-                        radius: 3
-                        height: 20
-                        anchors{
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                        }
-                    }
-                    MouseArea{
-                        id:item_layout_mouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: {
-                            item_layout_rect.onClickItem()
-                        }
-                    }
-                }
-                function onClickItem(){
-                    if(selectionMode === FluTreeViewType.None){
-                        itemClicked(model)
-                    }
-                    if(selectionMode === FluTreeViewType.Single){
-                        currentElement = model
-                        if(item_layout.parent.parent.parent.itemModel){
-                            currentParentElement = item_layout.parent.parent.parent.itemModel
-                        }else{
-                            if(item_layout.parent.itemModel){
-                                currentParentElement = item_layout.parent.itemModel
-                            }
-                        }
-                        itemClicked(model)
-                    }
-                    if(selectionMode === FluTreeViewType.Multiple){
-
-                    }
-                }
-                RowLayout{
-                    id:item_layout_row
-                    anchors.verticalCenter: item_layout_rect.verticalCenter
-                    Item{
-                        width: 15*level
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-                    FluCheckBox{
-                        id:item_layout_checkbox
-                        text:""
-                        checked: itemModel.multipSelected
-                        visible: selectionMode === FluTreeViewType.Multiple
-                        Layout.leftMargin: 5
-                        function refreshCheckBox(){
-                            const stack = [tree_model.get(0)];
-                            const result = [];
-                            while (stack.length > 0) {
-                                const curr = stack.pop();
-                                result.unshift(curr);
-                                if (curr.items) {
-                                    for(var i=0 ; i<curr.items.count ; i++){
-                                        curr.items.setProperty(i,"multipIndex",i)
-                                        curr.items.setProperty(i,"multipParentKey",curr.key)
-                                        stack.push(curr.items.get(i));
-                                    }
-                                }
-                            }
-                            for(var j=0 ; j<result.length-1 ; j++){
-                                var item = result[j]
-                                let obj = result.find(function(o) {
-                                    return o.key === item.multipParentKey;
-                                });
-                                if((item.items !== undefined) && (item.items.count !== 0)){
-                                    var items = item.items
-                                    for(var k=0 ; k<items.count ; k++){
-                                        if(items.get(k).multipSelected === false){
-                                            obj.items.setProperty(item.multipIndex,"multipSelected",false)
-                                            break
-                                        }
-                                        obj.items.setProperty(item.multipIndex,"multipSelected",true)
-                                    }
-                                }
-                            }
-                        }
-                        clickListener:function(){
-                            if(hasChild){
-                                const stack = [itemModel];
-                                while (stack.length > 0) {
-                                    const curr = stack.pop();
-                                    if (curr.items) {
-                                        for(var i=0 ; i<curr.items.count ; i++){
-                                            curr.items.setProperty(i,"multipSelected",!itemModel.multipSelected)
-                                            stack.push(curr.items.get(i));
-                                        }
-                                    }
-                                }
-                                refreshCheckBox()
-                            }else{
-                                itemModel.multipSelected = !itemModel.multipSelected
-                                refreshCheckBox()
-                            }
-                        }
-                    }
-                    FluIconButton{
-                        id:item_layout_expanded
-                        color:"#00000000"
-                        opacity: item_layout.hasChild
-                        onClicked: {
-                            if(!item_layout.hasChild){
-                                item_layout_rect.onClickItem()
-                                return
-                            }
-                            model.expanded = !model.expanded
-                        }
-                        contentItem: FluIcon{
-                            rotation: item_layout.expanded?0:-90
-                            iconSource:FluentIcons.ChevronDown
-                            iconSize: 15
-                            Behavior on rotation {
-                                enabled: FluTheme.enableAnimation
-                                NumberAnimation{
-                                    duration: 167
-                                    easing.type: Easing.OutCubic
-                                }
-                            }
-                        }
-                    }
-                    FluText {
-                        text:  item_layout.text
-                        Layout.alignment: Qt.AlignVCenter
-                        topPadding: 7
-                        bottomPadding: 7
-                    }
-                }
-            }
-            Item{
-                id:item_sub
-                visible: {
-                    if(!hasChild){
-                        return false
-                    }
-                    return item_layout.expanded??false
-                }
-
-                width: item_sub_layout.implicitWidth
-                height: item_sub_layout.implicitHeight
-                x:0.001
-                Column{
-                    id: item_sub_layout
-                    Repeater{
-                        id:repeater_items
-                        model: item_layout.items
-                        delegate: delegate_items
-                    }
-                }
-            }
-        }
-    }
-    ListView {
-        id: list_root
-        anchors.fill: parent
-        delegate: delegate_root
-        contentWidth: contentItem.childrenRect.width
+    ListView{
+        id:table_view
+        ScrollBar.horizontal: FluScrollBar{}
+        ScrollBar.vertical: FluScrollBar{}
+        boundsBehavior: Flickable.StopAtBounds
         model: tree_model
-        flickableDirection: Flickable.HorizontalAndVerticalFlick
+        anchors.fill: parent
         clip: true
-        boundsBehavior: ListView.StopAtBounds
-        ScrollBar.vertical: FluScrollBar {}
-        ScrollBar.horizontal: FluScrollBar { }
-    }
-    function updateData(items){
-        rootModel.clear()
-        rootModel.append(items)
-    }
-    function signleData(){
-        return currentElement
-    }
-    function multipData(){
-        const stack = [tree_model.get(0)];
-        const result = [];
-        while (stack.length > 0) {
-            const curr = stack.pop();
-            if(curr.multipSelected){
-                result.push(curr)
-            }
-
-            for(var i=0 ; i<curr.items.count ; i++){
-                stack.push(curr.items.get(i));
+        flickableDirection: Flickable.HorizontalAndVerticalFlick
+        contentWidth: contentItem.childrenRect.width
+        reuseItems: true
+        removeDisplaced : Transition{
+            ParallelAnimation{
+                NumberAnimation {
+                    properties: "y"
+                    duration: 167
+                    from: d.dy + table_view.height
+                    easing.type: Easing.OutCubic
+                }
+                NumberAnimation {
+                    properties: "opacity"
+                    duration: 88
+                    from: 0
+                    to: 1
+                }
             }
         }
-        return result
+        move: Transition {
+            NumberAnimation { property: "y"; duration: 200 }
+        }
+        add: Transition{
+            ParallelAnimation{
+                NumberAnimation {
+                    properties: "y"
+                    duration: 167
+                    from: d.dy
+                    easing.type: Easing.OutCubic
+                }
+                NumberAnimation {
+                    properties: "opacity"
+                    duration: 88
+                    from: 0
+                    to: 1
+                }
+            }
+        }
+        delegate: Item {
+            id:item_control
+            implicitWidth: item_loader_container.width
+            implicitHeight: item_loader_container.height
+            ListView.onReused: {
+                item_loader_container.item.reused()
+            }
+            ListView.onPooled: {
+                item_loader_container.item.pooled()
+            }
+            Loader{
+                property var itemControl: item_control
+                property var itemModel: modelData
+                property int rowIndex: index
+                property bool isItemLoader: true
+                id:item_loader_container
+                sourceComponent: com_item_container
+            }
+        }
+        Loader{
+            id:loader_container
+            property var itemControl
+            property var itemModel
+            property bool isItemLoader: false
+        }
     }
-    function createItem(text="",expanded=true,items=[],data={}){
-        return {text:text,expanded:expanded,items:items,key:uniqueRandom(),multipSelected:false,multipIndex:0,multipParentKey:"",data:data};
-    }
-    function uniqueRandom() {
-        var timestamp = Date.now();
-        var random = Math.floor(Math.random() * 1000000);
-        return timestamp.toString() + random.toString();
-    }
+    Component{
+        id:com_item_container
+        Item{
+            signal reused
+            signal pooled
+            onReused: {
 
+            }
+            onPooled: {
+            }
+            property bool isCurrent: d.current === itemModel
+            id:item_container
+            width: {
+                var w = 46 + item_loader_cell.width + control.depthPadding*itemModel.depth
+                if(control.width>w){
+                    return control.width
+                }
+                return w
+            }
+            height: control.cellHeight
+            implicitWidth: width
+            implicitHeight: height
+            function toggle(){
+                var pos = FluTools.cursorPos()
+                var viewPos = table_view.mapToGlobal(0,0)
+                d.dy = table_view.contentY + pos.y-viewPos.y
+                if(itemModel.isExpanded){
+                    tree_model.collapse(rowIndex)
+                }else{
+                    tree_model.expand(rowIndex)
+                }
+            }
+            Rectangle{
+                width: 3
+                height: 18
+                radius: 1.5
+                color: FluTheme.primaryColor.dark
+                visible: isCurrent
+                anchors{
+                    left: parent.left
+                    leftMargin: 6
+                    verticalCenter: parent.verticalCenter
+                }
+            }
+            MouseArea{
+                id:item_mouse
+                property point clickPos: Qt.point(0,0)
+                anchors.fill: parent
+                drag.target:control.draggable ? loader_container : undefined
+                hoverEnabled: true
+                drag.onActiveChanged: {
+                    if(drag.active){
+                        if(itemModel.isExpanded && itemModel.hasChildren()){
+                            tree_model.collapse(rowIndex)
+                        }
+                        d.dragIndex = rowIndex
+                        loader_container.sourceComponent = com_item_container
+                    }
+                }
+                onPressed:
+                    (mouse)=>{
+                        clickPos = Qt.point(mouse.x,mouse.y)
+                        loader_container.itemControl = itemControl
+                        loader_container.itemModel = itemModel
+                        var cellPosition = item_container.mapToItem(table_view, 0, 0)
+                        loader_container.width = item_container.width
+                        loader_container.height = item_container.height
+                        loader_container.x = 0
+                        loader_container.y = cellPosition.y
+                    }
+                onClicked: {
+                    d.current = itemModel
+                }
+                onDoubleClicked: {
+                    if(itemModel.hasChildren()){
+                        item_container.toggle()
+                    }
+                }
+                onPositionChanged:
+                    (mouse)=> {
+                        if(!drag.active){
+                            return
+                        }
+                        var cellPosition = item_container.mapToItem(table_view, 0, 0)
+                        if(mouse.y+cellPosition.y<0 || mouse.y+cellPosition.y>table_view.height){
+                            d.dropIndex = -1
+                            return
+                        }
+                        if((mouse.x-table_view.contentX)>table_view.width || (mouse.x-table_view.contentX)<0){
+                            d.dropIndex = -1
+                            return
+                        }
+                        var pos = FluTools.cursorPos()
+                        var viewPos = table_view.mapToGlobal(0,0)
+                        var y = table_view.contentY + pos.y-viewPos.y
+                        var index = Math.floor(y/control.cellHeight)
+                        if(index<0 || index>table_view.count-1){
+                            d.dropIndex = -1
+                            return
+                        }
+                        console.debug(index)
+                        if(tree_model.hitHasChildrenExpanded(index) && y>index*control.cellHeight+control.cellHeight/2){
+                            d.dropIndex = index + 1
+                            d.isDropTopArea = true
+                        }else{
+                            d.dropIndex = index
+                            if(y>index*control.cellHeight+control.cellHeight/2){
+                                d.isDropTopArea = false
+                            }else{
+                                d.isDropTopArea = true
+                            }
+                        }
+                    }
+                onCanceled: {
+                    loader_container.sourceComponent = undefined
+                    loader_container.x = 0
+                    loader_container.y = 0
+                    d.dropIndex = -1
+                    d.dragIndex = -1
+                }
+                onReleased: {
+                    loader_container.sourceComponent = undefined
+                    if(d.dropIndex !== -1){
+                        tree_model.dragAnddrop(d.dragIndex,d.dropIndex,d.isDropTopArea)
+                    }
+                    d.dropIndex = -1
+                    d.dragIndex = -1
+                    loader_container.x = 0
+                    loader_container.y = 0
+                }
+            }
+            Drag.active: item_mouse.drag.active
+            Rectangle{
+                id:item_line_drop_tip
+                anchors{
+                    left: layout_row.left
+                    leftMargin: 26
+                    right: parent.right
+                    rightMargin: 10
+                    bottom: parent.bottom
+                    bottomMargin: -1.5
+                    top: undefined
+                }
+                states: [
+                    State {
+                        when:d.isDropTopArea
+                        AnchorChanges {
+                            target: item_line_drop_tip
+                            anchors.top: item_container.top
+                            anchors.bottom: undefined
+                        }
+                        PropertyChanges {
+                            target: item_line_drop_tip
+                            anchors.topMargin: -1.5
+                        }
+                    }
+                ]
+                height: 3
+                radius: 1.5
+                color: d.hitColor
+                visible: d.dropIndex === rowIndex
+                Rectangle{
+                    width: 10
+                    height: 10
+                    radius: 5
+                    border.width: 3
+                    border.color: d.hitColor
+                    color: FluTheme.dark ? FluColors.Black : FluColors.White
+                    anchors{
+                        top: parent.top
+                        left: parent.left
+                        topMargin: -3
+                        leftMargin: -5
+                    }
+                }
+            }
+            FluRectangle{
+                width: 1
+                color: control.lineColor
+                visible: control.showLine  && isItemLoader && itemModel.depth !== 0 && !itemModel.hasChildren()
+                height: itemModel.hideLineFooter() ? parent.height/2 : parent.height
+                anchors{
+                    top: parent.top
+                    left: item_line_h.left
+                }
+            }
+            FluRectangle{
+                id:item_line_h
+                height: 1
+                color: control.lineColor
+                visible: control.showLine && isItemLoader  && itemModel.depth !== 0 && !itemModel.hasChildren()
+                width: depthPadding - 10
+                anchors{
+                    right: layout_row.left
+                    rightMargin: -24
+                    verticalCenter: parent.verticalCenter
+                }
+            }
+            Repeater{
+                model: Math.max(itemModel.depth-1,0)
+                delegate: FluRectangle{
+                    required property int index
+                    width: 1
+                    color: control.lineColor
+                    visible: control.showLine && isItemLoader && itemModel.depth !== 0 && itemModel.hasNextNodeByIndex(index)
+                    anchors{
+                        top:parent.top
+                        bottom: parent.bottom
+                        left: parent.left
+                        leftMargin: control.depthPadding*(index+1) + 24
+                    }
+                }
+            }
+            Rectangle{
+                anchors.fill: parent
+                radius: 4
+                anchors.leftMargin: 6
+                anchors.rightMargin: 6
+                border.color: d.hitColor
+                border.width: d.dragIndex === rowIndex ? 1 : 0
+                color: {
+                    if(FluTheme.dark){
+                        if(isCurrent){
+                            return Qt.rgba(1,1,1,0.06)
+                        }
+                        if(item_mouse.containsMouse || item_check_box.hovered){
+                            return Qt.rgba(1,1,1,0.03)
+                        }
+                        if(item_loader_expand.item && item_loader_expand.item.hovered){
+                            return Qt.rgba(1,1,1,0.03)
+                        }
+                        return Qt.rgba(0,0,0,0)
+                    }else{
+                        if(isCurrent){
+                            return Qt.rgba(0,0,0,0.06)
+                        }
+                        if(item_mouse.containsMouse || item_check_box.hovered){
+                            return Qt.rgba(0,0,0,0.03)
+                        }
+                        if(item_loader_expand.item && item_loader_expand.item.hovered){
+                            return Qt.rgba(0,0,0,0.03)
+                        }
+                        return Qt.rgba(0,0,0,0)
+                    }
+                }
+            }
+            RowLayout{
+                id:layout_row
+                height: parent.height
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                spacing: 0
+                anchors.leftMargin: 14 + control.depthPadding*itemModel.depth
+                Component{
+                    id:com_icon_btn
+                    FluIconButton{
+                        opacity: itemModel.hasChildren()
+                        onClicked: {
+                            item_container.toggle()
+                        }
+                        contentItem:FluIcon{
+                            rotation: itemModel.isExpanded?0:-90
+                            iconSource:FluentIcons.ChevronDown
+                            iconSize: 16
+                            anchors.centerIn: parent
+                        }
+                    }
+                }
+
+                Loader{
+                    id:item_loader_expand
+                    Layout.preferredWidth: 20
+                    Layout.preferredHeight: 20
+                    sourceComponent: itemModel.hasChildren() ? com_icon_btn : undefined
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                FluCheckBox{
+                    id:item_check_box
+                    Layout.preferredWidth: 18
+                    Layout.preferredHeight: 18
+                    Layout.leftMargin: 5
+                    horizontalPadding:0
+                    verticalPadding: 0
+                    checked: itemModel.checked
+                    enableAnimation:false
+                    visible: control.checkable
+                    padding: 0
+                    clickListener: function(){
+                        tree_model.checkRow(rowIndex,!itemModel.checked)
+                    }
+                    Layout.alignment: Qt.AlignVCenter
+                }
+                Loader{
+                    property var modelData: itemModel
+                    property var itemMouse: item_mouse
+                    id:item_loader_cell
+                    Layout.leftMargin: 10
+                    Layout.preferredWidth: {
+                        if(item){
+                            return item.width
+                        }
+                        return 0
+                    }
+                    Layout.fillHeight: true
+                    sourceComponent:com_item_text
+                }
+            }
+        }
+    }
+    Component{
+        id:com_item_text
+        Item{
+            width: item_text.width
+            FluText {
+                id:item_text
+                text: modelData.title
+                rightPadding: 14
+                anchors.centerIn: parent
+                color:{
+                    if(itemMouse.pressed){
+                        return FluTheme.dark ? FluColors.Grey80 : FluColors.Grey120
+                    }
+                    return FluTheme.dark ? FluColors.White : FluColors.Grey220
+                }
+            }
+        }
+    }
+    function selectionModel(){
+        return tree_model.selectionModel
+    }
+    function count(){
+        return tree_model.dataSourceSize
+    }
+    function visibleCount(){
+        return table_view.count
+    }
+    function collapse(rowIndex){
+        tree_model.collapse(rowIndex)
+    }
+    function expand(rowIndex){
+        tree_model.expand(rowIndex)
+    }
+    function allExpand(){
+        tree_model.allExpand()
+    }
+    function allCollapse(){
+        tree_model.allCollapse()
+    }
 }
