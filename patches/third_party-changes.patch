@@ -31938,6 +31938,41 @@ diff --git a/rdkit-src/rdkit/Code/GraphMol/MolStandardize/TautomerCatalog/Tautom
  const std::vector<TautomerTransform> &TautomerCatalogParams::getTransforms()
      const {
    return d_transforms;
+Index: libxml2-src/libxml2/error.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/libxml2-src/libxml2/error.c b/libxml2-src/libxml2/error.c
+--- a/libxml2-src/libxml2/error.c	(revision 4d8fa5b292fc902268217fa0f7031e77e5437b5a)
++++ b/libxml2-src/libxml2/error.c	(date 1702029261825)
+@@ -882,7 +882,7 @@
+  *
+  * Returns a pointer to the error
+  */
+-const xmlError *
++xmlError *
+ xmlGetLastError(void)
+ {
+     if (xmlLastError.code == XML_ERR_OK)
+Index: libxml2-src/libxml2/include/libxml/xmlerror.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/libxml2-src/libxml2/include/libxml/xmlerror.h b/libxml2-src/libxml2/include/libxml/xmlerror.h
+--- a/libxml2-src/libxml2/include/libxml/xmlerror.h	(revision 4d8fa5b292fc902268217fa0f7031e77e5437b5a)
++++ b/libxml2-src/libxml2/include/libxml/xmlerror.h	(date 1702029261822)
+@@ -928,7 +928,7 @@
+ /*
+  * Extended error information routines
+  */
+-XMLPUBFUN const xmlError *
++XMLPUBFUN xmlError *
+     xmlGetLastError		(void);
+ XMLPUBFUN void
+     xmlResetLastError		(void);
+
 Index: libxml2-src/libxml2/include/libxml/xmlexports.h
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
