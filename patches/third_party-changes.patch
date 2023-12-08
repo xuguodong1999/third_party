@@ -33843,90 +33843,90 @@ diff --git a/indigo-src/indigo/core/indigo-core/molecule/metadata_storage.h b/in
          {
          }
          uint32_t _class_id;
-diff --git a/nodeeditor-src/nodeeditor/src/NodeDelegateModelRegistry.cpp b/nodeeditor-src/nodeeditor/include/NodeDelegateModelRegistry.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/NodeDelegateModelRegistry.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeDelegateModelRegistry.cpp
 rename from nodeeditor-src/nodeeditor/src/NodeDelegateModelRegistry.cpp
-rename to nodeeditor-src/nodeeditor/include/NodeDelegateModelRegistry.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/NodeState.cpp b/nodeeditor-src/nodeeditor/include/NodeState.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeDelegateModelRegistry.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/NodeState.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeState.cpp
 rename from nodeeditor-src/nodeeditor/src/NodeState.cpp
-rename to nodeeditor-src/nodeeditor/include/NodeState.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/DefaultHorizontalNodeGeometry.hpp b/nodeeditor-src/nodeeditor/include/DefaultHorizontalNodeGeometry.hpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeState.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/DefaultHorizontalNodeGeometry.hpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultHorizontalNodeGeometry.hpp
 rename from nodeeditor-src/nodeeditor/src/DefaultHorizontalNodeGeometry.hpp
-rename to nodeeditor-src/nodeeditor/include/DefaultHorizontalNodeGeometry.hpp
-diff --git a/nodeeditor-src/nodeeditor/src/NodeConnectionInteraction.hpp b/nodeeditor-src/nodeeditor/include/NodeConnectionInteraction.hpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultHorizontalNodeGeometry.hpp
+diff --git a/nodeeditor-src/nodeeditor/src/NodeConnectionInteraction.hpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeConnectionInteraction.hpp
 rename from nodeeditor-src/nodeeditor/src/NodeConnectionInteraction.hpp
-rename to nodeeditor-src/nodeeditor/include/NodeConnectionInteraction.hpp
-diff --git a/nodeeditor-src/nodeeditor/src/ConnectionStyle.cpp b/nodeeditor-src/nodeeditor/include/ConnectionStyle.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeConnectionInteraction.hpp
+diff --git a/nodeeditor-src/nodeeditor/src/ConnectionStyle.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionStyle.cpp
 rename from nodeeditor-src/nodeeditor/src/ConnectionStyle.cpp
-rename to nodeeditor-src/nodeeditor/include/ConnectionStyle.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/NodeConnectionInteraction.cpp b/nodeeditor-src/nodeeditor/include/NodeConnectionInteraction.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionStyle.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/NodeConnectionInteraction.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeConnectionInteraction.cpp
 rename from nodeeditor-src/nodeeditor/src/NodeConnectionInteraction.cpp
-rename to nodeeditor-src/nodeeditor/include/NodeConnectionInteraction.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/ConnectionGraphicsObject.cpp b/nodeeditor-src/nodeeditor/include/ConnectionGraphicsObject.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeConnectionInteraction.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/ConnectionGraphicsObject.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionGraphicsObject.cpp
 rename from nodeeditor-src/nodeeditor/src/ConnectionGraphicsObject.cpp
-rename to nodeeditor-src/nodeeditor/include/ConnectionGraphicsObject.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/DefaultVerticalNodeGeometry.hpp b/nodeeditor-src/nodeeditor/include/DefaultVerticalNodeGeometry.hpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionGraphicsObject.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/DefaultVerticalNodeGeometry.hpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultVerticalNodeGeometry.hpp
 rename from nodeeditor-src/nodeeditor/src/DefaultVerticalNodeGeometry.hpp
-rename to nodeeditor-src/nodeeditor/include/DefaultVerticalNodeGeometry.hpp
-diff --git a/nodeeditor-src/nodeeditor/src/StyleCollection.cpp b/nodeeditor-src/nodeeditor/include/StyleCollection.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultVerticalNodeGeometry.hpp
+diff --git a/nodeeditor-src/nodeeditor/src/StyleCollection.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/StyleCollection.cpp
 rename from nodeeditor-src/nodeeditor/src/StyleCollection.cpp
-rename to nodeeditor-src/nodeeditor/include/StyleCollection.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/AbstractGraphModel.cpp b/nodeeditor-src/nodeeditor/include/AbstractGraphModel.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/StyleCollection.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/AbstractGraphModel.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/AbstractGraphModel.cpp
 rename from nodeeditor-src/nodeeditor/src/AbstractGraphModel.cpp
-rename to nodeeditor-src/nodeeditor/include/AbstractGraphModel.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/AbstractNodeGeometry.cpp b/nodeeditor-src/nodeeditor/include/AbstractNodeGeometry.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/AbstractGraphModel.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/AbstractNodeGeometry.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/AbstractNodeGeometry.cpp
 rename from nodeeditor-src/nodeeditor/src/AbstractNodeGeometry.cpp
-rename to nodeeditor-src/nodeeditor/include/AbstractNodeGeometry.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/GraphicsViewStyle.cpp b/nodeeditor-src/nodeeditor/include/GraphicsViewStyle.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/AbstractNodeGeometry.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/GraphicsViewStyle.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/GraphicsViewStyle.cpp
 rename from nodeeditor-src/nodeeditor/src/GraphicsViewStyle.cpp
-rename to nodeeditor-src/nodeeditor/include/GraphicsViewStyle.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/DefaultVerticalNodeGeometry.cpp b/nodeeditor-src/nodeeditor/include/DefaultVerticalNodeGeometry.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/GraphicsViewStyle.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/DefaultVerticalNodeGeometry.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultVerticalNodeGeometry.cpp
 rename from nodeeditor-src/nodeeditor/src/DefaultVerticalNodeGeometry.cpp
-rename to nodeeditor-src/nodeeditor/include/DefaultVerticalNodeGeometry.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/NodeStyle.cpp b/nodeeditor-src/nodeeditor/include/NodeStyle.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultVerticalNodeGeometry.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/NodeStyle.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeStyle.cpp
 rename from nodeeditor-src/nodeeditor/src/NodeStyle.cpp
-rename to nodeeditor-src/nodeeditor/include/NodeStyle.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/GraphicsView.cpp b/nodeeditor-src/nodeeditor/include/GraphicsView.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeStyle.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/GraphicsView.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/GraphicsView.cpp
 rename from nodeeditor-src/nodeeditor/src/GraphicsView.cpp
-rename to nodeeditor-src/nodeeditor/include/GraphicsView.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/NodeGraphicsObject.cpp b/nodeeditor-src/nodeeditor/include/NodeGraphicsObject.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/GraphicsView.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/NodeGraphicsObject.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeGraphicsObject.cpp
 rename from nodeeditor-src/nodeeditor/src/NodeGraphicsObject.cpp
-rename to nodeeditor-src/nodeeditor/include/NodeGraphicsObject.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/Definitions.cpp b/nodeeditor-src/nodeeditor/include/Definitions.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeGraphicsObject.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/Definitions.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/Definitions.cpp
 rename from nodeeditor-src/nodeeditor/src/Definitions.cpp
-rename to nodeeditor-src/nodeeditor/include/Definitions.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/DefaultHorizontalNodeGeometry.cpp b/nodeeditor-src/nodeeditor/include/DefaultHorizontalNodeGeometry.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/Definitions.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/DefaultHorizontalNodeGeometry.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultHorizontalNodeGeometry.cpp
 rename from nodeeditor-src/nodeeditor/src/DefaultHorizontalNodeGeometry.cpp
-rename to nodeeditor-src/nodeeditor/include/DefaultHorizontalNodeGeometry.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/ConnectionPainter.hpp b/nodeeditor-src/nodeeditor/include/ConnectionPainter.hpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultHorizontalNodeGeometry.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/ConnectionPainter.hpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionPainter.hpp
 rename from nodeeditor-src/nodeeditor/src/ConnectionPainter.hpp
-rename to nodeeditor-src/nodeeditor/include/ConnectionPainter.hpp
-diff --git a/nodeeditor-src/nodeeditor/src/locateNode.cpp b/nodeeditor-src/nodeeditor/include/locateNode.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionPainter.hpp
+diff --git a/nodeeditor-src/nodeeditor/src/locateNode.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/locateNode.cpp
 rename from nodeeditor-src/nodeeditor/src/locateNode.cpp
-rename to nodeeditor-src/nodeeditor/include/locateNode.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/ConnectionPainter.cpp b/nodeeditor-src/nodeeditor/include/ConnectionPainter.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/locateNode.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/ConnectionPainter.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionPainter.cpp
 rename from nodeeditor-src/nodeeditor/src/ConnectionPainter.cpp
-rename to nodeeditor-src/nodeeditor/include/ConnectionPainter.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/UndoCommands.hpp b/nodeeditor-src/nodeeditor/include/UndoCommands.hpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionPainter.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/UndoCommands.hpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/UndoCommands.hpp
 rename from nodeeditor-src/nodeeditor/src/UndoCommands.hpp
-rename to nodeeditor-src/nodeeditor/include/UndoCommands.hpp
-diff --git a/nodeeditor-src/nodeeditor/src/BasicGraphicsScene.cpp b/nodeeditor-src/nodeeditor/include/BasicGraphicsScene.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/UndoCommands.hpp
+diff --git a/nodeeditor-src/nodeeditor/src/BasicGraphicsScene.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/BasicGraphicsScene.cpp
 rename from nodeeditor-src/nodeeditor/src/BasicGraphicsScene.cpp
-rename to nodeeditor-src/nodeeditor/include/BasicGraphicsScene.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/DefaultNodePainter.cpp b/nodeeditor-src/nodeeditor/include/DefaultNodePainter.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/BasicGraphicsScene.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/DefaultNodePainter.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultNodePainter.cpp
 rename from nodeeditor-src/nodeeditor/src/DefaultNodePainter.cpp
-rename to nodeeditor-src/nodeeditor/include/DefaultNodePainter.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/ConnectionState.cpp b/nodeeditor-src/nodeeditor/include/ConnectionState.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/DefaultNodePainter.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/ConnectionState.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionState.cpp
 rename from nodeeditor-src/nodeeditor/src/ConnectionState.cpp
-rename to nodeeditor-src/nodeeditor/include/ConnectionState.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/UndoCommands.cpp b/nodeeditor-src/nodeeditor/include/UndoCommands.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/ConnectionState.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/UndoCommands.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/UndoCommands.cpp
 rename from nodeeditor-src/nodeeditor/src/UndoCommands.cpp
-rename to nodeeditor-src/nodeeditor/include/UndoCommands.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/NodeDelegateModel.cpp b/nodeeditor-src/nodeeditor/include/NodeDelegateModel.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/UndoCommands.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/NodeDelegateModel.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeDelegateModel.cpp
 rename from nodeeditor-src/nodeeditor/src/NodeDelegateModel.cpp
-rename to nodeeditor-src/nodeeditor/include/NodeDelegateModel.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/DataFlowGraphicsScene.cpp b/nodeeditor-src/nodeeditor/include/DataFlowGraphicsScene.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/NodeDelegateModel.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/DataFlowGraphicsScene.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/DataFlowGraphicsScene.cpp
 rename from nodeeditor-src/nodeeditor/src/DataFlowGraphicsScene.cpp
-rename to nodeeditor-src/nodeeditor/include/DataFlowGraphicsScene.cpp
-diff --git a/nodeeditor-src/nodeeditor/src/DataFlowGraphModel.cpp b/nodeeditor-src/nodeeditor/include/DataFlowGraphModel.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/DataFlowGraphicsScene.cpp
+diff --git a/nodeeditor-src/nodeeditor/src/DataFlowGraphModel.cpp b/nodeeditor-src/nodeeditor/include/QtNodes/internal/DataFlowGraphModel.cpp
 rename from nodeeditor-src/nodeeditor/src/DataFlowGraphModel.cpp
-rename to nodeeditor-src/nodeeditor/include/DataFlowGraphModel.cpp
+rename to nodeeditor-src/nodeeditor/include/QtNodes/internal/DataFlowGraphModel.cpp
