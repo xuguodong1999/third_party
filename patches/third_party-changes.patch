@@ -1,5 +1,22 @@
 Subject: [PATCH] third_party-changes
 ---
+Index: spdlog-src/spdlog/src/file_sinks.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/spdlog-src/spdlog/src/file_sinks.cpp b/spdlog-src/spdlog/src/file_sinks.cpp
+--- a/spdlog-src/spdlog/src/file_sinks.cpp	(revision 7e635fca68d014934b4af8a1cf874f63989352b7)
++++ b/spdlog-src/spdlog/src/file_sinks.cpp	(date 1702005168510)
+@@ -8,7 +8,6 @@
+ #include <spdlog/details/null_mutex.h>
+ #include <spdlog/details/file_helper-inl.h>
+ #include <spdlog/sinks/basic_file_sink-inl.h>
+-#include <spdlog/sinks/base_sink-inl.h>
+
+ #include <mutex>
+
+
 Index: svgpp-src/svgpp/include/svgpp/parser/grammar/angle.hpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
