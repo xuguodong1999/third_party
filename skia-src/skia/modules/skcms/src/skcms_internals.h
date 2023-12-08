@@ -103,6 +103,18 @@ extern "C" {
     #endif
 #endif
 
+#if !defined(__AVX2__) || !defined(__AVX__) || !defined(__F16C__)
+#if !defined(SKCMS_DISABLE_HSW)
+#define SKCMS_DISABLE_HSW 1
+#endif
+#endif
+
+#if !defined(__AVX512__) || !defined(__AVX512F__)
+#if !defined(SKCMS_DISABLE_SKX)
+#define SKCMS_DISABLE_SKX 1
+#endif
+#endif
+
 // ~~~~ Shared ~~~~
 typedef struct skcms_ICCTag {
     uint32_t       signature;
