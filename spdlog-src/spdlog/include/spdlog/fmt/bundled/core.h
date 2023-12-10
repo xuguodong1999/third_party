@@ -94,7 +94,7 @@
 #ifndef FMT_USE_CONSTEXPR
 #  if (FMT_HAS_FEATURE(cxx_relaxed_constexpr) || FMT_MSC_VERSION >= 1912 || \
        (FMT_GCC_VERSION >= 600 && FMT_CPLUSPLUS >= 201402L)) &&             \
-      !FMT_ICC_VERSION && !defined(__NVCC__)
+      !FMT_ICC_VERSION && (!defined(__NVCC__) || __CUDACC_VER_MAJOR__ >= 12)
 #    define FMT_USE_CONSTEXPR 1
 #  else
 #    define FMT_USE_CONSTEXPR 0
