@@ -78,6 +78,23 @@ diff --git a/skia-src/skia/modules/skcms/src/skcms_internals.h b/skia-src/skia/m
  // ~~~~ Shared ~~~~
  typedef struct skcms_ICCTag {
      uint32_t       signature;
+Index: spdlog-src/spdlog/include/spdlog/fmt/bundled/core.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/spdlog-src/spdlog/include/spdlog/fmt/bundled/core.h b/spdlog-src/spdlog/include/spdlog/fmt/bundled/core.h
+--- a/spdlog-src/spdlog/include/spdlog/fmt/bundled/core.h	(revision 73c275ddfed0665f0ffc351e25422acf8fceb451)
++++ b/spdlog-src/spdlog/include/spdlog/fmt/bundled/core.h	(revision 86192f6f4c9c035c5d40cbc7d2383d865215be3a)
+@@ -94,7 +94,7 @@
+ #ifndef FMT_USE_CONSTEXPR
+ #  if (FMT_HAS_FEATURE(cxx_relaxed_constexpr) || FMT_MSC_VERSION >= 1912 || \
+        (FMT_GCC_VERSION >= 600 && FMT_CPLUSPLUS >= 201402L)) &&             \
+-      !FMT_ICC_VERSION && !defined(__NVCC__)
++      !FMT_ICC_VERSION && (!defined(__NVCC__) || __CUDACC_VER_MAJOR__ >= 12)
+ #    define FMT_USE_CONSTEXPR 1
+ #  else
+ #    define FMT_USE_CONSTEXPR 0
 
 Index: spdlog-src/spdlog/src/file_sinks.cpp
 IDEA additional info:
