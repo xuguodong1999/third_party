@@ -1,5 +1,84 @@
 Subject: [PATCH] third_party-changes
 ---
+Index: skia-src/skia/modules/skcms/src/skcms_TransformBaseline.cc
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/modules/skcms/src/skcms_TransformBaseline.cc b/skia-src/skia/modules/skcms/src/skcms_TransformBaseline.cc
+--- a/skia-src/skia/modules/skcms/src/skcms_TransformBaseline.cc	(revision fe28843f324937f94ecc921cff666483341b1c45)
++++ b/skia-src/skia/modules/skcms/src/skcms_TransformBaseline.cc	(revision 5823bb16fd15a6d97232f5f45aeb8981fbff681b)
+@@ -19,7 +19,7 @@
+ #elif defined(__SSE__)
+     #include <immintrin.h>
+
+-    #if defined(__clang__)
++    #if defined(__clang__) && !defined(__EMSCRIPTEN__)
+         // That #include <immintrin.h> is usually enough, but Clang's headers
+         // avoid #including the whole kitchen sink when _MSC_VER is defined,
+         // because lots of programs on Windows would include that and it'd be
+Index: skia-src/skia/modules/skcms/src/skcms_TransformHsw.cc
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/modules/skcms/src/skcms_TransformHsw.cc b/skia-src/skia/modules/skcms/src/skcms_TransformHsw.cc
+--- a/skia-src/skia/modules/skcms/src/skcms_TransformHsw.cc	(revision fe28843f324937f94ecc921cff666483341b1c45)
++++ b/skia-src/skia/modules/skcms/src/skcms_TransformHsw.cc	(revision 5823bb16fd15a6d97232f5f45aeb8981fbff681b)
+@@ -19,7 +19,7 @@
+ #elif defined(__SSE__)
+     #include <immintrin.h>
+
+-    #if defined(__clang__)
++    #if defined(__clang__) && !defined(__EMSCRIPTEN__)
+         // That #include <immintrin.h> is usually enough, but Clang's headers
+         // avoid #including the whole kitchen sink when _MSC_VER is defined,
+         // because lots of programs on Windows would include that and it'd be
+Index: skia-src/skia/modules/skcms/src/skcms_TransformSkx.cc
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/modules/skcms/src/skcms_TransformSkx.cc b/skia-src/skia/modules/skcms/src/skcms_TransformSkx.cc
+--- a/skia-src/skia/modules/skcms/src/skcms_TransformSkx.cc	(revision fe28843f324937f94ecc921cff666483341b1c45)
++++ b/skia-src/skia/modules/skcms/src/skcms_TransformSkx.cc	(revision 5823bb16fd15a6d97232f5f45aeb8981fbff681b)
+@@ -19,7 +19,7 @@
+ #elif defined(__SSE__)
+     #include <immintrin.h>
+
+-    #if defined(__clang__)
++    #if defined(__clang__) && !defined(__EMSCRIPTEN__)
+         // That #include <immintrin.h> is usually enough, but Clang's headers
+         // avoid #including the whole kitchen sink when _MSC_VER is defined,
+         // because lots of programs on Windows would include that and it'd be
+Index: skia-src/skia/modules/skcms/src/skcms_internals.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/modules/skcms/src/skcms_internals.h b/skia-src/skia/modules/skcms/src/skcms_internals.h
+--- a/skia-src/skia/modules/skcms/src/skcms_internals.h	(revision fe28843f324937f94ecc921cff666483341b1c45)
++++ b/skia-src/skia/modules/skcms/src/skcms_internals.h	(revision 5823bb16fd15a6d97232f5f45aeb8981fbff681b)
+@@ -103,6 +103,18 @@
+     #endif
+ #endif
+
++#if !defined(__AVX2__) || !defined(__AVX__) || !defined(__F16C__)
++#if !defined(SKCMS_DISABLE_HSW)
++#define SKCMS_DISABLE_HSW 1
++#endif
++#endif
++
++#if !defined(__AVX512__) || !defined(__AVX512F__)
++#if !defined(SKCMS_DISABLE_SKX)
++#define SKCMS_DISABLE_SKX 1
++#endif
++#endif
++
+ // ~~~~ Shared ~~~~
+ typedef struct skcms_ICCTag {
+     uint32_t       signature;
+
 Index: spdlog-src/spdlog/src/file_sinks.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
