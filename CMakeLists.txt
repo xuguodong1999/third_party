@@ -7,5 +7,5 @@ set(XGD_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 include(cmake/cmake-utils.cmake)
 include(cmake/project-config.cmake)
 
-add_subdirectory(tpbuild)
+add_subdirectory(shadow_build)
 add_subdirectory(${XGD_THIRD_PARTY_DIR}/fluentui-src/fluentui/src/Qt6)

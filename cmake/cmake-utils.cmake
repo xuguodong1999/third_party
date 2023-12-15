@@ -323,7 +323,7 @@ function(xgd_external_check_env)
     check_symbol_exists(getauxval "sys/auxv.h" XGD_HAVE_STRONG_GETAUXVAL)
 
     check_ipo_supported(RESULT _XGD_FLAG_IPO)
-    if (XGD_FLAG_IPO AND NOT _XGD_FLAG_IPO)
+    if (MINGW OR EMSCRIPTEN OR (XGD_FLAG_IPO AND NOT _XGD_FLAG_IPO))
         set(XGD_FLAG_IPO OFF CACHE INTERNAL "" FORCE)
     endif ()
 
@@ -449,7 +449,7 @@ function(xgd_disable_weak_warnings TARGET)
 endfunction()
 
 function(xgd_target_global_options TARGET)
-    cmake_parse_arguments(param "" "CXX_STANDARD;WITH_NVCC" "" ${ARGN})
+    cmake_parse_arguments(param "" "CXX_STANDARD" "" ${ARGN})
     set(_XGD_COMPILE_OPTIONS "")
     set(_XGD_COMPILE_DEFINITIONS "")
     set(_XGD_LINK_OPTIONS "")
@@ -553,14 +553,15 @@ function(xgd_target_global_options TARGET)
     endif ()
 
     if (_XGD_COMPILE_DEFINITIONS)
-        if (param_WITH_NVCC)
-            target_compile_definitions(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${_XGD_COMPILE_DEFINITIONS}>)
-        else ()
-            target_compile_definitions(${TARGET} PRIVATE ${_XGD_COMPILE_DEFINITIONS})
-        endif ()
+        target_compile_definitions(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${_XGD_COMPILE_DEFINITIONS}>)
     endif ()
     if (_XGD_COMPILE_OPTIONS)
         target_compile_options(${TARGET} PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${_XGD_COMPILE_OPTIONS}>)
+        if (MSVC)
+            # CUDA accept -XXX instead of /XXX, so pass flag separately
+            target_compile_options(${TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                    -Xcompiler=-Zc:__cplusplus>)
+        endif ()
     endif ()
     if (_XGD_LINK_OPTIONS)
         target_link_options(${TARGET} PRIVATE ${_XGD_LINK_OPTIONS})
@@ -602,7 +603,7 @@ function(xgd_add_library TARGET)
     # xgd_add_library(your-awesome-target SRC_DIRS [...] SRC_FILES [...] INCLUDE_DIRS [...] PRIVATE_INCLUDE_DIRS [...])
     cmake_parse_arguments(
             param
-            "STATIC;SHARED;OBJECT;WITH_NVCC"
+            "STATIC;SHARED;OBJECT"
             ""
             "SRC_DIRS;SRC_FILES;INCLUDE_DIRS;PRIVATE_INCLUDE_DIRS;EXCLUDE_SRC_FILES;EXCLUDE_REGEXES"
             ${ARGN}
@@ -634,7 +635,7 @@ function(xgd_add_library TARGET)
             PUBLIC ${param_INCLUDE_DIRS}
             PRIVATE ${param_PRIVATE_INCLUDE_DIRS}
     )
-    xgd_target_global_options(${TARGET} WITH_NVCC "${param_WITH_NVCC}")
+    xgd_target_global_options(${TARGET})
 endfunction()
 
 function(xgd_generate_export_header TARGET BASE_NAME EXT)
@@ -855,7 +856,7 @@ function(xgd_add_executable TARGET)
     cmake_parse_arguments(
             param
             "BUNDLE_QT_GUI"
-            "WITH_NVCC"
+            ""
             "SRC_DIRS;SRC_FILES;INCLUDE_DIRS;EXCLUDE_SRC_FILES;EXCLUDE_REGEXES"
             ${ARGN}
     )
@@ -922,7 +923,7 @@ function(xgd_add_executable TARGET)
         endif ()
     endif ()
     target_include_directories(${TARGET} PRIVATE ${param_INCLUDE_DIRS})
-    xgd_target_global_options(${TARGET} WITH_NVCC "${param_WITH_NVCC}")
+    xgd_target_global_options(${TARGET})
     set_target_properties(${TARGET} PROPERTIES BUNDLE_QT_GUI "${param_BUNDLE_QT_GUI}")
     if (ANDROID AND param_BUNDLE_QT_GUI)
         # expose main function

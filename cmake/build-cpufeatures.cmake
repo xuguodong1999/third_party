@@ -83,8 +83,8 @@ if (ANDROID)
     xgd_add_library(
             cpufeatures_ndk_compat
             STATIC
-            SRC_DIRS
-            ${NDK_SRC_DIR}
+            SRC_FILES
+            ${NDK_SRC_DIR}/cpu-features.c
             INCLUDE_DIRS
             ${NDK_SRC_DIR}
             PRIVATE_INCLUDE_DIRS

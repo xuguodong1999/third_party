@@ -108,6 +108,23 @@ function(xgd_build_boost_atomic)
     target_compile_definitions(boost_atomic PRIVATE BOOST_ATOMIC_SOURCE)
 endfunction()
 
+function(xgd_build_boost_cobalt)
+    set(BOOST_SRC_DIR ${XGD_THIRD_PARTY_DIR}/boost-src/boost/libs)
+    set(BOOST_COBALT_SRC_FILES
+            detail/exception.cpp
+            detail/util.cpp
+            channel.cpp
+            error.cpp
+            main.cpp
+            this_thread.cpp
+            thread.cpp)
+    xgd_internal_build_boost(cobalt SRC_FILES ${BOOST_COBALT_SRC_FILES})
+    if (MSVC)
+        target_compile_definitions(boost_cobalt PUBLIC _WIN32_WINNT=0x0601)
+    endif()
+    target_compile_definitions(boost_cobalt PRIVATE BOOST_COBALT_SOURCE)
+endfunction()
+
 function(xgd_build_boost_filesystem)
     set(BOOST_SRC_DIR ${XGD_THIRD_PARTY_DIR}/boost-src/boost/libs)
 
@@ -273,7 +290,9 @@ function(xgd_build_boost_stacktrace)
         set(BOOST_STACKTRACE_SRC noop.cpp)
     else ()
         set(BOOST_STACKTRACE_SRC basic.cpp)
-        set(BOOST_STACKTRACE_LIB dl)
+        if (NOT MINGW)
+            set(BOOST_STACKTRACE_LIB dl)
+        endif ()
     endif ()
     xgd_internal_build_boost(stacktrace SRC_FILES ${BOOST_STACKTRACE_SRC})
     if (EMSCRIPTEN)
@@ -291,6 +310,8 @@ endfunction()
 xgd_build_boost_atomic()
 
 xgd_build_boost_asio()
+
+xgd_build_boost_cobalt()
 
 xgd_internal_build_boost(chrono)
 
@@ -432,6 +453,7 @@ xgd_create_boost_deps(coroutine coroutine assert config context core exception m
         throw_exception type_traits utility)
 xgd_create_boost_deps(coroutine2 INTERFACE assert config context)
 xgd_create_boost_deps(crc INTERFACE array config integer type_traits)
+xgd_create_boost_deps(cobalt PUBLIC asio circular_buffer config container core intrusive leaf mp11 preprocessor smart_ptr system throw_exception variant2)
 xgd_create_boost_deps(date_time PUBLIC algorithm assert config core io lexical_cast numeric_conversion
         range smart_ptr static_assert throw_exception tokenizer type_traits utility winapi)
 xgd_create_boost_deps(describe INTERFACE mp11)
@@ -485,6 +507,7 @@ xgd_create_boost_deps(iterator INTERFACE assert concept_check config conversion 
         mpl optional smart_ptr static_assert type_traits utility)
 xgd_create_boost_deps(json PUBLIC align assert config container core describe mp11 system throw_exception)
 xgd_create_boost_deps(lambda INTERFACE bind config core detail iterator mpl preprocessor tuple type_traits utility)
+xgd_create_boost_deps(leaf)
 xgd_create_boost_deps(lexical_cast INTERFACE array assert config container core integer numeric_conversion
         range static_assert throw_exception type_traits)
 xgd_create_boost_deps(local_function INTERFACE config mpl preprocessor scope_exit type_traits typeof utility)
