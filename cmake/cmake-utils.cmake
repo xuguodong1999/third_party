@@ -635,7 +635,7 @@ function(xgd_add_library TARGET)
             PUBLIC ${param_INCLUDE_DIRS}
             PRIVATE ${param_PRIVATE_INCLUDE_DIRS}
     )
-    xgd_target_global_options(${TARGET})
+    xgd_target_global_options(${TARGET} CXX_STANDARD "${param_CXX_STANDARD}")
 endfunction()
 
 function(xgd_generate_export_header TARGET BASE_NAME EXT)
@@ -856,7 +856,7 @@ function(xgd_add_executable TARGET)
     cmake_parse_arguments(
             param
             "BUNDLE_QT_GUI"
-            ""
+            "CXX_STANDARD"
             "SRC_DIRS;SRC_FILES;INCLUDE_DIRS;EXCLUDE_SRC_FILES;EXCLUDE_REGEXES"
             ${ARGN}
     )
@@ -923,7 +923,7 @@ function(xgd_add_executable TARGET)
         endif ()
     endif ()
     target_include_directories(${TARGET} PRIVATE ${param_INCLUDE_DIRS})
-    xgd_target_global_options(${TARGET})
+    xgd_target_global_options(${TARGET} CXX_STANDARD "${param_CXX_STANDARD}")
     set_target_properties(${TARGET} PROPERTIES BUNDLE_QT_GUI "${param_BUNDLE_QT_GUI}")
     if (ANDROID AND param_BUNDLE_QT_GUI)
         # expose main function
