@@ -39,8 +39,3 @@ function(xgd_add_third_party_example_by_files_in_dir)
     endforeach ()
 endfunction()
 
-function(xgd_add_third_party_example_by_dirs_in_dir)
-    # specify SRC_DIR, ignore SKIP_FILES, each file in SRC_DIR makes an executable
-    cmake_parse_arguments(param "" "ROOT" "SRC_DIRS;SKIP_DIRS" ${ARGN})
-endfunction()
-

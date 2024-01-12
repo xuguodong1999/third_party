@@ -1,0 +1,33 @@
+project(examples_rapidjson)
+
+set(ROOT_DIR ${XGD_THIRD_PARTY_DIR}/rapidjson-src/rapidjson/example)
+
+MACRO(SUBDIRLIST result curdir)
+    FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+    SET(dirlist "")
+    FOREACH (child ${children})
+        IF (IS_DIRECTORY ${curdir}/${child})
+            LIST(APPEND dirlist ${child})
+        ENDIF ()
+    ENDFOREACH ()
+    SET(${result} ${dirlist})
+ENDMACRO()
+
+function(xgd_add_third_party_example_by_dirs_in_dir)
+    # specify SRC_DIR, ignore SKIP_FILES, each file in SRC_DIR makes an executable
+    cmake_parse_arguments(param "" "ROOT" "SKIP_DIRS" ${ARGN})
+    SUBDIRLIST(SUB_DIRS ${param_ROOT})
+    foreach (SUB_DIR ${SUB_DIRS})
+        if (SUB_DIR IN_LIST param_SKIP_DIRS)
+            continue()
+        endif ()
+        set(SRC_FILES "")
+        aux_source_directory("${param_ROOT}/${SUB_DIR}" SRC_FILES)
+        set(TARGET_NAME "${PROJECT_NAME}_${SUB_DIR}")
+        xgd_add_executable(${TARGET_NAME} SRC_FILES ${SRC_FILES})
+        xgd_link_libraries(${TARGET_NAME} PRIVATE rapidjson Threads::Threads)
+        set(SRC_FILES "")
+    endforeach ()
+endfunction()
+
+xgd_add_third_party_example_by_dirs_in_dir(ROOT ${ROOT_DIR})
