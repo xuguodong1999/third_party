@@ -1,5 +1,52 @@
 Subject: [PATCH] third_party-changes
 ---
+Index: skia-src/skia/src/ports/SkScalerContext_win_dw.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/src/ports/SkScalerContext_win_dw.cpp b/skia-src/skia/src/ports/SkScalerContext_win_dw.cpp
+--- a/skia-src/skia/src/ports/SkScalerContext_win_dw.cpp	(revision e1d214b5c420362a226385caa834d9186bdae363)
++++ b/skia-src/skia/src/ports/SkScalerContext_win_dw.cpp	(date 1706013969009)
+@@ -1717,8 +1717,10 @@
+     }
+
+     DWRITE_GLYPH_IMAGE_FORMATS imageFormats;
++#if not defined(__MINGW64__)
+     HRBM(fontFace4->GetGlyphImageFormats(glyph.getGlyphID(), 0, UINT32_MAX, &imageFormats),
+          "Cannot get glyph image formats.");
++#endif
+     if (!(imageFormats & DWRITE_GLYPH_IMAGE_FORMATS_PNG)) {
+         return false;
+     }
+@@ -2268,8 +2270,10 @@
+     }
+
+     DWRITE_GLYPH_IMAGE_FORMATS imageFormats;
++#if not defined(__MINGW64__)
+     HRBM(fontFace4->GetGlyphImageFormats(glyph.getGlyphID(), 0, UINT32_MAX, &imageFormats),
+          "Cannot get glyph image formats.");
++#endif
+     if (!(imageFormats & DWRITE_GLYPH_IMAGE_FORMATS_SVG)) {
+         return false;
+     }
+Index: skia-src/skia/modules/skcms/src/skcms_internals.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/modules/skcms/src/skcms_internals.h b/skia-src/skia/modules/skcms/src/skcms_internals.h
+--- a/skia-src/skia/modules/skcms/src/skcms_internals.h	(revision e1d214b5c420362a226385caa834d9186bdae363)
++++ b/skia-src/skia/modules/skcms/src/skcms_internals.h	(date 1707048458044)
+@@ -91,7 +91,7 @@
+
+ // If we are in SKCMS_PORTABLE mode or running on a non-x86-64 platform, we can't enable HSW or SKX.
+ // We also disable HSW/SKX on Android, even if it's Android on x64, since it's unlikely to benefit.
+-#if defined(SKCMS_PORTABLE) || !defined(__x86_64__) || defined(ANDROID) || defined(__ANDROID__)
++#if defined(SKCMS_PORTABLE) || !defined(__x86_64__) || defined(ANDROID) || defined(__ANDROID__) || defined(__MINGW64__)
+     #undef SKCMS_FORCE_HSW
+     #if !defined(SKCMS_DISABLE_HSW)
+         #define SKCMS_DISABLE_HSW 1
 Index: skia-src/skia/modules/skcms/src/skcms_TransformBaseline.cc
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
