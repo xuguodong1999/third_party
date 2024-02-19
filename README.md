@@ -1,11 +1,27 @@
 # Third party libraries for xgd's project
 
 ## "dev" branch
-1. Source codes are organized as git submodules.
-2. Build scripts rewritten in cmake are put under "examples/cmake" directory.
-3. Patches for source codes are in "patches/third_party-changes.patch" file.
-4. Patch file need to be applied after recursive git clone, since submodules are origin repositories.
+
+* Source codes are organized as git submodules.
+* Build scripts rewritten in cmake are put under `./cmake` directory.
+* Patches for source codes are in `./patches/**.patch` files.
+* Patch file need to be applied after recursive git clone, since submodules are origin repositories.
 
 ## "main" branch
-1. Only a minimal set of source files is kept.
-2. File "patches/third_party-changes.patch" has already been applied.
+
+* Only a minimal set of source files is kept.
+* Files `./patches/**.patch` has already been applied.
+
+## Build status
+
+Record compilers and cross-build platforms that work fine with newly written build script.
+
+|                   | Windows              | Linux         | MacOS   |
+|-------------------|----------------------|---------------|---------|
+| msvc-14.38        | &check;              | _             | _       |
+| gcc-11.4.0        | _                    | &check;       | _       |
+| apple-clang-15    | _                    | _             | &check; |
+| ndk-26.1.10909125 | &check;              | &check;       | &check; |
+| emcc-3.1.51       | &check;              | &check;       | &check; |
+| mingw-gcc-11.2.0  | &check; (Qt bundled) | &check; (MXE) | _       |
+
