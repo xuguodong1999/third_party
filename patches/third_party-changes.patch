@@ -1,3 +1,52 @@
+Subject: [PATCH] fix(skia): wrap class with unnamed namespace
+---
+Index: skia-src/skia/src/core/SkDistanceFieldGen.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/src/core/SkDistanceFieldGen.cpp b/skia-src/skia/src/core/SkDistanceFieldGen.cpp
+--- a/skia-src/skia/src/core/SkDistanceFieldGen.cpp	(revision a8daed82d83efdbe28ccad8f377894b126ac5b4d)
++++ b/skia-src/skia/src/core/SkDistanceFieldGen.cpp	(revision 8b00b0ff32a48eafe2989967b585af9abf55a6a6)
+@@ -23,6 +23,7 @@
+ using namespace skia_private;
+
+ #if !defined(SK_DISABLE_SDF_TEXT)
++namespace {
+
+ struct DFData {
+     float   fAlpha;      // alpha value of source texel
+@@ -30,6 +31,7 @@
+     SkPoint fDistVector; // distance vector to nearest (so far) edge texel
+ };
+
++}
+ enum NeighborFlags {
+     kLeft_NeighborFlag        = 0x01,
+     kRight_NeighborFlag       = 0x02,
+Index: skia-src/skia/src/gpu/ganesh/GrDistanceFieldGenFromVector.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/skia-src/skia/src/gpu/ganesh/GrDistanceFieldGenFromVector.cpp b/skia-src/skia/src/gpu/ganesh/GrDistanceFieldGenFromVector.cpp
+--- a/skia-src/skia/src/gpu/ganesh/GrDistanceFieldGenFromVector.cpp	(revision a8daed82d83efdbe28ccad8f377894b126ac5b4d)
++++ b/skia-src/skia/src/gpu/ganesh/GrDistanceFieldGenFromVector.cpp	(revision 8b00b0ff32a48eafe2989967b585af9abf55a6a6)
+@@ -64,12 +64,14 @@
+     kRight_SegSide =  1,
+     kNA_SegSide    =  2,
+ };
++namespace {
+
+ struct DFData {
+     float fDistSq;            // distance squared to nearest (so far) edge
+     int   fDeltaWindingScore; // +1 or -1 whenever a scanline cross over a segment
+ };
+
++}
+ ///////////////////////////////////////////////////////////////////////////////
+
+ /*
 Subject: [PATCH] third_party-changes
 ---
 Index: skia-src/skia/src/ports/SkScalerContext_win_dw.cpp
