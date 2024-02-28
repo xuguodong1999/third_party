@@ -64,12 +64,14 @@ enum SegSide {
     kRight_SegSide =  1,
     kNA_SegSide    =  2,
 };
+namespace {
 
 struct DFData {
     float fDistSq;            // distance squared to nearest (so far) edge
     int   fDeltaWindingScore; // +1 or -1 whenever a scanline cross over a segment
 };
 
+}
 ///////////////////////////////////////////////////////////////////////////////
 
 /*

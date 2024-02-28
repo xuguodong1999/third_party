@@ -23,6 +23,7 @@
 using namespace skia_private;
 
 #if !defined(SK_DISABLE_SDF_TEXT)
+namespace {
 
 struct DFData {
     float   fAlpha;      // alpha value of source texel
@@ -30,6 +31,7 @@ struct DFData {
     SkPoint fDistVector; // distance vector to nearest (so far) edge texel
 };
 
+}
 enum NeighborFlags {
     kLeft_NeighborFlag        = 0x01,
     kRight_NeighborFlag       = 0x02,
