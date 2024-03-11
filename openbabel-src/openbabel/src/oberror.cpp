@@ -22,6 +22,7 @@ General Public License for more details.
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <mutex>
 
 #include <openbabel/oberror.h>
 
@@ -162,6 +163,8 @@ namespace OpenBabel
 
   void OBMessageHandler::ThrowError(OBError err, errorQualifier qualifier)
   {
+    static std::mutex mutex_;
+    std::unique_lock lk(mutex_);
     if (!_logging)
       return;
 
@@ -182,6 +185,8 @@ namespace OpenBabel
                                     const std::string &errorMsg,
                                     obMessageLevel level, errorQualifier qualifier)
   {
+    static std::mutex mutex_;
+    std::unique_lock lk(mutex_);
     if (errorMsg.length() > 1)
       {
         OBError err(method, errorMsg, "", "", "", level);
@@ -191,6 +196,8 @@ namespace OpenBabel
 
   std::vector<std::string> OBMessageHandler::GetMessagesOfLevel(const obMessageLevel level)
   {
+    static std::mutex mutex_;
+    std::unique_lock lk(mutex_);
     vector<string> results;
     deque<OBError>::iterator i;
     OBError error;
@@ -207,6 +214,8 @@ namespace OpenBabel
 
   bool OBMessageHandler::StartErrorWrap()
   {
+    static std::mutex mutex_;
+    std::unique_lock lk(mutex_);
     if (_inWrapStreamBuf != nullptr)
       return true; // already wrapped cerr  -- don't go into loops!
 
@@ -223,6 +232,8 @@ namespace OpenBabel
 
   bool OBMessageHandler::StopErrorWrap()
   {
+    static std::mutex mutex_;
+    std::unique_lock lk(mutex_);
     if (_inWrapStreamBuf == nullptr)
       return true; // never wrapped cerr
 
@@ -237,6 +248,8 @@ namespace OpenBabel
 
   string OBMessageHandler::GetMessageSummary()
   {
+    static std::mutex mutex_;
+    std::unique_lock lk(mutex_);
     stringstream summary;
     if (_messageCount[obError] > 0)
       summary << _messageCount[obError] << " errors ";
