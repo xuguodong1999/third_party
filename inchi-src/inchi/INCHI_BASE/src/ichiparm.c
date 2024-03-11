@@ -586,7 +586,7 @@ int ReadCommandLineParms( int argc,
     int bHashKey            = 0;
     int bHashXtra1          = 0;
     int bHashXtra2          = 0;
-    int bLargeMolecules     = 0;
+    int bLargeMolecules     = 1;
     int bPolymers           = POLYMERS_NO;
 #ifdef TARGET_LIB_FOR_WINCHI
     int bFoldPolymerSRU     = 0;
