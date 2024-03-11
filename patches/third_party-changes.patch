@@ -1288,6 +1288,79 @@ diff --git a/svgpp-src/svgpp/include/svgpp/utility/gil/mask.hpp b/svgpp-src/svgp
      return channel_convert<GrayChannelValue>(
        channel_convert<float32_t>(red  )*0.2125f +
        channel_convert<float32_t>(green)*0.7154f +
+Subject: [PATCH] make ob log thread safe
+---
+Index: openbabel-src/openbabel/src/oberror.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/openbabel-src/openbabel/src/oberror.cpp b/openbabel-src/openbabel/src/oberror.cpp
+--- a/openbabel-src/openbabel/src/oberror.cpp	(revision 11bc7413cded705758c3b080b7875fae36f44f52)
++++ b/openbabel-src/openbabel/src/oberror.cpp	(date 1710130504594)
+@@ -22,6 +22,7 @@
+ #include <iostream>
+ #include <string>
+ #include <algorithm>
++#include <mutex>
+
+ #include <openbabel/oberror.h>
+
+@@ -162,6 +163,8 @@
+
+   void OBMessageHandler::ThrowError(OBError err, errorQualifier qualifier)
+   {
++    static std::mutex mutex_;
++    std::unique_lock lk(mutex_);
+     if (!_logging)
+       return;
+
+@@ -182,6 +185,8 @@
+                                     const std::string &errorMsg,
+                                     obMessageLevel level, errorQualifier qualifier)
+   {
++    static std::mutex mutex_;
++    std::unique_lock lk(mutex_);
+     if (errorMsg.length() > 1)
+       {
+         OBError err(method, errorMsg, "", "", "", level);
+@@ -191,6 +196,8 @@
+
+   std::vector<std::string> OBMessageHandler::GetMessagesOfLevel(const obMessageLevel level)
+   {
++    static std::mutex mutex_;
++    std::unique_lock lk(mutex_);
+     vector<string> results;
+     deque<OBError>::iterator i;
+     OBError error;
+@@ -207,6 +214,8 @@
+
+   bool OBMessageHandler::StartErrorWrap()
+   {
++    static std::mutex mutex_;
++    std::unique_lock lk(mutex_);
+     if (_inWrapStreamBuf != nullptr)
+       return true; // already wrapped cerr  -- don't go into loops!
+
+@@ -223,6 +232,8 @@
+
+   bool OBMessageHandler::StopErrorWrap()
+   {
++    static std::mutex mutex_;
++    std::unique_lock lk(mutex_);
+     if (_inWrapStreamBuf == nullptr)
+       return true; // never wrapped cerr
+
+@@ -237,6 +248,8 @@
+
+   string OBMessageHandler::GetMessageSummary()
+   {
++    static std::mutex mutex_;
++    std::unique_lock lk(mutex_);
+     stringstream summary;
+     if (_messageCount[obError] > 0)
+       summary << _messageCount[obError] << " errors ";
+
 Index: openbabel-src/openbabel/src/alias.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -9126,6 +9199,26 @@ diff --git a/openbabel-src/openbabel/src/formats/pdbqtformat.cpp b/openbabel-src
        unsigned int torsdof=0;
        unsigned int root_piece=0;
        unsigned int rotatable_bonds=0;
+Subject: [PATCH] enable large modules in inchi
+---
+Index: inchi-src/inchi/INCHI_BASE/src/ichiparm.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/inchi-src/inchi/INCHI_BASE/src/ichiparm.c b/inchi-src/inchi/INCHI_BASE/src/ichiparm.c
+--- a/inchi-src/inchi/INCHI_BASE/src/ichiparm.c	(revision 3e3928f4c892ad9e99105fa1849674ebb3a10263)
++++ b/inchi-src/inchi/INCHI_BASE/src/ichiparm.c	(date 1710136160714)
+@@ -586,7 +586,7 @@
+     int bHashKey            = 0;
+     int bHashXtra1          = 0;
+     int bHashXtra2          = 0;
+-    int bLargeMolecules     = 0;
++    int bLargeMolecules     = 1;
+     int bPolymers           = POLYMERS_NO;
+ #ifdef TARGET_LIB_FOR_WINCHI
+     int bFoldPolymerSRU     = 0;
+
 Index: inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.h
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
