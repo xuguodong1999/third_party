@@ -179,3 +179,9 @@
 	path = svgpp-src/svgpp
 	url = https://github.com/svgpp/svgpp.git
 	ignore = dirty
+[submodule "arrow-src/arrow"]
+	path = arrow-src/arrow
+	url = https://github.com/apache/arrow.git
+[submodule "thrift-src/thrift"]
+	path = thrift-src/thrift
+	url = https://github.com/apache/thrift.git
