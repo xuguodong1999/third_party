@@ -185,3 +185,6 @@
 [submodule "thrift-src/thrift"]
 	path = thrift-src/thrift
 	url = https://github.com/apache/thrift.git
+[submodule "flatbuffers-src/flatbuffers"]
+	path = flatbuffers-src/flatbuffers
+	url = https://github.com/google/flatbuffers.git
