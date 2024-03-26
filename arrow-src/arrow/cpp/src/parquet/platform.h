@@ -25,6 +25,7 @@
 #include "arrow/status.h"         // IWYU pragma: export
 #include "arrow/type_fwd.h"       // IWYU pragma: export
 #include "arrow/util/macros.h"    // IWYU pragma: export
+#include <parquet_export.h>
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 
@@ -42,24 +43,6 @@
 #else
 #pragma GCC diagnostic ignored "-Wattributes"
 #endif
-
-#ifdef PARQUET_STATIC
-#define PARQUET_EXPORT
-#elif defined(PARQUET_EXPORTING)
-#define PARQUET_EXPORT __declspec(dllexport)
-#else
-#define PARQUET_EXPORT __declspec(dllimport)
-#endif
-
-#define PARQUET_NO_EXPORT
-
-#else  // Not Windows
-#ifndef PARQUET_EXPORT
-#define PARQUET_EXPORT __attribute__((visibility("default")))
-#endif
-#ifndef PARQUET_NO_EXPORT
-#define PARQUET_NO_EXPORT __attribute__((visibility("hidden")))
-#endif
 #endif  // Non-Windows
 
 // This is a complicated topic, some reading on it:
@@ -75,7 +58,6 @@
 #define PARQUET_DISALLOW_COPY_AND_ASSIGN ARROW_DISALLOW_COPY_AND_ASSIGN
 
 #define PARQUET_NORETURN ARROW_NORETURN
-#define PARQUET_DEPRECATED ARROW_DEPRECATED
 
 // If ARROW_VALGRIND set when compiling unit tests, also define
 // PARQUET_VALGRIND

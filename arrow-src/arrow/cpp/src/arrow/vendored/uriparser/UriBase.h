@@ -96,27 +96,10 @@
 #endif
 
 
+#include <arrow_export.h>
 
 /* Import/export decorator */
-#if defined(URI_STATIC_BUILD)
-# define URI_PUBLIC
-#else
-# if defined(URI_LIBRARY_BUILD)
-#  if defined(_MSC_VER)
-#   define URI_PUBLIC __declspec(dllexport)
-#  elif defined(URI_VISIBILITY)
-#   define URI_PUBLIC __attribute__ ((visibility("default")))
-#  else
-#   define URI_PUBLIC
-#  endif
-# else
-#  if defined(_MSC_VER)
-#   define URI_PUBLIC __declspec(dllimport)
-#  else
-#   define URI_PUBLIC
-#  endif
-# endif
-#endif
+#define URI_PUBLIC ARROW_EXPORT
 
 
 
