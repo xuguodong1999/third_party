@@ -87,6 +87,7 @@
 // clang-format off
 // [[deprecated]] is only available in C++14, use this for the time being
 // This macro takes an optional deprecation message
+#undef ARROW_DEPRECATED
 #ifdef __COVERITY__
 #  define ARROW_DEPRECATED(...)
 #else

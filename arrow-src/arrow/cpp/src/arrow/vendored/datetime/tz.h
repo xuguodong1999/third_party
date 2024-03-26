@@ -104,6 +104,10 @@ static_assert(HAS_REMOTE_API == 0 ? AUTO_DOWNLOAD == 0 : true,
 
 #include "date.h"
 
+#include <arrow_export.h>
+
+#define DATE_API ARROW_EXPORT
+
 #if defined(_MSC_VER) && (_MSC_VER < 1900)
 #include "tz_private.h"
 #endif
@@ -123,22 +127,6 @@ static_assert(HAS_REMOTE_API == 0 ? AUTO_DOWNLOAD == 0 : true,
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#ifdef _WIN32
-#  ifdef DATE_BUILD_DLL
-#    define DATE_API __declspec(dllexport)
-#  elif defined(DATE_USE_DLL)
-#    define DATE_API __declspec(dllimport)
-#  else
-#    define DATE_API
-#  endif
-#else
-#  ifdef DATE_BUILD_DLL
-#    define DATE_API __attribute__ ((visibility ("default")))
-#  else
-#    define DATE_API
-#  endif
-#endif
 
 namespace arrow_vendored
 {
