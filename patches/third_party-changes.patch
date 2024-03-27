@@ -1,3 +1,76 @@
+Subject: [PATCH] arrow_thrift patch
+---
+Index: thrift-src/thrift/lib/cpp/src/thrift/windows/Sync.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/thrift-src/thrift/lib/cpp/src/thrift/windows/Sync.h b/thrift-src/thrift/lib/cpp/src/thrift/windows/Sync.h
+--- a/thrift-src/thrift/lib/cpp/src/thrift/windows/Sync.h	(revision 7a0776da38154eac4b979bc8cac771da56388046)
++++ b/thrift-src/thrift/lib/cpp/src/thrift/windows/Sync.h	(date 1711503786669)
+@@ -37,7 +37,7 @@
+ #define WIN32_LEAN_AND_MEAN
+ #define _THRIFT_UNDEF_WIN32_LEAN_AND_MEAN
+ #endif
+-#include <Windows.h>
++#include <windows.h>
+ #ifdef _THRIFT_UNDEF_NOMINMAX
+ #undef NOMINMAX
+ #undef _THRIFT_UNDEF_NOMINMAX
+Index: thrift-src/thrift/lib/cpp/src/thrift/transport/THttpServer.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/thrift-src/thrift/lib/cpp/src/thrift/transport/THttpServer.cpp b/thrift-src/thrift/lib/cpp/src/thrift/transport/THttpServer.cpp
+--- a/thrift-src/thrift/lib/cpp/src/thrift/transport/THttpServer.cpp	(revision 7a0776da38154eac4b979bc8cac771da56388046)
++++ b/thrift-src/thrift/lib/cpp/src/thrift/transport/THttpServer.cpp	(date 1711503869941)
+@@ -25,7 +25,7 @@
+ #include <thrift/transport/THttpServer.h>
+ #include <thrift/transport/TSocket.h>
+ #if defined(_MSC_VER) || defined(__MINGW32__)
+-  #include <Shlwapi.h>
++  #include <shlwapi.h>
+ #endif
+
+ using std::string;
+Index: thrift-src/thrift/lib/cpp/src/thrift/transport/TPipeServer.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/thrift-src/thrift/lib/cpp/src/thrift/transport/TPipeServer.cpp b/thrift-src/thrift/lib/cpp/src/thrift/transport/TPipeServer.cpp
+--- a/thrift-src/thrift/lib/cpp/src/thrift/transport/TPipeServer.cpp	(revision 7a0776da38154eac4b979bc8cac771da56388046)
++++ b/thrift-src/thrift/lib/cpp/src/thrift/transport/TPipeServer.cpp	(date 1711503832325)
+@@ -27,8 +27,8 @@
+ #ifdef _WIN32
+ #include <thrift/windows/OverlappedSubmissionThread.h>
+ #include <thrift/windows/Sync.h>
+-#include <AccCtrl.h>
+-#include <Aclapi.h>
++#include <accctrl.h>
++#include <aclapi.h>
+ #include <sddl.h>
+ #endif //_WIN32
+
+Index: arrow-src/arrow/cpp/src/arrow/status.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/arrow-src/arrow/cpp/src/arrow/status.h b/arrow-src/arrow/cpp/src/arrow/status.h
+--- a/arrow-src/arrow/cpp/src/arrow/status.h	(revision 7a0776da38154eac4b979bc8cac771da56388046)
++++ b/arrow-src/arrow/cpp/src/arrow/status.h	(date 1711503287017)
+@@ -129,7 +129,7 @@
+ ///
+ /// Additionally, if an error occurred, a specific error message is generally
+ /// attached.
+-class ARROW_EXPORT [[nodiscard]] Status : public util::EqualityComparable<Status>,
++class ARROW_EXPORT Status : public util::EqualityComparable<Status>,
+                                           public util::ToStringOstreamable<Status> {
+  public:
+   // Create a success status.
+
 Index: arrow-src/arrow/cpp/src/arrow/dataset/visibility.h
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
