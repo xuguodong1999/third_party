@@ -4207,7 +4207,7 @@ make_time(const std::chrono::duration<Rep, Period>& d)
 template <class CharT, class Traits, class Duration>
 // requires (!std::convertible_to<std::decay_t<Duration>, days>)
 inline
-#if !defined(__EMSCRIPTEN__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
+#if !defined(__EMSCRIPTEN__) && !defined(__APPLE__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
 typename std::enable_if
 <
     !std::is_convertible<Duration, days>::value,
@@ -4217,7 +4217,7 @@ typename std::enable_if
 std::basic_ostream<CharT, Traits>&
 #endif
 operator<<(
-#if !defined(__EMSCRIPTEN__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
+#if !defined(__EMSCRIPTEN__) && !defined(__APPLE__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
 std::basic_ostream<CharT, Traits>&
 #else
 typename std::enable_if
