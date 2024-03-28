@@ -1,3 +1,44 @@
+Subject: [PATCH] patch thrift template
+---
+Index: arrow-src/arrow/cpp/src/arrow/vendored/datetime/date.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/arrow-src/arrow/cpp/src/arrow/vendored/datetime/date.h b/arrow-src/arrow/cpp/src/arrow/vendored/datetime/date.h
+--- a/arrow-src/arrow/cpp/src/arrow/vendored/datetime/date.h	(revision 1c2c9d9232e25fae334d36b2019e00d8c3d02626)
++++ b/arrow-src/arrow/cpp/src/arrow/vendored/datetime/date.h	(date 1711594520984)
+@@ -4205,13 +4205,28 @@
+ }
+
+ template <class CharT, class Traits, class Duration>
++// requires (!std::convertible_to<std::decay_t<Duration>, days>)
+ inline
++#if !defined(__EMSCRIPTEN__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
+ typename std::enable_if
+ <
+     !std::is_convertible<Duration, days>::value,
+     std::basic_ostream<CharT, Traits>&
+ >::type
+-operator<<(std::basic_ostream<CharT, Traits>& os, const sys_time<Duration>& tp)
++#else
++std::basic_ostream<CharT, Traits>&
++#endif
++operator<<(
++#if !defined(__EMSCRIPTEN__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
++std::basic_ostream<CharT, Traits>&
++#else
++typename std::enable_if
++<
++    !std::is_convertible<Duration, days>::value,
++    std::basic_ostream<CharT, Traits>
++>::type&
++#endif
++os, const sys_time<Duration>& tp)
+ {
+     auto const dp = date::floor<days>(tp);
+     return os << year_month_day(dp) << ' ' << make_time(tp-dp);
+
 Subject: [PATCH] arrow_thrift patch
 ---
 Index: thrift-src/thrift/lib/cpp/src/thrift/windows/Sync.h
