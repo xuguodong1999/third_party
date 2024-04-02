@@ -188,3 +188,6 @@
 [submodule "flatbuffers-src/flatbuffers"]
 	path = flatbuffers-src/flatbuffers
 	url = https://github.com/google/flatbuffers.git
+[submodule "snappy-src/snappy"]
+	path = snappy-src/snappy
+	url = https://github.com/google/snappy.git
