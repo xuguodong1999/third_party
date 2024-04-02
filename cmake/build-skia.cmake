@@ -182,7 +182,11 @@ set(GL_SRCS_UNIX_EGL ${base_gl_srcs}
         src/gpu/ganesh/gl/egl/GrGLMakeNativeInterface_egl.cpp)
 
 set(PORTS_SRCS_WIN
-        src/ports/SkFontMgr_empty_factory.cpp
+        src/ports/SkFontMgr_win_dw_factory.cpp
+        src/fonts/SkFontMgr_indirect.cpp
+        src/ports/SkFontMgr_win_dw.cpp
+        src/ports/SkScalerContext_win_dw.cpp
+        src/ports/SkTypeface_win_dw.cpp
         src/ports/SkGlobalInitialization_default.cpp
         src/ports/SkOSFile_win.cpp
         src/ports/SkOSFile_stdio.cpp
@@ -198,9 +202,6 @@ set(PORTS_SRCS_UNIX
         src/ports/SkFontMgr_custom_embedded.cpp
         src/ports/SkFontMgr_custom_empty.cpp
         src/ports/SkFontMgr_custom.h
-        src/ports/SkFontMgr_empty_factory.cpp
-        #        src/ports/SkFontMgr_fontconfig_factory.cpp
-        #        src/ports/SkFontMgr_fontconfig.cpp
         src/ports/SkGlobalInitialization_default.cpp
         src/ports/SkMemory_malloc.cpp
         src/ports/SkOSFile_posix.cpp
@@ -208,6 +209,14 @@ set(PORTS_SRCS_UNIX
         src/ports/SkOSLibrary.h
         #        src/ports/SkOSLibrary_posix.cpp
 )
+if (XGD_USE_FONTCONFIG)
+    list(APPEND PORTS_SRCS_UNIX
+            src/ports/SkFontMgr_fontconfig_factory.cpp
+            src/ports/SkFontMgr_fontconfig.cpp)
+else ()
+    list(APPEND PORTS_SRCS_UNIX
+            src/ports/SkFontMgr_empty_factory.cpp)
+endif ()
 
 set(GL_SRCS_ANDROID ${base_gl_srcs}
         src/gpu/ganesh/gl/android/GrGLMakeNativeInterface_android.cpp)
@@ -503,7 +512,7 @@ if (WIN32)
     list(APPEND SKIA_SRC_FILES ${PORTS_SRCS_WIN})
 elseif (ANDROID)
     list(APPEND SKIA_SRC_FILES
-            # ${GL_SRCS_ANDROID} # FIXME: not work
+            # ${PORTS_SRCS_ANDROID} # no expat.h found
             ${PORTS_SRCS_ANDROID_NO_FONT})
 elseif (IOS)
     list(APPEND SKIA_SRC_FILES ${PORTS_SRCS_IOS} ${GL_SRCS_IOS})
@@ -512,6 +521,9 @@ elseif (APPLE)
 elseif (EMSCRIPTEN)
     list(APPEND SKIA_SRC_FILES ${PORTS_SRCS_WASM} ${GL_SRCS_WASM})
 elseif (UNIX)
+    if (XGD_USE_FONTCONFIG)
+        find_package(Fontconfig REQUIRED)
+    endif ()
     list(APPEND SKIA_SRC_FILES ${PORTS_SRCS_UNIX} ${GL_SRCS_UNIX})
 endif ()
 
@@ -594,6 +606,7 @@ xgd_add_library(skia
         INCLUDE_DIRS
         ${ROOT_DIR}
         ${INC_DIR}/core
+        ${INC_DIR}/utils
         ${INC_DIR}/effects
         ${INC_DIR}/encode
         ${INC_DIR}/images)
@@ -627,16 +640,32 @@ target_compile_definitions(skia PRIVATE
         SK_DISABLE_LOWP_RASTER_PIPELINE)
 xgd_link_libraries(skia PRIVATE skcms png zlib freetype)
 target_link_libraries(skia PRIVATE $<$<BOOL:${ANDROID}>:log>)
+if (XGD_USE_FONTCONFIG AND UNIX AND NOT ANDROID AND NOT IOS AND NOT EMSCRIPTEN AND NOT APPLE)
+    xgd_link_libraries(skia PRIVATE Fontconfig::Fontconfig)
+endif ()
 
 function(xgd_build_skia_module_libs MODULE_NAME)
-    xgd_add_library(skia_${MODULE_NAME} STATIC
-            SRC_DIRS
-            ${ROOT_DIR}/modules/${MODULE_NAME}/src
-            INCLUDE_DIRS
+    target_sources(skia PRIVATE ${ROOT_DIR}/modules/${MODULE_NAME}/src)
+    target_include_directories(
+            skia
+            PUBLIC
             ${ROOT_DIR}
-            ${ROOT_DIR}/modules/${MODULE_NAME}/include)
-    xgd_link_libraries(skia_${MODULE_NAME} PRIVATE skia)
+            ${ROOT_DIR}/modules/${MODULE_NAME}/include
+    )
+    add_library(skia_${MODULE_NAME} ALIAS skia)
+    #    xgd_add_library(skia_${MODULE_NAME} STATIC
+    #            SRC_DIRS
+    #            ${ROOT_DIR}/modules/${MODULE_NAME}/src
+    #            INCLUDE_DIRS
+    #            ${ROOT_DIR}
+    #            ${ROOT_DIR}/modules/${MODULE_NAME}/include)
+    #    xgd_link_libraries(skia_${MODULE_NAME} PRIVATE skia)
+    #    if (BUILD_SHARED_LIBS)
+    #        target_compile_definitions(
+    #                skia_${MODULE_NAME} PRIVATE SKIA_IMPLEMENTATION)
+    #    endif ()
 endfunction()
+
 xgd_build_skia_module_libs(sksg)
 #xgd_build_skia_module_libs(skparagraph)
 xgd_build_skia_module_libs(skresources)

@@ -178,6 +178,7 @@ foreach (CAIRO_SRC_FILE ${CAIRO_SRC_FILES})
 endforeach ()
 xgd_add_library(
         cairo
+        STATIC # system Qt is dynamically linked to an older version of cairo, so we do static link here
         SRC_FILES ${CAIRO_SRC_FILE_LIST}
         INCLUDE_DIRS ${ROOT_DIR}/src ${ROOT_DIR}/boilerplate ${GEN_DIR}
 )

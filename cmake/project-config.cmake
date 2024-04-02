@@ -6,6 +6,7 @@ option(XGD_USE_CUDA "" ON)
 option(XGD_USE_QT "" ON)
 option(XGD_USE_VK "" ON)
 option(XGD_USE_TORCH "" ON)
+option(XGD_USE_FONTCONFIG "" ON)
 option(XGD_USE_CCACHE "" ON)
 
 # platform related optimization
@@ -56,9 +57,15 @@ endif ()
 
 # directory layout
 if (NOT XGD_BUILD_WITH_GRADLE) # gradle relies on directory layout to copy libraries
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/archive)
+    if (NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE STRING "")
+    endif ()
+    if (NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE STRING "")
+    endif ()
+    if (NOT DEFINED CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/archive CACHE STRING "")
+    endif ()
 endif ()
 
 # find system packages

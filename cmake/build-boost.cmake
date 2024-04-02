@@ -121,7 +121,7 @@ function(xgd_build_boost_cobalt)
     xgd_internal_build_boost(cobalt SRC_FILES ${BOOST_COBALT_SRC_FILES})
     if (MSVC)
         target_compile_definitions(boost_cobalt PUBLIC _WIN32_WINNT=0x0601)
-    endif()
+    endif ()
     target_compile_definitions(boost_cobalt PRIVATE BOOST_COBALT_SOURCE)
 endfunction()
 
@@ -535,8 +535,6 @@ xgd_create_boost_deps(nowide PUBLIC config)
 xgd_create_boost_deps(numeric_conversion INTERFACE config conversion core mpl
         preprocessor throw_exception type_traits)
 xgd_create_boost_deps(numeric_interval INTERFACE config detail logic)
-xgd_create_boost_deps(numeric_odeint INTERFACE array assert bind compute config core function fusion iterator math mpi mpl multi_array numeric_ublas preprocessor range static_assert throw_exception type_traits units utility)
-xgd_create_boost_deps(numeric_ublas INTERFACE compute concept_check config core iterator mpl numeric_interval range serialization smart_ptr static_assert type_traits typeof)
 xgd_create_boost_deps(optional INTERFACE assert config core detail move predef static_assert
         throw_exception type_traits utility)
 xgd_create_boost_deps(outcome INTERFACE config exception system throw_exception)

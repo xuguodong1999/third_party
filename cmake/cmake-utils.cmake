@@ -77,8 +77,12 @@ macro(xgd_external_find_package)
                 if (ANDROID_NDK AND NOT Vulkan_shaderc_combined_LIBRARY)
                     set(_XGD_ANDROID_SHADERC_SOURCE_DIR ${ANDROID_NDK}/sources/third_party/shaderc)
                     find_library(Vulkan_shaderc_combined_LIBRARY
-                            HINTS ${_XGD_ANDROID_SHADERC_SOURCE_DIR}/libs/${ANDROID_STL}/${ANDROID_ABI}
+                            PATHS ${_XGD_ANDROID_SHADERC_SOURCE_DIR}/libs/${ANDROID_STL}/${ANDROID_ABI}
                             NAMES libshaderc.a
+                            NO_CMAKE_PATH
+                            NO_CMAKE_ENVIRONMENT_PATH
+                            NO_CMAKE_SYSTEM_PATH
+                            NO_CMAKE_FIND_ROOT_PATH
                             QUIET)
                     set(Vulkan_ANDROID_INCLUDE_DIR ${_XGD_ANDROID_SHADERC_SOURCE_DIR}/third_party
                             ${_XGD_ANDROID_SHADERC_SOURCE_DIR}/third_party/glslang
@@ -468,11 +472,16 @@ function(xgd_target_global_options TARGET)
                 # get correct __cplusplus macro
                 /Zc:__cplusplus)
         list(APPEND _XGD_LINK_OPTIONS
-                /STACK:0x400000 # mathjax on quickjs leads to stack overflow
+                /STACK:0x800000 # mathjax on quickjs leads to stack overflow
                 /manifest:no # do not generate manifest
         )
         # crt
         # set_target_properties(${TARGET} PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    elseif (
+    (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR
+    (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    )
+        set_target_properties(${TARGET} PROPERTIES LINKER_FLAGS "--stack,8388608")
     endif ()
     if (EMSCRIPTEN)
         list(APPEND _XGD_COMPILE_OPTIONS
@@ -482,6 +491,8 @@ function(xgd_target_global_options TARGET)
         list(APPEND _XGD_LINK_OPTIONS
                 -fexceptions
                 -frtti
+                # emscripten 3.1.51 addon
+                -sGL_ENABLE_GET_PROC_ADDRESS=1
                 -sALLOW_BLOCKING_ON_MAIN_THREAD=1
                 -sASSERTIONS=0
                 -sDEMANGLE_SUPPORT=1
@@ -491,7 +502,7 @@ function(xgd_target_global_options TARGET)
                 # -sSAFE_HEAP=1
                 # -sSINGLE_FILE=1
                 -sTOTAL_MEMORY=1024MB
-                -sTOTAL_STACK=4MB
+                -sTOTAL_STACK=8MB
                 -sUSE_PTHREADS=1)
         if (XGD_WASM_ENV)
             list(APPEND _XGD_LINK_OPTIONS
@@ -635,7 +646,7 @@ function(xgd_add_library TARGET)
             PUBLIC ${param_INCLUDE_DIRS}
             PRIVATE ${param_PRIVATE_INCLUDE_DIRS}
     )
-    xgd_target_global_options(${TARGET} CXX_STANDARD "${param_CXX_STANDARD}")
+    xgd_target_global_options(${TARGET})
 endfunction()
 
 function(xgd_generate_export_header TARGET BASE_NAME EXT)
@@ -856,7 +867,7 @@ function(xgd_add_executable TARGET)
     cmake_parse_arguments(
             param
             "BUNDLE_QT_GUI"
-            "CXX_STANDARD"
+            ""
             "SRC_DIRS;SRC_FILES;INCLUDE_DIRS;EXCLUDE_SRC_FILES;EXCLUDE_REGEXES"
             ${ARGN}
     )
@@ -923,7 +934,7 @@ function(xgd_add_executable TARGET)
         endif ()
     endif ()
     target_include_directories(${TARGET} PRIVATE ${param_INCLUDE_DIRS})
-    xgd_target_global_options(${TARGET} CXX_STANDARD "${param_CXX_STANDARD}")
+    xgd_target_global_options(${TARGET})
     set_target_properties(${TARGET} PROPERTIES BUNDLE_QT_GUI "${param_BUNDLE_QT_GUI}")
     if (ANDROID AND param_BUNDLE_QT_GUI)
         # expose main function
@@ -998,16 +1009,20 @@ function(xgd_link_gtest TARGET)
                 set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
             endif ()
         endif ()
-        if (EMSCRIPTEN AND NODEJS_RUNTIME)
+        if (EMSCRIPTEN AND XGD_NODEJS_RUNTIME)
             get_target_property(OUT_DIR ${TARGET} RUNTIME_OUTPUT_DIRECTORY)
             get_target_property(OUT_NAME ${TARGET} OUTPUT_NAME)
+            if (NOT OUT_NAME)
+                set(OUT_NAME ${TARGET})
+            endif ()
             set(OUTPUT_JS ${OUT_DIR}/${OUT_NAME}.js)
             if (CMAKE_HOST_WIN32)
                 set(OUTPUT_JS "file://${OUTPUT_JS}")
             endif ()
             set(TEST_COMMAND
-                    "${NODEJS_RUNTIME}"
+                    "${XGD_NODEJS_RUNTIME}"
                     "--experimental-wasm-threads"
+                    "--stack-size=8192"
                     "-e"
                     "import('${OUTPUT_JS}').then(m => ('function' === typeof m?.default) ? m.default() : 0)")
 

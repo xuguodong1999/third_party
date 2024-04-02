@@ -8,13 +8,11 @@ xgd_add_library(
         INCLUDE_DIRS ${INC_DIR}
         EXCLUDE_SRC_FILES ${SRC_DIR}/benchmark_main.cc
 )
-target_compile_definitions(
-        benchmark
-        PRIVATE benchmark_EXPORTS
-)
+target_compile_definitions(benchmark PRIVATE "benchmark_EXPORTS")
 if (NOT BUILD_SHARED_LIBS)
-    target_compile_definitions(benchmark PUBLIC BENCHMARK_STATIC_DEFINE)
+    target_compile_definitions(benchmark PUBLIC "BENCHMARK_STATIC_DEFINE")
 endif ()
+target_compile_definitions(benchmark PUBLIC "NDEBUG")
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_link_libraries(benchmark PRIVATE shlwapi)
 endif ()
