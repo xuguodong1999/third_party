@@ -4,7 +4,7 @@ set(ROOT_DIR ${XGD_THIRD_PARTY_DIR}/boost-src/boost/libs/numeric/odeint/examples
 
 aux_source_directory(${ROOT_DIR} SRC_FILES)
 
-set(SKIP_FILES)
+set(SKIP_FILES resizing_lattice.cpp)
 
 foreach (SRC_FILE ${SRC_FILES})
     get_filename_component(SRC_FILE_NAME_FULL "${SRC_FILE}" NAME)
@@ -16,8 +16,16 @@ foreach (SRC_FILE ${SRC_FILES})
     set(TARGET_NAME "${PROJECT_NAME}_${SRC_FILE_NAME}")
     xgd_add_executable(${TARGET_NAME} SRC_FILES ${SRC_FILE})
     xgd_link_libraries(${TARGET_NAME} PRIVATE
+            boost_fusion
+            boost_type_traits
+            boost_range
             boost_array
-            boost_numeric_odeint)
+            boost_serialization
+            boost_units
+            boost_multi_array
+            boost_numeric_odeint
+            boost_numeric_ublas
+    )
 endforeach ()
 
 function(xgd_add_third_party_example_by_files_in_dir)
