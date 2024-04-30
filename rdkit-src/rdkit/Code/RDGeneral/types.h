@@ -71,7 +71,6 @@ RDKIT_RDGENERAL_EXPORT extern const std::string _NeedsQueryScan;  // int (bool)
 RDKIT_RDGENERAL_EXPORT extern const std::string _fragSMARTS;      // std::string
 RDKIT_RDGENERAL_EXPORT extern const std::string
     maxAttachIdx;  // int TemplEnumTools.cpp
-RDKIT_RDGENERAL_EXPORT extern const std::string origNoImplicit;  // int (bool)
 RDKIT_RDGENERAL_EXPORT extern const std::string
     ringMembership;  //? unused (molopstest.cpp)
 
@@ -147,6 +146,8 @@ RDKIT_RDGENERAL_EXPORT extern const std::string
 RDKIT_RDGENERAL_EXPORT extern const std::string _hasMassQuery;  // atom bool
 RDKIT_RDGENERAL_EXPORT extern const std::string _protected;  // atom int (bool)
 RDKIT_RDGENERAL_EXPORT extern const std::string
+    _ChiralAtomRank;  // atom rank (unsigned int)
+RDKIT_RDGENERAL_EXPORT extern const std::string
     _supplementalSmilesLabel;  // atom string (SmilesWrite)
 RDKIT_RDGENERAL_EXPORT extern const std::string
     _unspecifiedOrder;  // atom int (bool) smarts/smiles
@@ -174,6 +175,7 @@ RDKIT_RDGENERAL_EXPORT extern const std::string molAtomSeqId;       // int
 RDKIT_RDGENERAL_EXPORT extern const std::string molRxnExactChange;  // int
 RDKIT_RDGENERAL_EXPORT extern const std::string molReactStatus;     // int
 RDKIT_RDGENERAL_EXPORT extern const std::string molFileLinkNodes;   // string
+RDKIT_RDGENERAL_EXPORT extern const std::string _fromAttachPoint;   // int
 
 RDKIT_RDGENERAL_EXPORT extern const std::string _MolFileRLabel;  // unsigned int
 RDKIT_RDGENERAL_EXPORT extern const std::string _MolFileChiralFlag;  // int
@@ -187,9 +189,12 @@ RDKIT_RDGENERAL_EXPORT extern const std::string
     _MolFileBondStereo;  // unsigned int
 RDKIT_RDGENERAL_EXPORT extern const std::string
     _MolFileBondCfg;  // unsigned int
-
 RDKIT_RDGENERAL_EXPORT extern const std::string
     MRV_SMA;  // smarts string from Marvin
+
+// flag indicating that the chirality wasn't specified in the input,
+// but was calculated from 3D coordinates in the input
+RDKIT_RDGENERAL_EXPORT extern const std::string _NonExplicit3DChirality;  // int
 RDKIT_RDGENERAL_EXPORT extern const std::string dummyLabel;  // atom string
 
 RDKIT_RDGENERAL_EXPORT extern const std::string

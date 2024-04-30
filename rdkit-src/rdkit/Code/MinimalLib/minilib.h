@@ -14,6 +14,10 @@
 #include <GraphMol/ChemReactions/Reaction.h>
 #include <GraphMol/ChemReactions/ReactionParser.h>
 
+#ifdef RDK_BUILD_MINIMAL_LIB_MMPA
+#include <GraphMol/MMPA/MMPA.h>
+#endif
+
 class JSMolList;
 
 class JSMol {
@@ -29,7 +33,8 @@ class JSMol {
   std::string get_v3Kmolblock(const std::string &details) const;
   std::string get_v3Kmolblock() const { return get_v3Kmolblock("{}"); }
   std::string get_pickle() const;
-  std::string get_inchi() const;
+  std::string get_inchi(const std::string &options) const;
+  std::string get_inchi() const { return get_inchi(""); }
   std::string get_json() const;
   std::string get_svg(int width, int height) const;
   std::string get_svg() const {
@@ -143,6 +148,11 @@ class JSMol {
   unsigned int get_num_atoms(bool heavyOnly) const;
   unsigned int get_num_atoms() const { return get_num_atoms(false); };
   unsigned int get_num_bonds() const;
+#ifdef RDK_BUILD_MINIMAL_LIB_MMPA
+  std::pair<JSMolList *, JSMolList *> get_mmpa_frags(
+      unsigned int minCuts, unsigned int maxCuts,
+      unsigned int maxCutBonds) const;
+#endif
 
   std::unique_ptr<RDKit::RWMol> d_mol;
   static constexpr int d_defaultWidth = 250;

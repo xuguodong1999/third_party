@@ -4204,33 +4204,20 @@ make_time(const std::chrono::duration<Rep, Period>& d)
     return hh_mm_ss<std::chrono::duration<Rep, Period>>(d);
 }
 
+#if !((defined(__APPLE__) && defined(__clang__)) || defined(__EMSCRIPTEN__))
 template <class CharT, class Traits, class Duration>
-// requires (!std::convertible_to<std::decay_t<Duration>, days>)
 inline
-#if !defined(__EMSCRIPTEN__) && !defined(__APPLE__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
 typename std::enable_if
 <
     !std::is_convertible<Duration, days>::value,
     std::basic_ostream<CharT, Traits>&
 >::type
-#else
-std::basic_ostream<CharT, Traits>&
-#endif
-operator<<(
-#if !defined(__EMSCRIPTEN__) && !defined(__APPLE__) && (defined(__ANDROID__) || defined(__MINGW64__) || defined(__GNUC__))
-std::basic_ostream<CharT, Traits>&
-#else
-typename std::enable_if
-<
-    !std::is_convertible<Duration, days>::value,
-    std::basic_ostream<CharT, Traits>
->::type&
-#endif
-os, const sys_time<Duration>& tp)
+operator<<(std::basic_ostream<CharT, Traits>& os, const sys_time<Duration>& tp)
 {
     auto const dp = date::floor<days>(tp);
     return os << year_month_day(dp) << ' ' << make_time(tp-dp);
 }
+#endif
 
 template <class CharT, class Traits>
 inline

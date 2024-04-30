@@ -12,6 +12,7 @@
 #include "new_canon.h"
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/QueryOps.h>
+#include <GraphMol/Atropisomers.h>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -133,13 +134,13 @@ void ActivatePartitions(unsigned int nAtoms, int *order, int *count,
   for (i = 0; i < nAtoms; i++) {
     j = order[i];
     int flag = 1;
-    //#define SKIP_NODE_CHANGED_OPTIMIZATION 0
-    //#ifndef SKIP_NODE_CHANGED_OPTIMIZATION
-    //        if(count[j]){
-    //          std::cout << "j " << j << std::endl;
-    //          flag=(next[j]!=-2);
-    //        }
-    //#endif
+    // #define SKIP_NODE_CHANGED_OPTIMIZATION 0
+    // #ifndef SKIP_NODE_CHANGED_OPTIMIZATION
+    //         if(count[j]){
+    //           std::cout << "j " << j << std::endl;
+    //           flag=(next[j]!=-2);
+    //         }
+    // #endif
     changed[j] = flag;
   }
 }
@@ -430,6 +431,39 @@ bondholder makeBondHolder(const Bond *bond, unsigned int otherIdx,
         }
       }
     }
+
+    if (res.stype == Bond::BondStereo::STEREOATROPCCW ||
+        res.stype == Bond::BondStereo::STEREOATROPCW) {
+      Atropisomers::AtropAtomAndBondVec atropAtomAndBondVecs[2];
+      CHECK_INVARIANT(Atropisomers::getAtropisomerAtomsAndBonds(
+                          bond, atropAtomAndBondVecs, bond->getOwningMol()),
+                      "Could not find atropisomer controlling atoms")
+
+      res.controllingAtoms[0] =
+          &atoms[atropAtomAndBondVecs[0]
+                     .second[0]
+                     ->getOtherAtom(atropAtomAndBondVecs[0].first)
+                     ->getIdx()];
+      res.controllingAtoms[2] =
+          &atoms[atropAtomAndBondVecs[1]
+                     .second[0]
+                     ->getOtherAtom(atropAtomAndBondVecs[1].first)
+                     ->getIdx()];
+      if (atropAtomAndBondVecs[0].second.size() > 1) {
+        res.controllingAtoms[1] =
+            &atoms[atropAtomAndBondVecs[0]
+                       .second[1]
+                       ->getOtherAtom(atropAtomAndBondVecs[0].first)
+                       ->getIdx()];
+      }
+      if (atropAtomAndBondVecs[1].second.size() > 1) {
+        res.controllingAtoms[3] =
+            &atoms[atropAtomAndBondVecs[1]
+                       .second[1]
+                       ->getOtherAtom(atropAtomAndBondVecs[1].first)
+                       ->getIdx()];
+      }
+    }
   }
   return res;
 }
@@ -659,6 +693,18 @@ void updateAtomNeighborIndex(canon_atom *atoms, std::vector<bondholder> &nbrs) {
   std::sort(nbrs.begin(), nbrs.end(), bondholder::greater);
 }
 
+// This routine calculates the number of swaps that would be required to
+// determine what the smiles chirality value would be for a given chiral atom
+// given that the atom is visited first from the atom of interest.
+// This is used to determine which of two atoms has priority based on the
+// neighbor's chirality
+//
+// If the chiral neighbor has two equivlent (at least so far) neighbors that are
+// not the atom of interest, it cannot be used to determine the priority of the
+// atom of interest.  For this reason, we keep track of the number of neighbors
+// that have the same priority so far.  If any two are the same, we do NOT use
+// that neighbor to determine the priority of the atom of interest.
+
 void updateAtomNeighborNumSwaps(
     canon_atom *atoms, std::vector<bondholder> &nbrs, unsigned int atomIdx,
     std::vector<std::pair<unsigned int, unsigned int>> &result) {
@@ -666,30 +712,48 @@ void updateAtomNeighborNumSwaps(
   for (auto &nbr : nbrs) {
     unsigned nbrIdx = nbr.nbrIdx;
 
+    std::list<unsigned int> neighborsSeen;
+    bool tooManySimilarNbrs = false;
     if (isRingAtom && atoms[nbrIdx].atom->getChiralTag() != 0) {
       std::vector<int> ref, probe;
       for (unsigned i = 0; i < atoms[nbrIdx].degree; ++i) {
-        ref.push_back(atoms[nbrIdx].nbrIds[i]);
+        auto nbrNbrId =
+            atoms[nbrIdx].nbrIds[i];  // id of the neighbor's neighbor
+        ref.push_back(nbrNbrId);
+        if ((int)atomIdx != nbrNbrId) {
+          if ((std::find(neighborsSeen.begin(), neighborsSeen.end(),
+                         atoms[nbrNbrId].index) != neighborsSeen.end())) {
+            tooManySimilarNbrs = true;
+          } else {
+            neighborsSeen.push_back(atoms[nbrNbrId].index);
+          }
+        }
       }
+
       probe.push_back(atomIdx);
       for (auto &bond : atoms[nbrIdx].bonds) {
         if (bond.nbrIdx != atomIdx) {
           probe.push_back(bond.nbrIdx);
         }
       }
-      int nSwaps = static_cast<int>(countSwapsToInterconvert(ref, probe));
-      if (atoms[nbrIdx].atom->getChiralTag() == Atom::CHI_TETRAHEDRAL_CW) {
-        if (nSwaps % 2) {
-          result.emplace_back(nbr.nbrSymClass, 2);
-        } else {
-          result.emplace_back(nbr.nbrSymClass, 1);
-        }
-      } else if (atoms[nbrIdx].atom->getChiralTag() ==
-                 Atom::CHI_TETRAHEDRAL_CCW) {
-        if (nSwaps % 2) {
-          result.emplace_back(nbr.nbrSymClass, 1);
-        } else {
-          result.emplace_back(nbr.nbrSymClass, 2);
+
+      if (tooManySimilarNbrs) {
+        result.emplace_back(nbr.nbrSymClass, 0);
+      } else {
+        int nSwaps = static_cast<int>(countSwapsToInterconvert(ref, probe));
+        if (atoms[nbrIdx].atom->getChiralTag() == Atom::CHI_TETRAHEDRAL_CW) {
+          if (nSwaps % 2) {
+            result.emplace_back(nbr.nbrSymClass, 2);
+          } else {
+            result.emplace_back(nbr.nbrSymClass, 1);
+          }
+        } else if (atoms[nbrIdx].atom->getChiralTag() ==
+                   Atom::CHI_TETRAHEDRAL_CCW) {
+          if (nSwaps % 2) {
+            result.emplace_back(nbr.nbrSymClass, 1);
+          } else {
+            result.emplace_back(nbr.nbrSymClass, 2);
+          }
         }
       }
     } else {
@@ -700,13 +764,14 @@ void updateAtomNeighborNumSwaps(
 }
 
 void rankMolAtoms(const ROMol &mol, std::vector<unsigned int> &res,
-                  bool breakTies, bool includeChirality, bool includeIsotopes) {
+                  bool breakTies, bool includeChirality, bool includeIsotopes,
+                  bool includeAtomMaps) {
   if (!mol.getNumAtoms()) {
     return;
   }
 
   bool clearRings = false;
-  if (!mol.getRingInfo()->isInitialized()) {
+  if (!mol.getRingInfo()->isFindFastOrBetter()) {
     MolOps::fastFindRings(mol);
     clearRings = true;
   }
@@ -718,6 +783,7 @@ void rankMolAtoms(const ROMol &mol, std::vector<unsigned int> &res,
   ftor.df_useIsotopes = includeIsotopes;
   ftor.df_useChirality = includeChirality;
   ftor.df_useChiralityRings = includeChirality;
+  ftor.df_useAtomMaps = includeAtomMaps;
 
   auto order = std::make_unique<int[]>(mol.getNumAtoms());
   detail::rankWithFunctor(ftor, breakTies, order.get(), true, includeChirality);
@@ -737,7 +803,7 @@ void rankFragmentAtoms(const ROMol &mol, std::vector<unsigned int> &res,
                        const std::vector<std::string> *atomSymbols,
                        const std::vector<std::string> *bondSymbols,
                        bool breakTies, bool includeChirality,
-                       bool includeIsotopes) {
+                       bool includeIsotopes, bool includeAtomMaps) {
   PRECONDITION(atomsInPlay.size() == mol.getNumAtoms(), "bad atomsInPlay size");
   PRECONDITION(bondsInPlay.size() == mol.getNumBonds(), "bad bondsInPlay size");
   PRECONDITION(!atomSymbols || atomSymbols->size() == mol.getNumAtoms(),
@@ -750,7 +816,7 @@ void rankFragmentAtoms(const ROMol &mol, std::vector<unsigned int> &res,
   }
 
   bool clearRings = false;
-  if (!mol.getRingInfo()->isInitialized()) {
+  if (!mol.getRingInfo()->isFindFastOrBetter()) {
     MolOps::fastFindRings(mol);
     clearRings = true;
   }
@@ -763,6 +829,7 @@ void rankFragmentAtoms(const ROMol &mol, std::vector<unsigned int> &res,
   AtomCompareFunctor ftor(&atoms.front(), mol, &atomsInPlay, &bondsInPlay);
   ftor.df_useIsotopes = includeIsotopes;
   ftor.df_useChirality = includeChirality;
+  ftor.df_useAtomMaps = includeAtomMaps;
 
   auto order = std::make_unique<int[]>(mol.getNumAtoms());
   detail::rankWithFunctor(ftor, breakTies, order.get(), true, includeChirality,
@@ -771,6 +838,7 @@ void rankFragmentAtoms(const ROMol &mol, std::vector<unsigned int> &res,
   for (unsigned int i = 0; i < mol.getNumAtoms(); ++i) {
     res[order[i]] = atoms[order[i]].index;
   }
+
   if (clearRings) {
     mol.getRingInfo()->reset();
   }
@@ -782,7 +850,7 @@ void chiralRankMolAtoms(const ROMol &mol, std::vector<unsigned int> &res) {
   }
 
   bool clearRings = false;
-  if (!mol.getRingInfo()->isInitialized()) {
+  if (!mol.getRingInfo()->isFindFastOrBetter()) {
     MolOps::fastFindRings(mol);
     clearRings = true;
   }
@@ -798,6 +866,7 @@ void chiralRankMolAtoms(const ROMol &mol, std::vector<unsigned int> &res) {
   for (unsigned int i = 0; i < mol.getNumAtoms(); ++i) {
     res[order[i]] = atoms[order[i]].index;
   }
+
   if (clearRings) {
     mol.getRingInfo()->reset();
   }

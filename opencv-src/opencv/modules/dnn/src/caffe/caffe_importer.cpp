@@ -125,6 +125,7 @@ public:
         {
             const google::protobuf::UnknownField& field = unknownFields.field(i);
             CV_Assert(field.type() == google::protobuf::UnknownField::TYPE_GROUP);
+            CV_CheckGE(field.group().field_count(), 2, "UnknownField should have at least 2 items: name and value");
             std::string fieldName = field.group().field(0).length_delimited();
             std::string fieldValue = field.group().field(1).length_delimited();
             params.set(fieldName, fieldValue);
@@ -497,6 +498,11 @@ public:
             else if ("ConvolutionDepthwise" == type)
             {
                 type = "Convolution";
+            }
+            else if (type == "Softmax"){
+                // set default axis to 1
+                if(!layerParams.has("axis"))
+                    layerParams.set("axis", 1);
             }
 
             int id = dstNet.addLayer(name, type, layerParams);

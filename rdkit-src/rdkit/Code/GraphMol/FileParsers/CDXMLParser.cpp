@@ -18,8 +18,9 @@
 #include <RDGeneral/BadFileException.h>
 #include <fstream>
 #include <sstream>
-#include "MolFileStereochem.h"
+#include <GraphMol/FileParsers/MolFileStereochem.h>
 #include <RDGeneral/FileParseException.h>
+#include <GraphMol/Atropisomers.h>
 
 using boost::property_tree::ptree;
 namespace RDKit {
@@ -160,7 +161,7 @@ bool parse_fragment(RWMol &mol, ptree &frag,
   // for atom in frag
   int atom_id = -1;
   std::vector<BondInfo> bonds;
-  std::map<int, StereoGroupInfo> sgroups;
+  std::map<std::pair<int, StereoGroupType>, StereoGroupInfo> sgroups;
 
   // nodetypes =
   // https://www.cambridgesoft.com/services/documentation/sdk/chemdraw/cdx/properties/Node_Type.htm
@@ -325,13 +326,9 @@ bool parse_fragment(RWMol &mol, ptree &frag,
         }
       }
       if (sgroup != -1) {
-        auto &stereo = sgroups[sgroup];
-        if (stereo.sgroup != -1 && stereo.grouptype != grouptype) {
-          BOOST_LOG(rdWarningLog)
-              << "StereoGroup " << sgroup
-              << " has conflicting stereo group types, ignoring" << std::endl;
-          stereo.conflictingSgroupTypes = true;
-        }
+        auto key = std::make_pair(sgroup, grouptype);
+        auto &stereo = sgroups[key];
+        stereo.sgroup = sgroup;
         stereo.grouptype = grouptype;
         stereo.atoms.push_back(rd_atom);
       }
@@ -483,8 +480,9 @@ bool parse_fragment(RWMol &mol, ptree &frag,
           sgroup.second.sgroup > 0) {
         gId = sgroup.second.sgroup;
       }
+      std::vector<Bond *> newBonds;
       stereo_groups.emplace_back(sgroup.second.grouptype, sgroup.second.atoms,
-                                 gId);
+                                 newBonds, gId);
     }
     mol.setStereoGroups(std::move(stereo_groups));
   }
@@ -517,8 +515,11 @@ void set_reaction_data(std::string type, std::string prop, SchemeInfo &scheme,
 }
 }  // namespace
 
-std::vector<std::unique_ptr<RWMol>> CDXMLDataStreamToMols(
-    std::istream &inStream, bool sanitize, bool removeHs) {
+namespace v2 {
+namespace CDXMLParser {
+
+std::vector<std::unique_ptr<RWMol>> MolsFromCDXMLDataStream(
+    std::istream &inStream, const CDXMLParserParams &params) {
   // populate tree structure pt
   using boost::property_tree::ptree;
   ptree pt;
@@ -603,6 +604,9 @@ std::vector<std::unique_ptr<RWMol>> CDXMLDataStreamToMols(
                 scaleBonds(*res, *conf, RDKIT_DEPICT_BONDLENGTH, bondLength);
                 auto confidx = res->addConformer(conf.release());
                 DetectAtomStereoChemistry(*res, &res->getConformer(confidx));
+
+                Atropisomers::detectAtropisomerChirality(
+                    *res, &res->getConformer(confidx));
               }
 
               // now that atom stereochem has been perceived, the wedging
@@ -610,9 +614,9 @@ std::vector<std::unique_ptr<RWMol>> CDXMLDataStreamToMols(
               // single bond dir flags:
               MolOps::clearSingleBondDirFlags(*res);
 
-              if (sanitize) {
+              if (params.sanitize) {
                 try {
-                  if (removeHs) {
+                  if (params.removeHs) {
                     // Bond stereo detection must happen before H removal, or
                     // else we might be removing stereogenic H atoms in double
                     // bonds (e.g. imines). But before we run stereo detection,
@@ -747,22 +751,22 @@ std::vector<std::unique_ptr<RWMol>> CDXMLDataStreamToMols(
   return mols;
 }
 
-std::vector<std::unique_ptr<RWMol>> CDXMLFileToMols(const std::string &fileName,
-                                                    bool sanitize,
-                                                    bool removeHs) {
+std::vector<std::unique_ptr<RWMol>> MolsFromCDXMLFile(
+    const std::string &fileName, const CDXMLParserParams &params) {
   std::ifstream ifs(fileName);
   if (!ifs || ifs.bad()) {
     std::ostringstream errout;
     errout << "Bad input file " << fileName;
     throw BadFileException(errout.str());
   }
-  return CDXMLDataStreamToMols(ifs, sanitize, removeHs);
+  return MolsFromCDXMLDataStream(ifs, params);
 }
 
-std::vector<std::unique_ptr<RWMol>> CDXMLToMols(const std::string &cdxml,
-                                                bool sanitize, bool removeHs) {
+std::vector<std::unique_ptr<RWMol>> MolsFromCDXML(
+    const std::string &cdxml, const CDXMLParserParams &params) {
   std::stringstream iss(cdxml);
-  return CDXMLDataStreamToMols(iss, sanitize, removeHs);
+  return MolsFromCDXMLDataStream(iss, params);
 }
-
+}  // namespace CDXMLParser
+}  // namespace v2
 }  // namespace RDKit

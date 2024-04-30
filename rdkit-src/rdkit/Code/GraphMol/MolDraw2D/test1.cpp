@@ -35,15 +35,7 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef RDKIT_USE_BOOST_REGEX
-#include <boost/regex.hpp>
-using boost::regex;
-using boost::regex_search;
-#else
 #include <regex>
-using std::regex;
-using std::regex_search;
-#endif
 
 // if 0, turns off a lot of the FREETYPE TEST_ASSERT checks
 // because sometimes you want to look at all the pictures first.
@@ -404,7 +396,7 @@ void test1() {
     auto m = "CO[C@@H](O)C1=C(O[C@H](F)Cl)C(C#N)=C1ONNC[NH3+]"_smiles;
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test1_1.svg");
     MolDraw2DSVG drawer(300, 300, outs);
     drawer.drawMolecule(*m);
@@ -419,7 +411,7 @@ void test1() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolDraw2DSVG drawer(300, 300);
     drawer.drawMolecule(*m);
     drawer.finishDrawing();
@@ -433,7 +425,7 @@ void test1() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test1_2.svg");
     MolDraw2DSVG drawer(300, 300, outs);
     drawer.drawMolecule(*m);
@@ -448,7 +440,7 @@ void test1() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test1_3.svg");
     MolDraw2DSVG drawer(300, 300, outs);
     std::vector<int> highlights;
@@ -467,7 +459,7 @@ void test1() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test1_4.svg");
     MolDraw2DSVG drawer(300, 300, outs);
     drawer.drawOptions().additionalAtomLabelPadding = 0.25;
@@ -488,7 +480,7 @@ void test1() {
     TEST_ASSERT(m);
     std::unique_ptr<ROMol> romol(MolOps::removeAllHs(*m));
     RDDepict::compute2DCoords(*romol);
-    WedgeMolBonds(*romol, &(romol->getConformer()));
+    Chirality::wedgeMolBonds(*romol, &(romol->getConformer()));
     std::ofstream outs("test1_5.svg");
     MolDraw2DSVG drawer(300, 300, outs);
     drawer.drawMolecule(*romol);
@@ -508,7 +500,7 @@ void test1() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolDraw2DSVG drawer(300, 300);
     drawer.drawMolecule(*m);
     drawer.finishDrawing();
@@ -525,7 +517,7 @@ void test1() {
     auto m = "c1ccncc1COC"_smiles;
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test1_7.svg");
     MolDraw2DSVG drawer(300, 300);
     drawer.drawOptions().splitBonds = true;
@@ -639,7 +631,7 @@ void test3() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     static const int ha[] = {0, 3, 4, 5};
     std::vector<int> highlight_atoms(ha, ha + sizeof(ha) / sizeof(int));
     std::map<int, std::string> atomLabels;
@@ -678,7 +670,7 @@ void test3() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     static const int ha[] = {0, 3, 4, 5};
     std::vector<int> highlight_atoms(ha, ha + sizeof(ha) / sizeof(int));
 
@@ -710,7 +702,7 @@ void test3() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     static const int ha[] = {11, 12, 13, 14, 15, 16};
     std::vector<int> highlight_atoms(ha, ha + sizeof(ha) / sizeof(int));
     std::map<int, DrawColour> highlight_colors;
@@ -745,7 +737,7 @@ void test3() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     static const int ha[] = {11, 12, 13, 14, 15, 16, 3};
     std::vector<int> highlight_atoms(ha, ha + sizeof(ha) / sizeof(int));
     std::map<int, DrawColour> highlight_colors;
@@ -785,7 +777,7 @@ void test3() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
 
     static const int ha[] = {17, 18, 19, 20, 21, 6, 7, 8, 9, 31, 32};
     std::vector<int> highlight_atoms(ha, ha + sizeof(ha) / sizeof(int));
@@ -825,7 +817,7 @@ void test3() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
 
     MolDrawOptions options;
     static const int ha1[] = {17, 18, 19, 20, 21};
@@ -865,7 +857,7 @@ void test3() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
 
     MolDrawOptions options;
     options.continuousHighlight = true;
@@ -946,7 +938,7 @@ void test5() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolDrawOptions options;
     options.dummiesAreAttachments = true;
     options.atomLabels[0] = "R1";
@@ -978,7 +970,7 @@ void test5() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m, nullptr, true);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolDrawOptions options;
     options.dummiesAreAttachments = true;
 #ifdef RDK_BUILD_CAIRO_SUPPORT
@@ -1010,7 +1002,7 @@ void test5() {
     TEST_ASSERT(m);
     m->getBondBetweenAtoms(1, 2)->setBondDir(Bond::UNKNOWN);
     RDDepict::compute2DCoords(*m, nullptr, true);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolDrawOptions options;
     options.dummiesAreAttachments = true;
 #ifdef RDK_BUILD_CAIRO_SUPPORT
@@ -1121,7 +1113,7 @@ void test6() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolDraw2DSVG drawer(300, 300);
     drawer.drawMolecule(*m);
     drawer.finishDrawing();
@@ -1576,7 +1568,7 @@ void testGithub774() {
     RWMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolOps::Kekulize(*m);
 
 #ifdef RDK_BUILD_CAIRO_SUPPORT
@@ -1614,7 +1606,7 @@ void testGithub774() {
     RWMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolOps::Kekulize(*m);
 
 #ifdef RDK_BUILD_CAIRO_SUPPORT
@@ -1635,7 +1627,7 @@ void testGithub774() {
       outs.close();
       check_file_hash(nameBase + ".svg");
     }
-    // m->setProp("_Name","mol");
+    // m->setProp("_Name","mol");\home\tad\cdd\cdd_rdkit\pr_atropisomers2\rdkit\Code\GraphMol\MolDraw2D\test1.cppChirality::
     // std::cerr<<MolToMolBlock(*m)<<std::endl;
     delete m;
   }
@@ -1648,7 +1640,7 @@ void test9MolLegends() {
     auto m = "CC[13CH2][CH2:7][CH-]C[15NH2+]C"_smiles;
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     MolDraw2DSVG drawer(300, 300);
     drawer.drawMolecule(*m, "mol legend");
     drawer.finishDrawing();
@@ -1875,7 +1867,7 @@ void testGithub910() {
     ROMol *m = SmilesToMol(smiles);
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test910_1.svg");
     MolDraw2DSVG drawer(600, 300, outs);
     drawer.drawMolecule(*m);
@@ -3692,7 +3684,7 @@ void testGithub2931() {
     std::string smiles = "CO[C@@H](O)C1=C(O[C@H](F)Cl)C(C#N)=C1ONNC[NH3+]";
     std::unique_ptr<ROMol> m(SmilesToMol(smiles));
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
 
     std::vector<std::string> smarts = {"CONN", "N#CC~CO", "C=CON", "CONNCN"};
     std::vector<DrawColour> colours = {
@@ -4143,7 +4135,7 @@ void test21FontFile() {
     auto m = "CO[C@@H](O)C1=C(O[C@H](F)Cl)C(C#N)=C1ONNC[NH3+]"_smiles;
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test21_1.svg");
     MolDraw2DSVG drawer(500, 500, outs);
     std::string fName = getenv("RDBASE");
@@ -4159,7 +4151,7 @@ void test21FontFile() {
     auto m = "CO[C@@H](O)C1=C(O[C@H](F)Cl)C(C#N)=C1ONNC[NH3+]"_smiles;
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
     std::ofstream outs("test21_2.svg");
     MolDraw2DSVG drawer(500, 500, outs);
     std::string fName = getenv("RDBASE");
@@ -4288,7 +4280,7 @@ void testGithub3305() {
     auto m = "CCOC(=O)Nc1ccc(SCC2COC(Cn3ccnc3)(c3ccc(Cl)cc3Cl)O2)cc1"_smiles;
     TEST_ASSERT(m);
     RDDepict::compute2DCoords(*m);
-    WedgeMolBonds(*m, &(m->getConformer()));
+    Chirality::wedgeMolBonds(*m, &(m->getConformer()));
 
     static const int ha[] = {17, 18, 19, 20, 21, 6, 7, 8, 9, 31, 32};
     std::vector<int> highlight_atoms(ha, ha + sizeof(ha) / sizeof(int));
@@ -4553,10 +4545,10 @@ void testGithub4156() {
     outs.flush();
     outs.close();
     // this is the start of the radical spot.
-    regex qry(
+    std::regex qry(
         "<path class='atom-1' d='M 23.[0-9]*,76.[0-9]* L 23.[0-9]*,76.[0-9]*");
 #if DO_TEST_ASSERT
-    TEST_ASSERT(regex_search(text, qry));
+    TEST_ASSERT(std::regex_search(text, qry));
 #endif
     check_file_hash("testGithub4156_1.svg");
   }
@@ -4573,11 +4565,11 @@ void testGithub4156() {
     outs.flush();
     outs.close();
     // this is the start of the radical spot.
-    regex qry(
+    std::regex qry(
         "<path class='atom-1' d='M 273.[0-9]*,76.[0-9]* L "
         "273.[0-9]*,76.[0-9]*");
 #if DO_TEST_ASSERT
-    TEST_ASSERT(regex_search(text, qry));
+    TEST_ASSERT(std::regex_search(text, qry));
 #endif
     check_file_hash("testGithub4156_2.svg");
   }

@@ -214,24 +214,16 @@ int *my_realloc(int *ptr, int size)
 *       stored in one triangle and the imaginary in the other.
 *
 *****************************************************************************/
-void allocate_matrices(cell,details,H_R,S_R,
-                       H_K,S_K,cmplx_hamil,cmplx_overlap,eigenset,work1,work2,
-                       work3,cmplx_work,properties,avg_prop_info,num_orbs,tot_overlaps,
-                       orbital_lookup_table,orbital_ordering)
-  cell_type *cell;
-  detail_type *details;
-  hermetian_matrix_type *H_R,*S_R;
-  hermetian_matrix_type *H_K,*S_K;
-  complex **cmplx_hamil,**cmplx_overlap;
-  eigenset_type *eigenset;
-  real **work1,**work2,**work3;
-  complex **cmplx_work;
-  prop_type *properties;
-  avg_prop_info_type **avg_prop_info;
-  int num_orbs;
-  int *tot_overlaps;
-  int *orbital_lookup_table;
-  K_orb_ptr_type **orbital_ordering;
+void allocate_matrices(cell_type *cell,detail_type *details,
+                       hermetian_matrix_type *H_R,hermetian_matrix_type *S_R,
+                       hermetian_matrix_type *H_K,hermetian_matrix_type *S_K,
+                       complex **cmplx_hamil,complex **cmplx_overlap,
+                       eigenset_type *eigenset,
+                       real **work1,real **work2,
+                       real **work3,complex **cmplx_work,
+                       prop_type *properties,avg_prop_info_type **avg_prop_info,
+                       int num_orbs,int *tot_overlaps,
+                       int *orbital_lookup_table,K_orb_ptr_type **orbital_ordering)
 {
 
   FMO_frag_type *FMO_frag;
@@ -662,17 +654,20 @@ is present.\n");
 
 void cleanup_memory()
 {
-  int i;
-  for(i=0;i<details->num_KPOINTS;i++){
-    CONDITIONAL_FREE(avg_prop_info[i].orbs);
-    CONDITIONAL_FREE(avg_prop_info[i].orbsI);
-    CONDITIONAL_FREE(avg_prop_info[i].chg_mat);
-    CONDITIONAL_FREE(avg_prop_info[i].energies);
-    if( details->num_FMO_frags || details->num_FCO_frags){
-      CONDITIONAL_FREE(avg_prop_info[i].FMO_orbs);
-      CONDITIONAL_FREE(avg_prop_info[i].FMO_orbsI);
-      CONDITIONAL_FREE(avg_prop_info[i].FMO_chg_mat);
+  if(avg_prop_info != NULL) {
+    for(int i=0;i<details->num_KPOINTS;i++){
+      CONDITIONAL_FREE(avg_prop_info[i].orbs);
+      CONDITIONAL_FREE(avg_prop_info[i].orbsI);
+      CONDITIONAL_FREE(avg_prop_info[i].chg_mat);
+      CONDITIONAL_FREE(avg_prop_info[i].energies);
+      if( details->num_FMO_frags || details->num_FCO_frags){
+        CONDITIONAL_FREE(avg_prop_info[i].FMO_orbs);
+        CONDITIONAL_FREE(avg_prop_info[i].FMO_orbsI);
+        CONDITIONAL_FREE(avg_prop_info[i].FMO_chg_mat);
+      }
     }
+    free(avg_prop_info);
+    avg_prop_info = NULL;
   }
   sym_op_type *next=sym_ops_present;
   while(next){
@@ -697,7 +692,6 @@ void cleanup_memory()
   CONDITIONAL_FREE(cmplx_overlap);
   CONDITIONAL_FREE(cmplx_work);
   CONDITIONAL_FREE(orbital_lookup_table);
-  CONDITIONAL_FREE(avg_prop_info);
   CONDITIONAL_FREE(orbital_ordering);
   CONDITIONAL_FREE(OP_mat);
   CONDITIONAL_FREE(net_chgs);

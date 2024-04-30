@@ -57,6 +57,17 @@ MTLPixelFormat MtlDepthStencilFlagsToFormat(SkEnumBitMask<DepthStencilFlags> mas
     return MTLPixelFormatInvalid;
 }
 
+SkEnumBitMask<DepthStencilFlags> MtlFormatToDepthStencilFlags(MTLPixelFormat format) {
+    switch (format) {
+        case MTLPixelFormatDepth32Float:          return DepthStencilFlags::kDepth;
+        case MTLPixelFormatStencil8:              return DepthStencilFlags::kStencil;
+        case MTLPixelFormatDepth32Float_Stencil8: return DepthStencilFlags::kDepthStencil;
+        default:                                  return DepthStencilFlags::kNone;
+    }
+
+    SkUNREACHABLE;
+}
+
 sk_cfp<id<MTLLibrary>> MtlCompileShaderLibrary(const MtlSharedContext* sharedContext,
                                                std::string_view msl,
                                                ShaderErrorHandler* errorHandler) {
@@ -92,7 +103,8 @@ sk_cfp<id<MTLLibrary>> MtlCompileShaderLibrary(const MtlSharedContext* sharedCon
                                                     error:&error]);
     if (!compiledLibrary) {
         std::string mslStr(msl);
-        errorHandler->compileError(mslStr.c_str(), error.debugDescription.UTF8String);
+        errorHandler->compileError(
+                mslStr.c_str(), error.debugDescription.UTF8String, /*shaderWasCached=*/false);
         return nil;
     }
 

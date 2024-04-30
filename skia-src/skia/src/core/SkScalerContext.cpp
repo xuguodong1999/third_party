@@ -1041,7 +1041,7 @@ void SkScalerContext::MakeRecAndEffects(const SkFont& font, const SkPaint& paint
 
     sk_bzero(rec, sizeof(SkScalerContextRec));
 
-    SkTypeface* typeface = SkFontPriv::GetTypefaceOrDefault(font);
+    SkTypeface* typeface = font.getTypeface();
 
     rec->fTypefaceID = typeface->uniqueID();
     rec->fTextSize = font.getSize();
@@ -1167,9 +1167,9 @@ void SkScalerContext::MakeRecAndEffects(const SkFont& font, const SkPaint& paint
     // The math in SkMaskGamma can handle them being different,
     // but it requires superluminous masks when
     // Ex : deviceGamma(x) < paintGamma(x) and x is sufficiently large.
-    rec->setDeviceGamma(SK_GAMMA_EXPONENT);
-    rec->setPaintGamma(SK_GAMMA_EXPONENT);
-    rec->setContrast(SK_GAMMA_CONTRAST);
+    rec->setDeviceGamma(surfaceProps.textGamma());
+    rec->setPaintGamma(surfaceProps.textGamma());
+    rec->setContrast(surfaceProps.textContrast());
 
     if (!SkToBool(scalerContextFlags & SkScalerContextFlags::kFakeGamma)) {
         rec->ignoreGamma();

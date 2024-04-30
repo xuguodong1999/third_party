@@ -21,17 +21,27 @@
 
 ARG RDKIT_GIT_URL="https://github.com/rdkit/rdkit.git"
 ARG RDKIT_BRANCH="master"
+ARG EMSDK_VERSION="latest"
+ARG BOOST_MAJOR_VERSION="1"
+ARG BOOST_MINOR_VERSION="84"
+ARG BOOST_PATCH_VERSION="0"
 
 FROM debian:buster as build-stage
 ARG RDKIT_GIT_URL
 ARG RDKIT_BRANCH
+ARG EMSDK_VERSION
+ARG BOOST_MAJOR_VERSION
+ARG BOOST_MINOR_VERSION
+ARG BOOST_PATCH_VERSION
 
 LABEL maintainer="Greg Landrum <greg.landrum@t5informatics.com>"
+
+RUN echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list.d/backports.list
 
 RUN apt-get update && apt-get upgrade -y && apt install -y \
   curl \
   wget \
-  cmake \
+  cmake/buster-backports \
   python3 \
   g++ \
   libeigen3-dev \
@@ -41,9 +51,11 @@ RUN apt-get update && apt-get upgrade -y && apt install -y \
 ENV LANG C
 
 WORKDIR /opt
-RUN wget -q https://boostorg.jfrog.io/artifactory/main/release/1.67.0/source/boost_1_67_0.tar.gz && \
-  tar xzf boost_1_67_0.tar.gz 
-WORKDIR /opt/boost_1_67_0
+ARG BOOST_DOT_VERSION="${BOOST_MAJOR_VERSION}.${BOOST_MINOR_VERSION}.${BOOST_PATCH_VERSION}"
+ARG BOOST_UNDERSCORE_VERSION="${BOOST_MAJOR_VERSION}_${BOOST_MINOR_VERSION}_${BOOST_PATCH_VERSION}"
+RUN wget -q https://boostorg.jfrog.io/artifactory/main/release/${BOOST_DOT_VERSION}/source/boost_${BOOST_UNDERSCORE_VERSION}.tar.gz && \
+  tar xzf boost_${BOOST_UNDERSCORE_VERSION}.tar.gz
+WORKDIR /opt/boost_${BOOST_UNDERSCORE_VERSION}
 RUN ./bootstrap.sh --prefix=/opt/boost --with-libraries=system && \
   ./b2 install
 
@@ -52,9 +64,8 @@ WORKDIR /opt
 RUN git clone https://github.com/emscripten-core/emsdk.git
 
 WORKDIR /opt/emsdk
-RUN ./emsdk update-tags && \
-  ./emsdk install latest && \
-  ./emsdk activate latest
+RUN ./emsdk install ${EMSDK_VERSION} && \
+  ./emsdk activate ${EMSDK_VERSION}
 
 #RUN source ./emsdk_env.sh
 
@@ -67,7 +78,7 @@ RUN git fetch --all --tags && \
   git checkout ${RDKIT_BRANCH}
 
 RUN mkdir build
-WORKDIR build
+WORKDIR $RDBASE/build
 
 RUN echo "source /opt/emsdk/emsdk_env.sh > /dev/null 2>&1" >> ~/.bashrc
 SHELL ["/bin/bash", "-c", "-l"]

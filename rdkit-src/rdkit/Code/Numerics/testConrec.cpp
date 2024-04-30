@@ -7,7 +7,7 @@
 //  which is included in the file license.txt, found at the root
 //  of the RDKit source tree.
 //
-#include "catch.hpp"
+#include <catch2/catch_all.hpp>
 
 #include <RDGeneral/test.h>
 #include <iostream>
@@ -109,7 +109,7 @@ TEST_CASE("connectLineSegments", "[conrec]") {
         for (const auto &pt : pts) {
           auto dv = loc - pt;
           auto r = dv.length();
-          if (r > 0) {
+          if (r > 1e-4) {
             val += 1 / r;
           }
         }

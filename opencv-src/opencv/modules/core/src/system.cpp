@@ -154,6 +154,12 @@ void* allocSingletonNewBuffer(size_t size) { return malloc(size); }
 # endif
 #endif
 
+#if defined __loongarch64
+#include "sys/auxv.h"
+#define LA_HWCAP_LSX   (1<<4)
+#define LA_HWCAP_LASX  (1<<5)
+#endif
+
 #if defined _WIN32 || defined WINCE
 #ifndef _WIN32_WINNT           // This is needed for the declaration of TryEnterCriticalSection in winbase.h with Visual Studio 2005 (and older?)
   #define _WIN32_WINNT 0x0400  // http://msdn.microsoft.com/en-us/library/ms686857(VS.85).aspx
@@ -408,6 +414,8 @@ struct HWFeatures
 
         g_hwFeatureNames[CPU_NEON] = "NEON";
         g_hwFeatureNames[CPU_NEON_DOTPROD] = "NEON_DOTPROD";
+        g_hwFeatureNames[CPU_NEON_FP16] = "NEON_FP16";
+        g_hwFeatureNames[CPU_NEON_BF16] = "NEON_BF16";
 
         g_hwFeatureNames[CPU_VSX] = "VSX";
         g_hwFeatureNames[CPU_VSX3] = "VSX3";
@@ -425,6 +433,7 @@ struct HWFeatures
 
         g_hwFeatureNames[CPU_RVV] = "RVV";
 
+        g_hwFeatureNames[CPU_LSX]  = "LSX";
         g_hwFeatureNames[CPU_LASX] = "LASX";
     }
 
@@ -566,10 +575,15 @@ struct HWFeatures
 
             while ((size_t)read(cpufile, &auxv, size_auxv_t) == size_auxv_t)
             {
+                // see https://elixir.bootlin.com/linux/latest/source/arch/arm64/include/uapi/asm/hwcap.h
                 if (auxv.a_type == AT_HWCAP)
                 {
-                    have[CV_CPU_NEON_DOTPROD] = (auxv.a_un.a_val & (1 << 20)) != 0;
-                    break;
+                    have[CV_CPU_NEON_DOTPROD] = (auxv.a_un.a_val & (1 << 20)) != 0; // HWCAP_ASIMDDP
+                    have[CV_CPU_NEON_FP16] = (auxv.a_un.a_val & (1 << 10)) != 0; // HWCAP_ASIMDHP
+                }
+                else if (auxv.a_type == AT_HWCAP2)
+                {
+                    have[CV_CPU_NEON_BF16] = (auxv.a_un.a_val & (1 << 14)) != 0; // HWCAP2_BF16
                 }
             }
 
@@ -623,16 +637,23 @@ struct HWFeatures
         have[CV_CPU_NEON] = true;
     #endif
     #if (defined __ARM_FP  && (((__ARM_FP & 0x2) != 0) && defined __ARM_NEON__))
-        have[CV_CPU_FP16] = true;
+        have[CV_CPU_FP16] = have[CV_CPU_NEON_FP16] = true;
     #endif
-    #if (defined __ARM_FEATURE_DOTPROD)
-        int has_feat_dotprod = 0;
-        size_t has_feat_dotprod_size = sizeof(has_feat_dotprod);
-        sysctlbyname("hw.optional.arm.FEAT_DotProd", &has_feat_dotprod, &has_feat_dotprod_size, NULL, 0);
-        if (has_feat_dotprod) {
-            have[CV_CPU_NEON_DOTPROD] = true;
-        }
-    #endif
+    // system.cpp may be compiled w/o special -march=armv8...+dotprod, -march=armv8...+bf16 etc.,
+    // so we check for the features in any case, no mater what are the compile flags.
+    // We check the real hardware capabilities here.
+    int has_feat_dotprod = 0;
+    size_t has_feat_dotprod_size = sizeof(has_feat_dotprod);
+    sysctlbyname("hw.optional.arm.FEAT_DotProd", &has_feat_dotprod, &has_feat_dotprod_size, NULL, 0);
+    if (has_feat_dotprod) {
+        have[CV_CPU_NEON_DOTPROD] = true;
+    }
+    int has_feat_bf16 = 0;
+    size_t has_feat_bf16_size = sizeof(has_feat_bf16);
+    sysctlbyname("hw.optional.arm.FEAT_BF16", &has_feat_bf16, &has_feat_bf16_size, NULL, 0);
+    if (has_feat_bf16) {
+        have[CV_CPU_NEON_BF16] = true;
+    }
     #elif (defined __clang__)
     #if (defined __ARM_NEON__ || (defined __ARM_NEON && defined __aarch64__))
         have[CV_CPU_NEON] = true;
@@ -689,8 +710,11 @@ struct HWFeatures
         have[CV_CPU_RVV] = true;
     #endif
 
-    #if defined __loongarch_asx
-        have[CV_CPU_LASX] = true;
+    #if defined __loongarch64 && defined __linux__
+        int flag = (int)getauxval(AT_HWCAP);
+
+        have[CV_CPU_LSX] = (flag & LA_HWCAP_LSX) != 0;
+        have[CV_CPU_LASX] = (flag & LA_HWCAP_LASX) != 0;
     #endif
 
         bool skip_baseline_check = false;
@@ -2574,7 +2598,7 @@ public:
         ippStatus = ippGetCpuFeatures(&cpuFeatures, NULL);
         if(ippStatus < 0)
         {
-            std::cerr << "ERROR: IPP cannot detect CPU features, IPP was disabled " << std::endl;
+            CV_LOG_ERROR(NULL, "ERROR: IPP cannot detect CPU features, IPP was disabled");
             useIPP = false;
             return;
         }
@@ -2612,7 +2636,7 @@ public:
 
             if(env == "disabled")
             {
-                std::cerr << "WARNING: IPP was disabled by OPENCV_IPP environment variable" << std::endl;
+                CV_LOG_WARNING(NULL, "WARNING: IPP was disabled by OPENCV_IPP environment variable");
                 useIPP = false;
             }
             else if(env == "sse42")
@@ -2626,7 +2650,7 @@ public:
 #endif
 #endif
             else
-                std::cerr << "ERROR: Improper value of OPENCV_IPP: " << env.c_str() << ". Correct values are: disabled, sse42, avx2, avx512 (Intel64 only)" << std::endl;
+                CV_LOG_ERROR(NULL, "ERROR: Improper value of OPENCV_IPP: " << env.c_str() << ". Correct values are: disabled, sse42, avx2, avx512 (Intel64 only)");
 
             // Trim unsupported features
             ippFeatures &= cpuFeatures;
