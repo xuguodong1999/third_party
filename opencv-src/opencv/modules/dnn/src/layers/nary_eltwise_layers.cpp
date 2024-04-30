@@ -114,9 +114,11 @@ public:
                     op == OPERATION::GREATER_EQUAL ||
                     op == OPERATION::LESS_EQUAL
             );
-        if (op == OPERATION::MAX || op == OPERATION::MIN || op == OPERATION::SUM ||
-            op == OPERATION::PROD || op == OPERATION::DIV || op == OPERATION::ADD)
-            return backendId == DNN_BACKEND_OPENCV || backendId == DNN_BACKEND_CUDA;
+        if (backendId == DNN_BACKEND_CUDA) {
+            return op == OPERATION::MAX || op == OPERATION::MIN || op == OPERATION::SUM ||
+                   op == OPERATION::PROD || op == OPERATION::DIV || op == OPERATION::ADD ||
+                   op == OPERATION::SUB;
+        }
         return backendId == DNN_BACKEND_OPENCV;
     }
 
@@ -828,6 +830,9 @@ public:
             case OPERATION::ADD:
                 op_ = cuda4dnn::EltwiseOpType::SUM;
                 break;
+            case OPERATION::SUB:
+                op_ = cuda4dnn::EltwiseOpType::SUB;
+                break;
             default: return Ptr<BackendNode>(); // return empty cuda_node if the EltwiseOpType is unsupported type.
         };
 
@@ -900,12 +905,12 @@ public:
         auto& inp0 = nodes[0].dynamicCast<InfEngineNgraphNode>()->node;
         auto& inp1 = nodes[1].dynamicCast<InfEngineNgraphNode>()->node;
 
-        if (inp0->get_element_type() != inp1->get_element_type()) {
+        if (inp0.get_element_type() != inp1.get_element_type()) {
             auto dtype = preferableTarget == DNN_TARGET_OPENCL_FP16 || preferableTarget == DNN_TARGET_MYRIAD ?
                         ngraph::element::f16 : ngraph::element::f32;
-            if (inp0->get_element_type() != dtype)
+            if (inp0.get_element_type() != dtype)
                 inp0 = std::make_shared<ngraph::op::v0::Convert>(inp0, dtype);
-            if (inp1->get_element_type() != dtype)
+            if (inp1.get_element_type() != dtype)
                 inp1 = std::make_shared<ngraph::op::v0::Convert>(inp1, dtype);
         }
 

@@ -259,7 +259,7 @@ void SubSearcher(const Query &in_query, const Bits &bits,
       continue;
     }
     if (needs_rings &&
-        (!mol->getRingInfo() || !mol->getRingInfo()->isInitialized())) {
+        (!mol->getRingInfo() || !mol->getRingInfo()->isSymmSssr())) {
       MolOps::symmetrizeSSSR(*mol);
     }
 
@@ -565,6 +565,7 @@ bool SubstructLibrary::hasMatch(const ExtendedQueryMol &query,
 
 void SubstructLibrary::toStream(std::ostream &ss) const {
 #ifndef RDK_USE_BOOST_SERIALIZATION
+  RDUNUSED_PARAM(ss);
   PRECONDITION(0, "Boost SERIALIZATION is not enabled")
 #else
   boost::archive::text_oarchive ar(ss);
@@ -580,6 +581,7 @@ std::string SubstructLibrary::Serialize() const {
 
 void SubstructLibrary::initFromStream(std::istream &ss) {
 #ifndef RDK_USE_BOOST_SERIALIZATION
+  RDUNUSED_PARAM(ss);
   PRECONDITION(0, "Boost SERIALIZATION is not enabled")
 #else
   boost::archive::text_iarchive ar(ss);

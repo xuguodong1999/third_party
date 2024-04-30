@@ -10,7 +10,7 @@
 // Tests of substructure searching
 //
 
-#include "catch.hpp"
+#include <catch2/catch_all.hpp>
 
 #include <tuple>
 #include <utility>
@@ -23,7 +23,7 @@
 using namespace RDKit;
 typedef std::tuple<std::string, std::string, size_t> matchCase;
 
-class _IsSubstructOf : public Catch::MatcherBase<const ROMol &> {
+class _IsSubstructOf : public Catch::Matchers::MatcherBase<const ROMol &> {
   ROMol const *m_mol;
   SubstructMatchParameters m_ps;
 
@@ -512,5 +512,32 @@ TEST_CASE("Github #6017: add maxRecursiveMatches to SubstructMatchParameters") {
       auto matches = SubstructMatch(*m, *q, ps);
       CHECK(matches.size() == 3);
     }
+  }
+}
+
+TEST_CASE(
+    "GitHub Issue #6983: SubstructMatch maxRecursiveMatches is not being honored",
+    "[bug][substruct]") {
+  constexpr unsigned num_atoms = 1005;
+  std::string smiles;
+  smiles.reserve(num_atoms * 2);
+
+  // 'smiles' already contains 1 O, so start from 1
+  // so we end up with 'num_atoms' water mols
+  smiles += "O";
+  for (unsigned i = 1; i < num_atoms; ++i) {
+    smiles += ".O";
+  }
+  std::unique_ptr<RWMol> m(SmilesToMol(smiles));
+  auto q = "[$(O)]"_smarts;
+  REQUIRE(m);
+  REQUIRE(q);
+
+  SubstructMatchParameters ps;
+  ps.maxMatches = num_atoms * 2;
+  ps.maxRecursiveMatches = ps.maxMatches;
+  {
+    auto matches = SubstructMatch(*m, *q, ps);
+    CHECK(matches.size() == num_atoms);
   }
 }

@@ -7796,6 +7796,90 @@ void testGithub6138() {
   TEST_ASSERT(s1 == s2);
 }
 
+void testReactionWithChiralAgent() {
+  BOOST_LOG(rdInfoLog) << "-------------------------------------" << std::endl;
+  BOOST_LOG(rdInfoLog) << "Testing introduction of new atoms with chirality"
+                       << std::endl;
+
+  {  // a reaction with a chiral agent - v3000
+    std::string rdbase = getenv("RDBASE");
+    std::string fName;
+
+    fName =
+        rdbase +
+        "/Code/GraphMol/ChemReactions/testData/testRXNChiralityAgentV3000.rxn";
+    ChemicalReaction *rxn =
+        RxnFileToChemicalReaction(fName, false, false, false);
+    TEST_ASSERT(rxn);
+    TEST_ASSERT(rxn->getNumReactantTemplates() == 1);
+    TEST_ASSERT(rxn->getNumProductTemplates() == 1);
+    TEST_ASSERT(rxn->getNumAgentTemplates() == 1);
+    auto outputRxn = ChemicalReactionToRxnSmiles(*rxn);
+    TEST_ASSERT(
+        outputRxn ==
+        "[CH:1]([F:2])([CH3:3])[CH2:4][CH2:5][Br:6]>CC[C@H](C)Cl>[CH:1]([F:2])([CH3:3])[CH2:4][CH2:5][CH2:7][CH:8]([CH3:9])[Cl:10]");
+
+    BOOST_LOG(rdInfoLog) << ChemicalReactionToRxnSmiles(*rxn) << std::endl;
+
+    delete rxn;
+  }
+
+  {  // a reaction with a chiral agent - v2000
+    std::string rdbase = getenv("RDBASE");
+    std::string fName;
+
+    fName =
+        rdbase +
+        "/Code/GraphMol/ChemReactions/testData/testRXNChiralityAgentV2000.rxn";
+    ChemicalReaction *rxn =
+        RxnFileToChemicalReaction(fName, false, false, false);
+    TEST_ASSERT(rxn);
+    TEST_ASSERT(rxn->getNumReactantTemplates() == 1);
+    TEST_ASSERT(rxn->getNumProductTemplates() == 1);
+    TEST_ASSERT(rxn->getNumAgentTemplates() == 1);
+    auto outputRxn = ChemicalReactionToRxnSmiles(*rxn);
+    TEST_ASSERT(
+        outputRxn ==
+        "[CH:1]([F:2])([CH3:3])[CH2:4][CH2:5][Br:6]>CC[C@H](C)Cl>[CH:1]([F:2])([CH3:3])[CH2:4][CH2:5][CH2:7][CH:8]([CH3:9])[Cl:10]");
+
+    BOOST_LOG(rdInfoLog) << ChemicalReactionToRxnSmiles(*rxn) << std::endl;
+
+    delete rxn;
+  }
+}
+
+void testGithub5890() {
+  BOOST_LOG(rdInfoLog) << "-------------------------------------" << std::endl;
+  BOOST_LOG(rdInfoLog) << "Github Issue 5890: Testing reaction with radicals"
+                       << std::endl;
+
+  {
+    std::string rdbase = getenv("RDBASE");
+    std::string fName;
+
+    fName =
+        rdbase +
+        "/Code/GraphMol/ChemReactions/testData/v3k.radicals.rxn";
+    ChemicalReaction *rxn =
+        RxnFileToChemicalReaction(fName, false, false, false);
+    TEST_ASSERT(rxn);
+    TEST_ASSERT(rxn->getNumReactantTemplates() == 1);
+    TEST_ASSERT(rxn->getNumProductTemplates() == 1);
+
+    std::string pkl;
+    ReactionPickler::pickleReaction(rxn, pkl);
+    delete rxn;
+    rxn = new ChemicalReaction();
+    ReactionPickler::reactionFromPickle(pkl, rxn);
+
+    auto outputRxn = ChemicalReactionToRxnSmiles(*rxn);
+    BOOST_LOG(rdInfoLog) << outputRxn << std::endl;
+    TEST_ASSERT(outputRxn == "[CH]1[CH][CH]1>>C");
+
+    delete rxn;
+  }
+}
+
 int main() {
   RDLog::InitLogs();
 
@@ -7896,6 +7980,8 @@ int main() {
   testMultiTemplateRxnQueries();
   testChemicalReactionCopyAssignment();
   testGithub6138();
+  testReactionWithChiralAgent();
+  testGithub5890();
 
   BOOST_LOG(rdInfoLog)
       << "*******************************************************\n";

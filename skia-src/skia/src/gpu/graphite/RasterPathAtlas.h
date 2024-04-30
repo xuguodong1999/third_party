@@ -10,6 +10,7 @@
 
 #include "src/base/SkTInternalLList.h"
 #include "src/core/SkTHash.h"
+#include "src/gpu/AtlasTypes.h"
 #include "src/gpu/ResourceKey.h"
 #include "src/gpu/graphite/PathAtlas.h"
 
@@ -21,25 +22,23 @@ namespace skgpu::graphite {
  * When a new shape gets added, its path is rasterized in preparation for upload. These
  * uploads are recorded by `recordUploads()` and subsequently added to an UploadTask.
  *
- * After a successful call to `recordUploads()`, the client is free to call `reset()` and start
- * adding new shapes for a future atlas render.
- * TODO: We should cache Shapes for future frames to avoid the cost of raster pipeline rendering.
+ * Shapes are cached for future frames to avoid the cost of raster pipeline rendering. Multiple
+ * textures (or Pages) are used to cache masks, so if the atlas is full we can reset a Page and
+ * start adding new shapes for a future atlas render.
  */
 class RasterPathAtlas : public PathAtlas {
 public:
-    RasterPathAtlas();
+    explicit RasterPathAtlas(Recorder* recorder);
     ~RasterPathAtlas() override {}
-    void recordUploads(DrawContext*, Recorder*);
+    void recordUploads(DrawContext*);
 
 protected:
-    const TextureProxy* onAddShape(Recorder* recorder,
-                                   const Shape&,
+    const TextureProxy* onAddShape(const Shape&,
                                    const Transform& transform,
                                    const SkStrokeRec&,
                                    skvx::half2 maskSize,
                                    skvx::half2* outPos) override;
-    const TextureProxy* addRect(Recorder* recorder,
-                                skvx::half2 maskSize,
+    const TextureProxy* addRect(skvx::half2 maskSize,
                                 SkIPoint16* outPos);
 
 private:
@@ -65,8 +64,9 @@ private:
             uint32_t operator()(const skgpu::UniqueKey& key) const { return key.hash(); }
         };
         skia_private::THashMap<skgpu::UniqueKey, skvx::half2, UniqueKeyHash> fCachedShapes;
-        // Set to true to clear data for new usage
-        bool fNeedsReset = false;
+        // Tracks current state relative to last flush
+        AtlasToken fLastUse = AtlasToken::InvalidToken();
+
         uint16_t fIdentifier;
 
         SK_DECLARE_INTERNAL_LLIST_INTERFACE(Page);
@@ -77,7 +77,7 @@ private:
     // available for new shape insertions. However this method does not have any bearing on the
     // contents of any atlas textures themselves, which may be in use by GPU commands that are
     // in-flight or yet to be submitted.
-    void reset();
+    void reset(Page*);
 
     // Investigation shows that eight pages helps with some of the more complex skps, and
     // since we're using less complex vertex setups with the RPA, we have more GPU memory

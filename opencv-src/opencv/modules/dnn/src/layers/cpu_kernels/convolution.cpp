@@ -14,646 +14,75 @@
 
 #include "conv_block.simd.hpp"
 #include "layers/cpu_kernels/conv_block.simd_declarations.hpp" // defines CV_CPU_DISPATCH_MODES_ALL=AVX2,...,BASELINE based on CMakeLists.txt content
+#include <opencv2/core/utils/logger.hpp>
 
 namespace cv { namespace dnn {
+enum { VEC_ALIGN = 32}; // Memory alignment.
 
-// NEON code work around.
-namespace opt_NEON
-{
-#if CV_NEON
-
-void convBlock(int np, const float* a, const float* b, float* c, int ldc, bool init_c, int width, const int convMR, const int convNR)
-{
-#if CV_NEON_AARCH64
-    if (convMR == 4 && convNR == 28) // AARCH64
-    {
-        float32x4_t c00 = vdupq_n_f32(0.f), c01 = c00, c02 = c00, c03 = c00, c04 = c00, c05 = c00, c06 = c00;
-        float32x4_t c10 = vdupq_n_f32(0.f), c11 = c10, c12 = c10, c13 = c10, c14 = c10, c15 = c10, c16 = c10;
-        float32x4_t c20 = vdupq_n_f32(0.f), c21 = c20, c22 = c20, c23 = c20, c24 = c20, c25 = c20, c26 = c20;
-        float32x4_t c30 = vdupq_n_f32(0.f), c31 = c30, c32 = c30, c33 = c30, c34 = c30, c35 = c30, c36 = c30;
-
-        if (width > 16)
-        {
-            for( int p = 0; p < np; p++, a += convMR, b += convNR )
-            {
-                float32x4_t a0 = vld1q_f32(a), b0, b1, b2;
-                b0 = vld1q_f32(b); b1 = vld1q_f32(b + 4); b2 = vld1q_f32(b + 8);
-
-                c00 = vfmaq_laneq_f32(c00, b0, a0, 0);
-                c01 = vfmaq_laneq_f32(c01, b1, a0, 0);
-                c02 = vfmaq_laneq_f32(c02, b2, a0, 0);
-                c10 = vfmaq_laneq_f32(c10, b0, a0, 1);
-                c11 = vfmaq_laneq_f32(c11, b1, a0, 1);
-                c12 = vfmaq_laneq_f32(c12, b2, a0, 1);
-                c20 = vfmaq_laneq_f32(c20, b0, a0, 2);
-                c21 = vfmaq_laneq_f32(c21, b1, a0, 2);
-                c22 = vfmaq_laneq_f32(c22, b2, a0, 2);
-                c30 = vfmaq_laneq_f32(c30, b0, a0, 3);
-                c31 = vfmaq_laneq_f32(c31, b1, a0, 3);
-                c32 = vfmaq_laneq_f32(c32, b2, a0, 3);
-
-                b0 = vld1q_f32(b + 12); b1 = vld1q_f32(b + 16); b2 = vld1q_f32(b + 20);
-
-                c03 = vfmaq_laneq_f32(c03, b0, a0, 0);
-                c04 = vfmaq_laneq_f32(c04, b1, a0, 0);
-                c05 = vfmaq_laneq_f32(c05, b2, a0, 0);
-                c13 = vfmaq_laneq_f32(c13, b0, a0, 1);
-                c14 = vfmaq_laneq_f32(c14, b1, a0, 1);
-                c15 = vfmaq_laneq_f32(c15, b2, a0, 1);
-                c23 = vfmaq_laneq_f32(c23, b0, a0, 2);
-                c24 = vfmaq_laneq_f32(c24, b1, a0, 2);
-                c25 = vfmaq_laneq_f32(c25, b2, a0, 2);
-                c33 = vfmaq_laneq_f32(c33, b0, a0, 3);
-                c34 = vfmaq_laneq_f32(c34, b1, a0, 3);
-                c35 = vfmaq_laneq_f32(c35, b2, a0, 3);
-
-                b0 = vld1q_f32(b + 24);
-                c06 = vfmaq_laneq_f32(c06, b0, a0, 0);
-                c16 = vfmaq_laneq_f32(c16, b0, a0, 1);
-                c26 = vfmaq_laneq_f32(c26, b0, a0, 2);
-                c36 = vfmaq_laneq_f32(c36, b0, a0, 3);
-            }
-        }
-        else if (width > 8)
-        {
-            for( int p = 0; p < np; p++, a += convMR, b += convNR )
-            {
-                float32x4_t a0 = vld1q_f32(a), b0, b1, b2;
-                b0 = vld1q_f32(b); b1 = vld1q_f32(b + 4); b2 = vld1q_f32(b + 8);
-
-                c00 = vfmaq_laneq_f32(c00, b0, a0, 0);
-                c01 = vfmaq_laneq_f32(c01, b1, a0, 0);
-                c02 = vfmaq_laneq_f32(c02, b2, a0, 0);
-                c10 = vfmaq_laneq_f32(c10, b0, a0, 1);
-                c11 = vfmaq_laneq_f32(c11, b1, a0, 1);
-                c12 = vfmaq_laneq_f32(c12, b2, a0, 1);
-                c20 = vfmaq_laneq_f32(c20, b0, a0, 2);
-                c21 = vfmaq_laneq_f32(c21, b1, a0, 2);
-                c22 = vfmaq_laneq_f32(c22, b2, a0, 2);
-                c30 = vfmaq_laneq_f32(c30, b0, a0, 3);
-                c31 = vfmaq_laneq_f32(c31, b1, a0, 3);
-                c32 = vfmaq_laneq_f32(c32, b2, a0, 3);
-
-                b0 = vld1q_f32(b + 12);
-
-                c03 = vfmaq_laneq_f32(c03, b0, a0, 0);
-                c13 = vfmaq_laneq_f32(c13, b0, a0, 1);
-                c23 = vfmaq_laneq_f32(c23, b0, a0, 2);
-                c33 = vfmaq_laneq_f32(c33, b0, a0, 3);
-            }
-        }
-        else if (width > 4)
-        {
-            for( int p = 0; p < np; p++, a += convMR, b += convNR )
-            {
-                float32x4_t a0 = vld1q_f32(a), b0, b1;
-                b0 = vld1q_f32(b); b1 = vld1q_f32(b + 4);
-
-                c00 = vfmaq_laneq_f32(c00, b0, a0, 0);
-                c01 = vfmaq_laneq_f32(c01, b1, a0, 0);
-                c10 = vfmaq_laneq_f32(c10, b0, a0, 1);
-                c11 = vfmaq_laneq_f32(c11, b1, a0, 1);
-                c20 = vfmaq_laneq_f32(c20, b0, a0, 2);
-                c21 = vfmaq_laneq_f32(c21, b1, a0, 2);
-                c30 = vfmaq_laneq_f32(c30, b0, a0, 3);
-                c31 = vfmaq_laneq_f32(c31, b1, a0, 3);
-            }
-        }
-        else
-        {
-            for( int p = 0; p < np; p++, a += convMR, b += convNR )
-            {
-                float32x4_t a0 = vld1q_f32(a), b0;
-                b0 = vld1q_f32(b);
-
-                c00 = vfmaq_laneq_f32(c00, b0, a0, 0);
-                c10 = vfmaq_laneq_f32(c10, b0, a0, 1);
-                c20 = vfmaq_laneq_f32(c20, b0, a0, 2);
-                c30 = vfmaq_laneq_f32(c30, b0, a0, 3);
-            }
-        }
-
-        if (!init_c)
-        {
-            c00 = vaddq_f32(c00, vld1q_f32(c));
-            c01 = vaddq_f32(c01, vld1q_f32(c + 4));
-            c02 = vaddq_f32(c02, vld1q_f32(c + 8));
-            c03 = vaddq_f32(c03, vld1q_f32(c + 12));
-            c04 = vaddq_f32(c04, vld1q_f32(c + 16));
-            c05 = vaddq_f32(c05, vld1q_f32(c + 20));
-            c06 = vaddq_f32(c06, vld1q_f32(c + 24));
-
-            c10 = vaddq_f32(c10, vld1q_f32(c + ldc));
-            c11 = vaddq_f32(c11, vld1q_f32(c + ldc + 4));
-            c12 = vaddq_f32(c12, vld1q_f32(c + ldc + 8));
-            c13 = vaddq_f32(c13, vld1q_f32(c + ldc + 12));
-            c14 = vaddq_f32(c14, vld1q_f32(c + ldc + 16));
-            c15 = vaddq_f32(c15, vld1q_f32(c + ldc + 20));
-            c16 = vaddq_f32(c16, vld1q_f32(c + ldc + 24));
-
-            c20 = vaddq_f32(c20, vld1q_f32(c + ldc*2));
-            c21 = vaddq_f32(c21, vld1q_f32(c + ldc*2 + 4));
-            c22 = vaddq_f32(c22, vld1q_f32(c + ldc*2 + 8));
-            c23 = vaddq_f32(c23, vld1q_f32(c + ldc*2 + 12));
-            c24 = vaddq_f32(c24, vld1q_f32(c + ldc*2 + 16));
-            c25 = vaddq_f32(c25, vld1q_f32(c + ldc*2 + 20));
-            c26 = vaddq_f32(c26, vld1q_f32(c + ldc*2 + 24));
-
-            c30 = vaddq_f32(c30, vld1q_f32(c + ldc*3));
-            c31 = vaddq_f32(c31, vld1q_f32(c + ldc*3 + 4));
-            c32 = vaddq_f32(c32, vld1q_f32(c + ldc*3 + 8));
-            c33 = vaddq_f32(c33, vld1q_f32(c + ldc*3 + 12));
-            c34 = vaddq_f32(c34, vld1q_f32(c + ldc*3 + 16));
-            c35 = vaddq_f32(c35, vld1q_f32(c + ldc*3 + 20));
-            c36 = vaddq_f32(c36, vld1q_f32(c + ldc*3 + 24));
-        }
-
-        vst1q_f32(c, c00); vst1q_f32(c+4, c01);
-        vst1q_f32(c+8, c02); vst1q_f32(c+12, c03);
-        vst1q_f32(c+16, c04); vst1q_f32(c+20, c05);
-        vst1q_f32(c+24, c06);
-
-        vst1q_f32(c+ldc, c10); vst1q_f32(c+ldc+4, c11);
-        vst1q_f32(c+ldc+8, c12); vst1q_f32(c+ldc+12, c13);
-        vst1q_f32(c+ldc+16, c14); vst1q_f32(c+ldc+20, c15);
-        vst1q_f32(c+ldc+24, c16);
-
-        vst1q_f32(c+ldc*2, c20); vst1q_f32(c+ldc*2+4, c21);
-        vst1q_f32(c+ldc*2+8, c22); vst1q_f32(c+ldc*2+12, c23);
-        vst1q_f32(c+ldc*2+16, c24); vst1q_f32(c+ldc*2+20, c25);
-        vst1q_f32(c+ldc*2+24, c26);
-
-        vst1q_f32(c+ldc*3, c30); vst1q_f32(c+ldc*3+4, c31);
-        vst1q_f32(c+ldc*3+8, c32); vst1q_f32(c+ldc*3+12, c33);
-        vst1q_f32(c+ldc*3+16, c34); vst1q_f32(c+ldc*3+20, c35);
-        vst1q_f32(c+ldc*3+24, c36);
-    }
-    else
-#endif
-    if (convMR == 4 && convNR == 12) // ARMv7
-    {
-        float32x4_t c0 = vdupq_n_f32(0.f), c1 = c0, c2 = c0;
-        float32x4_t c3 = vdupq_n_f32(0.f), c4 = c3, c5 = c3;
-        float32x4_t c6 = vdupq_n_f32(0.f), c7 = c6, c8 = c6;
-        float32x4_t c9 = vdupq_n_f32(0.f), c10 = c9, c11 = c9;
-
-        float32x2_t a0 = vdup_n_f32(0.0f), a1 = a0;
-        float32x4_t b0 = vdupq_n_f32(0.0f), b1 = vdupq_n_f32(0.0f), b2 = vdupq_n_f32(0.0f);
-
-        if (width > 8)
-        {
-            for (int p = 0; p < np; p++, a += convMR, b += convNR)
-            {
-                a0 = vld1_f32(a), a1 = vld1_f32(a+2);
-                b0 = vld1q_f32(b), b1 = vld1q_f32(b + 4), b2 = vld1q_f32(b + 8);
-
-                c0 = vmlaq_lane_f32(c0, b0, a0, 0);
-                c1 = vmlaq_lane_f32(c1, b1, a0, 0);
-                c2 = vmlaq_lane_f32(c2, b2, a0, 0);
-
-                c3 = vmlaq_lane_f32(c3, b0, a0, 1);
-                c4 = vmlaq_lane_f32(c4, b1, a0, 1);
-                c5 = vmlaq_lane_f32(c5, b2, a0, 1);
-
-                c6 = vmlaq_lane_f32(c6, b0, a1, 0);
-                c7 = vmlaq_lane_f32(c7, b1, a1, 0);
-                c8 = vmlaq_lane_f32(c8, b2, a1, 0);
-
-                c9  = vmlaq_lane_f32(c9 , b0, a1, 1);
-                c10 = vmlaq_lane_f32(c10, b1, a1, 1);
-                c11 = vmlaq_lane_f32(c11, b2, a1, 1);
-            }
-        }
-        else if (width > 4)
-        {
-            for (int p = 0; p < np; p++, a += convMR, b += convNR)
-            {
-                a0 = vld1_f32(a), a1 = vld1_f32(a+2);
-                b0 = vld1q_f32(b), b1 = vld1q_f32(b + 4);
-
-                c0 = vmlaq_lane_f32(c0, b0, a0, 0);
-                c1 = vmlaq_lane_f32(c1, b1, a0, 0);
-
-                c3 = vmlaq_lane_f32(c3, b0, a0, 1);
-                c4 = vmlaq_lane_f32(c4, b1, a0, 1);
-
-                c6 = vmlaq_lane_f32(c6, b0, a1, 0);
-                c7 = vmlaq_lane_f32(c7, b1, a1, 0);
-
-                c9  = vmlaq_lane_f32(c9 , b0, a1, 1);
-                c10 = vmlaq_lane_f32(c10, b1, a1, 1);
-            }
-        }
-        else
-        {
-            for (int p = 0; p < np; p++, a += convMR, b += convNR)
-            {
-                a0 = vld1_f32(a), a1 = vld1_f32(a+2);
-                b0 = vld1q_f32(b);
-
-                c0 = vmlaq_lane_f32(c0, b0, a0, 0);
-                c3 = vmlaq_lane_f32(c3, b0, a0, 1);
-                c6 = vmlaq_lane_f32(c6, b0, a1, 0);
-                c9  = vmlaq_lane_f32(c9 , b0, a1, 1);
-            }
-        }
-
-        if (!init_c)
-        {
-            c0 = vaddq_f32(c0, vld1q_f32(c));
-            c1 = vaddq_f32(c1, vld1q_f32(c + 4));
-            c2 = vaddq_f32(c2, vld1q_f32(c + 8));
-
-            c3 = vaddq_f32(c3, vld1q_f32(c + ldc));
-            c4 = vaddq_f32(c4, vld1q_f32(c + ldc + 4));
-            c5 = vaddq_f32(c5, vld1q_f32(c + ldc + 8));
-
-            c6 = vaddq_f32(c6, vld1q_f32(c + ldc * 2));
-            c7 = vaddq_f32(c7, vld1q_f32(c + ldc * 2 + 4));
-            c8 = vaddq_f32(c8, vld1q_f32(c + ldc * 2 + 8));
-
-            c9  = vaddq_f32(c9 , vld1q_f32(c + ldc * 3));
-            c10 = vaddq_f32(c10, vld1q_f32(c + ldc * 3 + 4));
-            c11 = vaddq_f32(c11, vld1q_f32(c + ldc * 3 + 8));
-        }
-
-        vst1q_f32(c, c0), vst1q_f32(c+4, c1), vst1q_f32(c+8, c2);
-        vst1q_f32(c + ldc, c3), vst1q_f32(c + ldc + 4, c4), vst1q_f32(c + ldc + 8, c5);
-        vst1q_f32(c + ldc*2, c6), vst1q_f32(c + ldc*2 + 4, c7), vst1q_f32(c + ldc*2 + 8, c8);
-        vst1q_f32(c + ldc*3, c9), vst1q_f32(c + ldc*3 + 4, c10), vst1q_f32(c + ldc*3 + 8, c11);
-    }
-    else
-        CV_Error(Error::StsNotImplemented, "Unsupported convMR and/or convNR in opt_NEON::convBlock");
-}
-
-void convBlockMR1_F32(int np, const float * a, const float * b, float *c, const float bias, bool init_c,
-                  const float minval, const float maxval, bool ifMinMaxAct, const int width, const int convNR)
-{
-    CV_Assert(convNR == 28);
-    float32x4_t c0 = vdupq_n_f32(bias), c1 = c0, c2 = c0;
-    float32x4_t c3 = c0, c4 = c0, c5 = c0, c6 = c0;
-
-    if (width > 16)
-    {
-        for (int p = 0; p < np; p++, a++, b += convNR)
-        {
-            float32x4_t b0 = vld1q_f32(b), b1 = vld1q_f32(b + 4), b2 = vld1q_f32(b + 8);
-            float32x4_t b3 = vld1q_f32(b + 12), b4 = vld1q_f32(b + 16), b5 = vld1q_f32(b + 20);
-            float32x4_t b6 = vld1q_f32(b + 24);
-
-            c0 = vmlaq_n_f32(c0, b0, a[0]);
-            c1 = vmlaq_n_f32(c1, b1, a[0]);
-            c2 = vmlaq_n_f32(c2, b2, a[0]);
-            c3 = vmlaq_n_f32(c3, b3, a[0]);
-            c4 = vmlaq_n_f32(c4, b4, a[0]);
-            c5 = vmlaq_n_f32(c5, b5, a[0]);
-            c6 = vmlaq_n_f32(c6, b6, a[0]);
-        }
-    }
-    else if (width > 8)
-    {
-        for (int p = 0; p < np; p++, a++, b += convNR)
-        {
-            float32x4_t b0 = vld1q_f32(b), b1 = vld1q_f32(b + 4), b2 = vld1q_f32(b + 8);
-            float32x4_t b3 = vld1q_f32(b + 12);
-
-            c0 = vmlaq_n_f32(c0, b0, a[0]);
-            c1 = vmlaq_n_f32(c1, b1, a[0]);
-            c2 = vmlaq_n_f32(c2, b2, a[0]);
-            c3 = vmlaq_n_f32(c3, b3, a[0]);
-        }
-    }
-    else if (width > 4)
-    {
-        for (int p = 0; p < np; p++, a++, b += convNR)
-        {
-            float32x4_t b0 = vld1q_f32(b), b1 = vld1q_f32(b + 4);
-
-            c0 = vmlaq_n_f32(c0, b0, a[0]);
-            c1 = vmlaq_n_f32(c1, b1, a[0]);
-        }
-    }
-    else
-    {
-        for (int p = 0; p < np; p++, a++, b += convNR)
-        {
-            float32x4_t b0 = vld1q_f32(b);
-            c0 = vmlaq_n_f32(c0, b0, a[0]);
-        }
-    }
-
-    if (init_c)
-    {
-        c0 += vld1q_f32(c);
-        c1 += vld1q_f32(c + 4);
-        c2 += vld1q_f32(c + 8);
-        c3 += vld1q_f32(c + 12);
-        c4 += vld1q_f32(c + 16);
-        c5 += vld1q_f32(c + 20);
-        c6 += vld1q_f32(c + 24);
-    }
-
-    if (ifMinMaxAct)
-    {
-        float32x4_t v_minval = vdupq_n_f32(minval), v_maxval = vdupq_n_f32(maxval);
-
-        c0 = vminq_f32(vmaxq_f32(c0, v_minval), v_maxval);
-        c1 = vminq_f32(vmaxq_f32(c1, v_minval), v_maxval);
-        c2 = vminq_f32(vmaxq_f32(c2, v_minval), v_maxval);
-        c3 = vminq_f32(vmaxq_f32(c3, v_minval), v_maxval);
-        c4 = vminq_f32(vmaxq_f32(c4, v_minval), v_maxval);
-        c5 = vminq_f32(vmaxq_f32(c5, v_minval), v_maxval);
-        c6 = vminq_f32(vmaxq_f32(c6, v_minval), v_maxval);
-    }
-
-    vst1q_f32(c, c0);
-    vst1q_f32(c + 4, c1);
-    vst1q_f32(c + 8, c2);
-    vst1q_f32(c + 12, c3);
-    vst1q_f32(c + 16, c4);
-    vst1q_f32(c + 20, c5);
-    vst1q_f32(c + 24, c6);
-}
-
-#if CV_NEON_AARCH64 && defined(__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
-// Fix conflict between float16_t in arm_neon.h and float16_t in cvdef.h.
-typedef __fp16 float16_t;
-
-#ifndef __ARM_FEATURE_FMA // Work around without FMA support.
-#define vfmaq_f16(a, b, c) (a + b * c)
-#endif
-void convBlock_FP16(int np, const char * _a, const char * _b, char * _c, int ldc, bool init_c, int width,
-                    const int convMR_fp16, const int convNR_fp16)
-{
-#if 1
-    const float16_t* a = (const float16_t*)_a;
-    const float16_t* b = (const float16_t*)_b;
-    float16_t* c = (float16_t*)_c;
-
-    CV_Assert(convMR_fp16 == 8 && convNR_fp16 == 24);
-
-    float16x8_t c00 = vdupq_n_f16(0), c01 = c00, c02 = c00;
-    float16x8_t c10 = c00, c11 = c00, c12 = c00;
-    float16x8_t c20 = c00, c21 = c00, c22 = c00;
-    float16x8_t c30 = c00, c31 = c00, c32 = c00;
-    float16x8_t c40 = c00, c41 = c00, c42 = c00;
-    float16x8_t c50 = c00, c51 = c00, c52 = c00;
-    float16x8_t c60 = c00, c61 = c00, c62 = c00;
-    float16x8_t c70 = c00, c71 = c00, c72 = c00;
-
-    float16x8_t b0 = c00, b1 = c00, b2 = c00;
-
-    if (width > 16)
-    {
-        for (int p = 0; p < np; p++, a += convMR_fp16, b += convNR_fp16)
-        {
-            float16x4_t a0 = vld1_f16(a), a1 = vld1_f16(a + 4);
-            b0 = vld1q_f16(b), b1 = vld1q_f16(b + 8), b2 = vld1q_f16(b + 16);
-
-            c00 = vfmaq_lane_f16(c00, b0, a0, 0);
-            c01 = vfmaq_lane_f16(c01, b1, a0, 0);
-            c02 = vfmaq_lane_f16(c02, b2, a0, 0);
-
-            c10 = vfmaq_lane_f16(c10, b0, a0, 1);
-            c11 = vfmaq_lane_f16(c11, b1, a0, 1);
-            c12 = vfmaq_lane_f16(c12, b2, a0, 1);
-
-            c20 = vfmaq_lane_f16(c20, b0, a0, 2);
-            c21 = vfmaq_lane_f16(c21, b1, a0, 2);
-            c22 = vfmaq_lane_f16(c22, b2, a0, 2);
-
-            c30 = vfmaq_lane_f16(c30, b0, a0, 3);
-            c31 = vfmaq_lane_f16(c31, b1, a0, 3);
-            c32 = vfmaq_lane_f16(c32, b2, a0, 3);
-
-            c40 = vfmaq_lane_f16(c40, b0, a1, 0);
-            c41 = vfmaq_lane_f16(c41, b1, a1, 0);
-            c42 = vfmaq_lane_f16(c42, b2, a1, 0);
-
-            c50 = vfmaq_lane_f16(c50, b0, a1, 1);
-            c51 = vfmaq_lane_f16(c51, b1, a1, 1);
-            c52 = vfmaq_lane_f16(c52, b2, a1, 1);
-
-            c60 = vfmaq_lane_f16(c60, b0, a1, 2);
-            c61 = vfmaq_lane_f16(c61, b1, a1, 2);
-            c62 = vfmaq_lane_f16(c62, b2, a1, 2);
-
-            c70 = vfmaq_lane_f16(c70, b0, a1, 3);
-            c71 = vfmaq_lane_f16(c71, b1, a1, 3);
-            c72 = vfmaq_lane_f16(c72, b2, a1, 3);
-        }
-    }
-    else if (width > 8)
-    {
-        for( int p = 0; p < np; p++, a += convMR_fp16, b += convNR_fp16)
-        {
-            float16x4_t a0 = vld1_f16(a), a1 = vld1_f16(a + 4);
-            float16x8_t b0 = vld1q_f16(b), b1 = vld1q_f16(b + 8);
-
-            c00 = vfmaq_lane_f16(c00, b0, a0, 0);
-            c01 = vfmaq_lane_f16(c01, b1, a0, 0);
-
-            c10 = vfmaq_lane_f16(c10, b0, a0, 1);
-            c11 = vfmaq_lane_f16(c11, b1, a0, 1);
-
-            c20 = vfmaq_lane_f16(c20, b0, a0, 2);
-            c21 = vfmaq_lane_f16(c21, b1, a0, 2);
-
-            c30 = vfmaq_lane_f16(c30, b0, a0, 3);
-            c31 = vfmaq_lane_f16(c31, b1, a0, 3);
-
-            c40 = vfmaq_lane_f16(c40, b0, a1, 0);
-            c41 = vfmaq_lane_f16(c41, b1, a1, 0);
-
-            c50 = vfmaq_lane_f16(c50, b0, a1, 1);
-            c51 = vfmaq_lane_f16(c51, b1, a1, 1);
-
-            c60 = vfmaq_lane_f16(c60, b0, a1, 2);
-            c61 = vfmaq_lane_f16(c61, b1, a1, 2);
-
-            c70 = vfmaq_lane_f16(c70, b0, a1, 3);
-            c71 = vfmaq_lane_f16(c71, b1, a1, 3);
-        }
-    }
-    else
-    {
-        for( int p = 0; p < np; p++, a += convMR_fp16, b += convNR_fp16)
-        {
-            float16x4_t a0 = vld1_f16(a), a1 = vld1_f16(a + 4);
-            float16x8_t b0 = vld1q_f16(b);
-
-            c00 = vfmaq_lane_f16(c00, b0, a0, 0);
-            c10 = vfmaq_lane_f16(c10, b0, a0, 1);
-            c20 = vfmaq_lane_f16(c20, b0, a0, 2);
-            c30 = vfmaq_lane_f16(c30, b0, a0, 3);
-            c40 = vfmaq_lane_f16(c40, b0, a1, 0);
-            c50 = vfmaq_lane_f16(c50, b0, a1, 1);
-            c60 = vfmaq_lane_f16(c60, b0, a1, 2);
-            c70 = vfmaq_lane_f16(c70, b0, a1, 3);
-        }
-    }
-
-    if (!init_c)
-    {
-#undef _FX_UPDATE_CBUF_ROW
-#define _FX_UPDATE_CBUF_ROW(row) \
-        c##row##0 = c##row##0 + vld1q_f16(c + row*ldc); \
-        c##row##1 = c##row##1 + vld1q_f16(c + row*ldc + 8); \
-        c##row##2 = c##row##2 + vld1q_f16(c + row*ldc + 16)
-
-        _FX_UPDATE_CBUF_ROW(0);
-        _FX_UPDATE_CBUF_ROW(1);
-        _FX_UPDATE_CBUF_ROW(2);
-        _FX_UPDATE_CBUF_ROW(3);
-        _FX_UPDATE_CBUF_ROW(4);
-        _FX_UPDATE_CBUF_ROW(5);
-        _FX_UPDATE_CBUF_ROW(6);
-        _FX_UPDATE_CBUF_ROW(7);
-    }
-
-#undef _FX_STORE_CBUF_ROW
-#define _FX_STORE_CBUF_ROW(row) \
-    vst1q_f16(c + row*ldc, c##row##0); \
-    vst1q_f16(c + row*ldc + 8, c##row##1); \
-    vst1q_f16(c + row*ldc + 16, c##row##2)
-
-    _FX_STORE_CBUF_ROW(0);
-    _FX_STORE_CBUF_ROW(1);
-    _FX_STORE_CBUF_ROW(2);
-    _FX_STORE_CBUF_ROW(3);
-    _FX_STORE_CBUF_ROW(4);
-    _FX_STORE_CBUF_ROW(5);
-    _FX_STORE_CBUF_ROW(6);
-    _FX_STORE_CBUF_ROW(7);
-#else
-    // reference only.
-    const float16_t* a = (const float16_t*)_a;
-    const float16_t* b = (const float16_t*)_b;
-    float16_t* c = (float16_t*)_c;
-    float cbuf[convMR_fp16*convNR_fp16];
-    memset(cbuf, 0, sizeof(cbuf));
-
-    for( int p = 0; p < np; p++ )
-    {
-        for( int i = 0; i < convMR_fp16; i++ )
-        {
-            float ai = float(a[convMR_fp16*p + i]);
-                for( int j = 0; j < convNR_fp16; j++ )
-                    cbuf[i*convNR_fp16+j] += float(b[convNR_fp16*p + j]) * ai;
-        }
-    }
-
-    if (!init_c)
-    {
-    for(int i = 0; i < convMR_fp16; i++)
-        {
-            for(int j = 0; j < convNR_fp16; j++)
-                c[i*ldc + j] = float16_t(float(c[i*ldc + j]) + cbuf[i*convNR_fp16 + j]);
-        }
-    }
-    else
-    {
-        for(int i = 0; i < convMR_fp16; i++)
-        {
-            for(int j = 0; j < convNR_fp16; j++)
-                c[i*ldc + j] = (float16_t)(cbuf[i*convNR_fp16 + j]);
-        }
-    }
-#endif
-}
-
-void convBlockMR1_FP16(int np, const char* _a, const char* _b, float *c, const float _bias, bool init_c,
-                            const float minval, const float maxval, bool ifMinMaxAct, const int width, const int convNR_FP16)
-{
-    CV_Assert(convNR_FP16 == 24); // CONV_NR_FP16 = 24
-    const float16_t* a = (const float16_t*)_a;
-    const float16_t* b = (const float16_t*)_b;
-
-    const float16_t bias = (float16_t)_bias;
-
-    float16x8_t c0 = vdupq_n_f16(bias), c1 = c0, c2 = c0;
-
-    if (width > 16)
-    {
-        for (int p = 0; p < np; p++, a++, b += convNR_FP16)
-        {
-            float16x8_t a0= vdupq_n_f16(a[0]);
-            float16x8_t b0 = vld1q_f16(b), b1 = vld1q_f16(b + 8), b2 = vld1q_f16(b + 16);
-
-            c0 = vfmaq_f16(c0, a0, b0);
-            c1 = vfmaq_f16(c1, a0, b1);
-            c2 = vfmaq_f16(c2, a0, b2);
-        }
-    }
-    else if (width > 8)
-    {
-        for (int p = 0; p < np; p++, a++, b += convNR_FP16)
-        {
-            float16x8_t a0= vdupq_n_f16(a[0]);
-            float16x8_t b0 = vld1q_f16(b), b1 = vld1q_f16(b + 8);
-
-            c0 = vfmaq_f16(c0, a0, b0);
-            c1 = vfmaq_f16(c1, a0, b1);
-        }
-    }
-    else
-    {
-        for (int p = 0; p < np; p++, a++, b += convNR_FP16)
-        {
-            float16x8_t a0= vdupq_n_f16(a[0]);
-            float16x8_t b0 = vld1q_f16(b);
-
-            c0 = vfmaq_f16(c0, a0, b0);
-        }
-    }
-
-    // convert FP 16 to FP 32.
-    float32x4_t c00 = vcvt_f32_f16(vget_low_f16(c0));
-    float32x4_t c01 = vcvt_f32_f16(vget_high_f16(c0));
-    float32x4_t c10 = vcvt_f32_f16(vget_low_f16(c1));
-    float32x4_t c11 = vcvt_f32_f16(vget_high_f16(c1));
-    float32x4_t c20 = vcvt_f32_f16(vget_low_f16(c2));
-    float32x4_t c21 = vcvt_f32_f16(vget_high_f16(c2));
-
-    if (init_c)
-    {
-        c00 += vld1q_f32(c);
-        c01 += vld1q_f32(c + 4);
-        c10 += vld1q_f32(c + 8);
-        c11 += vld1q_f32(c + 12);
-        c20 += vld1q_f32(c + 16);
-        c21 += vld1q_f32(c + 20);
-    }
-
-    if (ifMinMaxAct)
-    {
-        float32x4_t v_minval = vdupq_n_f32(minval), v_maxval = vdupq_n_f32(maxval);
-
-        c00 = vminq_f32(vmaxq_f32(c00, v_minval), v_maxval);
-        c01 = vminq_f32(vmaxq_f32(c01, v_minval), v_maxval);
-        c10 = vminq_f32(vmaxq_f32(c10, v_minval), v_maxval);
-        c11 = vminq_f32(vmaxq_f32(c11, v_minval), v_maxval);
-        c20 = vminq_f32(vmaxq_f32(c20, v_minval), v_maxval);
-        c21 = vminq_f32(vmaxq_f32(c21, v_minval), v_maxval);
-    }
-
-    vst1q_f32(c, c00);
-    vst1q_f32(c + 4, c01);
-    vst1q_f32(c + 8, c10);
-    vst1q_f32(c + 12, c11);
-    vst1q_f32(c + 16, c20);
-    vst1q_f32(c + 20, c21);
-}
-#endif
-
-#endif
-}
-enum { VEC_ALIGN = 32, DFT_TYPE = CV_32F }; // Memory alignment.
-
-void convBlock(int np, const float* a, const float* b, float* c, int ldc, bool init_c, const int outLen,
+void convBlock_F32(int np, const float* a, const float* b, float* c, int ldc, bool init_c, const int outLen,
                const int convMR, const int convNR);
-void convBlockMR1(int np, const float* a, const float* b, float *c, const float bias, bool init_c,
+void convBlockMR1_F32(int np, const float* a, const float* b, float *c, const float bias, bool init_c,
                   const float minval, const float maxval, bool ifMinMaxAct, const int outLen, const int convNR);
+
+#ifdef CONV_ARM_FP16
+// Fast convert float 32 to float16
+static inline void _cvt32f16f(const float* src, float16_t* dst, int len)
+{
+    int j = 0;
+    const int VECSZ = 4;
+    __fp16* dst_FP16 = (__fp16 *)dst;
+    if (len > VECSZ * 4)
+    {
+        const int VECSZ4 = 4 * VECSZ;
+        for( ; j + VECSZ4 < len; j += VECSZ4)
+        {
+
+            float32x4_t v0 = vld1q_f32(src + j);
+            float32x4_t v1 = vld1q_f32(src + j + 4);
+            float32x4_t v2 = vld1q_f32(src + j + 8);
+            float32x4_t v3 = vld1q_f32(src + j + 12);
+
+            vst1q_f16(dst_FP16 + j, vcombine_f16(vcvt_f16_f32(v0), vcvt_f16_f32(v1)));
+            vst1q_f16(dst_FP16 + j + 8, vcombine_f16(vcvt_f16_f32(v2), vcvt_f16_f32(v3)));
+        }
+    }
+
+    for( ; j < len; j += VECSZ )
+    {
+        if( j > len - VECSZ )
+        {
+            if( j == 0 )
+                break;
+            j = len - VECSZ;
+        }
+
+        float16x4_t hv = vcvt_f16_f32(vld1q_f32(src + j));
+        vst1_f16(dst_FP16 + j, hv);
+    }
+    for( ; j < len; j++ )
+        dst[j] = float16_t(src[j]);
+}
+#endif
+
+float* FastConv::getWeights()
+{
+    return alignPtr(weightsBuf.data(), VEC_ALIGN);
+}
+
+float* FastConv::getWeightsWino()
+{
+    return alignPtr(weightsWinoBuf.data(), VEC_ALIGN);
+}
+
+float16_t* FastConv::getWeightsFP16()
+{
+    return alignPtr(weightsBuf_FP16.data(), VEC_ALIGN);
+}
+
+float16_t* FastConv::getWeightsWinoFP16()
+{
+    return alignPtr(weightsWinoBuf_FP16.data(), VEC_ALIGN);
+}
 
 Ptr<FastConv> initFastConv(
         InputArray _weightsMat,
@@ -751,9 +180,16 @@ Ptr<FastConv> initFastConv(
 
     conv->useFP16 = false;
 #ifdef CONV_ARM_FP16
-    // TODO: add FP16 support for Winograd.
-    if (_useFP16 && (conv->conv_type == CONV_TYPE_GENERIC || conv->conv_type == CONV_TYPE_DEPTHWISE_REMAIN))
+    if (_useFP16 && (conv->conv_type == CONV_TYPE_GENERIC || conv->conv_type == CONV_TYPE_DEPTHWISE_REMAIN
+    || conv->conv_type == CONV_TYPE_WINOGRAD3X3))
         conv->useFP16 = true;
+
+    // Runtime FP16 check.
+    if (conv->useFP16 && !checkHardwareSupport(CPU_NEON_FP16))
+    {
+        conv->useFP16 = false;
+        CV_LOG_ONCE_WARNING(NULL, "DNN: the CPU does not support the instruction set required by FP16, fallback to FP32.");
+    }
 #endif
 
     float *srcWeights = (float *)weightsMat.data;
@@ -773,31 +209,25 @@ Ptr<FastConv> initFastConv(
         if (conv->useFP16)
         {
             conv->weightsBuf_FP16.resize(nweights + VEC_ALIGN);
-            conv->weightsBufPtr_FP16 = alignPtr(conv->weightsBuf_FP16.data(), VEC_ALIGN * sizeof(float16_t ));
-            memset(conv->weightsBufPtr_FP16, 0, nweights * sizeof(float16_t ));
-            auto weightsBufPtr_FP16 = conv->weightsBufPtr_FP16;
+            auto weightsPtr_FP16 = conv->getWeightsFP16();
+            memset(reinterpret_cast<short*>(weightsPtr_FP16), 0, nweights * sizeof(weightsPtr_FP16[0]));
 
             parallel_for_(Range(0, C), [&](const Range& r0){
-            for(int c = r0.start; c < r0.end; c++)
-            {
-                for (int k = 0; k < ksize; k++)
-                    weightsBufPtr_FP16[c*padded_ksize + k] = (float16_t)srcWeights[c*wstep + k];
-            }});
+                for(int c = r0.start; c < r0.end; c++)
+                    _cvt32f16f(srcWeights + c*wstep, weightsPtr_FP16 + c*padded_ksize, ksize);
+            });
         }
         else
 #endif
         {
             conv->weightsBuf.resize(nweights + VEC_ALIGN);
-            conv->weightsBufPtr = alignPtr(conv->weightsBuf.data(), VEC_ALIGN * sizeof(float ));
-            memset(conv->weightsBufPtr, 0, nweights*sizeof(float ));
-            auto weightsBufPtr = conv->weightsBufPtr;
+            auto weightsPtr = conv->getWeights();
+            memset(weightsPtr, 0, nweights*sizeof(weightsPtr[0]));
 
-            parallel_for_(Range(0, C), [&](const Range& r0){
-            for(int c = r0.start; c < r0.end; c++)
-            {
-                for (int k = 0; k < ksize; k++)
-                    weightsBufPtr[c*padded_ksize + k] = srcWeights[c*wstep + k];
-            }});
+            parallel_for_(Range(0, C), [&](const Range& r0) {
+                for(int c = r0.start; c < r0.end; c++)
+                    memcpy(weightsPtr + c*padded_ksize, srcWeights + c*wstep, ksize*sizeof(weightsPtr[0]));
+            });
         }
     }
     else if(conv->conv_type == CONV_TYPE_WINOGRAD3X3) // winograd
@@ -845,16 +275,14 @@ Ptr<FastConv> initFastConv(
         if (conv->useFP16)
         {
             conv->weightsWinoBuf_FP16.resize(nweights + VEC_ALIGN);
-            conv->weightsWinoBufPtr_FP16 = alignPtr(conv->weightsWinoBuf_FP16.data(), VEC_ALIGN);
-            wptrWino_FP16 = conv->weightsWinoBufPtr_FP16;
-            memset(wptrWino_FP16, 0, nweights * sizeof(wptrWino_FP16[0]));
+            wptrWino_FP16 = conv->getWeightsWinoFP16();
+            memset(reinterpret_cast<short*>(wptrWino_FP16), 0, nweights * sizeof(wptrWino_FP16[0]));
         }
         else
 #endif
         {
             conv->weightsWinoBuf.resize(nweights + VEC_ALIGN);
-            conv->weightsWinoBufPtr = alignPtr(conv->weightsWinoBuf.data(), VEC_ALIGN);
-            wptrWino = conv->weightsWinoBufPtr;
+            wptrWino = conv->getWeightsWino();
             memset(wptrWino, 0, nweights * sizeof(wptrWino[0]));
         }
 
@@ -904,7 +332,7 @@ Ptr<FastConv> initFastConv(
                     for (int i = 0; i < CONV_WINO_NATOMS_F16; i++,
                             wptr += Cg * CONV_WINO_KBLOCK * CONV_WINO_ATOM_F16)
                     {
-                        CV_Assert(conv->weightsWinoBufPtr_FP16 <= wptr && wptr + CONV_WINO_ATOM_F16 <= conv->weightsWinoBufPtr_FP16 + nweights);
+                        CV_Assert(wptrWino_FP16 <= wptr && wptr + CONV_WINO_ATOM_F16 <= wptrWino_FP16 + nweights);
                         for (int j = 0; j < CONV_WINO_ATOM_F16; j++)
                         {
                             wptr[j] = (float16_t)kernelTm[i * CONV_WINO_ATOM_F16 + j];
@@ -919,7 +347,7 @@ Ptr<FastConv> initFastConv(
                     for (int i = 0; i < CONV_WINO_NATOMS_F32; i++,
                             wptr += Cg * CONV_WINO_KBLOCK * CONV_WINO_ATOM_F32)
                     {
-                        CV_Assert(conv->weightsWinoBufPtr <= wptr && wptr + CONV_WINO_ATOM_F32 <= conv->weightsWinoBufPtr + nweights);
+                        CV_Assert(wptrWino <= wptr && wptr + CONV_WINO_ATOM_F32 <= wptrWino + nweights);
                         memcpy(wptr, kernelTm + i * CONV_WINO_ATOM_F32, CONV_WINO_ATOM_F32*sizeof (wptr[0]));
                     }
                 }
@@ -937,29 +365,26 @@ Ptr<FastConv> initFastConv(
         int numStripsMR = (Kg + CONV_MR_FP32 - 1) / CONV_MR_FP32;
         int Kg_aligned = numStripsMR * CONV_MR_FP32;
         size_t nweights = ngroups*Kg_aligned*DkHkWkCg;
-
-        float* weightsBufPtr = nullptr;
+        float* weightsPtr = nullptr;
 
 #ifdef CONV_ARM_FP16
         int numStripsMR_FP16 = (Kg + CONV_MR_FP16 - 1) / CONV_MR_FP16;
         int Kg_aligned_FP16 = numStripsMR_FP16 * CONV_MR_FP16;
         size_t nweights_FP16 = ngroups * Kg_aligned_FP16 * DkHkWkCg;
+        float16_t* weightsPtr_FP16 = nullptr;
 
-        float16_t* weightsBufPtr_FP16 = nullptr;
         if (conv->useFP16)
         {
             conv->weightsBuf_FP16.resize(nweights_FP16 + VEC_ALIGN);
-            conv->weightsBufPtr_FP16 = alignPtr(conv->weightsBuf_FP16.data(), VEC_ALIGN);
-            weightsBufPtr_FP16 = conv->weightsBufPtr_FP16;
-            memset(weightsBufPtr_FP16, 0, nweights_FP16*sizeof(weightsBufPtr_FP16[0]));
+            weightsPtr_FP16 = conv->getWeightsFP16();
+            memset(reinterpret_cast<short*>(weightsPtr_FP16), 0, nweights_FP16*sizeof(weightsPtr_FP16[0]));
         }
         else
 #endif
         {
             conv->weightsBuf.resize(nweights + VEC_ALIGN);
-            conv->weightsBufPtr = alignPtr(conv->weightsBuf.data(), VEC_ALIGN);
-            weightsBufPtr = conv->weightsBufPtr;
-            memset(weightsBufPtr, 0, nweights*sizeof(weightsBufPtr[0]));
+            weightsPtr = conv->getWeights();
+            memset(weightsPtr, 0, nweights*sizeof(weightsPtr[0]));
         }
 
         // Pack the weight.
@@ -975,7 +400,7 @@ Ptr<FastConv> initFastConv(
                 int startK = si * CONV_MR_FP16;
                 CV_Assert(startK < Kg_aligned_FP16);
 
-                float16_t* packed_wptr = weightsBufPtr_FP16 + DkHkWkCg * (startK + g * Kg_aligned_FP16);
+                float16_t* packed_wptr = weightsPtr_FP16 + DkHkWkCg * (startK + g * Kg_aligned_FP16);
                 int dk = Kg - startK < CONV_MR_FP16 ? Kg - startK : CONV_MR_FP16; // check if we need zero padding.
 
                 int k_idx = g*Kg + startK;
@@ -1005,7 +430,7 @@ Ptr<FastConv> initFastConv(
                 int startK = si * CONV_MR_FP32;
                 CV_Assert(startK < Kg_aligned);
 
-                float* packed_wptr = weightsBufPtr + DkHkWkCg * (startK + g * Kg_aligned);
+                float* packed_wptr = weightsPtr + DkHkWkCg * (startK + g * Kg_aligned);
                 int dk = Kg - startK < CONV_MR_FP32 ? Kg - startK : CONV_MR_FP32; // check if we need zero padding.
 
                 int k_idx = g*Kg + startK;
@@ -1042,7 +467,7 @@ Ptr<FastConv> initFastConv(
 }
 
 static inline void packData8(char*& inpbuf, float*& inptrIn, int& in_w, int& x0, int& s0, const int* ofstab,
-                      const int stride_w, const int ksize, const int esz)
+                             const int stride_w, const int ksize, const int esz)
 {
     char * inpbufC = inpbuf + s0 * esz;
     float* inptrInC = (float* )inptrIn;
@@ -1067,16 +492,8 @@ static inline void packData8(char*& inpbuf, float*& inptrIn, int& in_w, int& x0,
             for (int k = 0; k < ksize; k++)
             {
                 int k1 = ofstab[k];
-                float32x4_t v0, v1;
-
-                v0[0] = inptrInC[k1];
-                v0[1] = inptrInC[k1 + stride_w];
-                v0[2] = inptrInC[k1 + 2*stride_w];
-                v0[3] = inptrInC[k1 + 3*stride_w];
-                v1[0] = inptrInC[k1 + 4*stride_w];
-                v1[1] = inptrInC[k1 + 5*stride_w];
-                v1[2] = inptrInC[k1 + 6*stride_w];
-                v1[3] = inptrInC[k1 + 7*stride_w];
+                float32x4_t v0 = {inptrInC[k1], inptrInC[k1 + stride_w], inptrInC[k1 + 2*stride_w], inptrInC[k1 + 3*stride_w]};
+                float32x4_t v1 = {inptrInC[k1 + 4*stride_w], inptrInC[k1 + 5*stride_w], inptrInC[k1 + 6*stride_w], inptrInC[k1 + 7*stride_w]};
 
                 vst1q_f16((__fp16*)inpbufC_FP16 + k * CONV_NR_FP16, vcombine_f16(vcvt_f16_f32(v0), vcvt_f16_f32(v1)));
             }
@@ -1148,7 +565,7 @@ static inline void packData8(char*& inpbuf, float*& inptrIn, int& in_w, int& x0,
 }
 
 static inline void packData2(char *& inpbuf, float*& inptrIn, int& in_w, int& x0, int& s0, const int* ofstab,
-                      const int stride_w, const int ksize, const int esz)
+                             const int stride_w, const int ksize, const int esz)
 {
     char* inpbufC = inpbuf + s0 * esz;
     float* inptrInC = inptrIn;
@@ -1184,46 +601,6 @@ static inline void packData2(char *& inpbuf, float*& inptrIn, int& in_w, int& x0
     inptrIn += stride_w;
     in_w += stride_w;
 }
-
-#ifdef CONV_ARM_FP16
-// Fast convert float 32 to float16
-static inline void _cvt32f16f( const float* src, float16_t* dst, int len)
-{
-    int j = 0;
-    const int VECSZ = 4;
-    __fp16* dst_FP16 = (__fp16 *)dst;
-    if (len > VECSZ * 4)
-    {
-        const int VECSZ4 = 4 * VECSZ;
-        for( ; j + VECSZ4 < len; j += VECSZ4)
-        {
-
-            float32x4_t v0 = vld1q_f32(src + j);
-            float32x4_t v1 = vld1q_f32(src + j + 4);
-            float32x4_t v2 = vld1q_f32(src + j + 8);
-            float32x4_t v3 = vld1q_f32(src + j + 12);
-
-            vst1q_f16(dst_FP16 + j, vcombine_f16(vcvt_f16_f32(v0), vcvt_f16_f32(v1)));
-            vst1q_f16(dst_FP16 + j + 8, vcombine_f16(vcvt_f16_f32(v2), vcvt_f16_f32(v3)));
-        }
-    }
-
-    for( ; j < len; j += VECSZ )
-    {
-        if( j > len - VECSZ )
-        {
-            if( j == 0 )
-                break;
-            j = len - VECSZ;
-        }
-
-        float16x4_t hv = vcvt_f16_f32(vld1q_f32(src + j));
-        vst1_f16(dst_FP16 + j, hv);
-    }
-    for( ; j < len; j++ )
-        dst[j] = float16_t(src[j]);
-}
-#endif
 
 static inline void packInputData(char* inpbuf_task, float* inp, const int* ofstab, const int* dhwTab, int zyx0, int zyx_limit,
                                  int ksize, int stride_d, int stride_h, int stride_w, int pad_front, int pad_top, int pad_left,
@@ -1571,11 +948,8 @@ static inline void packInputData(char* inpbuf_task, float* inp, const int* ofsta
                                 {
                                     for (int c = 0; c < Cg; c++, inpbuf_ki_FP16 += CONV_NR, inptr_ki += inp_planesize)
                                     {
-                                        float32x4_t v0, v1;
-                                        v0[0] = inptr_ki[0], v0[1] = inptr_ki[2];
-                                        v0[2] = inptr_ki[4], v0[3] = inptr_ki[6];
-                                        v1[0] = inptr_ki[8], v1[1] = inptr_ki[10];
-                                        v1[2] = inptr_ki[12], v1[3] = inptr_ki[14];
+                                        float32x4_t v0 = {inptr_ki[0], inptr_ki[2], inptr_ki[4], inptr_ki[6]};
+                                        float32x4_t v1 = {inptr_ki[8], inptr_ki[10], inptr_ki[12], inptr_ki[14]};
                                         vst1q_f16((__fp16* )inpbuf_ki_FP16, vcombine_f16(vcvt_f16_f32(v0), vcvt_f16_f32(v1)));
                                     }
                                 }
@@ -1604,12 +978,8 @@ static inline void packInputData(char* inpbuf_task, float* inp, const int* ofsta
                                 {
                                     for (int c = 0; c < Cg; c++, inpbuf_ki_FP16 += CONV_NR, inptr_ki += inp_planesize)
                                     {
-                                        float32x4_t v0, v1;
-
-                                        v0[0] = inptr_ki[0], v0[1] = inptr_ki[stride_w];
-                                        v0[2] = inptr_ki[stride_w * 2], v0[3] = inptr_ki[stride_w * 3];
-                                        v1[0] = inptr_ki[stride_w * 4], v1[1] = inptr_ki[stride_w * 5];
-                                        v1[2] = inptr_ki[stride_w * 6], v1[3] = inptr_ki[stride_w * 7];
+                                        float32x4_t v0 = {inptr_ki[0], inptr_ki[stride_w], inptr_ki[stride_w * 2], inptr_ki[stride_w * 3]};
+                                        float32x4_t v1 = {inptr_ki[stride_w * 4], inptr_ki[stride_w * 5], inptr_ki[stride_w * 6], inptr_ki[stride_w * 7]};
                                         vst1q_f16((__fp16* )inpbuf_ki_FP16, vcombine_f16(vcvt_f16_f32(v0), vcvt_f16_f32(v1)));
                                     }
                                 }
@@ -1666,9 +1036,7 @@ static inline void packInputData(char* inpbuf_task, float* inp, const int* ofsta
                                 {
                                     for (int c = 0; c < Cg; c++, inpbuf_ki_FP16 += CONV_NR, inptr_ki += inp_planesize)
                                     {
-                                        float32x4_t v0;
-                                        v0[0] = inptr_ki[0], v0[1] = inptr_ki[stride_w];
-                                        v0[2] = inptr_ki[stride_w * 2], v0[3] = inptr_ki[stride_w * 3];
+                                        float32x4_t v0 = {inptr_ki[0], inptr_ki[stride_w], inptr_ki[stride_w * 2], inptr_ki[stride_w * 3]};
                                         vst1_f16((__fp16* )inpbuf_ki_FP16, vcvt_f16_f32(v0));
                                     }
                                 }
@@ -1806,10 +1174,9 @@ void runFastConv(InputArray _input, OutputArray _output, const Ptr<FastConv>& co
     else
         activ = nullptr;
 
-    // TODO: support FP16 for winograd.
     if (conv->conv_type == CONV_TYPE_WINOGRAD3X3) // winograd
     {
-        CV_Assert(conv->weightsWinoBufPtr && input.dims == 4 && conv_dim == CONV_2D && !useFP16);
+        CV_Assert((!conv->weightsWinoBuf.empty() || !conv->weightsWinoBuf_FP16.empty()) && input.dims == 4 && conv_dim == CONV_2D);
         if (runWinograd63(input, fusedAddMat, output, conv, ntasks, minval, maxval, activ, ifMinMaxAct))
             return;
     }
@@ -2069,13 +1436,13 @@ void runFastConv(InputArray _input, OutputArray _output, const Ptr<FastConv>& co
                 if (useFP16)
                 {
                     CV_Assert(!conv->weightsBuf_FP16.empty());
-                    weights = (char *)conv->weightsBufPtr_FP16;
+                    weights = (char *)conv->getWeightsFP16();
                 }
                 else
 #endif
                 {
                     CV_Assert(!conv->weightsBuf.empty());
-                    weights = (char *)conv->weightsBufPtr;
+                    weights = (char *)conv->getWeights();
                 }
                 // optional branch, only for depth-wise convolution which was implemented by generic convolution.
                 // In this case, CONV_MR is 1, and CONV_NR remains the same.
@@ -2109,7 +1476,7 @@ void runFastConv(InputArray _input, OutputArray _output, const Ptr<FastConv>& co
 #ifdef CONV_ARM_FP16
                             if (useFP16)
                             {
-                                opt_NEON::convBlockMR1_FP16(DkHkWkCg, weights, inptr, cptr, biasVal, fusedAdd, minval, maxval, ifMinMaxAct, outLen, CONV_NR);
+                                opt_NEON_FP16::convBlockMR1_F16(DkHkWkCg, weights, inptr, cptr, biasVal, fusedAdd, minval, maxval, ifMinMaxAct, outLen, CONV_NR);
                             }
                             else
 #endif
@@ -2117,7 +1484,7 @@ void runFastConv(InputArray _input, OutputArray _output, const Ptr<FastConv>& co
                         }
                         else
 #endif
-                        convBlockMR1(DkHkWkCg, (const float *)weights, (const float *)inptr, cptr, biasVal, fusedAdd, minval, maxval, ifMinMaxAct, outLen, CONV_NR);
+                        convBlockMR1_F32(DkHkWkCg, (const float *)weights, (const float *)inptr, cptr, biasVal, fusedAdd, minval, maxval, ifMinMaxAct, outLen, CONV_NR);
 
                         if (ifBuffer)
                         {
@@ -2158,12 +1525,12 @@ void runFastConv(InputArray _input, OutputArray _output, const Ptr<FastConv>& co
                             {
 #if CV_TRY_AVX2
                                 if (conv->useAVX2)
-                                    opt_AVX2::convBlock(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
+                                    opt_AVX2::convBlock_F32(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
                                 else
 #endif
 #if CV_TRY_AVX
                                 if (conv->useAVX)
-                                    opt_AVX::convBlock(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
+                                    opt_AVX::convBlock_F32(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
                                 else
 #endif
 #if CV_NEON
@@ -2172,16 +1539,16 @@ void runFastConv(InputArray _input, OutputArray _output, const Ptr<FastConv>& co
 #ifdef CONV_ARM_FP16
                                     if (useFP16)
                                     {
-                                        opt_NEON::convBlock_FP16(c1 - c0, wptr, inptr, (char *)cptr_f16, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
+                                        opt_NEON_FP16::convBlock_F16(c1 - c0, wptr, inptr, (char *)cptr_f16, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
                                     }
                                     else
 #endif
-                                    opt_NEON::convBlock(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
+                                    opt_NEON::convBlock_F32(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
                                 }
                                 else
 #endif
                                 // The possible outLen range is 24 or 8~1.
-                                convBlock(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
+                                convBlock_F32(c1 - c0, (const float *)wptr, (const float *)inptr, cptr, ldc, c0 == 0, outLen, CONV_MR, CONV_NR);
                             }
                         }
                     }
@@ -2470,7 +1837,7 @@ static inline void convBlockMR1x12(int np, const float* a, const float* b, float
 }
 #endif
 
-void convBlockMR1(int np, const float* a, const float* b, float *c, const float bias, bool init_c,
+void convBlockMR1_F32(int np, const float* a, const float* b, float *c, const float bias, bool init_c,
                   const float minval, const float maxval, bool ifMinMaxAct, const int outLen, const int convNR)
 {
 #if CV_SIMD128
@@ -2720,7 +2087,7 @@ static inline void convBlockNoSIMD(int np, const float* a, const float* b, float
     }
 }
 
-void convBlock(int np, const float* a, const float* b, float* c, int ldc, bool init_c, const int outLen,
+void convBlock_F32(int np, const float* a, const float* b, float* c, int ldc, bool init_c, const int outLen,
                const int convMR, const int convNR)
 {
     // The possible outLen range is [24, 8~1].

@@ -21,6 +21,42 @@ cv::gapi::onnx::PyParams& cv::gapi::onnx::PyParams::cfgNormalize(const std::stri
     return *this;
 }
 
+cv::gapi::onnx::PyParams&
+cv::gapi::onnx::PyParams::cfgAddExecutionProvider(cv::gapi::onnx::ep::OpenVINO ep) {
+    m_priv->cfgAddExecutionProvider(std::move(ep));
+    return *this;
+}
+
+cv::gapi::onnx::PyParams&
+cv::gapi::onnx::PyParams::cfgAddExecutionProvider(cv::gapi::onnx::ep::DirectML ep) {
+    m_priv->cfgAddExecutionProvider(std::move(ep));
+    return *this;
+}
+
+cv::gapi::onnx::PyParams&
+cv::gapi::onnx::PyParams::cfgAddExecutionProvider(cv::gapi::onnx::ep::CoreML ep) {
+    m_priv->cfgAddExecutionProvider(std::move(ep));
+    return *this;
+}
+
+cv::gapi::onnx::PyParams&
+cv::gapi::onnx::PyParams::cfgAddExecutionProvider(cv::gapi::onnx::ep::CUDA ep) {
+    m_priv->cfgAddExecutionProvider(std::move(ep));
+    return *this;
+}
+
+cv::gapi::onnx::PyParams&
+cv::gapi::onnx::PyParams::cfgAddExecutionProvider(cv::gapi::onnx::ep::TensorRT ep) {
+    m_priv->cfgAddExecutionProvider(std::move(ep));
+    return *this;
+}
+
+cv::gapi::onnx::PyParams&
+cv::gapi::onnx::PyParams::cfgDisableMemPattern() {
+    m_priv->cfgDisableMemPattern();
+    return *this;
+}
+
 cv::gapi::GBackend cv::gapi::onnx::PyParams::backend() const {
     return m_priv->backend();
 }

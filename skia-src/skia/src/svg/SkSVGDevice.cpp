@@ -686,7 +686,7 @@ void SkSVGDevice::AutoElement::addTextAttributes(const SkFont& font) {
 
     SkString familyName;
     THashSet<SkString> familySet;
-    sk_sp<SkTypeface> tface = SkFontPriv::RefTypefaceOrDefault(font);
+    sk_sp<SkTypeface> tface = font.refTypeface();
 
     SkASSERT(tface);
     SkFontStyle style = tface->fontStyle();
@@ -736,11 +736,12 @@ sk_sp<SkDevice> SkSVGDevice::Make(const SkISize& size,
 }
 
 SkSVGDevice::SkSVGDevice(const SkISize& size, std::unique_ptr<SkXMLWriter> writer, uint32_t flags)
-    : SkClipStackDevice(SkImageInfo::MakeUnknown(size.fWidth, size.fHeight),
-                        SkSurfaceProps(0, kUnknown_SkPixelGeometry))
-    , fWriter(std::move(writer))
-    , fResourceBucket(new ResourceBucket)
-    , fFlags(flags)
+        : SkClipStackDevice(
+            SkImageInfo::MakeUnknown(size.fWidth, size.fHeight),
+            SkSurfaceProps())
+        , fWriter(std::move(writer))
+        , fResourceBucket(new ResourceBucket)
+        , fFlags(flags)
 {
     SkASSERT(fWriter);
 

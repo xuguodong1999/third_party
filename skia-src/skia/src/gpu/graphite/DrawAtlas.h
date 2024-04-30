@@ -19,8 +19,8 @@
 
 namespace skgpu::graphite {
 
+class DrawContext;
 class Recorder;
-class UploadList;
 class TextureProxy;
 
 /**
@@ -103,7 +103,7 @@ public:
     };
 
     ErrorCode addToAtlas(Recorder*, int width, int height, const void* image, AtlasLocator*);
-    bool recordUploads(UploadList*, Recorder*, bool useCachedUploads);
+    bool recordUploads(DrawContext*, Recorder*);
 
     const sk_sp<TextureProxy>* getProxies() const { return fProxies; }
 
@@ -134,7 +134,8 @@ public:
         plot->setLastUseToken(token);
     }
 
-    uint32_t numActivePages() { return fNumActivePages; }
+    uint32_t numActivePages() const { return fNumActivePages; }
+    unsigned int numPlots() const { return fNumPlots; }
 
     void setLastUseTokenBulk(const BulkUsePlotUpdater& updater,
                              AtlasToken token) {
@@ -152,6 +153,8 @@ public:
     }
 
     void compact(AtlasToken startTokenForNextFlush);
+
+    void evictAllPlots();
 
     uint32_t maxPages() const {
         return fMaxPages;
@@ -258,26 +261,6 @@ private:
 
     SkISize fARGBDimensions;
     int     fMaxTextureSize;
-};
-
-// For tracking when Plots have been uploaded for Recording replay
-class PlotUploadTracker {
-public:
-    PlotUploadTracker() = default;
-
-    bool needsUpload(PlotLocator plotLocator, AtlasToken uploadToken, uint32_t atlasID);
-
-private:
-    struct PlotAgeData {
-        uint64_t genID;
-        AtlasToken uploadToken;
-    };
-
-    // mapping from page+plot pair to PlotAgeData
-    using PlotAgeHashMap = skia_private::THashMap<uint32_t, PlotAgeData>;
-
-    // mapping from atlasID to PlotAgeHashMap for that atlas
-    skia_private::THashMap<uint32_t, PlotAgeHashMap> fAtlasData;
 };
 
 }  // namespace skgpu::graphite

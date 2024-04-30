@@ -31,15 +31,15 @@
 #define ARROW_FRIEND_EXPORT ARROW_EXPORT
 #define ARROW_TEMPLATE_EXPORT ARROW_EXPORT
 
-#define ARROW_FORCE_INLINE __forceinline
-
 #else
 
 // Non-Windows
 
-#define ARROW_FORCE_INLINE
 
 #define ARROW_FRIEND_EXPORT
 #define ARROW_TEMPLATE_EXPORT
+
+// [[gnu::visibility("default")]] even when #included by a non-arrow source
+#define ARROW_FORCE_EXPORT [[gnu::visibility("default")]]
 
 #endif  // Non-Windows

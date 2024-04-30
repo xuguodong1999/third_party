@@ -40,6 +40,7 @@
 #endif
 
 #include "private/buf.h"
+#include "private/parser.h"
 #include "private/tree.h"
 #ifdef LIBXML_XINCLUDE_ENABLED
 #include "private/xinclude.h"
@@ -1378,6 +1379,7 @@ node_found:
      * Handle XInclude if asked for
      */
     if ((reader->xinclude) && (reader->in_xinclude == 0) &&
+        (reader->state != XML_TEXTREADER_BACKTRACK) &&
         (reader->node != NULL) &&
 	(reader->node->type == XML_ELEMENT_NODE) &&
 	(reader->node->ns != NULL) &&
@@ -2794,20 +2796,17 @@ xmlTextReaderReadAttributeValue(xmlTextReaderPtr reader) {
  */
 const xmlChar *
 xmlTextReaderConstEncoding(xmlTextReaderPtr reader) {
-    xmlDocPtr doc = NULL;
-    if (reader == NULL)
-	return(NULL);
-    if (reader->doc != NULL)
-        doc = reader->doc;
-    else if (reader->ctxt != NULL)
-	doc = reader->ctxt->myDoc;
-    if (doc == NULL)
-	return(NULL);
+    const xmlChar *encoding = NULL;
 
-    if (doc->encoding == NULL)
-	return(NULL);
-    else
-      return(CONSTSTR(doc->encoding));
+    if (reader == NULL)
+        return(NULL);
+
+    if (reader->ctxt != NULL)
+        encoding = xmlGetActualEncoding(reader->ctxt);
+    else if (reader->doc != NULL)
+        encoding = reader->doc->encoding;
+
+    return(CONSTSTR(encoding));
 }
 
 
