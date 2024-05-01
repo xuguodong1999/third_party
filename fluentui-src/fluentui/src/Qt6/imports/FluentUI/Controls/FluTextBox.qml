@@ -13,7 +13,6 @@ TextField{
     property color placeholderNormalColor: FluTheme.dark ? Qt.rgba(210/255,210/255,210/255,1) : Qt.rgba(96/255,96/255,96/255,1)
     property color placeholderFocusColor: FluTheme.dark ? Qt.rgba(152/255,152/255,152/255,1) : Qt.rgba(141/255,141/255,141/255,1)
     property color placeholderDisableColor: FluTheme.dark ? Qt.rgba(131/255,131/255,131/255,1) : Qt.rgba(160/255,160/255,160/255,1)
-    property int iconRightMargin: icon_end.visible ? 40 : 5
     property bool cleanEnabled: true
     id:control
     padding: 7
@@ -27,7 +26,7 @@ TextField{
     }
     font:FluTextStyle.Body
     renderType: FluTheme.nativeText ? Text.NativeRendering : Text.QtRendering
-    selectionColor: FluTools.colorAlpha(FluTheme.primaryColor.lightest,0.6)
+    selectionColor: FluTools.withOpacity(FluTheme.primaryColor,0.5)
     selectedTextColor: color
     placeholderTextColor: {
         if(!enabled){
@@ -39,10 +38,18 @@ TextField{
         return placeholderNormalColor
     }
     selectByMouse: true
-    rightPadding: icon_end.visible ? 50 : 30
+    rightPadding: {
+        var w = 30
+        if(control.cleanEnabled === false){
+            w = 0
+        }
+        if(control.readOnly)
+            w = 0
+        return icon_end.visible ? w+36 : w+10
+    }
+    width: 240
     background: FluTextBoxBackground{
         inputItem: control
-        implicitWidth: 240
     }
     Keys.onEnterPressed: (event)=> d.handleCommit(event)
     Keys.onReturnPressed:(event)=> d.handleCommit(event)
@@ -56,7 +63,15 @@ TextField{
         anchors.fill: parent
         cursorShape: Qt.IBeamCursor
         acceptedButtons: Qt.RightButton
-        onClicked: control.echoMode !== TextInput.Password && menu.popup()
+        onClicked: {
+            if(control.echoMode === TextInput.Password){
+                return
+            }
+            if(control.readOnly && control.text === ""){
+                return
+            }
+            menu.popup()
+        }
     }
     RowLayout{
         height: parent.height
@@ -84,7 +99,7 @@ TextField{
             }
             contentDescription:"Clean"
             onClicked:{
-                control.text = ""
+                control.clear()
             }
         }
         FluIcon{
@@ -92,7 +107,7 @@ TextField{
             iconSource: control.iconSource
             iconSize: 12
             Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: 10
+            Layout.rightMargin: 7
             iconColor: FluTheme.dark ? Qt.rgba(222/255,222/255,222/255,1) : Qt.rgba(97/255,97/255,97/255,1)
             visible: control.iconSource != 0
         }

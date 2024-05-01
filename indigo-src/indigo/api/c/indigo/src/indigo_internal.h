@@ -34,6 +34,8 @@
 #include "base_cpp/exception.h"
 #include "base_cpp/io_base.h"
 
+#include "layout/reaction_layout.h"
+
 #include "molecule/molecule_fingerprint.h"
 #include "molecule/molecule_gross_formula.h"
 #include "molecule/molecule_ionize.h"
@@ -315,8 +317,10 @@ public:
     bool molfile_saving_skip_date;
     bool molfile_saving_add_stereo_desc;
     bool molfile_saving_add_implicit_h;
+    bool molfile_saving_add_mrv_sma;
     bool json_saving_add_stereo_desc;
     bool json_saving_pretty;
+    bool json_use_native_precision;
     bool smiles_saving_write_name;
     bool smiles_saving_smarts_mode;
 
@@ -327,7 +331,8 @@ public:
 
     int layout_max_iterations; // default is zero -- no limit
     bool smart_layout = false;
-    float layout_horintervalfactor = 1.4f;
+    float layout_horintervalfactor = ReactionLayout::DEFAULT_HOR_INTERVAL_FACTOR;
+    bool layout_preserve_existing = false;
 
     int layout_orientation = 0;
 

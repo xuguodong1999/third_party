@@ -157,57 +157,67 @@ INDIGO_EXPORT int indigoRemove(int item);
 
 /* Molecules, query molecules, SMARTS */
 
+INDIGO_EXPORT const char* indigoGetOriginalFormat(int item);
+
 INDIGO_EXPORT int indigoCreateMolecule(void);
 INDIGO_EXPORT int indigoCreateQueryMolecule(void);
 
-INDIGO_EXPORT int indigoLoadStructureFromString(const char *string, const char *params);
-INDIGO_EXPORT int indigoLoadStructureFromBuffer(const byte *string, int bufferSize, const char *params);
-INDIGO_EXPORT int indigoLoadStructureFromFile(const char *filename, const char *params);
+INDIGO_EXPORT int indigoLoadStructureFromString(const char* string, const char* params);
+INDIGO_EXPORT int indigoLoadStructureFromBuffer(const byte* string, int bufferSize, const char* params);
+INDIGO_EXPORT int indigoLoadStructureFromFile(const char* filename, const char* params);
 
 INDIGO_EXPORT int indigoLoadMolecule(int source);
-INDIGO_EXPORT int indigoLoadMoleculeFromString(const char *string);
-INDIGO_EXPORT int indigoLoadMoleculeFromFile(const char *filename);
-INDIGO_EXPORT int indigoLoadMoleculeFromBuffer(const char *buffer, int size);
+INDIGO_EXPORT int indigoLoadMoleculeFromString(const char* string);
+INDIGO_EXPORT int indigoLoadMoleculeFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadMoleculeFromBuffer(const char* buffer, int size);
 
 INDIGO_EXPORT int indigoLoadQueryMolecule(int source);
-INDIGO_EXPORT int indigoLoadQueryMoleculeFromString(const char *string);
-INDIGO_EXPORT int indigoLoadQueryMoleculeFromFile(const char *filename);
-INDIGO_EXPORT int indigoLoadQueryMoleculeFromBuffer(const char *buffer, int size);
+INDIGO_EXPORT int indigoLoadQueryMoleculeFromString(const char* string);
+INDIGO_EXPORT int indigoLoadQueryMoleculeFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadQueryMoleculeFromBuffer(const char* buffer, int size);
 
 INDIGO_EXPORT int indigoLoadSmarts(int source);
-INDIGO_EXPORT int indigoLoadSmartsFromString(const char *string);
-INDIGO_EXPORT int indigoLoadSmartsFromFile(const char *filename);
-INDIGO_EXPORT int indigoLoadSmartsFromBuffer(const char *buffer, int size);
+INDIGO_EXPORT int indigoLoadSmartsFromString(const char* string);
+INDIGO_EXPORT int indigoLoadSmartsFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadSmartsFromBuffer(const char* buffer, int size);
+
+INDIGO_EXPORT int indigoLoadSequence(int source, const char* seq_type);
+INDIGO_EXPORT int indigoLoadSequenceFromString(const char* string, const char* seq_type);
+INDIGO_EXPORT int indigoLoadSequenceFromFile(const char* filename, const char* seq_type);
 
 INDIGO_EXPORT int indigoSaveMolfile(int molecule, int output);
-INDIGO_EXPORT int indigoSaveMolfileToFile(int molecule, const char *filename);
-INDIGO_EXPORT const char *indigoMolfile(int molecule);
+INDIGO_EXPORT int indigoSaveMolfileToFile(int molecule, const char* filename);
+INDIGO_EXPORT const char* indigoMolfile(int molecule);
 
-INDIGO_EXPORT int indigoSaveJsonToFile(int item, const char *filename);
+INDIGO_EXPORT int indigoSaveSequence(int molecule, int output);
+INDIGO_EXPORT int indigoSaveSequenceToFile(int molecule, const char* filename);
+INDIGO_EXPORT const char* indigoSequence(int molecule);
+
+INDIGO_EXPORT int indigoSaveJsonToFile(int item, const char* filename);
 INDIGO_EXPORT int indigoSaveJson(int item, int output);
 
 // accepts molecules and reactions (but not query ones)
 INDIGO_EXPORT int indigoSaveCml(int object, int output);
-INDIGO_EXPORT int indigoSaveCmlToFile(int object, const char *filename);
-INDIGO_EXPORT const char *indigoCml(int object);
-INDIGO_EXPORT const char *indigoCdxBase64(int object);
+INDIGO_EXPORT int indigoSaveCmlToFile(int object, const char* filename);
+INDIGO_EXPORT const char* indigoCml(int object);
+INDIGO_EXPORT const char* indigoCdxBase64(int object);
 
 // accepts molecules and reactions
 INDIGO_EXPORT int indigoSaveCdxml(int object, int output);
 INDIGO_EXPORT int indigoSaveCdx(int item, int output);
 
-INDIGO_EXPORT const char *indigoCdxml(int item);
+INDIGO_EXPORT const char* indigoCdxml(int item);
 
-INDIGO_EXPORT int indigoSaveCdxmlToFile(int object, const char *filename);
-INDIGO_EXPORT int indigoSaveCdxToFile(int item, const char *filename);
+INDIGO_EXPORT int indigoSaveCdxmlToFile(int object, const char* filename);
+INDIGO_EXPORT int indigoSaveCdxToFile(int item, const char* filename);
 
-INDIGO_EXPORT const char *indigoCdxml(int object);
+INDIGO_EXPORT const char* indigoCdxml(int object);
 
 // the output must be a file or a buffer, but not a string
 // (because MDLCT data usually contains zeroes)
 INDIGO_EXPORT int indigoSaveMDLCT(int item, int output);
 
-INDIGO_EXPORT const char *indigoJson(int object);
+INDIGO_EXPORT const char* indigoJson(int object);
 
 /*
 Converts a chemical name into a corresponding structure
@@ -222,7 +232,8 @@ INDIGO_EXPORT int indigoNameToStructure(const char *name, const char *params);
 /*
  * Reaction centers
  */
-enum {
+enum
+{
     INDIGO_RC_NOT_CENTER = -1,
     INDIGO_RC_UNMARKED = 0,
     INDIGO_RC_CENTER = 1,
@@ -324,7 +335,8 @@ INDIGO_EXPORT int indigoCorrectReactingCenters(int reaction);
 
 /* Accessing a molecule */
 
-enum {
+enum
+{
     INDIGO_ABS = 1,
     INDIGO_OR = 2,
     INDIGO_AND = 3,
@@ -420,28 +432,29 @@ INDIGO_EXPORT int indigoCheckQuery(int item);
 INDIGO_EXPORT int indigoCheckRGroups(int item);
 
 // Returns check result for Indigo object as text file for requested properties as JSON
-INDIGO_EXPORT const char *indigoCheck(const char *item, const char *check_flags, const char *load_params);
+INDIGO_EXPORT const char* indigoCheck(const char* item, const char* check_flags, const char* load_params);
 
 // Returns check result for Indigo object for requested properties as JSON
-INDIGO_EXPORT const char *indigoCheckObj(int item, const char *check_flags);
+INDIGO_EXPORT const char* indigoCheckObj(int item, const char* check_flags);
 
 // Returns check result for structure against requested properties
-INDIGO_EXPORT const char *indigoCheckStructure(const char *structure, const char *props);
+INDIGO_EXPORT const char* indigoCheckStructure(const char* structure, const char* props);
 
 // Applicable to atoms, query atoms, and molecules. Can fail
 // (return zero) on query atoms where the number of hydrogens
 // is not definitely known. Otherwise, returns one and writes *hydro.
-INDIGO_EXPORT int indigoCountHydrogens(int item, int *hydro);
+INDIGO_EXPORT int indigoCountHydrogens(int item, int* hydro);
 
 // Applicable to non-query molecules and atoms.
 INDIGO_EXPORT int indigoCountImplicitHydrogens(int item);
 
 // On success, returns always the same pointer to a 3-element array;
 // you should not free() it, but rather memcpy() it if you want to keep it.
-INDIGO_EXPORT float *indigoXYZ(int atom);
+INDIGO_EXPORT float* indigoXYZ(int atom);
 
 INDIGO_EXPORT int indigoSetXYZ(int atom, float x, float y, float z);
 
+INDIGO_EXPORT int indigoClearXYZ(int molecule);
 INDIGO_EXPORT int indigoCountSuperatoms(int molecule);
 INDIGO_EXPORT int indigoCountDataSGroups(int molecule);
 INDIGO_EXPORT int indigoCountRepeatingUnits(int molecule);
@@ -462,56 +475,52 @@ INDIGO_EXPORT int indigoGetGenericSGroup(int molecule, int index);
 INDIGO_EXPORT int indigoGetMultipleGroup(int molecule, int index);
 INDIGO_EXPORT int indigoGetRepeatingUnit(int molecule, int index);
 
-INDIGO_EXPORT const char *indigoDescription(int data_sgroup);
-INDIGO_EXPORT const char *indigoData(int data_sgroup);
+INDIGO_EXPORT const char* indigoDescription(int data_sgroup);
+INDIGO_EXPORT const char* indigoData(int data_sgroup);
 
-INDIGO_EXPORT int
-indigoAddDataSGroup(int molecule, int natoms, int *atoms, int nbonds, int *bonds, const char *description,
-                    const char *data);
+INDIGO_EXPORT int indigoAddDataSGroup(int molecule, int natoms, int* atoms, int nbonds, int* bonds, const char* description, const char* data);
 
-INDIGO_EXPORT int indigoAddSuperatom(int molecule, int natoms, int *atoms, const char *name);
+INDIGO_EXPORT int indigoAddSuperatom(int molecule, int natoms, int* atoms, const char* name);
 
-INDIGO_EXPORT int indigoSetDataSGroupXY(int sgroup, float x, float y, const char *options);
+INDIGO_EXPORT int indigoSetDataSGroupXY(int sgroup, float x, float y, const char* options);
 
-INDIGO_EXPORT int indigoSetSGroupData(int sgroup, const char *data);
+INDIGO_EXPORT int indigoSetSGroupData(int sgroup, const char* data);
 INDIGO_EXPORT int indigoSetSGroupCoords(int sgroup, float x, float y);
-INDIGO_EXPORT int indigoSetSGroupDescription(int sgroup, const char *description);
-INDIGO_EXPORT int indigoSetSGroupFieldName(int sgroup, const char *name);
-INDIGO_EXPORT int indigoSetSGroupQueryCode(int sgroup, const char *querycode);
-INDIGO_EXPORT int indigoSetSGroupQueryOper(int sgroup, const char *queryoper);
-INDIGO_EXPORT int indigoSetSGroupDisplay(int sgroup, const char *option);
-INDIGO_EXPORT int indigoSetSGroupLocation(int sgroup, const char *option);
-INDIGO_EXPORT int indigoSetSGroupTag(int sgroup, const char *tag);
+INDIGO_EXPORT int indigoSetSGroupDescription(int sgroup, const char* description);
+INDIGO_EXPORT int indigoSetSGroupFieldName(int sgroup, const char* name);
+INDIGO_EXPORT int indigoSetSGroupQueryCode(int sgroup, const char* querycode);
+INDIGO_EXPORT int indigoSetSGroupQueryOper(int sgroup, const char* queryoper);
+INDIGO_EXPORT int indigoSetSGroupDisplay(int sgroup, const char* option);
+INDIGO_EXPORT int indigoSetSGroupLocation(int sgroup, const char* option);
+INDIGO_EXPORT int indigoSetSGroupTag(int sgroup, const char* tag);
 INDIGO_EXPORT int indigoSetSGroupTagAlign(int sgroup, int tag_align);
-INDIGO_EXPORT int indigoSetSGroupDataType(int sgroup, const char *type);
+INDIGO_EXPORT int indigoSetSGroupDataType(int sgroup, const char* type);
 INDIGO_EXPORT int indigoSetSGroupXCoord(int sgroup, float x);
 INDIGO_EXPORT int indigoSetSGroupYCoord(int sgroup, float y);
 
-INDIGO_EXPORT int indigoCreateSGroup(const char *type, int mapping, const char *name);
-INDIGO_EXPORT const char *indigoGetSGroupClass(int sgroup);
-INDIGO_EXPORT const char *indigoGetSGroupName(int sgroup);
-INDIGO_EXPORT int indigoSetSGroupClass(int sgroup, const char *sgclass);
-INDIGO_EXPORT int indigoSetSGroupName(int sgroup, const char *sgname);
+INDIGO_EXPORT int indigoCreateSGroup(const char* type, int mapping, const char* name);
+INDIGO_EXPORT const char* indigoGetSGroupClass(int sgroup);
+INDIGO_EXPORT const char* indigoGetSGroupName(int sgroup);
+INDIGO_EXPORT int indigoSetSGroupClass(int sgroup, const char* sgclass);
+INDIGO_EXPORT int indigoSetSGroupName(int sgroup, const char* sgname);
 INDIGO_EXPORT int indigoGetSGroupNumCrossBonds(int sgroup);
 
-INDIGO_EXPORT int indigoAddSGroupAttachmentPoint(int sgroup, int aidx, int lvidx, const char *apid);
+INDIGO_EXPORT int indigoAddSGroupAttachmentPoint(int sgroup, int aidx, int lvidx, const char* apid);
 INDIGO_EXPORT int indigoDeleteSGroupAttachmentPoint(int sgroup, int index);
 INDIGO_EXPORT int indigoGetSGroupDisplayOption(int sgroup);
 INDIGO_EXPORT int indigoSetSGroupDisplayOption(int sgroup, int option);
 INDIGO_EXPORT int indigoGetSGroupSeqId(int sgroup);
-INDIGO_EXPORT float *indigoGetSGroupCoords(int sgroup);
+INDIGO_EXPORT float* indigoGetSGroupCoords(int sgroup);
 
 INDIGO_EXPORT int indigoGetSGroupMultiplier(int sgroup);
 INDIGO_EXPORT int indigoSetSGroupMultiplier(int sgroup, int multiplier);
 
-INDIGO_EXPORT const char *indigoGetRepeatingUnitSubscript(int sgroup);
+INDIGO_EXPORT const char* indigoGetRepeatingUnitSubscript(int sgroup);
 INDIGO_EXPORT int indigoGetRepeatingUnitConnectivity(int sgroup);
 
-INDIGO_EXPORT int
-indigoSetSGroupBrackets(int sgroup, int brk_style, float x1, float y1, float x2, float y2, float x3, float y3, float x4,
-                        float y4);
+INDIGO_EXPORT int indigoSetSGroupBrackets(int sgroup, int brk_style, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
 
-INDIGO_EXPORT int indigoFindSGroups(int item, const char *property, const char *value);
+INDIGO_EXPORT int indigoFindSGroups(int item, const char* property, const char* value);
 
 INDIGO_EXPORT int indigoGetSGroupType(int item);
 INDIGO_EXPORT int indigoGetSGroupIndex(int item);
@@ -521,13 +530,13 @@ INDIGO_EXPORT int indigoSetSGroupOriginalId(int sgroup, int original);
 INDIGO_EXPORT int indigoGetSGroupParentId(int sgroup);
 INDIGO_EXPORT int indigoSetSGroupParentId(int sgroup, int parent);
 
-INDIGO_EXPORT int indigoAddTemplate(int molecule, int templates, const char *tname);
-INDIGO_EXPORT int indigoRemoveTemplate(int molecule, const char *tname);
-INDIGO_EXPORT int indigoFindTemplate(int molecule, const char *tname);
+INDIGO_EXPORT int indigoAddTemplate(int molecule, int templates, const char* tname);
+INDIGO_EXPORT int indigoRemoveTemplate(int molecule, const char* tname);
+INDIGO_EXPORT int indigoFindTemplate(int molecule, const char* tname);
 
-INDIGO_EXPORT const char *indigoGetTGroupClass(int tgroup);
-INDIGO_EXPORT const char *indigoGetTGroupName(int tgroup);
-INDIGO_EXPORT const char *indigoGetTGroupAlias(int tgroup);
+INDIGO_EXPORT const char* indigoGetTGroupClass(int tgroup);
+INDIGO_EXPORT const char* indigoGetTGroupName(int tgroup);
+INDIGO_EXPORT const char* indigoGetTGroupAlias(int tgroup);
 
 INDIGO_EXPORT int indigoTransformSCSRtoCTAB(int item);
 INDIGO_EXPORT int indigoTransformCTABtoSCSR(int molecule, int templates);
@@ -539,10 +548,10 @@ INDIGO_EXPORT int indigoResetIsotope(int atom);
 INDIGO_EXPORT int indigoSetAttachmentPoint(int atom, int order);
 INDIGO_EXPORT int indigoClearAttachmentPoints(int item);
 
-INDIGO_EXPORT int indigoRemoveConstraints(int item, const char *type);
-INDIGO_EXPORT int indigoAddConstraint(int item, const char *type, const char *value);
-INDIGO_EXPORT int indigoAddConstraintNot(int item, const char *type, const char *value);
-INDIGO_EXPORT int indigoAddConstraintOr(int atom, const char *type, const char *value);
+INDIGO_EXPORT int indigoRemoveConstraints(int item, const char* type);
+INDIGO_EXPORT int indigoAddConstraint(int item, const char* type, const char* value);
+INDIGO_EXPORT int indigoAddConstraintNot(int item, const char* type, const char* value);
+INDIGO_EXPORT int indigoAddConstraintOr(int atom, const char* type, const char* value);
 
 INDIGO_EXPORT int indigoResetStereo(int item);
 INDIGO_EXPORT int indigoInvertStereo(int item);
@@ -595,24 +604,24 @@ INDIGO_EXPORT int indigoValidateChirality(int handle);
 
 // Accepts a symbol from the periodic table (like "C" or "Br"),
 // or a pseudoatom symbol, like "Pol". Returns the added atom.
-INDIGO_EXPORT int indigoAddAtom(int molecule, const char *symbol);
+INDIGO_EXPORT int indigoAddAtom(int molecule, const char* symbol);
 // Set a new atom instead of specified
-INDIGO_EXPORT int indigoResetAtom(int atom, const char *symbol);
+INDIGO_EXPORT int indigoResetAtom(int atom, const char* symbol);
 
-INDIGO_EXPORT const char *indigoGetTemplateAtomClass(int atom);
-INDIGO_EXPORT int indigoSetTemplateAtomClass(int atom, const char *name);
+INDIGO_EXPORT const char* indigoGetTemplateAtomClass(int atom);
+INDIGO_EXPORT int indigoSetTemplateAtomClass(int atom, const char* name);
 
 // Accepts Rsite name "R" (or just ""), "R1", "R2" or list with names "R1 R3"
-INDIGO_EXPORT int indigoAddRSite(int molecule, const char *name);
-INDIGO_EXPORT int indigoSetRSite(int atom, const char *name);
+INDIGO_EXPORT int indigoAddRSite(int molecule, const char* name);
+INDIGO_EXPORT int indigoSetRSite(int atom, const char* name);
 
 INDIGO_EXPORT int indigoSetCharge(int atom, int charge);
 INDIGO_EXPORT int indigoSetIsotope(int atom, int isotope);
 
 // If the radical is nonambiguous, returns 1 and writes *electrons
-INDIGO_EXPORT int indigoGetRadicalElectrons(int atom, int *electrons);
+INDIGO_EXPORT int indigoGetRadicalElectrons(int atom, int* electrons);
 // If the radical is nonambiguous, returns 1 and writes *radical
-INDIGO_EXPORT int indigoGetRadical(int atom, int *radical);
+INDIGO_EXPORT int indigoGetRadical(int atom, int* radical);
 INDIGO_EXPORT int indigoSetRadical(int atom, int radical);
 INDIGO_EXPORT int indigoResetRadical(int atom);
 
@@ -677,7 +686,7 @@ INDIGO_EXPORT int indigoGrossFormula(int molecule);
 INDIGO_EXPORT double indigoMolecularWeight(int molecule);
 INDIGO_EXPORT double indigoMostAbundantMass(int molecule);
 INDIGO_EXPORT double indigoMonoisotopicMass(int molecule);
-INDIGO_EXPORT const char *indigoMassComposition(int molecule);
+INDIGO_EXPORT const char* indigoMassComposition(int molecule);
 INDIGO_EXPORT double indigoTPSA(int molecule, int includeSP);
 INDIGO_EXPORT int indigoNumRotatableBonds(int molecule);
 INDIGO_EXPORT int indigoNumHydrogenBondAcceptors(int molecule);
@@ -686,12 +695,12 @@ INDIGO_EXPORT double indigoLogP(int molecule);
 INDIGO_EXPORT double indigoMolarRefractivity(int molecule);
 INDIGO_EXPORT double indigoPka(int molecule);
 
-INDIGO_EXPORT const char *indigoCanonicalSmiles(int molecule);
-INDIGO_EXPORT const char *indigoLayeredCode(int molecule);
+INDIGO_EXPORT const char* indigoCanonicalSmiles(int molecule);
+INDIGO_EXPORT const char* indigoLayeredCode(int molecule);
 
 INDIGO_EXPORT int64_t indigoHash(int chemicalObject);
 
-INDIGO_EXPORT const int *indigoSymmetryClasses(int molecule, int *count_out);
+INDIGO_EXPORT const int* indigoSymmetryClasses(int molecule, int* count_out);
 
 INDIGO_EXPORT int indigoHasCoord(int molecule);
 INDIGO_EXPORT int indigoHasZCoord(int molecule);
@@ -700,22 +709,22 @@ INDIGO_EXPORT int indigoCheckChirality(int molecule);
 INDIGO_EXPORT int indigoCheck3DStereo(int molecule);
 INDIGO_EXPORT int indigoCheckStereo(int molecule);
 
-INDIGO_EXPORT int indigoIsPossibleFischerProjection(int molecule, const char *options);
+INDIGO_EXPORT int indigoIsPossibleFischerProjection(int molecule, const char* options);
 
-INDIGO_EXPORT int indigoCreateSubmolecule(int molecule, int nvertices, int *vertices);
-INDIGO_EXPORT int indigoCreateEdgeSubmolecule(int molecule, int nvertices, int *vertices, int nedges, int *edges);
+INDIGO_EXPORT int indigoCreateSubmolecule(int molecule, int nvertices, int* vertices);
+INDIGO_EXPORT int indigoCreateEdgeSubmolecule(int molecule, int nvertices, int* vertices, int nedges, int* edges);
 
-INDIGO_EXPORT int indigoGetSubmolecule(int molecule, int nvertices, int *vertices);
+INDIGO_EXPORT int indigoGetSubmolecule(int molecule, int nvertices, int* vertices);
 
-INDIGO_EXPORT int indigoRemoveAtoms(int molecule, int nvertices, int *vertices);
-INDIGO_EXPORT int indigoRemoveBonds(int molecule, int nbonds, int *bonds);
+INDIGO_EXPORT int indigoRemoveAtoms(int molecule, int nvertices, int* vertices);
+INDIGO_EXPORT int indigoRemoveBonds(int molecule, int nbonds, int* bonds);
 
 // Determines and applies the best transformation to the given molecule
 // so that the specified atoms move as close as possible to the desired
 // positions. The size of desired_xyz is equal to 3 * natoms.
 // The return value is the root-mean-square measure of the difference
 // between the desired and obtained positions.
-INDIGO_EXPORT float indigoAlignAtoms(int molecule, int natoms, int *atom_ids, float *desired_xyz);
+INDIGO_EXPORT float indigoAlignAtoms(int molecule, int natoms, int* atom_ids, float* desired_xyz);
 
 /* Things that work for both molecules and reactions */
 
@@ -724,13 +733,14 @@ INDIGO_EXPORT int indigoDearomatize(int item);
 
 INDIGO_EXPORT int indigoFoldHydrogens(int item);
 INDIGO_EXPORT int indigoUnfoldHydrogens(int item);
+INDIGO_EXPORT int indigoFoldUnfoldHydrogens(int item);
 
 INDIGO_EXPORT int indigoLayout(int object);
 INDIGO_EXPORT int indigoClean2d(int object);
 
-INDIGO_EXPORT const char *indigoSmiles(int item);
-INDIGO_EXPORT const char *indigoSmarts(int item);
-INDIGO_EXPORT const char *indigoCanonicalSmarts(int item);
+INDIGO_EXPORT const char* indigoSmiles(int item);
+INDIGO_EXPORT const char* indigoSmarts(int item);
+INDIGO_EXPORT const char* indigoCanonicalSmarts(int item);
 
 // Returns a "mapping" if there is an exact match, zero otherwise
 // The flags string consists of space-separated flags.

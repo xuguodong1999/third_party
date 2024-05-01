@@ -142,8 +142,8 @@ static bool ElementHygrodenOnLeft[] = {
 
 static bool _isBondWide(const BondDescr& bd)
 {
-    return bd.type == BOND_DOUBLE || bd.type == BOND_TRIPLE || bd.queryType == QueryMolecule::QUERY_BOND_DOUBLE_OR_AROMATIC ||
-           bd.queryType == QueryMolecule::QUERY_BOND_SINGLE_OR_AROMATIC || bd.queryType == QueryMolecule::QUERY_BOND_SINGLE_OR_DOUBLE;
+    return bd.type == BOND_DOUBLE || bd.type == BOND_TRIPLE || bd.queryType == _BOND_DOUBLE_OR_AROMATIC || bd.queryType == _BOND_SINGLE_OR_AROMATIC ||
+           _BOND_SINGLE_OR_DOUBLE;
 }
 
 RenderOptions::RenderOptions()
@@ -2472,16 +2472,9 @@ void MoleculeRenderInternal::_writeQueryAtomToString(Output& output, int aid)
         }
         else if (ad.queryLabel == QueryMolecule::QUERY_ATOM_LIST || ad.queryLabel == QueryMolecule::QUERY_ATOM_NOTLIST)
         {
-            if (ad.queryLabel == QueryMolecule::QUERY_ATOM_NOTLIST)
-                output.printf("!");
-            output.printf("[");
-            for (int i = 0; i < ad.list.size(); ++i)
-            {
-                if (i > 0)
-                    output.printf(",");
-                output.printf("%s", Element::toString(ad.list[i]));
-            }
-            output.printf("]");
+            QueryMolecule& qm = bm.asQueryMolecule();
+            QueryMolecule::Atom& qa = qm.getAtom(aid);
+            QueryMolecule::writeSmartsAtom(output, &qa, -1, -1, 0, false, false, bm.original_format);
         }
         else
         {
@@ -3096,9 +3089,9 @@ void MoleculeRenderInternal::_prepareLabelText(int aid)
             label.fontsize = FONT_SIZE_LABEL;
             ArrayOutput output(label.text);
             if (ad.type == AtomDesc::TYPE_REGULAR)
-                if (ad.label == ELEM_H && isotope == 2)
+                if (ad.label == ELEM_H && isotope == DEUTERIUM)
                     output.printf("D");
-                else if (ad.label == ELEM_H && isotope == 3)
+                else if (ad.label == ELEM_H && isotope == TRITIUM)
                     output.printf("T");
                 else
                     output.printf(Element::toString(ad.label));
@@ -3660,16 +3653,16 @@ void MoleculeRenderInternal::_drawBond(int b)
     default:
         switch (bd.queryType)
         {
-        case QueryMolecule::QUERY_BOND_ANY:
+        case _BOND_ANY:
             _bondAny(bd, be1, be2);
             break;
-        case QueryMolecule::QUERY_BOND_SINGLE_OR_DOUBLE:
+        case _BOND_SINGLE_OR_DOUBLE:
             _bondSingleOrDouble(bd, be1, be2);
             break;
-        case QueryMolecule::QUERY_BOND_DOUBLE_OR_AROMATIC:
+        case _BOND_DOUBLE_OR_AROMATIC:
             _bondDoubleOrAromatic(bd, be1, be2);
             break;
-        case QueryMolecule::QUERY_BOND_SINGLE_OR_AROMATIC:
+        case _BOND_SINGLE_OR_AROMATIC:
             _bondSingleOrAromatic(bd, be1, be2);
             break;
         default:

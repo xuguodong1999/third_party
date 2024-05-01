@@ -3,7 +3,7 @@ import QtQuick.Controls
 import FluentUI
 
 Image {
-    property string errorButtonText: "重新加载"
+    property string errorButtonText: qsTr("Reload")
     property var clickErrorListener : function(){
         image.source = ""
         image.source = control.source
@@ -11,7 +11,7 @@ Image {
     property Component errorItem : com_error
     property Component loadingItem: com_loading
     id: control
-    Loader{
+    FluLoader{
         anchors.fill: parent
         sourceComponent: {
             if(control.status === Image.Loading){
@@ -26,7 +26,7 @@ Image {
     Component{
         id:com_loading
         Rectangle{
-            color: FluTheme.dark ? Qt.rgba(1,1,1,0.03) : Qt.rgba(0,0,0,0.03)
+            color: FluTheme.itemHoverColor
             FluProgressRing{
                 anchors.centerIn: parent
                 visible: control.status === Image.Loading
@@ -36,7 +36,7 @@ Image {
     Component{
         id:com_error
         Rectangle{
-            color: FluTheme.dark ? Qt.rgba(1,1,1,0.03) : Qt.rgba(0,0,0,0.03)
+            color: FluTheme.itemHoverColor
             FluFilledButton{
                 text: control.errorButtonText
                 anchors.centerIn: parent

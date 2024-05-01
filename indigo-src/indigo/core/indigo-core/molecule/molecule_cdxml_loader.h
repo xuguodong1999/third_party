@@ -54,14 +54,6 @@ namespace indigo
     class Molecule;
     class QueryMolecule;
 
-    inline bool validate_base64(const std::string& str)
-    {
-        if (str.size() & 3) // check for padding
-            return false;
-        std::regex base64reg_exp("^[a-zA-Z0-9\\+/]*={0,3}$");
-        return std::regex_match(str, base64reg_exp);
-    }
-
     class AutoInt
     {
     public:
@@ -113,8 +105,8 @@ namespace indigo
 
     struct CdxmlKetTextStyle
     {
-        int offset;
-        int size;
+        std::size_t offset;
+        std::size_t size;
         std::list<std::string> styles;
     };
 
@@ -153,8 +145,8 @@ namespace indigo
         bool is_not_list;
         bool has_fragment;
         std::vector<AutoInt> element_list;
-        std::unordered_map<int, int> bond_id_to_connection_idx;
-        std::unordered_map<int, int> node_id_to_connection_idx;
+        std::unordered_map<int, std::size_t> bond_id_to_connection_idx;
+        std::unordered_map<int, std::size_t> node_id_to_connection_idx;
         std::vector<_ExtConnection> connections;
         std::vector<int> ext_connections;
         std::vector<int> inner_nodes;
@@ -186,30 +178,43 @@ namespace indigo
         bool is_superatom;
     };
 
-    inline std::vector<std::string> split(const std::string& str, char delim)
-    {
-        std::vector<std::string> strings;
-        size_t start;
-        size_t end = 0;
-        while ((start = str.find_first_not_of(delim, end)) != std::string::npos)
-        {
-            end = str.find(delim, start);
-            strings.push_back(str.substr(start, end - start));
-        }
-        return strings;
-    }
-
     class CDXProperty
     {
     public:
         DECL_ERROR;
+
+        static constexpr int tag_size = sizeof(uint16_t);
+        static constexpr int id_size = sizeof(uint32_t);
+        static constexpr int tag_id_size = tag_size + id_size;
+
         CDXProperty() : CDXProperty(nullptr)
         {
         }
 
-        CDXProperty(const void* data, const void* data_limit = nullptr, int size = 0, int first_id = 0, int style_index = -1, int style_prop = -1)
-            : _data(data), _data_limit(data_limit), _size(size), _first_id(first_id), _style_index(style_index), _style_prop(style_prop)
+        CDXProperty(const void* data, const void* data_limit = nullptr, uint32_t size = 0, bool is_object = false, int style_index = -1, int style_prop = -1)
+            : _data(data), _data_limit(data_limit), _size(size), _is_object(is_object), _style_index(style_index), _style_prop(style_prop)
         {
+        }
+
+        static const uint8_t* get_size(const void* data, uint32_t& size)
+        {
+            const uint16_t* p16 = reinterpret_cast<const uint16_t*>(data);
+            const uint8_t* p8 = reinterpret_cast<const uint8_t*>(data);
+            size = *p16;
+            p8 += sizeof(uint16_t);
+            if (0xFFFF == size)
+            {
+                size = *reinterpret_cast<const uint32_t*>(p8);
+                p8 += sizeof(uint32_t);
+            }
+            return p8;
+        }
+
+        static const uint8_t* get_tag_and_size(const void* data, uint16_t& tag, uint32_t& size)
+        {
+            const uint16_t* p16 = reinterpret_cast<const uint16_t*>(data);
+            tag = *p16;
+            return get_size(p16 + 1, size);
         }
 
         const tinyxml2::XMLAttribute& attribute()
@@ -224,14 +229,14 @@ namespace indigo
 
         CDXProperty next()
         {
-            return _size || _first_id ? getNextProp() : CDXProperty(attribute().Next());
+            return _size || _is_object ? getNextProp() : CDXProperty(attribute().Next());
         }
 
         CDXProperty getNextProp();
 
         std::string name()
         {
-            if (_first_id)
+            if (_is_object)
                 return "id";
 
             if (_style_prop >= 0)
@@ -255,17 +260,16 @@ namespace indigo
 
         std::string value()
         {
-            if (_first_id)
-                return formatValue((uint8_t*)&_first_id, sizeof(_first_id), 0, ECDXType::CDXObjectID);
+            if (_is_object)
+                return formatValue(reinterpret_cast<const uint8_t*>(_data) + tag_size, id_size, 0, ECDXType::CDXObjectID);
             return _size ? getValue() : std::string(attribute().Value());
         }
 
         std::string getValue()
         {
-            auto ptr16 = (uint16_t*)_data;
             if (_style_prop >= 0 && _style_index >= 0)
             {
-                auto tsp = (CDXTextStyleProperty*)ptr16;
+                auto tsp = (CDXTextStyleProperty*)_data;
                 if (tsp->style_count)
                 {
                     auto& style = tsp->styles[_style_index];
@@ -278,12 +282,10 @@ namespace indigo
                 else
                     return std::string();
             }
-            auto tag = *ptr16;
+            uint16_t tag = 0;
+            uint32_t sz = 0;
+            auto ptr = get_tag_and_size(_data, tag, sz);
             auto it = KCDXPropToName.find(tag);
-            ptr16++;
-            auto sz = *ptr16;
-            ptr16++;
-            auto ptr = (uint8_t*)ptr16;
             if (it != KCDXPropToName.end())
             {
                 if (sz)
@@ -303,7 +305,7 @@ namespace indigo
             return ss.str();
         }
 
-        std::string formatValue(uint8_t* ptr, uint16_t value_size, uint16_t tag, ECDXType cdx_type)
+        std::string formatValue(const uint8_t* ptr, uint16_t value_size, uint16_t tag, ECDXType cdx_type)
         {
             std::string result;
             switch (cdx_type)
@@ -545,14 +547,14 @@ namespace indigo
 
         bool hasContent()
         {
-            return _data || _first_id;
+            return _data || _is_object;
         }
 
     protected:
         const void* _data;
         const void* _data_limit;
-        int _size;
-        int _first_id;
+        uint32_t _size;
+        bool _is_object;
         int _style_index;
         int _style_prop;
     };
@@ -565,7 +567,7 @@ namespace indigo
         {
         }
 
-        CDXElement(const void* data, int size = 0, int style_index = -1) : _data(data), _size(size), _style_index(style_index)
+        CDXElement(const void* data, uint32_t size = 0, int style_index = -1) : _data(data), _size(size), _style_index(style_index)
         {
         }
 
@@ -578,33 +580,29 @@ namespace indigo
         {
             if (_data && _size)
             {
-                auto ptr = (uint8_t*)_data;
-                auto ptr16 = (uint16_t*)_data;
-                uint32_t tag = 0;
+                auto ptr = reinterpret_cast<const uint8_t*>(_data);
+                auto ptr16 = reinterpret_cast<const uint16_t*>(_data);
 
-                if (*ptr16 >= kCDXTag_Object)
+                if (ptr16[0] >= kCDXTag_Object) // if object tag
+                    return CDXProperty(_data, ptr + _size, _size, true, _style_index, _style_index < 0 ? -1 : 0);
+                else // property tag
                 {
-                    ptr += sizeof(uint16_t);
-                    tag = *(uint32_t*)(ptr);
-                    ptr += sizeof(uint32_t); // skip tag and id to enter inside the current object
-                    ptr16 = (uint16_t*)ptr;
-                }
-
-                if (*ptr16 && *ptr16 < kCDXTag_Object)
-                    return CDXProperty(ptr16, (uint8_t*)_data + _size, *(ptr16 + 1) + sizeof(uint16_t) * 2, tag, _style_index,
+                    uint32_t sz = 0;
+                    const uint8_t* pdata = CDXProperty::get_size(ptr16 + 1, sz);
+                    return CDXProperty(_data, ptr + _size, sz + (pdata - ptr), false, _style_index,
                                        _style_index < 0 ? -1 : 0); // total chunk size = property size + tag + size
-                else if (tag)
-                    return CDXProperty(nullptr, nullptr, 0, tag); // return fake tag property
+                }
             }
             return CDXProperty();
         }
 
-        static uint8_t* skipProperty(uint8_t* ptr)
+        static const uint8_t* skipProperty(const uint8_t* ptr)
         {
             ptr += sizeof(uint16_t); // skip tag
-            auto psize = (uint16_t*)ptr;
-            ptr += sizeof(uint16_t) + *psize; // skip size and content
-            return ptr;                       // points to the next property or object
+            uint32_t size = 0;
+            ptr = CDXProperty::get_size(ptr, size); // skip size
+            ptr += size;                            // skip content
+            return ptr;                             // points to the next property or object
         }
 
         static uint8_t* skipObject(uint8_t* ptr)
@@ -798,7 +796,9 @@ namespace indigo
             }
             case kCDXProp_Text: {
                 auto ptr = (char*)_data;
-                ptr += sizeof(uint16_t) * 2; // skip tag and size
+                ptr += sizeof(uint16_t); // skip tag
+                uint32_t sz = 0;
+                ptr = (char*)CDXProperty::get_size(ptr, sz); // skip size
                 auto pstyles = (uint16_t*)ptr;
                 ptr += sizeof(uint16_t) + *pstyles * sizeof(CDXTextStyle);
                 auto ptext_style = (CDXTextStyle*)(pstyles + 1);
@@ -821,7 +821,7 @@ namespace indigo
 
     protected:
         const void* _data;
-        int _size;
+        uint32_t _size;
         int _style_index;
     };
 
@@ -948,12 +948,13 @@ namespace indigo
 
         Molecule* _pmol;
         QueryMolecule* _pqmol;
-        std::unordered_map<int, int> _id_to_atom_idx;
-        std::unordered_map<int, int> _id_to_node_index;
-        std::unordered_map<int, int> _id_to_bond_index;
+        std::unordered_map<int, std::size_t> _id_to_atom_idx;
+        std::unordered_map<int, std::size_t> _id_to_node_index;
+        std::unordered_map<int, std::size_t> _id_to_bond_index;
         std::vector<int> _fragment_nodes;
         std::vector<Vec2f> _pluses;
         std::vector<std::pair<std::pair<Vec3f, Vec3f>, int>> _arrows;
+        std::vector<std::pair<std::pair<Vec3f, Vec3f>, int>> _graphic_arrows;
         std::vector<std::pair<std::pair<Vec2f, Vec2f>, int>> _primitives;
 
         std::vector<EnhancedStereoCenter> _stereo_centers;
@@ -961,6 +962,7 @@ namespace indigo
         bool _is_binary;
         bool _is_fragment;
         bool _has_bounding_box;
+        bool _has_scheme;
 
     private:
         MoleculeCdxmlLoader(const MoleculeCdxmlLoader&); // no implicit copy

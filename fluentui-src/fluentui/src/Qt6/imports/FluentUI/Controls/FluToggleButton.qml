@@ -8,23 +8,23 @@ Button {
     property string contentDescription: ""
     property color normalColor: {
         if(checked){
-           return FluTheme.dark ? FluTheme.primaryColor.lighter : FluTheme.primaryColor.dark
+            return FluTheme.primaryColor
         }else{
-           return FluTheme.dark ? Qt.rgba(62/255,62/255,62/255,1) : Qt.rgba(254/255,254/255,254/255,1)
+            return FluTheme.dark ? Qt.rgba(62/255,62/255,62/255,1) : Qt.rgba(254/255,254/255,254/255,1)
         }
     }
     property color hoverColor: {
         if(checked){
             return FluTheme.dark ? Qt.darker(normalColor,1.1) : Qt.lighter(normalColor,1.1)
         }else{
-            return FluTheme.dark ? Qt.rgba(68/255,68/255,68/255,1) : Qt.rgba(251/255,251/255,251/255,1)
+            return FluTheme.dark ? Qt.rgba(68/255,68/255,68/255,1) : Qt.rgba(246/255,246/255,246/255,1)
         }
     }
     property color disableColor: {
         if(checked){
             return FluTheme.dark ? Qt.rgba(82/255,82/255,82/255,1) : Qt.rgba(199/255,199/255,199/255,1)
         }else{
-            return FluTheme.dark ? Qt.rgba(59/255,59/255,59/255,1) : Qt.rgba(252/255,252/255,252/255,1)
+            return FluTheme.dark ? Qt.rgba(59/255,59/255,59/255,1) : Qt.rgba(251/255,251/255,251/255,1)
         }
     }
     property var clickListener : function(){
@@ -38,14 +38,13 @@ Button {
     focusPolicy:Qt.TabFocus
     id: control
     enabled: !disabled
+    verticalPadding: 0
     horizontalPadding:12
     onClicked: clickListener()
-    background: Rectangle{
-        implicitWidth: 28
-        implicitHeight: 28
+    background: FluControlBackground{
+        implicitWidth: 30
+        implicitHeight: 30
         radius: 4
-        border.color: FluTheme.dark ? "#505050" : "#DFDFDF"
-        border.width: checked ? 0 : 1
         FluFocusRectangle{
             visible: control.activeFocus
             radius:4
@@ -60,6 +59,34 @@ Button {
                 }
             }
             return hovered ? hoverColor :normalColor
+        }
+        bottomMargin: {
+            if(checked){
+                return enabled ? 2 : 0
+            }else{
+                return 1
+            }
+        }
+        border.width: {
+            if(checked){
+                return enabled ? 1 : 0
+            }else{
+                return 1
+            }
+        }
+        shadow: {
+            if(checked){
+                return true
+            }else{
+                return !pressed && enabled
+            }
+        }
+        border.color: {
+            if(checked){
+                return enabled ? Qt.darker(control.normalColor,1.2) : disableColor
+            }else{
+                return FluTheme.dark ? Qt.rgba(48/255,48/255,48/255,1) : Qt.rgba(188/255,188/255,188/255,1)
+            }
         }
     }
     contentItem: FluText {

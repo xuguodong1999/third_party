@@ -3,25 +3,26 @@ import QtQuick.Controls
 import FluentUI
 
 QtObject {
-    readonly property string key : FluTools.uuid()
+    property string key
     property int _idx
     property var _ext
+    property var _parent
+    property bool visible: true
     property string title
-    property int order : 0
-    property int icon
     property var url
-    property Component cusIcon
+    property bool disabled: false
+    property int icon
+    property bool iconVisible: true
     property Component infoBadge
-    property bool recentlyAdded: false
-    property bool recentlyUpdated: false
-    property string desc
-    property var image
-    property var parent
     property int count: 0
-    signal tap
     property var onTapListener
+    property Component iconDelegate
     property Component menuDelegate
     property Component editDelegate
+    property var extra
     property bool showEdit
-    signal dropped(var drag)
+    signal tap
+    Component.onCompleted: {
+        key = FluTools.uuid()
+    }
 }

@@ -32,9 +32,9 @@ using namespace indigo;
 using namespace tinyxml2;
 using namespace rapidjson;
 
-bool is_fragment(int node_type)
+bool is_fragment(CdxmlNode& node)
 {
-    return node_type == kCDXNodeType_Nickname || node_type == kCDXNodeType_Fragment;
+    return node.has_fragment || node.type == kCDXNodeType_Nickname || node.type == kCDXNodeType_Fragment;
 }
 
 static float readFloat(const char* point_str)
@@ -55,8 +55,8 @@ IMPL_ERROR(CDXProperty, "CDXML property");
 
 CDXProperty CDXProperty::getNextProp()
 {
-    if (_first_id)
-        return CDXProperty(_data, _data_limit, _size, 0, _style_index, _style_prop);
+    if (_is_object)
+        return CDXProperty(reinterpret_cast<const uint8_t*>(_data) + tag_id_size, _data_limit, _size - tag_id_size, false, _style_index, _style_prop);
 
     if (_data)
     {
@@ -72,8 +72,9 @@ CDXProperty CDXProperty::getNextProp()
         ptr16 = (uint16_t*)CDXElement::skipProperty((uint8_t*)ptr16);
         if (ptr16 < _data_limit && *ptr16 && *ptr16 < kCDXTag_Object)
         {
-            auto sz = *(ptr16 + 1);
-            return CDXProperty(ptr16, _data_limit, sz + sizeof(uint16_t) * 2);
+            uint32_t sz = 0;
+            const uint8_t* data = get_size(ptr16 + 1, sz);
+            return CDXProperty(ptr16, _data_limit, sz + (data - reinterpret_cast<const uint8_t*>(ptr16)));
         }
     }
     return CDXProperty();
@@ -95,6 +96,7 @@ void MoleculeCdxmlLoader::_initMolecule(BaseMolecule& mol)
     nodes.clear();
     bonds.clear();
     _arrows.clear();
+    _graphic_arrows.clear();
     _primitives.clear();
     _id_to_atom_idx.clear();
     _id_to_node_index.clear();
@@ -119,6 +121,7 @@ void MoleculeCdxmlLoader::_initMolecule(BaseMolecule& mol)
 void MoleculeCdxmlLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
 {
     _initMolecule(mol);
+    _has_scheme = false;
     std::unique_ptr<CDXReader> cdx_reader = _is_binary ? std::make_unique<CDXReader>(_scanner) : std::make_unique<CDXMLReader>(_scanner);
     cdx_reader->process();
     auto root = cdx_reader->rootElement();
@@ -134,7 +137,7 @@ void MoleculeCdxmlLoader::loadMolecule(BaseMolecule& mol, bool load_arrows)
 
     _parseCollections(mol);
     int arrows_count = mol.meta().getMetaCount(KETReactionArrow::CID);
-    if (arrows_count && !load_arrows)
+    if (arrows_count && !load_arrows && _has_scheme)
         throw Error("Not a molecule. Found %d arrows.", arrows_count);
 }
 
@@ -143,7 +146,7 @@ void MoleculeCdxmlLoader::_checkFragmentConnection(int node_id, int bond_id)
     auto& fn = nodes[_id_to_node_index.at(node_id)];
     if (fn.ext_connections.size())
     {
-        if (is_fragment(fn.type) && fn.ext_connections.size() == 1)
+        if (is_fragment(fn) && fn.ext_connections.size() == 1)
         {
             fn.bond_id_to_connection_idx.emplace(bond_id, fn.connections.size());
             int pid = fn.ext_connections.back();
@@ -167,15 +170,22 @@ void MoleculeCdxmlLoader::_parseCollections(BaseMolecule& mol)
         case kCDXNodeType_Element:
         case kCDXNodeType_ElementList:
         case kCDXNodeType_GenericNickname:
-        case kCDXNodeType_Unspecified:
             atoms.push_back(node_idx);
+            break;
+        case kCDXNodeType_Unspecified:
+            if (node.has_fragment)
+                _fragment_nodes.push_back(node_idx);
+            else
+                atoms.push_back(node_idx);
             break;
         case kCDXNodeType_ExternalConnectionPoint: {
             if (_fragment_nodes.size())
             {
                 auto& fn = nodes[_fragment_nodes.back()];
                 if (fn.connections.size() == 0)
+                {
                     fn.ext_connections.push_back(node.id);
+                }
             }
             else
             {
@@ -210,6 +220,27 @@ void MoleculeCdxmlLoader::_parseCollections(BaseMolecule& mol)
 
     for (const auto& plus : _pluses)
         mol.meta().addMetaObject(new KETReactionPlus(plus));
+
+    // CDX contains draphic arrow wich id dublicate arrow/
+    // Search arrows for arrow with coords same as in grapic arrow and if found - remove tis arrow gecause graphic arrow contains more specific type
+    for (const auto& g_arrow : _graphic_arrows)
+    {
+        const auto& g_arr_info = g_arrow.first;
+        Vec2f p1(g_arr_info.first.x, g_arr_info.first.y);
+        Vec2f p2(g_arr_info.second.x, g_arr_info.second.y);
+        for (auto it = _arrows.begin(); it != _arrows.end(); it++)
+        {
+            const auto& arr_info = (*it).first;
+            Vec2f ap1(arr_info.first.x, arr_info.first.y);
+            Vec2f ap2(arr_info.second.x, arr_info.second.y);
+            if (fabsf(p1.x - ap1.x) < EPSILON && fabsf(p1.y - ap1.y) < EPSILON && fabsf(p2.x - ap2.x) < EPSILON && fabsf(p2.y - ap2.y) < EPSILON)
+            {
+                _arrows.erase(it);
+                break;
+            }
+        }
+        mol.meta().addMetaObject(new KETReactionArrow(g_arrow.second, p1, p2));
+    }
 
     for (const auto& arrow : _arrows)
     {
@@ -322,6 +353,11 @@ void MoleculeCdxmlLoader::_parseCDXMLPage(CDXElement elem)
         if (page_elem.value() == "page")
         {
             _parseCDXMLElements(page_elem.firstChildElement());
+            for (auto cdxml_elem = page_elem.firstChildElement(); cdxml_elem.hasContent(); cdxml_elem = cdxml_elem.nextSiblingElement())
+            {
+                if (cdxml_elem.value() == "scheme")
+                    _has_scheme = true;
+            }
         }
     }
 }
@@ -507,7 +543,7 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
             {
                 _updateConnection(sn, bond_first_it->second);
             }
-            else if (is_fragment(fn.type) && bond_second_it != _id_to_atom_idx.end())
+            else if (is_fragment(fn) && bond_second_it != _id_to_atom_idx.end())
             {
                 auto bit_beg = fn.bond_id_to_connection_idx.find(bond.id);
                 int a1 = -1;
@@ -541,7 +577,7 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
                         _pmol->setBondDirection(bi, bond.dir);
                 }
             }
-            else if (is_fragment(sn.type) && bond_first_it != _id_to_atom_idx.end())
+            else if (is_fragment(sn) && bond_first_it != _id_to_atom_idx.end())
             {
                 auto bit_beg = sn.bond_id_to_connection_idx.find(bond.id);
                 int a1 = bond_first_it->second;
@@ -571,7 +607,7 @@ void MoleculeCdxmlLoader::_addAtomsAndBonds(BaseMolecule& mol, const std::vector
                         _pmol->setBondDirection(bi, bond.dir);
                 }
             }
-            else if (is_fragment(fn.type) && is_fragment(sn.type))
+            else if (is_fragment(fn) && is_fragment(sn))
             {
                 auto bit_beg = fn.bond_id_to_connection_idx.find(bond.id);
                 auto bit_end = sn.bond_id_to_connection_idx.find(bond.id);
@@ -694,7 +730,14 @@ void MoleculeCdxmlLoader::_handleSGroup(SGroup& sgroup, const std::unordered_set
         }
     }
 
-    if (sgroup.sgroup_type == SGroup::SG_TYPE_MUL)
+    if (sgroup.sgroup_type == SGroup::SG_TYPE_SUP && start >= 0)
+    {
+        Superatom& sa = static_cast<Superatom&>(sgroup);
+        sa.attachment_points.add(start);
+        if (end >= 0)
+            sa.attachment_points.add(end);
+    }
+    else if (sgroup.sgroup_type == SGroup::SG_TYPE_MUL)
     {
         QS_DEF(Array<int>, mapping);
         std::unique_ptr<BaseMolecule> rep(bmol.neu());
@@ -743,7 +786,7 @@ void MoleculeCdxmlLoader::_parseFragmentAttributes(CDXProperty prop)
     {
         // it means that we are inside of NodeType=Fragment
         // let's check it
-        if (nodes.size() && is_fragment(nodes.back().type))
+        if (nodes.size() && is_fragment(nodes.back()))
         {
             if (std::string(prop.name()) == "ConnectionOrder")
             {
@@ -1076,7 +1119,7 @@ void MoleculeCdxmlLoader::_parseGraphic(CDXElement elem)
             default:
                 break;
             }
-            _arrows.push_back(std::make_pair(std::make_pair(Vec3f(tail.x, tail.y, 0), Vec3f(head.x, head.y, 0)), ar_type));
+            _graphic_arrows.push_back(std::make_pair(std::make_pair(Vec3f(tail.x, tail.y, 0), Vec3f(head.x, head.y, 0)), ar_type));
         }
     }
     break;

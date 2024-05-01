@@ -81,4 +81,34 @@ namespace indigo
         }
         return cnt == 0;
     }
+
+    bool validate_base64(const std::string& str)
+    {
+        const int kPadding = 3;
+        if (str.size() & kPadding) // check for padding
+            return false;
+        for (int i = 0; i < str.size(); ++i)
+        {
+            auto ch = str[i];
+            if ((ch >= 'a' && ch <= 'z') || ((ch >= 'A' && ch <= 'Z')) || ((ch >= '0' && ch <= '9')) || ch == '+' || ch == '/')
+                continue;
+            if (i > (str.size() - kPadding) && ch == '=')
+                return ++i < str.size() ? str[i] == '=' : true; // check for 2nd '='
+            return false;
+        }
+        return true;
+    }
+
+    std::vector<std::string> split(const std::string& str, char delim)
+    {
+        std::vector<std::string> strings;
+        size_t start;
+        size_t end = 0;
+        while ((start = str.find_first_not_of(delim, end)) != std::string::npos)
+        {
+            end = str.find(delim, start);
+            strings.push_back(str.substr(start, end - start));
+        }
+        return strings;
+    }
 }

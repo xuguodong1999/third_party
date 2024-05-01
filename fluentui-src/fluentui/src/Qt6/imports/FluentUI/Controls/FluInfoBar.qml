@@ -46,13 +46,15 @@ FluObject {
         Component{
             id:screenlayoutComponent
             Column{
+                parent: Overlay.overlay
+                z:999
                 spacing: 20
-                width: parent.width
+                width: root.width
                 move: Transition {
                     NumberAnimation {
                         properties: "y"
                         easing.type: Easing.OutCubic
-                        duration: FluTheme.enableAnimation ? 333 : 0
+                        duration: FluTheme.animationEnabled ? 333 : 0
                     }
                 }
                 onChildrenChanged: if(children.length === 0)  destroy();
@@ -86,14 +88,14 @@ FluObject {
                     interval: duration; running: duration > 0; repeat: duration > 0
                     onTriggered: content.close();
                 }
-                Loader{
+                FluLoader{
                     id:loader;
                     x:(parent.width - width) / 2;
                     property var _super: content;
                     scale: item ? 1 : 0;
                     asynchronous: true
                     Behavior on scale {
-                        enabled: FluTheme.enableAnimation
+                        enabled: FluTheme.animationEnabled
                         NumberAnimation {
                             easing.type: Easing.OutCubic
                             duration: 167
@@ -104,7 +106,7 @@ FluObject {
             }
         }
         property Component fluent_sytle:  Rectangle{
-            width:  rowlayout.width  + (_super.moremsg ? 25 : 80);
+            width:  rowlayout.width  + (btn_close.visible ? 30 : 48);
             height: rowlayout.height + 20;
             color: {
                 if(FluTheme.dark){
@@ -124,6 +126,9 @@ FluObject {
                     }
                     return "#FFFFFF"
                 }
+            }
+            FluShadow{
+                radius: 4
             }
             radius: 4
             border.width: 1
@@ -151,7 +156,6 @@ FluObject {
                 x:20;
                 y:(parent.height - height) / 2;
                 spacing: 10
-
                 FluIcon{
                     iconSource:{
                         switch(_super.type){
@@ -168,7 +172,7 @@ FluObject {
                             switch(_super.type){
                             case mcontrol.const_success: return Qt.rgba(108/255,203/255,95/255,1);
                             case mcontrol.const_warning: return Qt.rgba(252/255,225/255,0/255,1);
-                            case mcontrol.const_info:    return FluTheme.primaryColor.lighter;
+                            case mcontrol.const_info:    return FluTheme.primaryColor;
                             case mcontrol.const_error:   return Qt.rgba(255/255,153/255,164/255,1);
                             }
                             return "#FFFFFF"
@@ -194,23 +198,24 @@ FluObject {
                     FluText{
                         text: _super.moremsg
                         visible: _super.moremsg
-                        wrapMode : Text.WordWrap
+                        wrapMode : Text.WrapAnywhere
                         textColor: FluColors.Grey120
+                        width: Math.min(implicitWidth,mcontrol.maxWidth)
                     }
                 }
 
                 FluIconButton{
+                    id:btn_close
                     iconSource: FluentIcons.ChromeClose
                     iconSize: 10
                     y:5
-                    x:parent.width-35
                     visible: _super.duration<=0
                     iconColor: {
                         if(FluTheme.dark){
                             switch(_super.type){
                             case mcontrol.const_success: return Qt.rgba(108/255,203/255,95/255,1);
                             case mcontrol.const_warning: return Qt.rgba(252/255,225/255,0/255,1);
-                            case mcontrol.const_info:    return FluTheme.primaryColor.lighter;
+                            case mcontrol.const_info:    return FluTheme.primaryColor;
                             case mcontrol.const_error:   return Qt.rgba(255/255,153/255,164/255,1);
                             }
                             return "#FFFFFF"

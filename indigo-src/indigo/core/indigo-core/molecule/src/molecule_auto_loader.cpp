@@ -33,8 +33,11 @@
 #include "molecule/molecule_json_loader.h"
 #include "molecule/molecule_name_parser.h"
 #include "molecule/molfile_loader.h"
+#include "molecule/monomer_commons.h"
+#include "molecule/parse_utils.h"
 #include "molecule/query_molecule.h"
 #include "molecule/sdf_loader.h"
+#include "molecule/sequence_loader.h"
 #include "molecule/smiles_loader.h"
 
 using namespace indigo;
@@ -380,8 +383,47 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
     }
 
     // check for single line formats
+
     if (Scanner::isSingleLine(*_scanner))
     {
+        // for debug purposes: check for sequence
+        {
+            const std::string kPeptide = "PEPTIDE:";
+            const std::string kRNA = "RNA:";
+            const std::string kDNA = "DNA:";
+
+            long long start_pos = _scanner->tell();
+            if (_scanner->length() > kRNA.size())
+            {
+                std::vector<char> tag(kPeptide.size() + 1, 0);
+                _scanner->readCharsFix(kRNA.size(), tag.data());
+                SequenceLoader sl(*_scanner);
+                if (kRNA == tag.data())
+                {
+                    sl.loadSequence(mol, SequenceLoader::SeqType::RNASeq);
+                    return;
+                }
+                else if (kDNA == tag.data())
+                {
+                    sl.loadSequence(mol, SequenceLoader::SeqType::DNASeq);
+                    return;
+                }
+                else
+                {
+                    _scanner->seek(start_pos, SEEK_SET);
+                    if (_scanner->length() > kPeptide.size())
+                    {
+                        _scanner->readCharsFix(kPeptide.size(), tag.data());
+                        if (kPeptide == tag.data())
+                        {
+                            sl.loadSequence(mol, SequenceLoader::SeqType::PEPTIDESeq);
+                            return;
+                        }
+                    }
+                }
+            }
+            _scanner->seek(start_pos, SEEK_SET);
+        }
         // check for InChI format
         {
             char prefix[6] = {'\0'};
@@ -421,6 +463,7 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
         try
         {
             SmilesLoader loader(*_scanner);
+            long long start = _scanner->tell();
 
             loader.ignore_closing_bond_direction_mismatch = ignore_closing_bond_direction_mismatch;
             loader.stereochemistry_options = stereochemistry_options;
@@ -428,13 +471,25 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
             loader.ignore_no_chiral_flag = ignore_no_chiral_flag;
 
             /*
-            If exception is thrown, the string is rather an IUPAC name than a SMILES string
+            If exception is thrown, try the SMARTS, if exception thrown again - the string is rather an IUPAC name than a SMILES string
             We catch it and pass down to IUPAC name conversion
             */
             if (query)
-                loader.loadQueryMolecule((QueryMolecule&)mol);
+            {
+                try
+                {
+                    loader.loadQueryMolecule(static_cast<QueryMolecule&>(mol));
+                }
+                catch (Exception& e)
+                {
+                    _scanner->seek(start, SEEK_SET);
+                    loader.loadSMARTS(static_cast<QueryMolecule&>(mol));
+                }
+            }
             else
-                loader.loadMolecule((Molecule&)mol);
+            {
+                loader.loadMolecule(static_cast<Molecule&>(mol));
+            }
             return;
         }
         catch (Exception& e)

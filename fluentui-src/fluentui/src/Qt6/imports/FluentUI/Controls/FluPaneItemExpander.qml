@@ -3,14 +3,19 @@ import QtQuick.Controls
 import FluentUI
 
 FluObject {
-    readonly property string key : FluTools.uuid()
+    property string key
     property int _idx
+    property bool visible: true
     property string title
     property var icon
-    property Component cusIcon
+    property bool disabled: false
+    property bool iconVisible: true
     property bool isExpand: false
-    property var parent
+    property bool showEdit
+    property Component iconDelegate
     property Component menuDelegate
     property Component editDelegate
-    property bool showEdit
+    Component.onCompleted: {
+        key = FluTools.uuid()
+    }
 }

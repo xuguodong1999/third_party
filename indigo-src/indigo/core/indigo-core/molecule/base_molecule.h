@@ -38,6 +38,7 @@
 #include "molecule/molecule_standardize.h"
 #include "molecule/molecule_stereocenters.h"
 #include "molecule/molecule_tgroups.h"
+#include "molecule/monomers_lib.h"
 
 #ifdef _WIN32
 #pragma warning(push)
@@ -57,6 +58,9 @@ namespace indigo
         ATOM_ALIPHATIC = 2
     };
 
+#define ATOM_AROMATIC_STR "aromatic"
+#define ATOM_ALIPHATIC_STR "aliphatic"
+
     enum
     {
         BOND_ZERO = 0,
@@ -69,14 +73,25 @@ namespace indigo
         _BOND_DOUBLE_OR_AROMATIC = 7,
         _BOND_ANY = 8,
         _BOND_COORDINATION = 9,
-        _BOND_HYDROGEN = 10
+        _BOND_HYDROGEN = 10,
     };
 
     enum
     {
         BOND_UP = 1,
         BOND_DOWN = 2,
-        BOND_EITHER = 3
+        BOND_EITHER = 3,
+        BOND_UP_OR_UNSPECIFIED = 4,
+        BOND_DOWN_OR_UNSPECIFIED = 5,
+    };
+
+    enum
+    {
+        BIOVIA_STEREO_NO = 0,
+        BIOVIA_STEREO_UP = 1,
+        BIOVIA_STEREO_DOUBLE_CISTRANS = 3,
+        BIOVIA_STEREO_ETHER = 4,
+        BIOVIA_STEREO_DOWN = 6,
     };
 
     enum layout_orientation_value
@@ -110,6 +125,29 @@ namespace indigo
         friend class MoleculeCIPCalculator;
         typedef std::map<int, int> Mapping;
 
+        class MonomerFilterBase
+        {
+        public:
+            MonomerFilterBase(BaseMolecule& mol, const std::unordered_map<int, std::map<int, int>>& directions_map) : _mol(mol), _directions_map(directions_map)
+            {
+            }
+            virtual bool operator()(int atom_idx) const = 0;
+            virtual ~MonomerFilterBase()
+            {
+            }
+
+        protected:
+            const std::unordered_map<int, std::map<int, int>>& _directions_map;
+            BaseMolecule& _mol;
+        };
+
+        struct TemplateAttPoint
+        {
+            int ap_occur_idx;
+            int ap_aidx;
+            Array<char> ap_id;
+        };
+
         BaseMolecule();
         ~BaseMolecule() override;
         MetaDataStorage& meta()
@@ -121,6 +159,22 @@ namespace indigo
         {
             return _properties;
         }
+
+        enum
+        {
+            UNKNOWN,
+            CML,
+            CDXML,
+            CDX,
+            RDF,
+            SMILES,
+            CXSMILES,
+            SMARTS,
+            MOL,
+            RXN,
+            KET
+        };
+        int original_format;
 
         // Casting methods. Invalid casting throws exceptions.
         virtual Molecule& asMolecule();
@@ -143,6 +197,7 @@ namespace indigo
         virtual int getAtomSubstCount(int idx) = 0;
         virtual int getAtomRingBondsCount(int idx) = 0; // >= 0 -- ring bonds count, -1 -- not sure
         virtual int getAtomConnectivity(int idx) = 0;
+        virtual void setExplicitValence(int idx, int valence){};
 
         int getAtomRadical_NoThrow(int idx, int fallback);
         int getAtomValence_NoThrow(int idx, int fallback);
@@ -161,8 +216,12 @@ namespace indigo
         virtual const int getTemplateAtomSeqid(int idx) = 0;
         virtual const char* getTemplateAtomClass(int idx) = 0;
         virtual const int getTemplateAtomDisplayOption(int idx) = 0;
+        virtual const int getTemplateAtomTemplateIndex(int idx) = 0;
+        virtual void getTemplatesMap(std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash>& templates_map) = 0;
+        virtual void getTemplateAtomDirectionsMap(std::unordered_map<int, std::map<int, int>>& directions_map) = 0;
 
         int countRSites();
+        int countTemplateAtoms();
         int countSGroups();
 
         static void collapse(BaseMolecule& bm, int id, Mapping& mapAtom, Mapping& mapBondInv);
@@ -172,6 +231,8 @@ namespace indigo
         int transformSCSRtoFullCTAB();
         int transformFullCTABtoSCSR(ObjArray<TGroup>& templates);
         int transformHELMtoSGroups(Array<char>& helm_class, Array<char>& name, Array<char>& code, Array<char>& natreplace, StringPool& r_names);
+        void transformSuperatomsToTemplates(int template_id);
+        void transformTemplatesToSuperatoms(MonomerFilterBase& filter);
 
         virtual bool isRSite(int atom_idx) = 0;
         virtual dword getRSiteBits(int atom_idx) = 0;
@@ -183,6 +244,8 @@ namespace indigo
         void setRSiteAttachmentOrder(int atom_idx, int att_atom_idx, int order);
 
         void setTemplateAtomAttachmentOrder(int atom_idx, int att_atom_idx, const char* att_id);
+        void setTemplateAtomAttachmentDestination(int atom_idx, int new_dest_atom_idx, Array<char>& att_id);
+        bool updateTemplateAtomAttachmentDestination(int atom_idx, int old_dest_atom_idx, int new_dest_atom_idx);
 
         int getTemplateAtomAttachmentPoint(int atom_idx, int order);
         void getTemplateAtomAttachmentPointId(int atom_idx, int order, Array<char>& apid);
@@ -235,6 +298,17 @@ namespace indigo
         // Returns true if all bonds were dearomatized
         virtual bool dearomatize(const AromaticityOptions& options) = 0;
 
+        bool convertableToImplicitHydrogen(int idx);
+
+        virtual int addAtom(int label) = 0;
+
+        virtual int addBond(int beg, int end, int order) = 0;
+
+        void unfoldHydrogens(Array<int>* markers_out, int max_h_cnt = -1, bool impl_h_no_throw = false, bool only_selected = false);
+
+        virtual int getImplicitH(int idx, bool impl_h_no_throw) = 0;
+        virtual void setImplicitH(int idx, int impl_h) = 0;
+
         enum
         {
             CHANGED_ATOM_NUMBER = 0x01,
@@ -251,6 +325,8 @@ namespace indigo
         void setBondCIP(int bond_idx, CIPDesc cip);
 
         Vec3f& getAtomXyz(int idx);
+        bool getMiddlePoint(int idx1, int idx2, Vec3f& vec);
+
         void setAtomXyz(int idx, float x, float y, float z);
         void setAtomXyz(int idx, const Vec3f& v);
 
@@ -285,12 +361,6 @@ namespace indigo
             return reaction_atom_exact_change;
         }
 
-        struct TemplateAttPoint
-        {
-            int ap_occur_idx;
-            int ap_aidx;
-            Array<char> ap_id;
-        };
         ObjPool<TemplateAttPoint> template_attachment_points;
 
         MoleculeSGroups sgroups;
@@ -497,7 +567,8 @@ namespace indigo
         void _checkSgroupHierarchy(int pidx, int oidx);
 
         int _transformTGroupToSGroup(int idx, int t_idx);
-        int _transformSGroupToTGroup(int idx, int& t_idx);
+        int _transformSGroupToTGroup(int idx, int& tg_id);
+
         void _fillTemplateSeqIds();
         bool _isCTerminus(Superatom& su, int idx);
         bool _isNTerminus(Superatom& su, int idx);

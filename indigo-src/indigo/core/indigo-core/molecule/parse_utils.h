@@ -19,6 +19,7 @@
 #ifndef __parse_utils__
 #define __parse_utils__
 
+#include <regex>
 #include <string>
 
 #ifdef _WIN32
@@ -30,6 +31,38 @@ namespace indigo
 {
     std::string latin1_to_utf8(const std::string& src);
     bool is_valid_utf8(const std::string& data);
+
+    bool validate_base64(const std::string& str);
+
+    std::vector<std::string> split(const std::string& str, char delim);
+
+    inline bool is_lower_case(const std::string& str)
+    {
+        for (auto c : str)
+            if (!std::islower(c))
+                return false;
+        return true;
+    }
+
+    inline bool is_upper_case(const std::string& str)
+    {
+        for (auto c : str)
+            if (!std::isupper(c))
+                return false;
+        return true;
+    }
+
+    inline int extract_id(const std::string& str, const std::string& start)
+    {
+        if (str.find(start) == 0)
+        {
+            auto ss_id = str.substr(start.size());
+            if (ss_id.size())
+                return std::stoi(ss_id);
+        }
+        return -1;
+    }
+
 } // namespace indigo
 
 #ifdef _WIN32

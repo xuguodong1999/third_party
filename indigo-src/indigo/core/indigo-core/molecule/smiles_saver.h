@@ -110,8 +110,8 @@ namespace indigo
         void _writeAtom(int idx, bool aromatic, bool lowercase, int chirality) const;
         void _writeChirality(int chirality) const;
         void _writeCharge(int charge) const;
-        void _writeSmartsAtom(int idx, QueryMolecule::Atom* atom, int chirality, int depth, bool has_or_parent, bool has_not_parent) const;
-        void _writeSmartsBond(int idx, QueryMolecule::Bond* bond, bool has_or_parent) const;
+        static void _writeSmartsAtom(Output& output, QueryMolecule::Atom* atom, int aam, int chirality, int depth, bool has_or_parent, bool has_not_parent);
+        static void _writeSmartsBond(Output& output, QueryMolecule::Bond* bond, bool has_or_parent);
         void _markCisTrans();
         void _banSlashes();
         int _calcBondDirection(int idx, int vprev);

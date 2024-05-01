@@ -24,6 +24,7 @@
 
 #include "base_cpp/locale_guard.h"
 #include "base_cpp/output.h"
+#include "layout/sequence_layout.h"
 #include "math/algebra.h"
 #include "molecule/base_molecule.h"
 #include "molecule/elements.h"
@@ -33,6 +34,7 @@
 #include "molecule/molecule_savers.h"
 #include "molecule/molecule_stereocenter_options.h"
 #include "molecule/molecule_stereocenters.h"
+#include "molecule/monomer_commons.h"
 #include "molecule/query_molecule.h"
 
 using namespace indigo;
@@ -41,7 +43,7 @@ IMPL_ERROR(MolfileSaver, "molfile saver");
 
 CP_DEF(MolfileSaver);
 
-MolfileSaver::MolfileSaver(Output& output) : _output(output), CP_INIT, TL_CP_GET(_atom_mapping), TL_CP_GET(_bond_mapping)
+MolfileSaver::MolfileSaver(Output& output) : _output(output), CP_INIT, TL_CP_GET(_atom_mapping), TL_CP_GET(_bond_mapping), add_mrv_sma(true)
 {
     mode = MODE_AUTO;
     no_chiral = false;
@@ -121,6 +123,48 @@ void MolfileSaver::saveQueryMolecule(QueryMolecule& mol)
     _saveMolecule(mol, true);
 }
 
+void MolfileSaver::_handleMonomers(BaseMolecule& mol)
+{
+    SequenceLayout sl(mol);
+    std::map<int, std::map<int, int>> layout_sequence;
+    sl.calculateLayout(0, layout_sequence);
+    const auto& directions_map = sl.directionsMap();
+    for (auto& row : layout_sequence)
+    {
+        int seq_id = 1;
+        for (auto& col : row.second)
+        {
+            int atom_idx = col.second;
+            if (mol.isTemplateAtom(atom_idx))
+            {
+                std::string mon_class = mol.getTemplateAtomClass(atom_idx);
+                if (isBackboneClass(mon_class))
+                {
+                    mol.asMolecule().setTemplateAtomSeqid(atom_idx, seq_id);
+                    if (mon_class == kMonomerClassSUGAR)
+                    {
+                        // set seq_id for base
+                        auto dirs_it = directions_map.find(atom_idx);
+                        if (dirs_it != directions_map.end() && dirs_it->second.size())
+                        {
+                            auto& atom_dirs = dirs_it->second;
+                            auto br_it = atom_dirs.find(kBranchAttachmentPointIdx);
+                            if (br_it != atom_dirs.end())
+                            {
+                                std::string br_class = mol.getTemplateAtomClass(br_it->second);
+                                if (br_class == kMonomerClassBASE)
+                                    mol.asMolecule().setTemplateAtomSeqid(br_it->second, seq_id);
+                            }
+                        }
+                    }
+                    else if (isAminoAcidClass(mon_class) || isNucleotideClass(mon_class) || mon_class == kMonomerClassPHOSPHATE)
+                        seq_id++;
+                }
+            }
+        }
+    }
+}
+
 void MolfileSaver::_handleCIP(BaseMolecule& mol)
 {
     MoleculeCIPCalculator mcc;
@@ -149,7 +193,8 @@ void MolfileSaver::_saveMolecule(BaseMolecule& mol, bool query)
     {
         // auto-detect the format: save to v3000 molfile only
         // if v2000 is not enough
-        _v2000 = !(mol.hasHighlighting() || mol.stereocenters.haveEnhancedStereocenter() || (mol.vertexCount() > 999 || mol.edgeCount() > 999));
+        _v2000 = !(mol.hasHighlighting() || mol.stereocenters.haveEnhancedStereocenter() ||
+                   (mol.vertexCount() > 999 || mol.edgeCount() > 999 || mol.tgroups.getTGroupCount()));
     }
 
     bool rg2000 = (_v2000 && mol.rgroups.getRGroupCount() > 0);
@@ -366,14 +411,13 @@ void MolfileSaver::_writeMultiString(Output& output, const char* string, int len
 void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
 {
     _handleCIP(mol);
+    if (mol.tgroups.getTGroupCount())
+        _handleMonomers(mol);
+
     QueryMolecule* qmol = 0;
 
     if (query)
         qmol = (QueryMolecule*)(&mol);
-
-    output.writeStringCR("M  V30 BEGIN CTAB");
-    output.printfCR("M  V30 COUNTS %d %d %d 0 0", mol.vertexCount(), mol.edgeCount(), mol.countSGroups());
-    output.writeStringCR("M  V30 BEGIN ATOM");
 
     int i;
     int iw = 1;
@@ -386,6 +430,27 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
     for (i = mol.vertexBegin(); i < mol.vertexEnd(); i = mol.vertexNext(i), iw++)
         _atom_mapping[i] = iw;
 
+    if (add_implicit_h && qmol == 0)
+    {
+        for (i = mol.vertexBegin(); i < mol.vertexEnd(); i = mol.vertexNext(i))
+        {
+            int atom_number = mol.getAtomNumber(i);
+            int charge = mol.getAtomCharge(i);
+            int hcount = MoleculeSavers::getHCount(mol, i, atom_number, charge);
+            if (Molecule::shouldWriteHCount(mol.asMolecule(), i) && hcount > 0)
+            {
+                int sg_idx = mol.sgroups.addSGroup(SGroup::SG_TYPE_DAT);
+                implicit_sgroups_indexes.push_front(sg_idx);
+                DataSGroup& sgroup = static_cast<DataSGroup&>(mol.sgroups.getSGroup(sg_idx));
+                sgroup.setMrv_implicit(i, hcount);
+            }
+        }
+    }
+
+    output.writeStringCR("M  V30 BEGIN CTAB");
+    output.printfCR("M  V30 COUNTS %d %d %d 0 0", mol.vertexCount(), mol.edgeCount(), mol.countSGroups());
+    output.writeStringCR("M  V30 BEGIN ATOM");
+
     std::stringstream coords;
     for (i = mol.vertexBegin(); i < mol.vertexEnd(); i = mol.vertexNext(i))
     {
@@ -394,15 +459,16 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
         ArrayOutput out(buf);
 
         out.printf("%d ", _atom_mapping[i]);
-        QS_DEF(Array<int>, list);
+        std::vector<std::unique_ptr<QueryMolecule::Atom>> list;
+        std::map<int, std::unique_ptr<QueryMolecule::Atom>> properties;
         int query_atom_type;
 
-        if (atom_number == ELEM_H && isotope == 2)
+        if (atom_number == ELEM_H && isotope == DEUTERIUM)
         {
             out.writeChar('D');
             isotope = 0;
         }
-        else if (atom_number == ELEM_H && isotope == 3)
+        else if (atom_number == ELEM_H && isotope == TRITIUM)
         {
             out.writeChar('T');
             isotope = 0;
@@ -417,7 +483,7 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
         {
             _writeAtomLabel(out, atom_number);
         }
-        else if (qmol != 0 && (query_atom_type = QueryMolecule::parseQueryAtom(*qmol, i, list)) != -1)
+        else if (qmol != 0 && (query_atom_type = QueryMolecule::parseQueryAtomSmarts(*qmol, i, list, properties)) != -1)
         {
             if (query_atom_type == QueryMolecule::QUERY_ATOM_A)
                 out.writeChar('A');
@@ -437,17 +503,23 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
                 out.writeString("MH");
             else if (query_atom_type == QueryMolecule::QUERY_ATOM_LIST || query_atom_type == QueryMolecule::QUERY_ATOM_NOTLIST)
             {
-                int k;
-
                 if (query_atom_type == QueryMolecule::QUERY_ATOM_NOTLIST)
                     out.writeString("NOT");
 
                 out.writeChar('[');
-                for (k = 0; k < list.size(); k++)
+
+                bool not_first = false;
+                for (auto& qatom : list)
                 {
-                    if (k > 0)
+                    if (not_first)
                         out.writeChar(',');
-                    _writeAtomLabel(out, list[k]);
+                    else
+                        not_first = true;
+
+                    if (qatom->type == QueryMolecule::ATOM_NUMBER)
+                        _writeAtomLabel(out, qatom->value_max);
+                    else if (qatom->type == QueryMolecule::ATOM_PSEUDO)
+                        out.writeString(qatom->alias.ptr());
                 }
                 out.writeChar(']');
             }
@@ -484,23 +556,13 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
         if ((mol.isQueryMolecule() && charge != CHARGE_UNKNOWN) || (!mol.isQueryMolecule() && charge != 0))
             out.printf(" CHG=%d", charge);
 
-        int hcount = MoleculeSavers::getHCount(mol, i, atom_number, charge);
-
         if (qmol != 0)
         {
+            int hcount = MoleculeSavers::getHCount(mol, i, atom_number, charge);
             if (hcount > 0)
                 out.printf(" HCOUNT=%d", hcount);
             else if (hcount == 0)
                 out.printf(" HCOUNT=-1");
-        }
-        else if (add_implicit_h && Molecule::shouldWriteHCount(mol.asMolecule(), i) && hcount > 0)
-        {
-            int sg_idx;
-
-            sg_idx = mol.sgroups.addSGroup(SGroup::SG_TYPE_DAT);
-            implicit_sgroups_indexes.push_front(sg_idx);
-            DataSGroup& sgroup = static_cast<DataSGroup&>(mol.sgroups.getSGroup(sg_idx));
-            sgroup.setMrv_implicit(i, hcount);
         }
 
         if (radical > 0)
@@ -606,7 +668,7 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
                 out.printf(" SUBST=%d", subst);
             int rbc;
             if (MoleculeSavers::getRingBondCountFlagValue(*qmol, i, rbc))
-                out.printf(" RBCNT=%d", rbc);
+                out.printf(" RBCNT=%d", rbc > MAX_RING_BOND_COUNT ? MAX_RING_BOND_COUNT : rbc);
         }
 
         _writeMultiString(output, buf.ptr(), buf.size());
@@ -629,14 +691,8 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
         {
             int qb = QueryMolecule::getQueryBondType(qmol->getBond(i));
 
-            if (qb == QueryMolecule::QUERY_BOND_SINGLE_OR_DOUBLE)
-                bond_order = 5;
-            else if (qb == QueryMolecule::QUERY_BOND_SINGLE_OR_AROMATIC)
-                bond_order = 6;
-            else if (qb == QueryMolecule::QUERY_BOND_DOUBLE_OR_AROMATIC)
-                bond_order = 7;
-            else if (qb == QueryMolecule::QUERY_BOND_ANY)
-                bond_order = 8;
+            if (qb == _BOND_SINGLE_OR_DOUBLE || qb == _BOND_SINGLE_OR_AROMATIC || qb == _BOND_DOUBLE_OR_AROMATIC || qb == _BOND_ANY)
+                bond_order = qb;
         }
 
         if (bond_order < 0)
@@ -644,9 +700,9 @@ void MolfileSaver::_writeCtab(Output& output, BaseMolecule& mol, bool query)
 
         if (bond_order == BOND_ZERO)
         {
-            bond_order = 9;
+            bond_order = _BOND_COORDINATION;
             if ((mol.getAtomNumber(edge.beg) == ELEM_H) || (mol.getAtomNumber(edge.end) == ELEM_H))
-                bond_order = 10;
+                bond_order = _BOND_HYDROGEN;
         }
 
         out.printf("%d %d %d %d", iw, bond_order, _atom_mapping[edge.beg], _atom_mapping[edge.end]);
@@ -1095,7 +1151,7 @@ void MolfileSaver::_writeTGroup(Output& output, BaseMolecule& mol, int tg_idx)
 void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
 {
     _handleCIP(mol);
-    QueryMolecule* qmol = 0;
+    QueryMolecule* qmol = nullptr;
 
     if (query)
         qmol = (QueryMolecule*)(&mol);
@@ -1173,9 +1229,9 @@ void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
             if (qmol == 0)
                 throw Error("internal: atom number = -1, but qmol == 0");
 
-            QS_DEF(Array<int>, list);
-
-            int query_atom_type = QueryMolecule::parseQueryAtom(*qmol, i, list);
+            std::vector<std::unique_ptr<QueryMolecule::Atom>> list;
+            std::map<int, std::unique_ptr<QueryMolecule::Atom>> properties;
+            int query_atom_type = QueryMolecule::parseQueryAtomSmarts(*qmol, i, list, properties);
 
             if (query_atom_type == QueryMolecule::QUERY_ATOM_A)
                 label[0] = 'A';
@@ -1214,9 +1270,9 @@ void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
                 label[0] = 'A';
             // throw Error("error saving atom #%d: unsupported query atom", i);
         }
-        else if (atom_number == ELEM_H && atom_isotope == 2)
+        else if (atom_number == ELEM_H && atom_isotope == DEUTERIUM)
             label[0] = 'D';
-        else if (atom_number == ELEM_H && atom_isotope == 3)
+        else if (atom_number == ELEM_H && atom_isotope == TRITIUM)
             label[0] = 'T';
         else
         {
@@ -1276,7 +1332,7 @@ void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
             {
                 int* r = ring_bonds.push();
                 r[0] = i;
-                r[1] = rbc;
+                r[1] = rbc > MAX_RING_BOND_COUNT ? MAX_RING_BOND_COUNT : rbc;
             }
             int subst;
             if (MoleculeSavers::getSubstitutionCountFlagValue(*qmol, i, subst))
@@ -1343,14 +1399,8 @@ void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
         {
             int qb = QueryMolecule::getQueryBondType(qmol->getBond(i));
 
-            if (qb == QueryMolecule::QUERY_BOND_SINGLE_OR_DOUBLE)
-                bond_order = 5;
-            else if (qb == QueryMolecule::QUERY_BOND_SINGLE_OR_AROMATIC)
-                bond_order = 6;
-            else if (qb == QueryMolecule::QUERY_BOND_DOUBLE_OR_AROMATIC)
-                bond_order = 7;
-            else if (qb == QueryMolecule::QUERY_BOND_ANY)
-                bond_order = 8;
+            if (qb == _BOND_SINGLE_OR_DOUBLE || qb == _BOND_SINGLE_OR_AROMATIC || qb == _BOND_DOUBLE_OR_AROMATIC || qb == _BOND_ANY)
+                bond_order = qb;
         }
 
         if (bond_order < 0)
@@ -1485,9 +1535,9 @@ void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
     for (i = 0; i < atom_lists.size(); i++)
     {
         int atom_idx = atom_lists[i];
-        QS_DEF(Array<int>, list);
-
-        int query_atom_type = QueryMolecule::parseQueryAtom(*qmol, atom_idx, list);
+        std::vector<std::unique_ptr<QueryMolecule::Atom>> list;
+        std::map<int, std::unique_ptr<QueryMolecule::Atom>> properties;
+        int query_atom_type = QueryMolecule::parseQueryAtomSmarts(*qmol, atom_idx, list, properties);
 
         if (query_atom_type != QueryMolecule::QUERY_ATOM_LIST && query_atom_type != QueryMolecule::QUERY_ATOM_NOTLIST)
             throw Error("internal: atom list not recognized");
@@ -1499,16 +1549,35 @@ void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
 
         int j;
 
-        for (j = 0; j < list.size(); j++)
+        for (auto& qatom : list)
         {
-            char c1 = ' ', c2 = ' ';
-            const char* str = Element::toString(list[j]);
+            if (qatom->type == QueryMolecule::ATOM_NUMBER)
+            {
+                char c1 = ' ', c2 = ' ';
+                const char* str = Element::toString(qatom->value_max);
 
-            c1 = str[0];
-            if (str[1] != 0)
-                c2 = str[1];
+                c1 = str[0];
+                if (str[1] != 0)
+                    c2 = str[1];
 
-            output.printf("%c%c  ", c1, c2);
+                output.printf("%c%c  ", c1, c2);
+            }
+            else if (qatom->type == QueryMolecule::ATOM_PSEUDO)
+            {
+                const char* str = qatom->alias.ptr();
+                constexpr int SYMBOL_WIDTH = 4;
+                if (strlen(str) > 4)
+                {
+                    for (int i = 0; i < SYMBOL_WIDTH; i++)
+                        output.writeChar(str[i]);
+                }
+                else
+                {
+                    output.writeString(str);
+                    for (int i = strlen(str); i < SYMBOL_WIDTH; i++)
+                        output.writeChar(' ');
+                }
+            }
         }
         output.writeCR();
     }
@@ -1525,6 +1594,18 @@ void MolfileSaver::_writeCtab2000(Output& output, BaseMolecule& mol, bool query)
         output.printfCR("A  %3d", _atom_mapping[aliases[i]]);
         output.writeString(mol.getAlias(aliases[i]));
         output.writeCR();
+    }
+
+    if (qmol && add_mrv_sma)
+    {
+        for (i = mol.vertexBegin(); i < mol.vertexEnd(); i = mol.vertexNext(i))
+        {
+            std::string mrv_sma = QueryMolecule::getMolMrvSmaExtension(*qmol, i);
+            if (mrv_sma.length() > 0)
+            {
+                output.printfCR("M  MRV SMA %3u [%s]", i + 1, mrv_sma.c_str());
+            }
+        }
     }
 
     QS_DEF(Array<int>, sgroup_ids);
@@ -2090,5 +2171,23 @@ bool MolfileSaver::_hasNeighborEitherBond(BaseMolecule& mol, int edge_idx)
     for (k = end.neiBegin(); k != end.neiEnd(); k = end.neiNext(k))
         if (mol.getBondDirection2(edge.end, end.neiVertex(k)) == BOND_EITHER)
             return true;
+    return false;
+}
+
+bool MolfileSaver::MonomersToSgroupFilter::operator()(int atom_idx) const
+{
+    std::string mon_class = _mol.getTemplateAtomClass(atom_idx);
+    _mol.getTemplateAtomAttachmentPointsCount(atom_idx);
+    if (isAminoAcidClass(mon_class))
+    {
+        auto it = _directions_map.find(atom_idx);
+        if (it != _directions_map.end())
+        {
+            auto& dirs_map = it->second;
+            // if R3 is in use, convert the template to S-Group
+            if (dirs_map.find(kBranchAttachmentPointIdx) != dirs_map.end())
+                return true;
+        }
+    }
     return false;
 }

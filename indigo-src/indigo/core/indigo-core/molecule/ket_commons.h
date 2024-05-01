@@ -20,6 +20,7 @@
 #define __ket_commons_h__
 
 #include <exception>
+#include <functional>
 #include <rapidjson/document.h>
 #include <string>
 #include <unordered_map>
@@ -27,6 +28,8 @@
 #include "common/math/algebra.h"
 #include "graph/graph.h"
 #include "molecule/molecule_cip_calculator.h"
+#include "molecule/parse_utils.h"
+#include "molecule/query_molecule.h"
 #include "reaction/base_reaction.h"
 
 namespace indigo
@@ -43,11 +46,6 @@ namespace indigo
     const uint8_t KETReagentDownArea = 2;
     const uint8_t KETProductArea = 3;
     const Vec2f MIN_MOL_SIZE = {0.5, 0.5};
-
-    const std::unordered_map<std::string, CIPDesc> KStringToCIP = {{"R", CIPDesc::R}, {"S", CIPDesc::S}, {"r", CIPDesc::r},
-                                                                   {"s", CIPDesc::s}, {"E", CIPDesc::E}, {"Z", CIPDesc::Z}};
-    const std::unordered_map<int, std::string> KCIPToString = {{(int)CIPDesc::R, "R"}, {(int)CIPDesc::S, "S"}, {(int)CIPDesc::r, "r"},
-                                                               {(int)CIPDesc::s, "s"}, {(int)CIPDesc::E, "E"}, {(int)CIPDesc::Z, "Z"}};
 
     struct compareFunction
     {
@@ -69,49 +67,19 @@ namespace indigo
         return string_hash(s, count);
     }
 
-    inline uint8_t getPointSide(const Vec2f& point, const Vec2f& beg, const Vec2f& end)
-    {
-        uint8_t bit_mask = 0;
-        Vec2f arrow_vec(beg);
-        arrow_vec.sub(end);
+    uint8_t getPointSide(const Vec2f& point, const Vec2f& beg, const Vec2f& end);
 
-        Vec2f slope1(point.x, point.y);
-        Vec2f slope2(slope1);
-        slope1.sub(beg);
-        slope2.sub(end);
-        auto dt1 = Vec2f::dot(slope1, arrow_vec);
-        auto dt2 = Vec2f::dot(slope2, arrow_vec);
+    CIPDesc stringToCIP(const std::string& cip_str);
 
-        if (std::signbit(dt1))
-            bit_mask |= KETReagentUpArea;
+    std::string CIPToString(CIPDesc cip);
 
-        if (std::signbit(dt2))
-            bit_mask |= KETReagentDownArea;
+    bool isCIPSGroup(SGroup& sgroup);
 
-        return bit_mask;
-    }
+    void getSGroupAtoms(BaseMolecule& mol, std::list<std::unordered_set<int>>& neighbors);
 
-    inline bool isCIPSGroup(SGroup& sgroup)
-    {
-        if (sgroup.sgroup_type == SGroup::SG_DATA)
-        {
-            auto& dsg = (DataSGroup&)sgroup;
-            return std::string(dsg.name.ptr()) == "INDIGO_CIP_DESC";
-        }
-        return false;
-    }
+    std::string convertAPToHELM(const std::string& atp_id_str);
 
-    inline void getSGroupAtoms(BaseMolecule& mol, std::list<std::unordered_set<int>>& neighbors)
-    {
-        for (int i = mol.sgroups.begin(); i != mol.sgroups.end(); i = mol.sgroups.next(i))
-        {
-            SGroup& sgroup = mol.sgroups.getSGroup(i);
-            neighbors.push_back({});
-            auto& sg_set = neighbors.back();
-            for (auto atom_idx : sgroup.atoms)
-                sg_set.insert(atom_idx);
-        }
-    }
+    std::string convertAPFromHELM(const std::string& atp_id_str);
 
     class KETSimpleObject : public MetaObject
     {
@@ -157,7 +125,7 @@ namespace indigo
         struct KETTextLine
         {
             std::string text;
-            std::map<int, FONT_STYLE_SET> styles;
+            std::map<std::size_t, FONT_STYLE_SET> styles;
         };
 
         static const std::uint32_t CID = "KET text object"_hash;
@@ -172,7 +140,7 @@ namespace indigo
             if (data.HasMember("blocks"))
             {
                 Value& blocks = data["blocks"];
-                for (int i = 0; i < blocks.Size(); ++i)
+                for (rapidjson::SizeType i = 0; i < blocks.Size(); ++i)
                 {
                     KETTextLine text_line;
                     if (blocks[i].HasMember("text"))
@@ -183,7 +151,7 @@ namespace indigo
                         if (blocks[i].HasMember("inlineStyleRanges"))
                         {
                             Value& style_ranges = blocks[i]["inlineStyleRanges"];
-                            for (int j = 0; j < style_ranges.Size(); ++j)
+                            for (rapidjson::SizeType j = 0; j < style_ranges.Size(); ++j)
                             {
                                 int style_begin = style_ranges[j]["offset"].GetInt();
                                 int style_end = style_begin + style_ranges[j]["length"].GetInt();
@@ -352,5 +320,22 @@ namespace indigo
         int index;
     };
 
+    // hash for pairs taken from boost library
+    struct pair_int_hash
+    {
+    private:
+        const std::hash<int> ah;
+        const std::hash<int> bh;
+
+    public:
+        pair_int_hash() : ah(), bh()
+        {
+        }
+        size_t operator()(const std::pair<int, int>& p) const
+        {
+            size_t seed = ah(p.first);
+            return bh(p.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+    };
 }
 #endif

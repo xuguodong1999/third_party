@@ -5,6 +5,7 @@ import FluentUI
 
 T.Slider {
     property bool tooltipEnabled: true
+    property string text: String(control.value)
     id: control
     to:100
     stepSize:1
@@ -16,23 +17,31 @@ T.Slider {
     handle: Rectangle {
         x: control.leftPadding + (control.horizontal ? control.visualPosition * (control.availableWidth - width) : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.visualPosition * (control.availableHeight - height))
-        implicitWidth: 24
-        implicitHeight: 24
-        radius: 12
+        implicitWidth: 20
+        implicitHeight: 20
+        radius: 10
         color:FluTheme.dark ? Qt.rgba(69/255,69/255,69/255,1) :Qt.rgba(1,1,1,1)
         FluShadow{
-            radius: 12
+            radius: 10
         }
-        Rectangle{
-            width: radius*2
-            height: radius*2
-            radius:{
-                if(control.pressed){
-                    return 5
+        FluIcon{
+            width: 10
+            height: 10
+            Behavior on scale{
+                NumberAnimation{
+                    duration: 167
+                    easing.type: Easing.OutCubic
                 }
-                return control.hovered ? 7 : 6
             }
-            color:FluTheme.dark ? FluTheme.primaryColor.lighter :FluTheme.primaryColor.dark
+            iconSource: FluentIcons.FullCircleMask
+            iconSize: 10
+            scale:{
+                if(control.pressed){
+                    return 0.9
+                }
+                return control.hovered ? 1.2 : 1
+            }
+            iconColor: FluTheme.primaryColor
             anchors.centerIn: parent
         }
     }
@@ -55,12 +64,12 @@ T.Slider {
             width: control.horizontal ? control.position * parent.width : 6
             height: control.horizontal ? 6 : control.position * parent.height
             radius: 3
-            color:FluTheme.dark ? FluTheme.primaryColor.lighter :FluTheme.primaryColor.dark
+            color: FluTheme.primaryColor
         }
     }
     FluTooltip{
         parent: control.handle
         visible: control.tooltipEnabled && (control.pressed || control.hovered)
-        text:String(control.value)
+        text:control.text
     }
 }

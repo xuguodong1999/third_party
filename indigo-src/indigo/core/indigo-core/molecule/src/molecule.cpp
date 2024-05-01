@@ -24,6 +24,7 @@
 #include "molecule/molecule_arom.h"
 #include "molecule/molecule_dearom.h"
 #include "molecule/molecule_standardize.h"
+#include "molecule/monomer_commons.h"
 
 using namespace indigo;
 
@@ -92,6 +93,7 @@ void Molecule::_mergeWithSubmolecule(BaseMolecule& bmol, const Array<int>& verti
             setTemplateAtom(newidx, mol.getTemplateAtom(vertices[i]));
             setTemplateAtomClass(newidx, mol.getTemplateAtomClass(vertices[i]));
             setTemplateAtomSeqid(newidx, mol.getTemplateAtomSeqid(vertices[i]));
+            setTemplateAtomTemplateIndex(newidx, mol.getTemplateAtomTemplateIndex(vertices[i]));
         }
 
         bool nei_mapped = (getVertex(newidx).degree() == mol.getVertex(vertices[i]).degree());
@@ -336,6 +338,17 @@ void Molecule::setPseudoAtom(int idx, const char* text)
     updateEditRevision();
 }
 
+void Molecule::renameTemplateAtom(int idx, const char* text)
+{
+    auto occur_idx = _atoms[idx].template_occur_idx;
+    if (_atoms[idx].number == ELEM_TEMPLATE)
+    {
+        _TemplateOccurrence& occur = _template_occurrences.at(occur_idx);
+        _template_names.set(occur.name_idx, text);
+        updateEditRevision();
+    }
+}
+
 void Molecule::setTemplateAtom(int idx, const char* text)
 {
     _atoms[idx].number = ELEM_TEMPLATE;
@@ -343,6 +356,7 @@ void Molecule::setTemplateAtom(int idx, const char* text)
     _TemplateOccurrence& occur = _template_occurrences.at(_atoms[idx].template_occur_idx);
     occur.name_idx = _template_names.add(text);
     occur.seq_id = -1;
+    occur.template_idx = -1;
     occur.contracted = DisplayOption::Undefined;
     updateEditRevision();
 }
@@ -374,6 +388,16 @@ void Molecule::setTemplateAtomSeqid(int idx, int seq_id)
 
     _TemplateOccurrence& occur = _template_occurrences.at(_atoms[idx].template_occur_idx);
     occur.seq_id = seq_id;
+    updateEditRevision();
+}
+
+void Molecule::setTemplateAtomTemplateIndex(int idx, int temp_idx)
+{
+    if (_atoms[idx].number != ELEM_TEMPLATE)
+        throw Error("setTemplateAtomTemplateIndex(): atom #%d is not a template atom", idx);
+
+    _TemplateOccurrence& occur = _template_occurrences.at(_atoms[idx].template_occur_idx);
+    occur.template_idx = temp_idx;
     updateEditRevision();
 }
 
@@ -687,67 +711,12 @@ void Molecule::_removeAtoms(const Array<int>& indices, const int* mapping)
     updateEditRevision();
 }
 
-void Molecule::unfoldHydrogens(Array<int>* markers_out, int max_h_cnt, bool impl_h_no_throw)
+int Molecule::getImplicitH(int idx, bool impl_h_no_throw)
 {
-    int v_end = vertexEnd();
-
-    QS_DEF(Array<int>, imp_h_count);
-    imp_h_count.clear_resize(vertexEnd());
-    imp_h_count.zerofill();
-
-    // getImplicitH can throw an exception, and we need to get the number of hydrogens
-    // before unfolding them
-    for (int i = vertexBegin(); i < v_end; i = vertexNext(i))
-    {
-        if (isPseudoAtom(i) || isRSite(i) || isTemplateAtom(i))
-            continue;
-
-        if (impl_h_no_throw)
-            imp_h_count[i] = getImplicitH_NoThrow(i, 0);
-        else
-            imp_h_count[i] = getImplicitH(i);
-    }
-
-    if (markers_out != 0)
-    {
-        markers_out->clear_resize(vertexEnd());
-        markers_out->zerofill();
-    }
-
-    for (int i = vertexBegin(); i < v_end; i = vertexNext(i))
-    {
-        int impl_h = imp_h_count[i];
-        if (impl_h == 0)
-            continue;
-
-        int h_cnt;
-        if ((max_h_cnt == -1) || (max_h_cnt > impl_h))
-            h_cnt = impl_h;
-        else
-            h_cnt = max_h_cnt;
-
-        for (int j = 0; j < h_cnt; j++)
-        {
-            int new_h_idx = addAtom(ELEM_H);
-
-            addBond(i, new_h_idx, BOND_SINGLE);
-            if (markers_out != 0)
-            {
-                markers_out->expandFill(new_h_idx + 1, 0);
-                markers_out->at(new_h_idx) = 1;
-            }
-
-            stereocenters.registerUnfoldedHydrogen(i, new_h_idx);
-            cis_trans.registerUnfoldedHydrogen(*this, i, new_h_idx);
-            allene_stereo.registerUnfoldedHydrogen(i, new_h_idx);
-            sgroups.registerUnfoldedHydrogen(i, new_h_idx);
-        }
-
-        _validateVertexConnectivity(i, false);
-        _implicit_h[i] = impl_h - h_cnt;
-    }
-
-    updateEditRevision();
+    if (impl_h_no_throw)
+        return getImplicitH_NoThrow(idx, 0);
+    else
+        return getImplicitH(idx);
 }
 
 int Molecule::getImplicitH(int idx)
@@ -848,7 +817,7 @@ int Molecule::_getImplicitHForConnectivity(int idx, int conn, bool use_cache)
             if (_ignore_bad_valence)
                 impl_h = 0;
             else
-                throw Element::Error("can not calculate implicit hydrogens on aromatic %s, charge %d, degree %d, %d radical electrons",
+                throw Element::Error("cannot calculate implicit hydrogens on aromatic %s, charge %d, degree %d, %d radical electrons",
                                      Element::toString(atom.number), atom.charge, getVertex(idx).degree(), Element::radicalElectrons(radical));
         }
     }
@@ -1450,6 +1419,18 @@ const char* Molecule::getTemplateAtomClass(int idx)
     return res;
 }
 
+const int Molecule::getTemplateAtomTemplateIndex(int idx)
+{
+    const _Atom& atom = _atoms[idx];
+
+    if (atom.number != ELEM_TEMPLATE)
+        throw Error("getTemplateAtomTemplateIndex(): atom #%d is not a template atom", idx);
+
+    _TemplateOccurrence& occur = _template_occurrences.at(atom.template_occur_idx);
+    const int res = occur.template_idx;
+    return res;
+}
+
 const int Molecule::getTemplateAtomSeqid(int idx)
 {
     const _Atom& atom = _atoms[idx];
@@ -1475,6 +1456,33 @@ const int Molecule::getTemplateAtomDisplayOption(int idx)
     // const int res = occur.contracted;
 
     return res;
+}
+
+void Molecule::getTemplatesMap(std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash>& templates_map)
+{
+    templates_map.clear();
+    int temp_idx = 0;
+    for (int i = tgroups.begin(); i != tgroups.end(); i = tgroups.next(i))
+    {
+        auto& tg = tgroups.getTGroup(i);
+        std::string tname = tg.tgroup_name.size() ? tg.tgroup_name.ptr() : monomerAlias(tg);
+        templates_map.emplace(std::make_pair(tname, tg.tgroup_class.ptr()), std::ref(tg));
+    }
+}
+
+void Molecule::getTemplateAtomDirectionsMap(std::unordered_map<int, std::map<int, int>>& directions_map)
+{
+    for (int i = template_attachment_points.begin(); i != template_attachment_points.end(); i = template_attachment_points.next(i))
+    {
+        auto& tap = template_attachment_points[i];
+        if (tap.ap_id.size())
+        {
+            Array<char> atom_label;
+            getAtomSymbol(tap.ap_occur_idx, atom_label);
+            int ap_id = tap.ap_id[0] - 'A';
+            directions_map[tap.ap_occur_idx].emplace(ap_id, tap.ap_aidx);
+        }
+    }
 }
 
 BaseMolecule* Molecule::neu()
@@ -1565,26 +1573,6 @@ void Molecule::allowRGroupOnRSite(int atom_idx, int rg_idx)
 
     _atoms[atom_idx].rgroup_bits |= (1 << rg_idx);
     updateEditRevision();
-}
-
-bool Molecule::convertableToImplicitHydrogen(int idx)
-{
-    if (getAtomNumber(idx) == ELEM_H && getAtomIsotope(idx) == 0 && getVertex(idx).degree() == 1)
-    {
-        int nei = getVertex(idx).neiVertex(getVertex(idx).neiBegin());
-        if (getAtomNumber(nei) != ELEM_H || getAtomIsotope(nei) != 0)
-        {
-            if (stereocenters.getType(nei) > 0)
-                if (getVertex(nei).degree() == 3)
-                    return false; // not ignoring hydrogens around stereocenters with lone pair
-
-            if (!cis_trans.convertableToImplicitHydrogen(*this, idx))
-                return false;
-
-            return true;
-        }
-    }
-    return false;
 }
 
 void Molecule::invalidateHCounters()

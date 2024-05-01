@@ -508,6 +508,8 @@ bool MoleculeSubstructureMatcher::matchQueryAtom(QueryMolecule::Atom* query, Bas
         return query->valueWithinRange((int)target.isAtomHighlighted(super_idx));
     case QueryMolecule::ATOM_IMPLICIT_H:
         return query->valueWithinRange(target.asMolecule().getImplicitH(super_idx));
+    case QueryMolecule::ATOM_CHIRALITY:
+        return target.stereocenters.getType(super_idx) == MoleculeStereocenters::ATOM_ABS; // TODO: Investigate right way to match
     default:
         throw Error("bad query atom type: %d", query->type);
     }
@@ -539,6 +541,8 @@ bool MoleculeSubstructureMatcher::matchQueryBond(QueryMolecule::Bond* query, Bas
     case QueryMolecule::OP_NOT:
         return !matchQueryBond(query->child(0), target, sub_idx, super_idx, am, flags ^ MATCH_DISABLED_AS_TRUE);
 
+    case QueryMolecule::BOND_ANY:
+        return true;
     case QueryMolecule::BOND_ORDER: {
         if (flags & MATCH_BOND_TYPE)
         {

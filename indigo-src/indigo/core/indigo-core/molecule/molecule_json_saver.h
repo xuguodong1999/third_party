@@ -29,6 +29,9 @@
 #include "base_cpp/output.h"
 #include "molecule/base_molecule.h"
 #include "molecule/elements.h"
+#include "molecule/ket_commons.h"
+#include "molecule/monomers_lib.h"
+#include "molecule/query_molecule.h"
 
 namespace indigo
 {
@@ -94,12 +97,12 @@ namespace indigo
 
         bool Int64(int64_t i64)
         {
-            return pretty_json ? _pretty_writer.Uint(i64) : _writer.Uint(i64);
+            return pretty_json ? _pretty_writer.Uint64(i64) : _writer.Uint64(i64);
         }
 
         bool Uint64(uint64_t u64)
         {
-            return pretty_json ? _pretty_writer.Uint(u64) : _writer.Uint(u64);
+            return pretty_json ? _pretty_writer.Uint64(u64) : _writer.Uint64(u64);
         }
 
         bool Double(double d)
@@ -177,33 +180,54 @@ namespace indigo
         explicit MoleculeJsonSaver(Output& output);
         void saveMolecule(BaseMolecule& bmol);
         void saveMolecule(BaseMolecule& bmol, JsonWriter& writer);
+
         static void saveMetaData(JsonWriter& writer, MetaDataStorage& meta);
+        static std::string monomerId(const TGroup& tg);
+        static std::string monomerKETClass(const std::string& class_name);
+        static std::string monomerHELMClass(const std::string& class_name);
+        static std::string naturalAnalog(const std::string& natreplace);
+
         bool add_stereo_desc;
         bool pretty_json;
+        bool use_native_precision; // TODO: Remove option and use_native_precision allways - have to fix a lot of UTs
 
     protected:
+        void saveRoot(BaseMolecule& mol, JsonWriter& writer);
+        void saveEndpoint(BaseMolecule& mol, const std::string& ep, int beg_idx, int end_idx, JsonWriter& writer);
+        int getMonomerNumber(int mon_idx);
+
+        void writeFloat(JsonWriter& writer, float f_value);
         void saveAtoms(BaseMolecule& mol, JsonWriter& writer);
         void saveBonds(BaseMolecule& mol, JsonWriter& writer);
         void saveRGroup(PtrPool<BaseMolecule>& fragments, int rgnum, JsonWriter& writer);
         void saveFragment(BaseMolecule& fragment, JsonWriter& writer);
-        void saveTGroup(TGroup& tg, JsonWriter& writer);
+        void saveMonomerTemplate(TGroup& tg, JsonWriter& writer);
+        void saveMonomerAttachmentPoints(TGroup& tg, JsonWriter& writer);
+        void saveSuperatomAttachmentPoints(Superatom& sa, JsonWriter& writer);
 
         void saveSGroups(BaseMolecule& mol, JsonWriter& writer);
         void saveSGroup(SGroup& sgroup, JsonWriter& writer);
+
         void saveAttachmentPoint(BaseMolecule& mol, int atom_idx, JsonWriter& writer);
         void saveStereoCenter(BaseMolecule& mol, int atom_idx, JsonWriter& writer);
         void saveHighlights(BaseMolecule& mol, JsonWriter& writer);
-        void saveSelection(BaseMolecule& mol, JsonWriter& writer);
 
         DECL_ERROR;
 
     protected:
         void _checkSGroupIndices(BaseMolecule& mol, Array<int>& sgs_list);
         bool _checkAttPointOrder(BaseMolecule& mol, int rsite);
+        bool _needCustomQuery(QueryMolecule::Atom* atom) const;
+        void _writeQueryProperties(QueryMolecule::Atom* atom, JsonWriter& writer);
 
         Molecule* _pmol;
         QueryMolecule* _pqmol;
         Output& _output;
+        std::list<std::unordered_set<int>> _s_neighbors;
+        std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash> _templates;
+        std::unordered_map<std::pair<int, int>, std::string, pair_int_hash> _monomer_connections;
+        std::map<int, int> _monomers_enum;
+        std::vector<std::unique_ptr<BaseMolecule>> _no_template_molecules;
 
     private:
         MoleculeJsonSaver(const MoleculeJsonSaver&); // no implicit copy

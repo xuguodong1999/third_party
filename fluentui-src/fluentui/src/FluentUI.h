@@ -1,19 +1,26 @@
-#ifndef FLUENTUI_H
-#define FLUENTUI_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
+#include "singleton.h"
 
-class FluentUI : public QObject
-{
-    Q_OBJECT
+/**
+ * @brief The FluentUI class
+ */
+class FluentUI : public QObject {
+Q_OBJECT
+
 public:
-    static FluentUI *getInstance();
-    Q_DECL_EXPORT void registerTypes(QQmlEngine *engine);
-    void registerTypes(const char *uri);
-    void initializeEngine(QQmlEngine *engine, const char *uri);
-private:
-    static FluentUI* m_instance;
-};
+SINGLETON(FluentUI)
 
-#endif // FLUENTUI_H
+    Q_DECL_EXPORT void registerTypes(QQmlEngine *engine);
+
+    void registerTypes(const char *uri) const;
+
+    void initializeEngine(QQmlEngine *engine, [[maybe_unused]] const char *uri);
+
+private:
+    const int _major = 1;
+    const int _minor = 0;
+    const char *_uri = "FluentUI";
+};

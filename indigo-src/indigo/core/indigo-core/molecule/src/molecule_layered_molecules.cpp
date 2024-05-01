@@ -371,6 +371,11 @@ const int LayeredMolecules::getTemplateAtomSeqid(int idx)
     return _proto.getTemplateAtomSeqid(idx);
 }
 
+const int LayeredMolecules::getTemplateAtomTemplateIndex(int idx)
+{
+    return _proto.getTemplateAtomTemplateIndex(idx);
+}
+
 const char* LayeredMolecules::getTemplateAtomClass(int idx)
 {
     return _proto.getTemplateAtomClass(idx);
@@ -379,6 +384,16 @@ const char* LayeredMolecules::getTemplateAtomClass(int idx)
 const int LayeredMolecules::getTemplateAtomDisplayOption(int idx)
 {
     return _proto.getTemplateAtomDisplayOption(idx);
+}
+
+void LayeredMolecules::getTemplatesMap(std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash>& templates_map)
+{
+    return _proto.getTemplatesMap(templates_map);
+}
+
+void LayeredMolecules::getTemplateAtomDirectionsMap(std::unordered_map<int, std::map<int, int>>& directions_map)
+{
+    return _proto.getTemplateAtomDirectionsMap(directions_map);
 }
 
 bool LayeredMolecules::isRSite(int idx)
@@ -469,6 +484,26 @@ bool LayeredMolecules::aromatize(const AromaticityOptions& options)
 bool LayeredMolecules::dearomatize(const AromaticityOptions& options)
 {
     return _proto.dearomatize(options);
+}
+
+int LayeredMolecules::addAtom(int label)
+{
+    return _proto.addAtom(label);
+}
+
+int LayeredMolecules::addBond(int beg, int end, int order)
+{
+    return _proto.addBond(beg, end, order);
+}
+
+int LayeredMolecules::getImplicitH(int idx, bool impl_h_no_throw)
+{
+    return _proto.getImplicitH(idx, impl_h_no_throw);
+}
+
+void LayeredMolecules::setImplicitH(int idx, int impl_h)
+{
+    return _proto.setImplicitH(idx, impl_h);
 }
 
 void LayeredMolecules::_mergeWithSubmolecule(BaseMolecule& bmol, const Array<int>& vertices, const Array<int>* edges, const Array<int>& mapping, int skip_flags)

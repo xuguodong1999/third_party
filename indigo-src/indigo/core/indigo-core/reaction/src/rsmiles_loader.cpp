@@ -64,6 +64,10 @@ void RSmilesLoader::loadReaction(Reaction& reaction)
     _rxn = &reaction;
     _brxn = &reaction;
     _qrxn = 0;
+    if (smarts_mode)
+        reaction.original_format = BaseMolecule::SMARTS;
+    else
+        reaction.original_format = BaseMolecule::SMILES;
     _loadReaction();
 }
 
@@ -72,6 +76,10 @@ void RSmilesLoader::loadQueryReaction(QueryReaction& rxn)
     _rxn = 0;
     _brxn = &rxn;
     _qrxn = &rxn;
+    if (smarts_mode)
+        rxn.original_format = BaseMolecule::SMARTS;
+    else
+        rxn.original_format = BaseMolecule::SMILES;
     _loadReaction();
 }
 
@@ -83,6 +91,10 @@ void RSmilesLoader::_loadReaction()
     std::unique_ptr<BaseMolecule>& rcnt = mols[0];
     std::unique_ptr<BaseMolecule>& ctlt = mols[1];
     std::unique_ptr<BaseMolecule>& prod = mols[2];
+    std::list<std::unordered_set<int>> mols_extNeibs[3];
+    std::list<std::unordered_set<int>>& rcnt_extNeibs = mols_extNeibs[0];
+    std::list<std::unordered_set<int>>& ctlt_extNeibs = mols_extNeibs[1];
+    std::list<std::unordered_set<int>>& prod_extNeibs = mols_extNeibs[2];
 
     QS_DEF(Array<int>, rcnt_aam);
     QS_DEF(Array<int>, ctlt_aam);
@@ -124,6 +136,7 @@ void RSmilesLoader::_loadReaction()
     {
         rcnt = std::make_unique<QueryMolecule>();
         r_loader.loadQueryMolecule(static_cast<QueryMolecule&>(*rcnt));
+        static_cast<QueryMolecule&>(*rcnt).getComponentNeighbors(rcnt_extNeibs);
     }
     rcnt_aam.copy(rcnt->reaction_atom_mapping);
 
@@ -137,11 +150,6 @@ void RSmilesLoader::_loadReaction()
             break;
         buf.push(c);
     }
-
-    if (_rxn != 0)
-        ctlt = std::make_unique<Molecule>();
-    else
-        ctlt = std::make_unique<QueryMolecule>();
 
     BufferScanner c_scanner(buf);
     SmilesLoader c_loader(c_scanner);
@@ -162,6 +170,7 @@ void RSmilesLoader::_loadReaction()
     {
         ctlt = std::make_unique<QueryMolecule>();
         c_loader.loadQueryMolecule(static_cast<QueryMolecule&>(*ctlt));
+        static_cast<QueryMolecule&>(*ctlt).getComponentNeighbors(ctlt_extNeibs);
     }
     ctlt_aam.copy(ctlt->reaction_atom_mapping);
 
@@ -201,6 +210,7 @@ void RSmilesLoader::_loadReaction()
     {
         prod = std::make_unique<QueryMolecule>();
         p_loader.loadQueryMolecule(static_cast<QueryMolecule&>(*prod));
+        static_cast<QueryMolecule&>(*prod).getComponentNeighbors(prod_extNeibs);
     }
     prod_aam.copy(prod->reaction_atom_mapping);
 
@@ -209,9 +219,9 @@ void RSmilesLoader::_loadReaction()
     QS_DEF(Array<int>, p_fragments);
     Array<int>* fragments[] = {&r_fragments, &c_fragments, &p_fragments};
 
-    r_fragments.clear_resize(rcnt->countComponents());
-    c_fragments.clear_resize(ctlt->countComponents());
-    p_fragments.clear_resize(prod->countComponents());
+    r_fragments.clear_resize(rcnt->countComponents(rcnt_extNeibs));
+    c_fragments.clear_resize(ctlt->countComponents(ctlt_extNeibs));
+    p_fragments.clear_resize(prod->countComponents(prod_extNeibs));
 
     for (int i = 0; i < r_fragments.size(); i++)
         r_fragments[i] = i;

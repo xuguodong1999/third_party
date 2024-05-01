@@ -14,10 +14,17 @@ Item {
     property Component autoSuggestBox
     property Component actionItem
     property int topPadding: 0
-    property int navWidth: 300
     property int pageMode: FluNavigationViewType.Stack
     property FluMenu navItemRightMenu
     property FluMenu navItemExpanderRightMenu
+    property int navCompactWidth: 50
+    property int navTopMargin: 0
+    property int cellHeight: 38
+    property int cellWidth: 300
+    property bool hideNavAppBar: false
+    property alias buttonMenu: btn_menu
+    property alias buttonBack: btn_back
+    property alias imageLogo: image_logo
     signal logoClicked
     id:control
     Item{
@@ -31,22 +38,30 @@ Item {
         property bool isCompactAndPanel: d.displayMode === FluNavigationViewType.Compact && d.enableNavigationPanel
         property bool isCompactAndNotPanel:d.displayMode === FluNavigationViewType.Compact && !d.enableNavigationPanel
         property bool isMinimalAndPanel: d.displayMode === FluNavigationViewType.Minimal && d.enableNavigationPanel
+        property color itemDisableColor: FluTheme.dark ? Qt.rgba(131/255,131/255,131/255,1) : Qt.rgba(160/255,160/255,160/255,1)
         onIsCompactAndNotPanelChanged: {
             collapseAll()
         }
         function handleItems(){
             var _idx = 0
             var data = []
+            var comEmpty = Qt.createComponent("FluPaneItemEmpty.qml");
             if(items){
                 for(var i=0;i<items.children.length;i++){
                     var item = items.children[i]
+                    if(item.visible !== true){
+                        continue
+                    }
                     item._idx = _idx
                     data.push(item)
                     _idx++
                     if(item instanceof FluPaneItemExpander){
                         for(var j=0;j<item.children.length;j++){
                             var itemChild = item.children[j]
-                            itemChild.parent = item
+                            if(itemChild.visible !== true){
+                                continue
+                            }
+                            itemChild._parent = item
                             itemChild._idx = _idx
                             data.push(itemChild)
                             _idx++
@@ -54,19 +69,32 @@ Item {
                     }
                 }
                 if(footerItems){
-                    var comEmpty = Qt.createComponent("FluPaneItemEmpty.qml");
                     for(var k=0;k<footerItems.children.length;k++){
                         var itemFooter = footerItems.children[k]
-                        if (comEmpty.status === Component.Ready) {
-                            var objEmpty = comEmpty.createObject(items,{_idx:_idx});
-                            itemFooter._idx = _idx;
-                            data.push(objEmpty)
-                            _idx++
+                        if(itemFooter.visible !== true){
+                            continue
                         }
+                        var objEmpty = comEmpty.createObject(items,{_idx:_idx});
+                        itemFooter._idx = _idx;
+                        data.push(objEmpty)
+                        _idx++
                     }
                 }
             }
             return data
+        }
+        function handleFooterItems(){
+            var data = []
+            if(footerItems){
+                for(var i=0;i<footerItems.children.length;i++){
+                    var item = footerItems.children[i]
+                    if(item.visible !== true){
+                        continue
+                    }
+                    data.push(item)
+                }
+            }
+            return data;
         }
     }
     Component.onCompleted: {
@@ -119,12 +147,12 @@ Item {
                 }
                 return 1
             }
-            separatorHeight: {
+            size: {
                 if(!model){
                     return 1
                 }
-                if(model.parent){
-                    return model.parent.isExpand ? model.size : 0
+                if(model._parent){
+                    return model._parent.isExpand ? model.size : 0
                 }
                 return model.size
             }
@@ -134,13 +162,13 @@ Item {
         id:com_panel_item_header
         Item{
             height: {
-                if(model.parent){
-                    return model.parent.isExpand ? 30 : 0
+                if(model._parent){
+                    return model._parent.isExpand ? control.cellHeight : 0
                 }
-                return 30
+                return  control.cellHeight
             }
             Behavior on height {
-                enabled: FluTheme.enableAnimation && d.animDisabled
+                enabled: FluTheme.animationEnabled && d.animDisabled
                 NumberAnimation{
                     duration: 83
                 }
@@ -160,10 +188,11 @@ Item {
     Component{
         id:com_panel_item_expander
         Item{
-            height: 38
+            height: control.cellHeight
             width: layout_list.width
             FluControl{
                 id:item_control
+                enabled: !model.disabled
                 anchors{
                     top: parent.top
                     bottom: parent.bottom
@@ -174,6 +203,11 @@ Item {
                     leftMargin: 6
                     rightMargin: 6
                 }
+                FluTooltip {
+                    text: model.title
+                    visible: item_control.hovered && model.title && d.isCompactAndNotPanel
+                    delay: 800
+                }
                 MouseArea{
                     anchors.fill: parent
                     acceptedButtons: Qt.RightButton
@@ -182,15 +216,22 @@ Item {
                             if (mouse.button === Qt.RightButton) {
                                 if(model.menuDelegate){
                                     loader_item_menu.sourceComponent = model.menuDelegate
-                                    loader_item_menu.item.popup()
+                                    connection_item_menu.target = loader_item_menu.item
+                                    loader_item_menu.modelData = model
+                                    loader_item_menu.item.popup();
                                 }
                             }
                         }
                     z:-100
                 }
                 onClicked: {
-                    if(d.isCompactAndNotPanel){
-                        control_popup.showPopup(Qt.point(50,mapToItem(control,0,0).y),model.children)
+                    if(d.isCompactAndNotPanel && model.children.length > 0){
+                        let h = 38*Math.min(Math.max(model.children.length,1),8)
+                        let y = mapToItem(control,0,0).y
+                        if(h+y>control.height){
+                            y = control.height - h
+                        }
+                        control_popup.showPopup(Qt.point(control.navCompactWidth,y),h,model.children)
                         return
                     }
                     model.isExpand = !model.isExpand
@@ -230,7 +271,7 @@ Item {
                         width: 3
                         height: 18
                         radius: 1.5
-                        color: FluTheme.primaryColor.dark
+                        color: FluTheme.primaryColor
                         visible: {
                             if(!model){
                                 return false
@@ -240,6 +281,9 @@ Item {
                             }
                             for(var i=0;i<model.children.length;i++){
                                 var item = model.children[i]
+                                if(item.visible !== true){
+                                    continue
+                                }
                                 if(item._idx === nav_list.currentIndex && !model.isExpand){
                                     return true
                                 }
@@ -258,7 +302,7 @@ Item {
                         anchors{
                             verticalCenter: parent.verticalCenter
                             right: parent.right
-                            rightMargin: 12
+                            rightMargin: visible ? 12 : 0
                         }
                         visible: {
                             if(d.isCompactAndNotPanel){
@@ -267,31 +311,30 @@ Item {
                             return true
                         }
                         Behavior on rotation {
-                            enabled: FluTheme.enableAnimation && d.animDisabled
+                            enabled: FluTheme.animationEnabled && d.animDisabled
                             NumberAnimation{
                                 duration: 167
                                 easing.type: Easing.OutCubic
                             }
                         }
+                        color: {
+                            if(!item_control.enabled){
+                                return d.itemDisableColor
+                            }
+                            return FluTheme.dark ? "#FFFFFF" : "#000000"
+                        }
                     }
                     color: {
-                        if(FluTheme.dark){
-                            if((nav_list.currentIndex === _idx)&&type===0){
-                                return Qt.rgba(1,1,1,0.06)
-                            }
-                            if(item_control.hovered){
-                                return Qt.rgba(1,1,1,0.03)
-                            }
-                            return Qt.rgba(0,0,0,0)
-                        }else{
-                            if(nav_list.currentIndex === _idx&&type===0){
-                                return Qt.rgba(0,0,0,0.06)
-                            }
-                            if(item_control.hovered){
-                                return Qt.rgba(0,0,0,0.03)
-                            }
-                            return Qt.rgba(0,0,0,0)
+                        if(!item_control.enabled){
+                            return FluTheme.itemNormalColor
                         }
+                        if(nav_list.currentIndex === _idx&&type===0){
+                            return FluTheme.itemCheckColor
+                        }
+                        if(item_control.hovered){
+                            return FluTheme.itemHoverColor
+                        }
+                        return FluTheme.itemNormalColor
                     }
                     Component{
                         id:com_icon
@@ -303,22 +346,34 @@ Item {
                                 return 0
                             }
                             iconSize: 15
+                            color: {
+                                if(!item_control.enabled){
+                                    return d.itemDisableColor
+                                }
+                                return FluTheme.dark ? "#FFFFFF" : "#000000"
+                            }
                         }
                     }
                     Item{
                         id:item_icon
-                        width: 30
+                        width: visible ? 30 : 8
                         height: 30
-                        anchors{
-                            verticalCenter: parent.verticalCenter
-                            left:parent.left
-                            leftMargin: 3
+                        visible: {
+                            if(model){
+                                return model.iconVisible
+                            }
+                            return true
                         }
-                        Loader{
+                        anchors{
+                            left:parent.left
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: d.isCompactAndNotPanel ? (parent.width - 30)/2 : 3
+                        }
+                        FluLoader{
                             anchors.centerIn: parent
                             sourceComponent: {
-                                if(model&&model.cusIcon){
-                                    return model.cusIcon
+                                if(model&&model.iconDelegate){
+                                    return model.iconDelegate
                                 }
                                 return com_icon
                             }
@@ -328,13 +383,19 @@ Item {
                         id:item_title
                         text:{
                             if(model){
+                                if(!item_icon.visible && d.isCompactAndNotPanel){
+                                    return model.title[0]
+                                }
                                 return model.title
                             }
                             return ""
                         }
                         visible: {
                             if(d.isCompactAndNotPanel){
-                                return false
+                                if(item_icon.visible){
+                                    return false
+                                }
+                                return true
                             }
                             return true
                         }
@@ -345,13 +406,16 @@ Item {
                             right: item_icon_expand.left
                         }
                         color:{
+                            if(!item_control.enabled){
+                                return d.itemDisableColor
+                            }
                             if(item_control.pressed){
                                 return FluTheme.dark ? FluColors.Grey80 : FluColors.Grey120
                             }
                             return FluTheme.dark ? FluColors.White : FluColors.Grey220
                         }
                     }
-                    Loader{
+                    FluLoader{
                         id:item_edit_loader
                         anchors{
                             top: parent.top
@@ -367,7 +431,7 @@ Item {
                             return model&&model.showEdit ? model.editDelegate : undefined
                         }
                         onStatusChanged: {
-                            if(status === Loader.Ready){
+                            if(status === FluLoader.Ready){
                                 item.forceActiveFocus()
                                 item_connection_edit_focus.target = item
                             }
@@ -394,27 +458,28 @@ Item {
         id:com_panel_item
         Item{
             Behavior on height {
-                enabled: FluTheme.enableAnimation && d.animDisabled
+                enabled: FluTheme.animationEnabled && d.animDisabled
                 NumberAnimation{
-                    duration: 83
+                    duration: 167
+                    easing.type: Easing.OutCubic
                 }
             }
             height: {
-                if(model&&model.parent){
-                    return model.parent.isExpand ? 38 : 0
+                if(model&&model._parent){
+                    return model._parent.isExpand ? control.cellHeight : 0
                 }
-                return 38
+                return control.cellHeight
             }
-            visible: {
-                if(model&&model.parent){
-                    return model.parent.isExpand ? true : false
-                }
-                return true
+            visible: control.cellHeight === Number(height)
+            opacity: visible
+            Behavior on opacity {
+                NumberAnimation { duration: 83 }
             }
             width: layout_list.width
             FluControl{
                 property var modelData: model
                 id:item_control
+                enabled: !model.disabled
                 anchors{
                     top: parent.top
                     bottom: parent.bottom
@@ -425,10 +490,11 @@ Item {
                     leftMargin: 6
                     rightMargin: 6
                 }
-                Drag.active: item_mouse.drag.active
-                Drag.hotSpot.x: item_control.width / 2
-                Drag.hotSpot.y: item_control.height / 2
-                Drag.dragType: Drag.Automatic
+                FluTooltip {
+                    text: model.title
+                    visible: item_control.hovered && model.title && d.isCompactAndNotPanel
+                    delay: 800
+                }
                 onClicked:{
                     if(type === 0){
                         if(model.onTapListener){
@@ -458,23 +524,13 @@ Item {
                     id:item_mouse
                     anchors.fill: parent
                     acceptedButtons: Qt.RightButton | Qt.LeftButton
-                    drag.target: item_control
-                    onPositionChanged: {
-                        parent.grabToImage(function(result) {
-                            parent.Drag.imageSource = result.url;
-                        })
-                    }
-                    drag.onActiveChanged:
-                        if (active) {
-                            parent.grabToImage(function(result) {
-                                parent.Drag.imageSource = result.url;
-                            })
-                        }
                     onClicked:
                         (mouse)=>{
                             if (mouse.button === Qt.RightButton) {
                                 if(model.menuDelegate){
                                     loader_item_menu.sourceComponent = model.menuDelegate
+                                    connection_item_menu.target = loader_item_menu.item
+                                    loader_item_menu.modelData = model
                                     loader_item_menu.item.popup();
                                 }
                             }else{
@@ -486,35 +542,22 @@ Item {
                     radius: 4
                     anchors.fill: parent
                     color: {
-                        if(FluTheme.dark){
-                            if(type===0){
-                                if(nav_list.currentIndex === _idx){
-                                    return Qt.rgba(1,1,1,0.06)
-                                }
-                            }else{
-                                if(nav_list.currentIndex === (nav_list.count-layout_footer.count+_idx)){
-                                    return Qt.rgba(1,1,1,0.06)
-                                }
-                            }
-                            if(item_control.hovered){
-                                return Qt.rgba(1,1,1,0.03)
-                            }
-                            return Qt.rgba(0,0,0,0)
-                        }else{
-                            if(type===0){
-                                if(nav_list.currentIndex === _idx){
-                                    return Qt.rgba(0,0,0,0.06)
-                                }
-                            }else{
-                                if(nav_list.currentIndex === (nav_list.count-layout_footer.count+_idx)){
-                                    return Qt.rgba(0,0,0,0.06)
-                                }
-                            }
-                            if(item_control.hovered){
-                                return Qt.rgba(0,0,0,0.03)
-                            }
-                            return Qt.rgba(0,0,0,0)
+                        if(!item_control.enabled){
+                            return FluTheme.itemNormalColor
                         }
+                        if(type===0){
+                            if(nav_list.currentIndex === _idx){
+                                return FluTheme.itemCheckColor
+                            }
+                        }else{
+                            if(nav_list.currentIndex === (nav_list.count-layout_footer.count+_idx)){
+                                return FluTheme.itemCheckColor
+                            }
+                        }
+                        if(item_control.hovered){
+                            return FluTheme.itemHoverColor
+                        }
+                        return FluTheme.itemNormalColor
                     }
                     Component{
                         id:com_icon
@@ -525,23 +568,35 @@ Item {
                                 }
                                 return 0
                             }
+                            color: {
+                                if(!item_control.enabled){
+                                    return d.itemDisableColor
+                                }
+                                return FluTheme.dark ? "#FFFFFF" : "#000000"
+                            }
                             iconSize: 15
                         }
                     }
                     Item{
                         id:item_icon
-                        width: 30
                         height: 30
-                        anchors{
-                            verticalCenter: parent.verticalCenter
-                            left:parent.left
-                            leftMargin: 3
+                        width: visible ? 30 : 8
+                        visible: {
+                            if(model){
+                                return model.iconVisible
+                            }
+                            return true
                         }
-                        Loader{
+                        anchors{
+                            left:parent.left
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: d.isCompactAndNotPanel ? (parent.width - 30)/2 : 3
+                        }
+                        FluLoader{
                             anchors.centerIn: parent
                             sourceComponent: {
-                                if(model&&model.cusIcon){
-                                    return model.cusIcon
+                                if(model&&model.iconDelegate){
+                                    return model.iconDelegate
                                 }
                                 return com_icon
                             }
@@ -551,18 +606,27 @@ Item {
                         id:item_title
                         text:{
                             if(model){
+                                if(!item_icon.visible && d.isCompactAndNotPanel){
+                                    return model.title[0]
+                                }
                                 return model.title
                             }
                             return ""
                         }
                         visible: {
                             if(d.isCompactAndNotPanel){
-                                return false
+                                if(item_icon.visible){
+                                    return false
+                                }
+                                return true
                             }
                             return true
                         }
                         elide: Text.ElideRight
                         color:{
+                            if(!item_control.enabled){
+                                return d.itemDisableColor
+                            }
                             if(item_mouse.pressed){
                                 return FluTheme.dark ? FluColors.Grey80 : FluColors.Grey120
                             }
@@ -574,7 +638,7 @@ Item {
                             right: item_dot_loader.left
                         }
                     }
-                    Loader{
+                    FluLoader{
                         id:item_edit_loader
                         anchors{
                             top: parent.top
@@ -593,7 +657,7 @@ Item {
                             return model.showEdit ? model.editDelegate : undefined
                         }
                         onStatusChanged: {
-                            if(status === Loader.Ready){
+                            if(status === FluLoader.Ready){
                                 item.forceActiveFocus()
                                 item_connection_edit_focus.target = item
                             }
@@ -612,7 +676,7 @@ Item {
                             }
                         }
                     }
-                    Loader{
+                    FluLoader{
                         id:item_dot_loader
                         property bool isDot: (item_dot_loader.item&&item_dot_loader.item.isDot)
                         anchors{
@@ -643,11 +707,12 @@ Item {
     Item {
         id:nav_app_bar
         width: parent.width
-        height: 40
+        height: visible ? 40 : 0
         anchors{
             top: parent.top
             topMargin: control.topPadding
         }
+        visible: !control.hideNavAppBar
         z:999
         RowLayout{
             height:parent.height
@@ -694,7 +759,7 @@ Item {
                 }
             }
             FluIconButton{
-                id:btn_nav
+                id:btn_menu
                 iconSource: FluentIcons.GlobalNavButton
                 iconSize: 15
                 Layout.preferredWidth: d.isMinimal ? 30 : 0
@@ -707,13 +772,13 @@ Item {
                 visible: opacity
                 opacity: d.isMinimal
                 Behavior on opacity{
-                    enabled: FluTheme.enableAnimation && d.animDisabled
+                    enabled: FluTheme.animationEnabled && d.animDisabled
                     NumberAnimation{
                         duration: 83
                     }
                 }
                 Behavior on Layout.preferredWidth {
-                    enabled: FluTheme.enableAnimation && d.animDisabled
+                    enabled: FluTheme.animationEnabled && d.animDisabled
                     NumberAnimation{
                         duration: 167
                         easing.type: Easing.OutCubic
@@ -726,7 +791,7 @@ Item {
                 Layout.preferredWidth: 20
                 source: control.logo
                 Layout.leftMargin: {
-                    if(btn_nav.visible){
+                    if(btn_menu.visible){
                         return 12
                     }
                     return 5
@@ -756,7 +821,7 @@ Item {
                 }
                 return 0
             }
-            Loader{
+            FluLoader{
                 id:loader_action
                 anchors.centerIn: parent
                 sourceComponent: actionItem
@@ -798,16 +863,7 @@ Item {
             }
         }
     }
-    DropArea{
-        anchors.fill: loader_content
-        onDropped:
-            (drag)=>{
-                if(drag.source.modelData){
-                    drag.source.modelData.dropped(drag)
-                }
-            }
-    }
-    Loader{
+    FluLoader{
         id:loader_content
         anchors{
             left: parent.left
@@ -819,13 +875,13 @@ Item {
                     return 0
                 }
                 if(d.isCompact){
-                    return 50
+                    return control.navCompactWidth
                 }
-                return control.navWidth
+                return control.cellWidth
             }
         }
         Behavior on anchors.leftMargin {
-            enabled: FluTheme.enableAnimation && d.animDisabled
+            enabled: FluTheme.animationEnabled && d.animDisabled
             NumberAnimation{
                 duration: 167
                 easing.type: Easing.OutCubic
@@ -847,12 +903,13 @@ Item {
         id:layout_list
         width: {
             if(d.isCompactAndNotPanel){
-                return 50
+                return control.navCompactWidth
             }
-            return control.navWidth
+            return control.cellWidth
         }
         anchors{
             top: parent.top
+            topMargin: control.navTopMargin
             bottom: parent.bottom
         }
         border.color: FluTheme.dark ? Qt.rgba(45/255,45/255,45/255,1) : Qt.rgba(226/255,230/255,234/255,1)
@@ -869,14 +926,14 @@ Item {
         }
         x: visible ? 0 : -width
         Behavior on width {
-            enabled: FluTheme.enableAnimation && d.animDisabled
+            enabled: FluTheme.animationEnabled && d.animDisabled
             NumberAnimation{
                 duration: 167
                 easing.type: Easing.OutCubic
             }
         }
         Behavior on x {
-            enabled: FluTheme.enableAnimation && d.animDisabled
+            enabled: FluTheme.animationEnabled && d.animDisabled
             NumberAnimation{
                 duration: 167
                 easing.type: Easing.OutCubic
@@ -893,10 +950,16 @@ Item {
             clip: true
             y:nav_app_bar.height+control.topPadding
             height: autoSuggestBox ? 38 : 0
-            Loader{
+            FluLoader{
                 id:loader_auto_suggest_box
-                anchors.centerIn: parent
                 sourceComponent: autoSuggestBox
+                anchors{
+                    left: parent.left
+                    right: parent.right
+                    leftMargin: 6
+                    rightMargin: 6
+                    verticalCenter: parent.verticalCenter
+                }
                 visible: {
                     if(d.isCompactAndNotPanel){
                         return false
@@ -906,13 +969,13 @@ Item {
             }
             FluIconButton{
                 visible:d.isCompactAndNotPanel
-                hoverColor: FluTheme.dark ? Qt.rgba(1,1,1,0.03) : Qt.rgba(0,0,0,0.03)
-                pressedColor: FluTheme.dark ? Qt.rgba(1,1,1,0.03) : Qt.rgba(0,0,0,0.03)
-                normalColor: FluTheme.dark ? Qt.rgba(0,0,0,0) : Qt.rgba(0,0,0,0)
-                width:38
-                height:34
-                x:6
-                y:2
+                anchors{
+                    fill: parent
+                    leftMargin: 6
+                    rightMargin: 6
+                    topMargin: 2
+                    bottomMargin: 2
+                }
                 iconSize: 15
                 iconSource: {
                     if(loader_auto_suggest_box.item){
@@ -940,7 +1003,6 @@ Item {
             ScrollBar.vertical: FluScrollBar {}
             ListView{
                 id:nav_list
-                clip: true
                 displaced: Transition {
                     NumberAnimation {
                         properties: "x,y"
@@ -948,15 +1010,16 @@ Item {
                     }
                 }
                 anchors.fill: parent
+                interactive: false
                 model:d.handleItems()
                 boundsBehavior: ListView.StopAtBounds
-                highlightMoveDuration: FluTheme.enableAnimation && d.animDisabled ? 167 : 0
+                highlightMoveDuration: FluTheme.animationEnabled && d.animDisabled ? 167 : 0
                 highlight: Item{
                     clip: true
                     Rectangle{
                         height: 18
                         radius: 1.5
-                        color: FluTheme.primaryColor.dark
+                        color: FluTheme.primaryColor
                         width: 3
                         anchors{
                             verticalCenter: parent.verticalCenter
@@ -966,7 +1029,7 @@ Item {
                     }
                 }
                 currentIndex: -1
-                delegate: Loader{
+                delegate: FluLoader{
                     property var model: modelData
                     property var _idx: index
                     property int type: 0
@@ -1003,18 +1066,14 @@ Item {
             interactive: false
             boundsBehavior: ListView.StopAtBounds
             currentIndex: -1
-            model: {
-                if(footerItems){
-                    return footerItems.children
-                }
-            }
+            model: d.handleFooterItems()
             highlightMoveDuration: 150
             highlight: Item{
                 clip: true
                 Rectangle{
                     height: 18
                     radius: 1.5
-                    color: FluTheme.primaryColor.dark
+                    color: FluTheme.primaryColor
                     width: 3
                     anchors{
                         verticalCenter: parent.verticalCenter
@@ -1023,7 +1082,7 @@ Item {
                     }
                 }
             }
-            delegate: Loader{
+            delegate: FluLoader{
                 property var model: modelData
                 property var _idx: index
                 property int type: 1
@@ -1069,6 +1128,7 @@ Item {
                 clip: true
                 currentIndex: -1
                 model: control_popup.childModel
+                boundsBehavior: ListView.StopAtBounds
                 ScrollBar.vertical: FluScrollBar {}
                 delegate:Button{
                     id:item_button
@@ -1077,24 +1137,17 @@ Item {
                     focusPolicy:Qt.TabFocus
                     background: Rectangle{
                         color:  {
-                            if(FluTheme.dark){
-                                if(item_button.hovered){
-                                    return Qt.rgba(1,1,1,0.06)
-                                }
-                                return Qt.rgba(0,0,0,0)
-                            }else{
-                                if(item_button.hovered){
-                                    return Qt.rgba(0,0,0,0.03)
-                                }
-                                return Qt.rgba(0,0,0,0)
+                            if(item_button.hovered){
+                                return FluTheme.itemHoverColor
                             }
+                            return FluTheme.itemNormalColor
                         }
                         FluFocusRectangle{
                             visible: item_button.activeFocus
                             radius:4
                         }
 
-                        Loader{
+                        FluLoader{
                             id:item_dot_loader
                             anchors{
                                 right: parent.right
@@ -1137,22 +1190,31 @@ Item {
         }
         background: FluRectangle{
             implicitWidth: 180
-            implicitHeight: 38*Math.min(Math.max(list_view.count,1),8)
             radius: [4,4,4,4]
             FluShadow{
                 radius: 4
             }
             color: FluTheme.dark ? Qt.rgba(51/255,48/255,48/255,1) : Qt.rgba(248/255,250/255,253/255,1)
         }
-        function showPopup(pos,model){
+        function showPopup(pos,height,model){
+            background.implicitHeight = height
             control_popup.x = pos.x
             control_popup.y = pos.y
             control_popup.childModel = model
             control_popup.open()
         }
     }
-    Loader{
+    FluLoader{
+        property var modelData
         id:loader_item_menu
+    }
+    Connections{
+        id:connection_item_menu
+        function onVisibleChanged(visible){
+            if(target.visible === false){
+                loader_item_menu.sourceComponent = undefined
+            }
+        }
     }
     Component{
         id:com_placeholder
@@ -1170,10 +1232,14 @@ Item {
         }
     }
     function setCurrentIndex(index){
-        nav_list.currentIndex = index
         var item = nav_list.model[index]
-        if(item instanceof FluPaneItem){
-            item.tap()
+        if(item.url){
+            nav_list.currentIndex = index
+            if(item instanceof FluPaneItem){
+                item.tap()
+            }
+        }else{
+            item.onTapListener()
         }
     }
     function getItems(){
@@ -1272,20 +1338,11 @@ Item {
                     return
                 }
                 setCurrentIndex(i)
-                if(item.parent && !d.isCompactAndNotPanel){
-                    item.parent.isExpand = true
+                if(item._parent && !d.isCompactAndNotPanel){
+                    item._parent.isExpand = true
                 }
                 return
             }
         }
-    }
-    function backButton(){
-        return btn_back
-    }
-    function navButton(){
-        return btn_nav
-    }
-    function logoButton(){
-        return image_logo
     }
 }

@@ -27,6 +27,7 @@
 #include "molecule/molecule_exact_matcher.h"
 #include "molecule/molecule_exact_substructure_matcher.h"
 #include "molecule/molecule_substructure_matcher.h"
+#include "molecule/monomer_commons.h"
 #include "molecule/query_molecule.h"
 #include "molecule/smiles_loader.h"
 
@@ -34,7 +35,7 @@ using namespace indigo;
 
 IMPL_ERROR(BaseMolecule, "molecule");
 
-BaseMolecule::BaseMolecule()
+BaseMolecule::BaseMolecule() : original_format(BaseMolecule::UNKNOWN)
 {
     _edit_revision = 0;
 }
@@ -158,6 +159,7 @@ void BaseMolecule::mergeSGroupsWithSubmolecule(BaseMolecule& mol, Array<int>& ma
                 dg.detached = superdg.detached;
                 dg.display_pos = superdg.display_pos;
                 dg.data.copy(superdg.data);
+                dg.sa_natreplace.copy(superdg.sa_natreplace);
                 dg.dasp_pos = superdg.dasp_pos;
                 dg.relative = superdg.relative;
                 dg.display_units = superdg.display_units;
@@ -296,6 +298,7 @@ void BaseMolecule::_mergeWithSubmolecule_Sub(BaseMolecule& mol, const Array<int>
     reaction_bond_reacting_center.expandFill(edgeEnd(), 0);
     _bond_directions.expandFill(edgeEnd(), -1);
 
+    // Copy atom properties
     for (auto i = mol.vertexBegin(); i != mol.vertexEnd(); i = mol.vertexNext(i))
     {
         if (mapping[i] < 0)
@@ -304,6 +307,10 @@ void BaseMolecule::_mergeWithSubmolecule_Sub(BaseMolecule& mol, const Array<int>
         reaction_atom_mapping[mapping[i]] = mol.reaction_atom_mapping[i];
         reaction_atom_inversion[mapping[i]] = mol.reaction_atom_inversion[i];
         reaction_atom_exact_change[mapping[i]] = mol.reaction_atom_exact_change[i];
+        if (mol.isAtomSelected(i))
+            selectAtom(mapping[i]);
+        if (mol.isAtomHighlighted(i))
+            highlightAtom(mapping[i]);
     }
 
     for (int j = mol.edgeBegin(); j != mol.edgeEnd(); j = mol.edgeNext(j))
@@ -313,6 +320,10 @@ void BaseMolecule::_mergeWithSubmolecule_Sub(BaseMolecule& mol, const Array<int>
             continue;
         reaction_bond_reacting_center[edge_idx] = mol.reaction_bond_reacting_center[j];
         _bond_directions[edge_idx] = mol.getBondDirection(j);
+        if (mol.isBondSelected(j))
+            selectBond(edge_idx);
+        if (mol.isBondHighlighted(j))
+            highlightBond(edge_idx);
     }
 
     // RGroups
@@ -661,6 +672,7 @@ void BaseMolecule::clone(BaseMolecule& other, Array<int>* mapping, Array<int>* i
     makeSubmolecule(other, *mapping, inv_mapping, skip_flags);
     _meta.clone(other._meta);
     name.copy(other.name);
+    original_format = other.original_format;
     copyProperties(other, *mapping);
 }
 
@@ -693,6 +705,7 @@ void BaseMolecule::clone_KeepIndices(BaseMolecule& other, int skip_flags)
     _meta.clone(other._meta);
     _mergeWithSubmolecule_Sub(other, vertices, 0, mapping, edge_mapping, skip_flags);
     name.copy(other.name);
+    original_format = other.original_format;
     copyProperties(other, mapping);
 }
 
@@ -756,13 +769,12 @@ void BaseMolecule::removeAtoms(const Array<int>& indices)
         }
     }
 
-    // aliases
+    // aliases && selection
     for (i = 0; i < indices.size(); i++)
     {
+        unselectAtom(indices[i]);
         if (isAlias(indices[i]))
-        {
             removeAlias(indices[i]);
-        }
     }
 
     // subclass (Molecule or QueryMolecule) removes its data
@@ -910,6 +922,18 @@ void BaseMolecule::_removeBonds(const Array<int>& indices)
 Vec3f& BaseMolecule::getAtomXyz(int idx)
 {
     return _xyz[idx];
+}
+
+bool BaseMolecule::getMiddlePoint(int idx1, int idx2, Vec3f& vec)
+{
+    if (idx1 == std::clamp(idx1, 0, vertexCount() - 1) && idx2 == std::clamp(idx2, 0, vertexCount() - 1))
+    {
+        vec = _xyz[idx1];
+        vec.add(_xyz[idx2]);
+        vec.scale(0.5);
+        return true;
+    }
+    return false;
 }
 
 void BaseMolecule::setAtomXyz(int idx, float x, float y, float z)
@@ -1076,7 +1100,7 @@ void BaseMolecule::setRSiteAttachmentOrder(int atom_idx, int att_atom_idx, int o
 void BaseMolecule::setTemplateAtomAttachmentOrder(int atom_idx, int att_atom_idx, const char* att_id)
 {
     int att_idx = template_attachment_points.add();
-    TemplateAttPoint& ap = template_attachment_points.at(att_idx);
+    auto& ap = template_attachment_points.at(att_idx);
     ap.ap_occur_idx = atom_idx;
     ap.ap_aidx = att_atom_idx;
     ap.ap_id.readString(att_id, false);
@@ -1089,12 +1113,11 @@ int BaseMolecule::getTemplateAtomAttachmentPoint(int atom_idx, int order)
     int ap_count = 0;
     for (int j = template_attachment_points.begin(); j != template_attachment_points.end(); j = template_attachment_points.next(j))
     {
-        BaseMolecule::TemplateAttPoint& ap = template_attachment_points.at(j);
+        auto& ap = template_attachment_points.at(j);
         if (ap.ap_occur_idx == atom_idx)
         {
             if (ap_count == order)
                 return ap.ap_aidx;
-
             ap_count++;
         }
     }
@@ -1106,7 +1129,7 @@ void BaseMolecule::getTemplateAtomAttachmentPointId(int atom_idx, int order, Arr
     int ap_count = 0;
     for (int j = template_attachment_points.begin(); j != template_attachment_points.end(); j = template_attachment_points.next(j))
     {
-        BaseMolecule::TemplateAttPoint& ap = template_attachment_points.at(j);
+        auto& ap = template_attachment_points.at(j);
         if (ap.ap_occur_idx == atom_idx)
         {
             if (ap_count == order)
@@ -1135,12 +1158,41 @@ int BaseMolecule::getTemplateAtomAttachmentPointById(int atom_idx, Array<char>& 
     return aidx;
 }
 
+bool BaseMolecule::updateTemplateAtomAttachmentDestination(int atom_idx, int old_dest_atom_idx, int new_dest_atom_idx)
+{
+    for (int j = template_attachment_points.begin(); j != template_attachment_points.end(); j = template_attachment_points.next(j))
+    {
+        auto& ap = template_attachment_points.at(j);
+        if ((ap.ap_occur_idx == atom_idx) && (ap.ap_aidx == old_dest_atom_idx))
+        {
+            ap.ap_aidx = new_dest_atom_idx;
+            return true;
+        }
+    }
+    return false;
+}
+
+void BaseMolecule::setTemplateAtomAttachmentDestination(int atom_idx, int new_dest_atom_idx, Array<char>& att_id)
+{
+    int aidx = -1;
+    for (int j = template_attachment_points.begin(); j != template_attachment_points.end(); j = template_attachment_points.next(j))
+    {
+        auto& ap = template_attachment_points.at(j);
+        if ((ap.ap_occur_idx == atom_idx) && (ap.ap_id.memcmp(att_id) == 0))
+        {
+            ap.ap_aidx = new_dest_atom_idx;
+            return;
+        }
+    }
+    setTemplateAtomAttachmentOrder(atom_idx, new_dest_atom_idx, att_id.ptr());
+}
+
 int BaseMolecule::getTemplateAtomAttachmentPointsCount(int atom_idx)
 {
     int count = 0;
     for (int j = template_attachment_points.begin(); j != template_attachment_points.end(); j = template_attachment_points.next(j))
     {
-        BaseMolecule::TemplateAttPoint& ap = template_attachment_points.at(j);
+        auto& ap = template_attachment_points.at(j);
         if (ap.ap_occur_idx == atom_idx)
         {
             count++;
@@ -3094,7 +3146,7 @@ int BaseMolecule::_transformTGroupToSGroup(int idx, int t_idx)
     return result;
 }
 
-int BaseMolecule::_transformSGroupToTGroup(int sg_idx, int& tg_idx)
+int BaseMolecule::_transformSGroupToTGroup(int sg_idx, int& tg_id)
 {
     QS_DEF(Array<int>, remove_atoms);
     QS_DEF(Array<int>, sg_atoms);
@@ -3111,6 +3163,12 @@ int BaseMolecule::_transformSGroupToTGroup(int sg_idx, int& tg_idx)
         return -1;
 
     Superatom& su = (Superatom&)sgroups.getSGroup(sg_idx);
+    // TODO: special handling needed for LGRP
+    if (su.sa_class.size() && std::string(su.sa_class.ptr()) == "LGRP")
+    {
+        removeSGroup(sg_idx);
+        return -1;
+    }
 
     ap_points_atoms.clear();
     ap_points_ids.clear();
@@ -3169,13 +3227,11 @@ int BaseMolecule::_transformSGroupToTGroup(int sg_idx, int& tg_idx)
     }
 
     if (su.sa_class.size() == 0)
-        return -1;
-    else if (strncmp(su.sa_class.ptr(), "AA", 2) != 0)
-        return -1;
+        su.sa_class.appendString(kMonomerClassCHEM, true);
 
-    tg_idx = this->tgroups.addTGroup();
+    int tg_idx = this->tgroups.addTGroup();
     TGroup& tg = this->tgroups.getTGroup(tg_idx);
-    tg.tgroup_id = tg_idx;
+    tg.tgroup_id = ++tg_id;
 
     tg.tgroup_class.copy(su.sa_class);
 
@@ -3232,6 +3288,8 @@ int BaseMolecule::_transformSGroupToTGroup(int sg_idx, int& tg_idx)
     int idx = this->asMolecule().addAtom(-1);
     this->asMolecule().setTemplateAtom(idx, tg.tgroup_name.ptr());
     this->asMolecule().setTemplateAtomClass(idx, tg.tgroup_class.ptr());
+    this->asMolecule().setTemplateAtomSeqid(idx, su.seqid);
+    this->asMolecule().setTemplateAtomTemplateIndex(idx, tg_idx);
 
     for (int j = 0; j < ap_points_atoms.size(); j++)
     {
@@ -4078,6 +4136,15 @@ int BaseMolecule::bondCode(int edge_idx)
     return getBondOrder(edge_idx);
 }
 
+void BaseMolecule::transformSuperatomsToTemplates(int template_id)
+{
+    for (auto sg_idx = sgroups.begin(); sg_idx != sgroups.end(); sg_idx = sgroups.next(sg_idx))
+    {
+        if (sgroups.getSGroup(sg_idx).sgroup_type == SGroup::SG_TYPE_SUP)
+            _transformSGroupToTGroup(sg_idx, template_id);
+    }
+}
+
 int BaseMolecule::transformHELMtoSGroups(Array<char>& helm_class, Array<char>& name, Array<char>& code, Array<char>& natreplace, StringPool& r_names)
 {
     QS_DEF(Array<int>, sg_atoms);
@@ -4424,4 +4491,142 @@ void BaseMolecule::setAlias(int atom_idx, const char* alias)
 void BaseMolecule::removeAlias(int atom_idx)
 {
     aliases.remove(atom_idx);
+}
+
+int BaseMolecule::countTemplateAtoms()
+{
+    int mon_count = 0;
+    for (int i = vertexBegin(); i != vertexEnd(); i = vertexNext(i))
+    {
+        if (isTemplateAtom(i))
+            mon_count++;
+    }
+    return mon_count;
+}
+
+void BaseMolecule::unfoldHydrogens(Array<int>* markers_out, int max_h_cnt, bool impl_h_no_throw, bool only_selected)
+{
+    int v_end = vertexEnd();
+
+    QS_DEF(Array<int>, imp_h_count);
+    imp_h_count.clear_resize(vertexEnd());
+    imp_h_count.zerofill();
+
+    // getImplicitH can throw an exception, and we need to get the number of hydrogens
+    // before unfolding them
+    for (int i = vertexBegin(); i < v_end; i = vertexNext(i))
+    {
+        if (!only_selected || isAtomSelected(i))
+        {
+            if (isPseudoAtom(i) || isRSite(i) || isTemplateAtom(i))
+                continue;
+
+            imp_h_count[i] = getImplicitH(i, impl_h_no_throw);
+        }
+    }
+
+    if (markers_out != 0)
+    {
+        markers_out->clear_resize(vertexEnd());
+        markers_out->zerofill();
+    }
+
+    for (int i = vertexBegin(); i < v_end; i = vertexNext(i))
+    {
+        if (!only_selected || isAtomSelected(i))
+        {
+            int impl_h = imp_h_count[i];
+            if (impl_h == 0)
+                continue;
+
+            int h_cnt;
+            if ((max_h_cnt == -1) || (max_h_cnt > impl_h))
+                h_cnt = impl_h;
+            else
+                h_cnt = max_h_cnt;
+
+            for (int j = 0; j < h_cnt; j++)
+            {
+                int new_h_idx = addAtom(ELEM_H);
+                int new_bond_idx = addBond(i, new_h_idx, BOND_SINGLE);
+
+                if (only_selected) // if only selected atoms - select new H too
+                {
+                    selectAtom(new_h_idx);
+                    selectBond(new_bond_idx);
+                }
+
+                if (markers_out != 0)
+                {
+                    markers_out->expandFill(new_h_idx + 1, 0);
+                    markers_out->at(new_h_idx) = 1;
+                }
+
+                stereocenters.registerUnfoldedHydrogen(i, new_h_idx);
+                cis_trans.registerUnfoldedHydrogen(*this, i, new_h_idx);
+                allene_stereo.registerUnfoldedHydrogen(i, new_h_idx);
+                sgroups.registerUnfoldedHydrogen(i, new_h_idx);
+            }
+
+            setImplicitH(i, impl_h - h_cnt);
+        }
+    }
+
+    updateEditRevision();
+}
+
+bool BaseMolecule::convertableToImplicitHydrogen(int idx)
+{
+    // TODO: add check for query features defined for H, do not remove such hydrogens
+    if (getAtomNumber(idx) == ELEM_H && getAtomIsotope(idx) <= 0 && getVertex(idx).degree() == 1)
+    {
+        int nei = getVertex(idx).neiVertex(getVertex(idx).neiBegin());
+        if (getAtomNumber(nei) == ELEM_H && getAtomIsotope(nei) <= 0)
+        {
+            // This is H-H connection
+            int edge_idx = findEdgeIndex(idx, nei);
+            if (edge_idx < 0)
+                return false;
+            const Edge& edge = getEdge(edge_idx);
+            if (idx == edge.end) // if this is second H - remove it
+                return true;
+            else
+                return false;
+        }
+        if (stereocenters.getType(nei) > 0)
+            if (getVertex(nei).degree() == 3)
+                return false; // not ignoring hydrogens around stereocenters with lone pair
+
+        if (!cis_trans.convertableToImplicitHydrogen(*this, idx))
+            return false;
+
+        return true;
+    }
+    return false;
+}
+
+void BaseMolecule::transformTemplatesToSuperatoms(MonomerFilterBase& filter)
+{
+    std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash> templates;
+    getTemplatesMap(templates);
+    for (auto atom_idx = vertexBegin(); atom_idx < vertexEnd(); atom_idx = vertexNext(atom_idx))
+    {
+        if (isTemplateAtom(atom_idx) && filter(atom_idx))
+        {
+            auto tg_idx = getTemplateAtomTemplateIndex(atom_idx);
+            if (tg_idx < 0)
+            {
+                std::string alias = getTemplateAtomClass(atom_idx);
+                std::string mon_class = getTemplateAtom(atom_idx);
+                auto tg_ref = findTemplateInMap(alias, mon_class, templates);
+                if (tg_ref.has_value())
+                {
+                    auto& tg = tg_ref.value().get();
+                    tg_idx = tg.tgroup_id;
+                }
+            }
+            if (tg_idx != -1)
+                _transformTGroupToSGroup(atom_idx, tg_idx);
+        }
+    }
 }

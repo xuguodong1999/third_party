@@ -25,7 +25,13 @@
 #include "molecule/molecule_cip_calculator.h"
 #include "molecule/molecule_json_saver.h"
 #include "molecule/molecule_savers.h"
+#include "molecule/molecule_substructure_matcher.h"
+#include "molecule/monomer_commons.h"
+#include "molecule/parse_utils.h"
 #include "molecule/query_molecule.h"
+#include "molecule/smiles_loader.h"
+#include "molecule/smiles_saver.h"
+#include <base_cpp/scanner.h>
 
 using namespace indigo;
 using namespace rapidjson;
@@ -43,7 +49,8 @@ void dumpAtoms(BaseMolecule& mol)
     printf("\n");
 }
 
-MoleculeJsonSaver::MoleculeJsonSaver(Output& output) : _output(output), _pmol(nullptr), _pqmol(nullptr), add_stereo_desc(false), pretty_json(false)
+MoleculeJsonSaver::MoleculeJsonSaver(Output& output)
+    : _output(output), _pmol(nullptr), _pqmol(nullptr), add_stereo_desc(false), pretty_json(false), use_native_precision(false)
 {
 }
 
@@ -114,7 +121,7 @@ void MoleculeJsonSaver::_checkSGroupIndices(BaseMolecule& mol, Array<int>& sgs_l
         }
         else
         {
-            if (orig_ids.find(sgroup.parent_group) == -1 || sgroup.parent_group == sgroup.original_group)
+            if (orig_ids.find(sgroup.parent_group) == VALUE_UNKNOWN || sgroup.parent_group == sgroup.original_group)
             {
                 sgroup.parent_group = 0;
                 sgs_list.push(i);
@@ -131,10 +138,10 @@ void MoleculeJsonSaver::_checkSGroupIndices(BaseMolecule& mol, Array<int>& sgs_l
             if (sgroup.parent_group == 0)
                 continue;
 
-            if (added_ids.find(sgroup.original_group) != -1)
+            if (added_ids.find(sgroup.original_group) != VALUE_UNKNOWN)
                 continue;
 
-            if (added_ids.find(sgroup.parent_group) != -1)
+            if (added_ids.find(sgroup.parent_group) != VALUE_UNKNOWN)
             {
                 sgs_list.push(i);
                 added_ids.push(sgroup.original_group);
@@ -149,7 +156,19 @@ void MoleculeJsonSaver::saveSGroups(BaseMolecule& mol, JsonWriter& writer)
 {
     QS_DEF(Array<int>, sgs_sorted);
     _checkSGroupIndices(mol, sgs_sorted);
-    if (mol.countSGroups() > 0)
+    int sGroupsCount = mol.countSGroups();
+    bool componentDefined = false;
+    if (mol.isQueryMolecule())
+    {
+        QueryMolecule& qmol = static_cast<QueryMolecule&>(mol);
+        if (qmol.components.size() > 0 && qmol.components[0])
+        {
+            componentDefined = true;
+            sGroupsCount++;
+        }
+    }
+
+    if (sGroupsCount > 0)
     {
         writer.Key("sgroups");
         writer.StartArray();
@@ -159,6 +178,25 @@ void MoleculeJsonSaver::saveSGroups(BaseMolecule& mol, JsonWriter& writer)
             int sg_idx = sgs_sorted[i];
             auto& sgrp = mol.sgroups.getSGroup(sg_idx);
             saveSGroup(sgrp, writer);
+        }
+        // save queryComponent
+        if (mol.isQueryMolecule() && componentDefined)
+        {
+            QueryMolecule& qmol = static_cast<QueryMolecule&>(mol);
+            writer.StartObject();
+            writer.Key("type");
+            writer.String("queryComponent");
+            writer.Key("atoms");
+            writer.StartArray();
+            for (int i = 0; i < qmol.vertexCount(); i++)
+            {
+                if (qmol.components[i])
+                {
+                    writer.Int(i);
+                }
+            }
+            writer.EndArray();
+            writer.EndObject();
         }
         writer.EndArray();
     }
@@ -271,10 +309,10 @@ void MoleculeJsonSaver::saveSGroup(SGroup& sgroup, JsonWriter& writer)
             {
                 writer.StartObject();
                 auto& atp = sa.attachment_points[i];
-                std::string atp_id_str(atp.apid.ptr(), atp.apid.size());
+                std::string atp_id_str(atp.apid.ptr());
                 writer.Key("attachmentAtom");
                 writer.Int(atp.aidx);
-                if (atp.lvidx != -1)
+                if (atp.lvidx != VALUE_UNKNOWN)
                 {
                     writer.Key("leavingAtom");
                     writer.Int(atp.lvidx);
@@ -380,35 +418,56 @@ void MoleculeJsonSaver::saveBonds(BaseMolecule& mol, JsonWriter& writer)
     {
         for (auto i : mol.edges())
         {
+            int direction = BOND_ZERO;
+            bool negative = false;
             writer.StartObject();
-            writer.Key("type");
-            int bond_order = mol.getBondOrder(i);
-            if (bond_order < 0 && _pqmol)
+            if (_pmol)
             {
-                int qb = QueryMolecule::getQueryBondType(_pqmol->getBond(i));
-                if (qb == QueryMolecule::QUERY_BOND_SINGLE_OR_DOUBLE)
-                    bond_order = 5;
-                else if (qb == QueryMolecule::QUERY_BOND_SINGLE_OR_AROMATIC)
-                    bond_order = 6;
-                else if (qb == QueryMolecule::QUERY_BOND_DOUBLE_OR_AROMATIC)
-                    bond_order = 7;
-                else if (qb == QueryMolecule::QUERY_BOND_ANY)
-                    bond_order = 8;
-                if (bond_order < 0)
-                    throw Error("Invalid query bond");
+                int bond_order = mol.getBondOrder(i);
+
+                if (bond_order == BOND_ZERO && _pmol)
+                {
+                    bond_order = _BOND_COORDINATION;
+                    const Edge& edge = mol.getEdge(i);
+                    if ((_pmol->getAtomNumber(edge.beg) == ELEM_H) || (_pmol->getAtomNumber(edge.end) == ELEM_H))
+                        bond_order = _BOND_HYDROGEN;
+                }
+
+                writer.Key("type");
+                writer.Uint(bond_order);
+            }
+            else if (_pqmol)
+            {
+                QueryMolecule::Bond& qbond = _pqmol->getBond(i);
+                int bond_order = QueryMolecule::getQueryBondType(qbond, direction, negative);
+                if (bond_order < 0 || negative || direction == BOND_UP_OR_UNSPECIFIED || direction == BOND_DOWN_OR_UNSPECIFIED)
+                {
+                    std::string customQuery = QueryMolecule::getSmartsBondStr(&qbond);
+                    writer.Key("customQuery");
+                    writer.String(customQuery.c_str());
+                    direction = BOND_ZERO; // clean up to not override stereo
+                }
+                else
+                {
+                    writer.Key("type");
+                    writer.Uint(bond_order);
+                    // convert direction to Biovia constants, to override stereo later
+                    switch (direction)
+                    {
+                    case BOND_UP:
+                        direction = BIOVIA_STEREO_UP;
+                        break;
+                    case BOND_DOWN:
+                        direction = BIOVIA_STEREO_DOWN;
+                        break;
+                    default:
+                        direction = BOND_ZERO; // clean up to not override stereo
+                        break;
+                    }
+                }
             }
 
-            if (bond_order == BOND_ZERO && _pmol)
-            {
-                bond_order = 9;
-                const Edge& edge = mol.getEdge(i);
-                if ((_pmol->getAtomNumber(edge.beg) == ELEM_H) || (_pmol->getAtomNumber(edge.end) == ELEM_H))
-                    bond_order = 10;
-            }
-
-            writer.Uint(bond_order);
-
-            int topology = -1;
+            int topology = VALUE_UNKNOWN;
             if (_pqmol)
             {
                 _pqmol->getBond(i).sureValue(QueryMolecule::BOND_TOPOLOGY, topology);
@@ -425,8 +484,14 @@ void MoleculeJsonSaver::saveBonds(BaseMolecule& mol, JsonWriter& writer)
                 if (rcenter)
                 {
                     writer.Key("center");
-                    writer.Uint(rcenter);
+                    writer.Int(rcenter);
                 }
+            }
+
+            if (mol.isBondSelected(i))
+            {
+                writer.Key("selected");
+                writer.Bool(true);
             }
 
             const Edge& e1 = mol.getEdge(i);
@@ -443,34 +508,34 @@ void MoleculeJsonSaver::saveBonds(BaseMolecule& mol, JsonWriter& writer)
                 switch (stereo)
                 {
                 case BOND_UP:
-                    stereo = 1;
+                    stereo = BIOVIA_STEREO_UP;
                     break;
                 case BOND_EITHER:
-                    stereo = 4;
+                    stereo = BIOVIA_STEREO_ETHER;
                     break;
                 case BOND_DOWN:
-                    stereo = 6;
+                    stereo = BIOVIA_STEREO_DOWN;
                     break;
                 default: {
-                    stereo = 0;
+                    stereo = BIOVIA_STEREO_NO;
                 }
                 break;
                 }
 
-            if (stereo)
+            if (stereo || direction)
             {
                 writer.Key("stereo");
-                writer.Uint(stereo);
+                writer.Uint(direction ? direction : stereo); // If have stored direction - override calculated
             }
 
             auto cip = mol.getBondCIP(i);
             if (cip != CIPDesc::NONE)
             {
-                auto cip_it = KCIPToString.find((int)cip);
-                if (cip_it != KCIPToString.end())
+                auto cip_str = CIPToString(cip);
+                if (cip_str.size())
                 {
                     writer.Key("cip");
-                    writer.String(cip_it->second.c_str());
+                    writer.String(cip_str.c_str());
                 }
             }
 
@@ -484,7 +549,7 @@ void MoleculeJsonSaver::saveAttachmentPoint(BaseMolecule& mol, int atom_idx, Jso
     int val = 0;
     for (int idx = 1; idx <= mol.attachmentPointCount(); idx++)
     {
-        for (int j = 0; mol.getAttachmentPoint(idx, j) != -1; j++)
+        for (int j = 0; mol.getAttachmentPoint(idx, j) != VALUE_UNKNOWN; j++)
         {
             if (mol.getAttachmentPoint(idx, j) == atom_idx)
             {
@@ -509,7 +574,7 @@ void MoleculeJsonSaver::saveStereoCenter(BaseMolecule& mol, int atom_idx, JsonWr
     for (int i = 0; i < 4; ++i)
     {
         int prm = pyramid[i];
-        if (prm == -1 && i == 3)
+        if (prm == VALUE_UNKNOWN && i == 3)
             prm = atom_idx;
         writer.Int(prm);
     }
@@ -518,8 +583,8 @@ void MoleculeJsonSaver::saveStereoCenter(BaseMolecule& mol, int atom_idx, JsonWr
 
 void MoleculeJsonSaver::saveHighlights(BaseMolecule& mol, JsonWriter& writer)
 {
-    int ca = mol.countSelectedAtoms();
-    int cb = mol.countSelectedBonds();
+    int ca = mol.countHighlightedAtoms();
+    int cb = mol.countHighlightedBonds();
     if (ca || cb)
     {
         writer.Key("highlight");
@@ -565,50 +630,16 @@ void MoleculeJsonSaver::saveHighlights(BaseMolecule& mol, JsonWriter& writer)
     }
 }
 
-void MoleculeJsonSaver::saveSelection(BaseMolecule& mol, JsonWriter& writer)
+void MoleculeJsonSaver::writeFloat(JsonWriter& writer, float f_value)
 {
-    int ca = mol.countSelectedAtoms();
-    int cb = mol.countSelectedBonds();
-    if (ca || cb)
+    if (use_native_precision)
     {
-        writer.Key("selection");
-        writer.StartArray();
-        if (ca)
-        {
-            writer.Key("entityType");
-            writer.String("atom");
-            writer.StartObject();
-            writer.Key("items");
-            writer.StartArray();
-            for (int i = mol.vertexBegin(); i != mol.vertexEnd(); i = mol.vertexNext(i))
-            {
-                if (mol.isAtomSelected(i))
-                {
-                    writer.Int(i);
-                }
-            }
-            writer.EndArray();
-            writer.EndObject();
-        }
-
-        if (cb)
-        {
-            writer.Key("entityType");
-            writer.String("bond");
-            writer.StartObject();
-            writer.Key("items");
-            writer.StartArray();
-            for (int i = mol.edgeBegin(); i != mol.edgeEnd(); i = mol.edgeNext(i))
-            {
-                if (mol.isBondSelected(i))
-                {
-                    writer.Int(i);
-                }
-            }
-            writer.EndArray();
-            writer.EndObject();
-        }
-        writer.EndArray();
+        std::string val = std::to_string(f_value);
+        writer.RawValue(val.c_str(), val.length(), kStringType);
+    }
+    else
+    {
+        writer.Double(f_value);
     }
 }
 
@@ -626,7 +657,11 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
             saveAttachmentPoint(mol, i, writer);
         QS_DEF(Array<int>, rg_list);
         int radical = 0;
-        if (mol.isRSite(i))
+        int query_atom_type = QueryMolecule::QUERY_ATOM_UNKNOWN;
+        bool needCustomQuery = false;
+        std::map<int, std::unique_ptr<QueryMolecule::Atom>> query_atom_properties;
+        bool is_rSite = mol.isRSite(i);
+        if (is_rSite)
         {
             mol.getAllowedRGroups(i, rg_list);
             writer.Key("type");
@@ -644,9 +679,17 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
         }
         else
         {
-            int query_atom_type = -1;
             bool is_qatom_list = false;
-            QS_DEF(Array<int>, qatom_list);
+            std::vector<std::unique_ptr<QueryMolecule::Atom>> atoms;
+            if (_pqmol)
+            {
+                query_atom_type = QueryMolecule::parseQueryAtomSmarts(*_pqmol, i, atoms, query_atom_properties);
+                needCustomQuery = query_atom_type == QueryMolecule::QUERY_ATOM_UNKNOWN;
+                if (query_atom_properties.count(QueryMolecule::ATOM_CHIRALITY) &&
+                    (query_atom_properties[QueryMolecule::ATOM_CHIRALITY]->value_min != QueryMolecule::CHIRALITY_GENERAL ||
+                     query_atom_properties[QueryMolecule::ATOM_CHIRALITY]->value_max & QueryMolecule::CHIRALITY_OR_UNSPECIFIED))
+                    needCustomQuery = true;
+            }
             if (mol.isPseudoAtom(i))
             {
                 buf.readString(mol.getPseudoAtom(i), true);
@@ -655,47 +698,83 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
             {
                 buf.readString(mol.getTemplateAtom(i), true);
             }
-            else if (anum != -1)
+            else if (anum != VALUE_UNKNOWN)
             {
                 buf.readString(Element::toString(anum), true);
                 radical = mol.getAtomRadical(i);
                 if (anum == ELEM_H)
                 {
-                    if (isotope == 2)
+                    if (isotope == DEUTERIUM)
                     {
                         buf.clear();
                         buf.appendString("D", true);
                     }
-                    if (isotope == 3)
+                    if (isotope == TRITIUM)
                     {
                         buf.clear();
                         buf.appendString("T", true);
                     }
                 }
             }
-            else if (_pqmol && (query_atom_type = QueryMolecule::parseQueryAtom(*_pqmol, i, qatom_list)) != -1)
+            else if (_pqmol)
             {
-                if (query_atom_type == QueryMolecule::QUERY_ATOM_LIST || query_atom_type == QueryMolecule::QUERY_ATOM_NOTLIST)
+                if (query_atom_type != QueryMolecule::QUERY_ATOM_UNKNOWN)
                 {
-                    is_qatom_list = true;
-                    writer.Key("type");
-                    writer.String("atom-list");
-                    if (query_atom_type == QueryMolecule::QUERY_ATOM_NOTLIST)
+                    if (query_atom_type == QueryMolecule::QUERY_ATOM_LIST || query_atom_type == QueryMolecule::QUERY_ATOM_NOTLIST)
                     {
-                        writer.Key("notList");
-                        writer.Bool(true);
+                        is_qatom_list = true;
+                        writer.Key("type");
+                        writer.String("atom-list");
+                        if (query_atom_type == QueryMolecule::QUERY_ATOM_NOTLIST)
+                        {
+                            writer.Key("notList");
+                            writer.Bool(true);
+                        }
+                        writer.Key("elements");
+                        writer.StartArray();
+                        for (auto& atom : atoms)
+                            if (atom->type == QueryMolecule::ATOM_NUMBER)
+                                writer.String(Element::toString(atom->value_max));
+                            else if (atom->type == QueryMolecule::ATOM_PSEUDO)
+                                writer.String(atom->alias.ptr());
+                            else
+                                throw Error("Wrong atom type %d", atom->type);
+                        writer.EndArray();
                     }
-                    writer.Key("elements");
-                    writer.StartArray();
-                    for (int k = 0; k < qatom_list.size(); k++)
-                        writer.String(Element::toString(qatom_list[k]));
-                    writer.EndArray();
+                    else if (query_atom_type == QueryMolecule::QUERY_ATOM_SINGLE)
+                    {
+                        anum = (*atoms.begin()).get()->value_max;
+                        buf.readString(Element::toString(anum), true);
+                        if (anum == ELEM_H && query_atom_properties.count(QueryMolecule::ATOM_ISOTOPE) > 0)
+                        {
+                            int isotope = query_atom_properties[QueryMolecule::ATOM_ISOTOPE]->value_min;
+                            if (isotope == DEUTERIUM)
+                            {
+                                buf.clear();
+                                buf.appendString("D", true);
+                            }
+                            else if (isotope == TRITIUM)
+                            {
+                                buf.clear();
+                                buf.appendString("T", true);
+                            }
+                        }
+                    }
+                    else
+                        QueryMolecule::getQueryAtomLabel(query_atom_type, buf);
                 }
-                else
-                    QueryMolecule::getQueryAtomLabel(query_atom_type, buf);
+                else // query_atom_type == QueryMolecule::QUERY_ATOM_UNKNOWN
+                {
+                    needCustomQuery = true;
+                }
             }
 
-            if (!is_qatom_list)
+            if (needCustomQuery)
+            {
+                writer.Key("label");
+                writer.String("A"); // Set label any atom
+            }
+            else if (!is_qatom_list)
             {
                 writer.Key("label");
                 writer.String(buf.ptr());
@@ -708,12 +787,18 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
             }
         }
 
-        const Vec3f& coord = mol.getAtomXyz(i);
+        if (mol.isAtomSelected(i))
+        {
+            writer.Key("selected");
+            writer.Bool(true);
+        }
+
+        Vec3f coord = mol.getAtomXyz(i);
         writer.Key("location");
         writer.StartArray();
-        writer.Double(coord.x);
-        writer.Double(coord.y);
-        writer.Double(coord.z);
+        writeFloat(writer, coord.x);
+        writeFloat(writer, coord.y);
+        writeFloat(writer, coord.z);
         writer.EndArray();
 
         int charge = mol.getAtomCharge(i);
@@ -723,8 +808,66 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
         bool ecflag = mol.reaction_atom_exact_change[i];
         int hcount = MoleculeSavers::getHCount(mol, i, anum, charge);
 
-        if (_pqmol)
+        if (_pqmol && !is_rSite) // No custom query for RSite
         {
+            std::map<int, const char*> qprops{{QueryMolecule::ATOM_SSSR_RINGS, "ringMembership"},
+                                              {QueryMolecule::ATOM_SMALLEST_RING_SIZE, "ringSize"},
+                                              {QueryMolecule::ATOM_CONNECTIVITY, "connectivity"}};
+            bool hasQueryProperties =
+                query_atom_properties.count(QueryMolecule::ATOM_AROMATICITY) > 0 || query_atom_properties.count(QueryMolecule::ATOM_CHIRALITY) > 0 ||
+                std::any_of(qprops.cbegin(), qprops.cend(), [&query_atom_properties](auto p) { return query_atom_properties.count(p.first) > 0; });
+            if (needCustomQuery || hasQueryProperties)
+            {
+                writer.Key("queryProperties");
+                writer.StartObject();
+                if (needCustomQuery)
+                {
+                    QueryMolecule::Atom& atom = _pqmol->getAtom(i);
+                    std::string customQuery = QueryMolecule::getSmartsAtomStr(&atom, _pqmol->original_format, false);
+                    writer.Key("customQuery");
+                    writer.String(customQuery.c_str());
+                }
+                else
+                {
+                    int value = VALUE_UNKNOWN;
+
+                    if (query_atom_properties.count(QueryMolecule::ATOM_AROMATICITY))
+                    {
+                        value = query_atom_properties[QueryMolecule::ATOM_AROMATICITY]->value_min;
+                        writer.Key("aromaticity");
+                        if (value == ATOM_AROMATIC)
+                            writer.String(ATOM_AROMATIC_STR);
+                        else if (value == ATOM_ALIPHATIC)
+                            writer.String(ATOM_ALIPHATIC_STR);
+                        else
+                            throw "Wrong aromaticity value";
+                    }
+                    if (query_atom_properties.count(QueryMolecule::ATOM_CHIRALITY))
+                    {
+                        // This is CHIRALITY_GENERAL without CHIRALITY_OR_UNSPECIFIED
+                        writer.Key("chirality");
+                        value = query_atom_properties[QueryMolecule::ATOM_CHIRALITY]->value_max;
+                        if (value == QueryMolecule::CHIRALITY_CLOCKWISE)
+                            writer.String("clockwise");
+                        else if (value == QueryMolecule::CHIRALITY_ANTICLOCKWISE)
+                            writer.String("anticlockwise");
+                        else
+                            throw Error("Wrong chirality value %d", value);
+                    }
+                    for (auto p : qprops)
+                    {
+                        if (query_atom_properties.count(p.first) > 0)
+                        {
+                            writer.Key(p.second);
+                            writer.Uint(query_atom_properties[p.first]->value_min);
+                        }
+                    }
+                    // 2do add hirality
+                    //*/
+                }
+                writer.EndObject();
+            }
+
             int subst = 0, rbc = 0;
             if (MoleculeSavers::getRingBondCountFlagValue(*_pqmol, i, rbc))
             {
@@ -744,7 +887,7 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
                 writer.Bool(true);
             }
 
-            if (hcount == -1)
+            if (hcount == VALUE_UNKNOWN)
                 hcount = 0;
             else
                 hcount++;
@@ -753,8 +896,13 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
                 writer.Key("hCount");
                 writer.Int(hcount);
             }
+            if (query_atom_type >= 0 && query_atom_properties.count(QueryMolecule::ATOM_IMPLICIT_H) > 0)
+            {
+                writer.Key("implicitHCount");
+                writer.Int(query_atom_properties[QueryMolecule::ATOM_IMPLICIT_H]->value_min);
+            }
         }
-        else
+        else if (_pmol)
         {
             if (Molecule::shouldWriteHCount(mol.asMolecule(), i) && hcount > 0)
             {
@@ -775,6 +923,7 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
             writer.Int(charge);
         }
 
+        int total_bond_count = 0;
         if (evalence > 0)
         {
             writer.Key("explicitValence");
@@ -828,11 +977,11 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
         auto cip = mol.getAtomCIP(i);
         if (cip != CIPDesc::NONE)
         {
-            auto cip_it = KCIPToString.find((int)cip);
-            if (cip_it != KCIPToString.end())
+            auto cip_str = CIPToString(cip);
+            if (cip_str.size())
             {
                 writer.Key("cip");
-                writer.String(cip_it->second.c_str());
+                writer.String(cip_str.c_str());
             }
         }
 
@@ -863,7 +1012,7 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
             }
 
             auto seqid = mol.getTemplateAtomSeqid(i);
-            if (seqid != -1)
+            if (seqid != VALUE_UNKNOWN)
             {
                 writer.Key("seqid");
                 writer.Int(seqid);
@@ -903,43 +1052,193 @@ void MoleculeJsonSaver::saveAtoms(BaseMolecule& mol, JsonWriter& writer)
     }
 }
 
-void MoleculeJsonSaver::saveTGroup(TGroup& tg, JsonWriter& writer)
+std::string MoleculeJsonSaver::monomerId(const TGroup& tg)
 {
-    QS_DEF(Array<char>, buf);
-    ArrayOutput out(buf);
-    buf.clear();
-    out.printf("tg%d", tg.tgroup_id);
-    buf.push(0);
-    writer.Key(buf.ptr());
+    std::string name;
+    std::string monomer_class;
+    if (tg.tgroup_text_id.ptr())
+        return tg.tgroup_text_id.ptr();
+    if (tg.tgroup_name.ptr())
+        name = tg.tgroup_name.ptr();
+    if (tg.tgroup_class.ptr())
+        monomer_class = tg.tgroup_class.ptr();
+    if (name.size())
+        name = monomerNameByAlias(monomer_class, name) + "_" + std::to_string(tg.tgroup_id);
+    else
+        name = std::string("#") + std::to_string(tg.tgroup_id);
+    return name;
+}
+
+std::string MoleculeJsonSaver::monomerHELMClass(const std::string& class_name)
+{
+    if (isAminoAcidClass(class_name))
+        return kMonomerClassPEPTIDE;
+    if (isNucleicClass(class_name))
+        return kMonomerClassRNA;
+    return kMonomerClassCHEM;
+}
+
+std::string MoleculeJsonSaver::monomerKETClass(const std::string& class_name)
+{
+    auto mclass = class_name;
+    if (class_name == kMonomerClassAA)
+        return kMonomerClassAminoAcid;
+
+    if (mclass == kMonomerClassdAA)
+        return kMonomerClassDAminoAcid;
+
+    if (mclass == kMonomerClassRNA || mclass == kMonomerClassDNA || mclass.find(kMonomerClassMOD) == 0 || mclass.find(kMonomerClassXLINK) == 0)
+        return mclass;
+
+    for (auto it = mclass.begin(); it < mclass.end(); ++it)
+        *it = it > mclass.begin() ? std::tolower(*it) : std::toupper(*it);
+
+    return mclass;
+}
+
+std::string MoleculeJsonSaver::naturalAnalog(const std::string& natreplace)
+{
+    std::string res = natreplace;
+    if (natreplace.size())
+    {
+        auto nat_replace = split(std::string(natreplace.c_str()), '/');
+        if (nat_replace.size() > 1)
+            res = normalizeMonomerName(nat_replace.front(), nat_replace[1]);
+    }
+    return res;
+}
+
+void MoleculeJsonSaver::saveMonomerTemplate(TGroup& tg, JsonWriter& writer)
+{
+    std::string template_id("monomerTemplate-");
+    std::string tg_id(monomerId(tg));
+    std::string template_class(monomerKETClass(tg.tgroup_class.ptr()));
+    std::string helm_class(monomerHELMClass(tg.tgroup_class.ptr()));
+    template_id += tg_id;
+    writer.Key(template_id.c_str());
     writer.StartObject();
     writer.Key("type");
-    writer.String("tgroup");
-    writer.Key("name");
-    writer.String(tg.tgroup_name.ptr());
+    writer.String("monomerTemplate");
+    writer.Key("id");
+    writer.String(tg_id.c_str());
     if (tg.tgroup_class.size())
     {
         writer.Key("class");
-        writer.String(tg.tgroup_class.ptr());
+        writer.String(template_class.c_str());
+        writer.Key("classHELM");
+        writer.String(helm_class.c_str());
     }
-    if (tg.tgroup_alias.size())
+
+    writer.Key("alias");
+    writer.String(monomerAlias(tg).c_str());
+
+    if (tg.tgroup_name.size())
     {
-        writer.Key("alias");
-        writer.String(tg.tgroup_alias.ptr());
+        writer.Key("name");
+        writer.String(tg.tgroup_name.ptr());
     }
-    if (tg.tgroup_natreplace.size())
+
+    std::string natreplace;
+    if (tg.tgroup_natreplace.size() == 0)
     {
-        writer.Key("natreplace");
-        writer.String(tg.tgroup_natreplace.ptr());
+        auto alias = monomerAlias(tg);
+        if (isBasicAminoAcid(template_class, alias))
+            natreplace = alias;
     }
+    else
+        natreplace = tg.tgroup_natreplace.ptr();
+
+    if (natreplace.size())
+    {
+        auto analog = naturalAnalog(natreplace);
+        auto nat_alias = monomerAliasByName(tg.tgroup_class.ptr(), analog);
+        writer.Key("naturalAnalogShort");
+        writer.String(nat_alias.c_str());
+        if (analog.size() > 1)
+        {
+            writer.Key("naturalAnalog");
+            writer.String(analog.c_str());
+        }
+    }
+
     if (tg.tgroup_comment.size())
     {
         writer.Key("comment");
         writer.String(tg.tgroup_comment.ptr());
     }
+
+    saveMonomerAttachmentPoints(tg, writer);
     saveFragment(*tg.fragment, writer);
     writer.EndObject();
 }
 
+void MoleculeJsonSaver::saveSuperatomAttachmentPoints(Superatom& sa, JsonWriter& writer)
+{
+    std::map<std::string, int> sorted_attachment_points;
+    if (sa.attachment_points.size())
+    {
+        for (int i = sa.attachment_points.begin(); i != sa.attachment_points.end(); i = sa.attachment_points.next(i))
+        {
+            auto& atp = sa.attachment_points[i];
+            std::string atp_id_str(atp.apid.ptr());
+            if (atp_id_str.size())
+                sorted_attachment_points.insert(std::make_pair(atp_id_str, i));
+        }
+
+        if (sorted_attachment_points.size())
+        {
+            writer.Key("attachmentPoints");
+            writer.StartArray();
+            int order = 0;
+            for (const auto& kvp : sorted_attachment_points)
+            {
+                writer.StartObject();
+                auto& atp = sa.attachment_points[kvp.second];
+                std::string atp_id_str(atp.apid.ptr());
+                if (!isAttachmentPointsInOrder(order++, atp_id_str))
+                {
+                    writer.Key("type");
+                    if (atp_id_str == kLeftAttachmentPoint || atp_id_str == kAttachmentPointR1)
+                        writer.String("left");
+                    else if (atp_id_str == kRightAttachmentPoint || atp_id_str == kAttachmentPointR2)
+                        writer.String("right");
+                    else
+                        writer.String("side");
+                    writer.Key("label");
+                    writer.String(convertAPToHELM(atp_id_str).c_str());
+                }
+                writer.Key("attachmentAtom");
+                writer.Int(atp.aidx);
+                if (atp.lvidx >= 0)
+                {
+                    writer.Key("leavingGroup");
+                    writer.StartObject();
+                    writer.Key("atoms");
+                    writer.StartArray();
+                    writer.Int(atp.lvidx);
+                    writer.EndArray();
+                    writer.EndObject(); // leavingGroup
+                }
+                writer.EndObject(); // attachmentAtom
+            }
+            writer.EndArray();
+        }
+    }
+}
+
+void MoleculeJsonSaver::saveMonomerAttachmentPoints(TGroup& tg, JsonWriter& writer)
+{
+    auto& sgroups = tg.fragment->sgroups;
+    for (int j = sgroups.begin(); j != sgroups.end(); j = sgroups.next(j))
+    {
+        SGroup& sg = sgroups.getSGroup(j);
+        if (sg.sgroup_type == SGroup::SG_TYPE_SUP)
+        {
+            saveSuperatomAttachmentPoints((Superatom&)sg, writer);
+            sgroups.remove(j);
+        }
+    }
+}
 void MoleculeJsonSaver::saveRGroup(PtrPool<BaseMolecule>& fragments, int rgnum, JsonWriter& writer)
 {
     QS_DEF(Array<char>, buf);
@@ -989,7 +1288,7 @@ bool MoleculeJsonSaver::_checkAttPointOrder(BaseMolecule& mol, int rsite)
         int cur = mol.getRSiteAttachmentPointByOrder(rsite, i);
         int next = mol.getRSiteAttachmentPointByOrder(rsite, i + 1);
 
-        if (cur == -1 || next == -1)
+        if (cur == VALUE_UNKNOWN || next == VALUE_UNKNOWN)
             return true; // here we treat "undefined" as "ok"
 
         if (cur > next)
@@ -997,6 +1296,149 @@ bool MoleculeJsonSaver::_checkAttPointOrder(BaseMolecule& mol, int rsite)
     }
 
     return true;
+}
+
+int MoleculeJsonSaver::getMonomerNumber(int mon_idx)
+{
+    auto mon_it = _monomers_enum.find(mon_idx);
+    if (mon_it != _monomers_enum.end())
+        return mon_it->second;
+    else
+        throw Error("Monomer index: %d not found", mon_idx);
+    return -1;
+}
+
+void MoleculeJsonSaver::saveEndpoint(BaseMolecule& mol, const std::string& ep, int beg_idx, int end_idx, JsonWriter& writer)
+{
+    writer.Key(ep.c_str());
+    writer.StartObject();
+    if (mol.isTemplateAtom(beg_idx))
+    {
+        writer.Key("monomerId");
+        writer.String((std::string("monomer") + std::to_string(getMonomerNumber(beg_idx))).c_str());
+    }
+
+    // find connection
+    auto conn_it = _monomer_connections.find(std::make_pair(beg_idx, end_idx));
+    if (conn_it != _monomer_connections.end())
+    {
+        writer.Key("attachmentPointId");
+        writer.String(convertAPToHELM(conn_it->second).c_str());
+    }
+    else
+        throw Error("no attachment point");
+    writer.EndObject();
+}
+
+void MoleculeJsonSaver::saveRoot(BaseMolecule& mol, JsonWriter& writer)
+{
+    _no_template_molecules.clear();
+    QS_DEF(Array<char>, buf);
+    ArrayOutput out(buf);
+    writer.StartObject();
+    writer.Key("root");
+    writer.StartObject();
+    writer.Key("nodes");
+    writer.StartArray();
+
+    getSGroupAtoms(mol, _s_neighbors);
+    // save mol references
+    for (int idx = 0; idx < mol.countComponents(_s_neighbors); ++idx)
+    {
+        Filter filt(mol.getDecomposition().ptr(), Filter::EQ, idx);
+        std::unique_ptr<BaseMolecule> component(mol.neu());
+        component->makeSubmolecule(mol, filt, NULL, NULL);
+        if (!component->countTemplateAtoms())
+        {
+            _no_template_molecules.emplace_back(std::move(component));
+            writer.StartObject();
+            writer.Key("$ref");
+            std::string mol_node = std::string("mol") + std::to_string(_no_template_molecules.size() - 1);
+            writer.String(mol_node.c_str());
+            writer.EndObject();
+        }
+    }
+
+    saveMetaData(writer, mol.meta());
+
+    // save rgroups
+    for (int i = 1; i <= mol.rgroups.getRGroupCount(); ++i)
+    {
+        RGroup& rgroup = mol.rgroups.getRGroup(i);
+        if (rgroup.fragments.size() == 0)
+            continue;
+
+        buf.clear();
+        out.printf("rg%d", i);
+        buf.push(0);
+        writer.StartObject();
+        writer.Key("$ref");
+        writer.String(buf.ptr());
+        writer.EndObject();
+    }
+
+    int mon_idx = 0;
+
+    // save references to monomer's instances
+    for (auto i : mol.vertices())
+    {
+        if (mol.isTemplateAtom(i))
+        {
+            writer.StartObject();
+            writer.Key("$ref");
+            writer.String((std::string("monomer") + std::to_string(mon_idx)).c_str());
+            writer.EndObject();
+            _monomers_enum.emplace(i, mon_idx++);
+        }
+    }
+
+    writer.EndArray(); // nodes
+
+    if (mol.tgroups.getTGroupCount())
+    {
+        // collect attachment points into unordered map <key, val>. key - pair of from and destination atom. val - attachment point name.
+        _monomer_connections.clear();
+        for (int i = mol.template_attachment_points.begin(); i != mol.template_attachment_points.end(); i = mol.template_attachment_points.next(i))
+        {
+            auto& sap = mol.template_attachment_points.at(i);
+            _monomer_connections.emplace(std::make_pair(sap.ap_occur_idx, sap.ap_aidx), sap.ap_id.ptr());
+        }
+
+        // save connections
+        writer.Key("connections");
+        writer.StartArray();
+        for (auto i : mol.edges())
+        {
+            auto& e = mol.getEdge(i);
+            // save connections between templates
+            if (mol.isTemplateAtom(e.beg) && mol.isTemplateAtom(e.end))
+            {
+                writer.StartObject();
+                writer.Key("connectionType");
+                writer.String(mol.getBondOrder(i) == _BOND_HYDROGEN ? "hydrogen" : "single");
+                // save endpoints
+                saveEndpoint(mol, "endpoint1", e.beg, e.end, writer);
+                saveEndpoint(mol, "endpoint2", e.end, e.beg, writer);
+                writer.EndObject(); // connection
+            }
+        }
+        writer.EndArray(); // connections
+        writer.Key("templates");
+        writer.StartArray();
+
+        for (int i = mol.tgroups.begin(); i != mol.tgroups.end(); i = mol.tgroups.next(i))
+        {
+            TGroup& tg = mol.tgroups.getTGroup(i);
+            auto template_name = std::string("monomerTemplate-") + monomerId(tg);
+            writer.StartObject();
+            writer.Key("$ref");
+            writer.String(template_name.c_str());
+            writer.EndObject();
+        }
+
+        writer.EndArray(); // templates
+    }
+    writer.EndObject(); // root
 }
 
 void MoleculeJsonSaver::saveMolecule(BaseMolecule& bmol, JsonWriter& writer)
@@ -1015,76 +1457,76 @@ void MoleculeJsonSaver::saveMolecule(BaseMolecule& bmol, JsonWriter& writer)
     }
     BaseMolecule::collapse(*mol);
 
-    QS_DEF(Array<char>, buf);
-    ArrayOutput out(buf);
-    writer.StartObject();
+    if (!mol->isQueryMolecule())
+        mol->getTemplatesMap(_templates);
+    saveRoot(*mol, writer);
 
-    writer.Key("root");
-    writer.StartObject();
-    writer.Key("nodes");
-    writer.StartArray();
+    // save monomers
+    if (mol->tgroups.getTGroupCount())
+        for (auto i : mol->vertices())
+        {
+            if (mol->isTemplateAtom(i))
+            {
+                int mon_id = getMonomerNumber(i);
+                writer.Key((std::string("monomer") + std::to_string(mon_id)).c_str());
+                writer.StartObject();
+                writer.Key("type");
+                writer.String("monomer");
+                writer.Key("id");
+                writer.String(std::to_string(mon_id).c_str());
+                auto seqid = mol->getTemplateAtomSeqid(i);
+                if (seqid != VALUE_UNKNOWN)
+                {
+                    writer.Key("seqid");
+                    writer.Int(seqid);
+                }
+                // location
+                writer.Key("position");
+                writer.StartObject();
+                const auto& pos = mol->getAtomXyz(i);
+                writer.Key("x");
+                writer.Double(pos.x);
+                writer.Key("y");
+                writer.Double(pos.y);
+                writer.EndObject(); // pos
 
-    std::list<std::unordered_set<int>> s_neighbors;
-    getSGroupAtoms(*mol, s_neighbors);
-    for (int idx = 0; idx < mol->countComponents(s_neighbors); ++idx)
-    {
-        writer.StartObject();
-        writer.Key("$ref");
-        std::string mol_node = std::string("mol") + std::to_string(idx);
-        writer.String(mol_node.c_str());
-        writer.EndObject();
-    }
+                // find template
+                writer.Key("alias");
+                auto alias = mol->getTemplateAtom(i);
+                writer.String(alias);
+                auto mon_class = mol->getTemplateAtomClass(i);
+                int temp_idx = mol->getTemplateAtomTemplateIndex(i);
+                if (temp_idx > -1)
+                {
+                    auto& tg = bmol.tgroups.getTGroup(temp_idx);
+                    writer.Key("templateId");
+                    writer.String(monomerId(tg).c_str());
+                }
+                else
+                {
+                    auto tg_ref = findTemplateInMap(alias, mon_class, _templates);
+                    if (tg_ref.has_value())
+                    {
+                        writer.Key("templateId");
+                        writer.String(monomerId(tg_ref.value().get()).c_str());
+                    }
+                }
+                writer.EndObject(); // monomer
+            }
+        }
 
-    saveMetaData(writer, mol->meta());
-
-    int n_rgroups = mol->rgroups.getRGroupCount();
-    for (int i = 1; i <= n_rgroups; ++i)
-    {
-        RGroup& rgroup = mol->rgroups.getRGroup(i);
-        if (rgroup.fragments.size() == 0)
-            continue;
-
-        buf.clear();
-        out.printf("rg%d", i);
-        buf.push(0);
-        writer.StartObject();
-        writer.Key("$ref");
-        writer.String(buf.ptr());
-        writer.EndObject();
-    }
-
+    // save templates
     for (int i = mol->tgroups.begin(); i != mol->tgroups.end(); i = mol->tgroups.next(i))
     {
         TGroup& tg = mol->tgroups.getTGroup(i);
-        buf.clear();
-        out.printf("tg%d", i);
-        buf.push(0);
-        writer.StartObject();
-        writer.Key("$ref");
-        writer.String(buf.ptr());
-        writer.EndObject();
+        saveMonomerTemplate(tg, writer);
     }
 
-    writer.EndArray();  // nodes
-    writer.EndObject(); // root
-
-    for (int idx = 0; idx < mol->countComponents(s_neighbors); idx++)
+    // save molecules
+    for (int idx = 0; idx < _no_template_molecules.size(); ++idx)
     {
-        _pmol = nullptr;
-        _pqmol = nullptr;
-        Filter filt(mol->getDecomposition().ptr(), Filter::EQ, idx);
-        std::unique_ptr<BaseMolecule> component(mol->neu());
-        component->makeSubmolecule(*mol, filt, NULL, NULL);
-
-        if (component->isQueryMolecule())
-            _pqmol = &component->asQueryMolecule();
-        else
-            _pmol = &component->asMolecule();
-
-        if (_pmol)
-            _pmol->setIgnoreBadValenceFlag(true);
-
-        if (component->vertexCount())
+        auto& component = _no_template_molecules[idx];
+        if (component->vertexCount() && !component->countTemplateAtoms())
         {
             std::string mol_node = std::string("mol") + std::to_string(idx);
             writer.Key(mol_node.c_str());
@@ -1110,17 +1552,12 @@ void MoleculeJsonSaver::saveMolecule(BaseMolecule& bmol, JsonWriter& writer)
         }
     }
 
-    for (int i = 1; i <= n_rgroups; i++)
+    // save R-Groups
+    for (int i = 1; i <= mol->rgroups.getRGroupCount(); i++)
     {
         auto& rgrp = mol->rgroups.getRGroup(i);
         if (rgrp.fragments.size())
             saveRGroup(rgrp.fragments, i, writer);
-    }
-
-    for (int i = mol->tgroups.begin(); i != mol->tgroups.end(); i = mol->tgroups.next(i))
-    {
-        TGroup& tg = mol->tgroups.getTGroup(i);
-        saveTGroup(tg, writer);
     }
 
     writer.EndObject();
@@ -1128,6 +1565,16 @@ void MoleculeJsonSaver::saveMolecule(BaseMolecule& bmol, JsonWriter& writer)
 
 void MoleculeJsonSaver::saveFragment(BaseMolecule& fragment, JsonWriter& writer)
 {
+    _pmol = nullptr;
+    _pqmol = nullptr;
+    if (fragment.isQueryMolecule())
+        _pqmol = &fragment.asQueryMolecule();
+    else
+        _pmol = &fragment.asMolecule();
+
+    if (_pmol)
+        _pmol->setIgnoreBadValenceFlag(true);
+
     writer.Key("atoms");
     writer.StartArray();
     saveAtoms(fragment, writer);
@@ -1140,7 +1587,6 @@ void MoleculeJsonSaver::saveFragment(BaseMolecule& fragment, JsonWriter& writer)
 
     saveSGroups(fragment, writer);
     saveHighlights(fragment, writer);
-    saveSelection(fragment, writer);
     if (fragment.properties().size())
     {
         auto& props = fragment.properties().value(0);

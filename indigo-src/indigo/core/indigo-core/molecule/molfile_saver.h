@@ -33,6 +33,15 @@ namespace indigo
     class DLLEXPORT MolfileSaver
     {
     public:
+        class MonomersToSgroupFilter : public BaseMolecule::MonomerFilterBase
+        {
+        public:
+            MonomersToSgroupFilter(BaseMolecule& mol, const std::unordered_map<int, std::map<int, int>>& directions_map)
+                : MonomerFilterBase(mol, directions_map)
+            {
+            }
+            bool operator()(int atom_idx) const override;
+        };
         enum
         {
             MODE_AUTO = 0, // save to v3000 only if the given molecule has any
@@ -40,6 +49,7 @@ namespace indigo
             MODE_2000,     // force saving to v2000 format
             MODE_3000      // force saving to v3000 format
         };
+        constexpr static int MAX_RING_BOND_COUNT = 4;
 
         MolfileSaver(Output& output);
 
@@ -59,6 +69,7 @@ namespace indigo
         bool add_implicit_h;  // If true then MRV_IMPLICIT_H Data S-groups will be added for saving
                               // the number of implicit H for aromatic atoms
                               // (if it is required for correct de-aromatization) (default value is true)
+        bool add_mrv_sma;     // If true then "MRV SMA" extension will be added for query molecules (default value is true)
         static int parseFormatMode(const char* mode);
         static void saveFormatMode(int mode, Array<char>& output);
 
@@ -69,6 +80,8 @@ namespace indigo
 
         void _saveMolecule(BaseMolecule& mol, bool query);
         void _handleCIP(BaseMolecule& mol);
+        void _handleMonomers(BaseMolecule& mol);
+
         void _writeHeader(BaseMolecule& mol, Output& output, bool zcoord);
         void _writeCtabHeader(Output& output);
         void _writeAtomLabel(Output& output, int label);

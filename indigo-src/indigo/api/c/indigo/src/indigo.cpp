@@ -118,6 +118,7 @@ void Indigo::init()
     max_embeddings = 10000;
 
     layout_max_iterations = 0;
+    layout_preserve_existing = false;
 
     molfile_saving_skip_date = false;
 
@@ -125,8 +126,10 @@ void Indigo::init()
 
     json_saving_add_stereo_desc = false;
     json_saving_pretty = false;
+    json_use_native_precision = false;
 
     molfile_saving_add_implicit_h = true;
+    molfile_saving_add_mrv_sma = true;
 
     smiles_saving_write_name = false;
     smiles_saving_smarts_mode = false;
@@ -188,6 +191,7 @@ void Indigo::initMolfileSaver(MolfileSaver& saver)
     saver.no_chiral = molfile_saving_no_chiral;
     saver.add_stereo_desc = molfile_saving_add_stereo_desc;
     saver.add_implicit_h = molfile_saving_add_implicit_h;
+    saver.add_mrv_sma = molfile_saving_add_mrv_sma;
     saver.chiral_flag = molfile_saving_chiral_flag;
 }
 
@@ -195,6 +199,7 @@ void Indigo::initMoleculeJsonSaver(MoleculeJsonSaver& saver)
 {
     saver.add_stereo_desc = json_saving_add_stereo_desc;
     saver.pretty_json = json_saving_pretty;
+    saver.use_native_precision = json_use_native_precision;
 }
 
 void Indigo::initReactionJsonSaver(ReactionJsonSaver& saver)
@@ -209,6 +214,7 @@ void Indigo::initRxnfileSaver(RxnfileSaver& saver)
     saver.skip_date = molfile_saving_skip_date;
     saver.add_stereo_desc = molfile_saving_add_stereo_desc;
     saver.add_implicit_h = molfile_saving_add_implicit_h;
+    saver.add_mrv_sma = molfile_saving_add_mrv_sma;
 }
 
 Indigo::~Indigo()

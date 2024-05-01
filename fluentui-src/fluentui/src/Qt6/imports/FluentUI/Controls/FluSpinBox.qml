@@ -22,6 +22,7 @@ T.SpinBox {
         bottom: Math.min(control.from, control.to)
         top: Math.max(control.from, control.to)
     }
+    font: FluTextStyle.Body
 
     contentItem: TextInput {
         property color normalColor: FluTheme.dark ?  Qt.rgba(255/255,255/255,255/255,1) : Qt.rgba(27/255,27/255,27/255,1)
@@ -40,7 +41,7 @@ T.SpinBox {
             }
             return normalColor
         }
-        selectionColor: Qt.alpha(FluTheme.primaryColor.lightest,0.6)
+        selectionColor: FluTools.withOpacity(FluTheme.primaryColor,0.5)
         selectedTextColor: color
         horizontalAlignment: Qt.AlignHCenter
         verticalAlignment: Qt.AlignVCenter
@@ -53,14 +54,17 @@ T.SpinBox {
             anchors.bottom: parent.bottom
             visible: contentItem.enabled
             color: {
+                if(contentItem.activeFocus){
+                    return FluTheme.primaryColor
+                }
                 if(FluTheme.dark){
-                    contentItem.activeFocus ? FluTheme.primaryColor.lighter  : Qt.rgba(166/255,166/255,166/255,1)
+                    return Qt.rgba(166/255,166/255,166/255,1)
                 }else{
-                    return contentItem.activeFocus ? FluTheme.primaryColor.dark  : Qt.rgba(183/255,183/255,183/255,1)
+                    return Qt.rgba(183/255,183/255,183/255,1)
                 }
             }
             Behavior on height{
-                enabled: FluTheme.enableAnimation
+                enabled: FluTheme.animationEnabled
                 NumberAnimation{
                     duration: 83
                     easing.type: Easing.OutCubic
@@ -69,7 +73,7 @@ T.SpinBox {
         }
     }
 
-    up.indicator: FluRectangle {
+    up.indicator: FluClip {
         x: control.mirrored ? 0 : control.width - width
         height: control.height
         implicitWidth: 32
@@ -104,7 +108,7 @@ T.SpinBox {
     }
 
 
-    down.indicator: FluRectangle {
+    down.indicator: FluClip {
         x: control.mirrored ? parent.width - width : 0
         height: control.height
         implicitWidth: 32

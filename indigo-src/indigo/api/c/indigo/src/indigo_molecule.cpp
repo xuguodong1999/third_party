@@ -35,6 +35,7 @@
 #include "molecule/molecule_name_parser.h"
 #include "molecule/molecule_savers.h"
 #include "molecule/query_molecule.h"
+#include "molecule/sequence_loader.h"
 #include "molecule/smiles_loader.h"
 #include "molecule/smiles_saver.h"
 
@@ -521,6 +522,56 @@ int indigoLoadQueryMolecule(int source)
         molptr->copyProperties(loader.properties);
 
         return self.addObject(molptr.release());
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoLoadSequence(int source, const char* seq_type)
+{
+    INDIGO_BEGIN
+    {
+        IndigoObject& obj = self.getObject(source);
+        SequenceLoader loader(IndigoScanner::get(obj));
+
+        std::unique_ptr<IndigoMolecule> molptr = std::make_unique<IndigoMolecule>();
+
+        Molecule& mol = molptr->mol;
+        loader.loadSequence(mol, seq_type);
+        return self.addObject(molptr.release());
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoLoadSequenceFromString(const char* string, const char* seq_type)
+{
+    INDIGO_BEGIN
+    {
+        int source = indigoReadString(string);
+        int result;
+
+        if (source <= 0)
+            return -1;
+
+        result = indigoLoadSequence(source, seq_type);
+        indigoFree(source);
+        return result;
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoLoadSequenceFromFile(const char* filename, const char* seq_type)
+{
+    INDIGO_BEGIN
+    {
+        int source = indigoReadFile(filename);
+        int result;
+
+        if (source < 0)
+            return -1;
+
+        result = indigoLoadSequence(source, seq_type);
+        indigoFree(source);
+        return result;
     }
     INDIGO_END(-1);
 }
@@ -2090,6 +2141,16 @@ float indigoAlignAtoms(int molecule, int natoms, int* atom_ids, float* desired_x
             mol.getAtomXyz(i).transformPoint(matr);
 
         return (float)(sqrt(sqsum / natoms));
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoClearXYZ(int molecule)
+{
+    INDIGO_BEGIN
+    {
+        self.getObject(molecule).getBaseMolecule().clearXyz();
+        return molecule;
     }
     INDIGO_END(-1);
 }

@@ -15,6 +15,9 @@ Item{
         property bool isRight: control.mode === FluTimelineType.Right
         property bool isAlternate: control.mode === FluTimelineType.Alternate
         property bool hasLable: {
+            if(!model){
+                return false
+            }
             for(var i=0;i<model.count;i++){
                 var lable = model.get(i).lable
                 if(lable !== undefined && undefined !== ""){
@@ -39,8 +42,14 @@ Item{
     Rectangle{
         id:rect_line
         color: control.lineColor
-        height: parent.height
+        height: {
+            if(repeater.count===0){
+                return parent.height
+            }
+            return parent.height - layout_column.children[repeater.count-1].height
+        }
         width: 2
+        visible: repeater.count!==0
         state: d.stateName
         states: [
             State {
@@ -82,7 +91,7 @@ Item{
             radius: 8
             border.width: 4
             color:FluTheme.dark ? Qt.rgba(0,0,0,1) : Qt.rgba(1,1,1,1)
-            border.color: FluTheme.dark ? FluTheme.primaryColor.lighter : FluTheme.primaryColor.dark
+            border.color: FluTheme.primaryColor
         }
     }
 
@@ -91,8 +100,13 @@ Item{
         FluText{
             wrapMode: Text.WrapAnywhere
             horizontalAlignment: isRight ? Qt.AlignRight : Qt.AlignLeft
-            text: modelData.lable
-            color: FluTheme.dark ? FluTheme.primaryColor.lighter : FluTheme.primaryColor.dark
+            text: {
+                if(modelData.lable){
+                    return modelData.lable
+                }
+                return ""
+            }
+            color: FluTheme.primaryColor
         }
     }
 
@@ -110,13 +124,14 @@ Item{
         id:layout_column
         spacing: 30
         width: control.width
+        height: repeater.count === 0 ? 1 : childrenRect.height
         Repeater{
             id:repeater
             Item{
                 id:item_layout
                 width: layout_column.width
                 height: loader_text.height
-                Loader{
+                FluLoader{
                     id:item_loader
                     state: d.stateName
                     states: [
@@ -149,7 +164,7 @@ Item{
                     }
                 }
 
-                Loader{
+                FluLoader{
                     property var modelData: control.model.get(index)
                     property bool isRight: state === "Right"
                     id:loader_lable
@@ -219,7 +234,7 @@ Item{
                     ]
                 }
 
-                Loader{
+                FluLoader{
                     id:loader_text
                     property var modelData: control.model.get(index)
                     property bool isRight: state === "Right"

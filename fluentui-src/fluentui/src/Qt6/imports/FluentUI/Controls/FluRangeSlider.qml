@@ -24,47 +24,63 @@ T.RangeSlider {
     first.handle: Rectangle {
         x: control.leftPadding + (control.horizontal ? control.first.visualPosition * (control.availableWidth - width) : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.first.visualPosition * (control.availableHeight - height))
-        implicitWidth: 24
-        implicitHeight: 24
+        implicitWidth: 20
+        implicitHeight: 20
         radius: width / 2
         color:FluTheme.dark ? Qt.rgba(69/255,69/255,69/255,1) :Qt.rgba(1,1,1,1)
         FluShadow{
-            radius: 12
+            radius: 10
         }
-        Rectangle{
-            width: radius*2
-            height: radius*2
-            radius:{
+        FluIcon{
+            width: 10
+            height: 10
+            iconSource: FluentIcons.FullCircleMask
+            iconSize: 10
+            scale:{
                 if(control.first.pressed){
-                    return 5
+                    return 0.9
                 }
-                return control.first.hovered ? 7 : 6
+                return control.first.hovered ? 1.2 : 1
             }
-            color:FluTheme.dark ? FluTheme.primaryColor.lighter :FluTheme.primaryColor.dark
+            iconColor: FluTheme.primaryColor
             anchors.centerIn: parent
+            Behavior on scale{
+                NumberAnimation{
+                    duration: 167
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
     }
     second.handle: Rectangle {
         x: control.leftPadding + (control.horizontal ? control.second.visualPosition * (control.availableWidth - width) : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2 : control.second.visualPosition * (control.availableHeight - height))
-        implicitWidth: 24
-        implicitHeight: 24
+        implicitWidth: 20
+        implicitHeight: 20
         radius: width / 2
         color:FluTheme.dark ? Qt.rgba(69/255,69/255,69/255,1) :Qt.rgba(1,1,1,1)
         FluShadow{
-            radius: 12
+            radius: 10
         }
-        Rectangle{
-            width: radius*2
-            height: radius*2
-            radius:{
+        FluIcon{
+            width: 10
+            height: 10
+            iconSource: FluentIcons.FullCircleMask
+            iconSize: 10
+            scale:{
                 if(control.second.pressed){
-                    return 5
+                    return 0.9
                 }
-                return control.second.hovered ? 7 : 6
+                return control.second.hovered ? 1.2 : 1
             }
-            color:FluTheme.dark ? FluTheme.primaryColor.lighter :FluTheme.primaryColor.dark
+            iconColor: FluTheme.primaryColor
             anchors.centerIn: parent
+            Behavior on scale{
+                NumberAnimation{
+                    duration: 167
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
     }
     background: Item {
@@ -86,7 +102,7 @@ T.RangeSlider {
             y: control.horizontal ? 0 : control.second.visualPosition * parent.height + 3
             width: control.horizontal ? control.second.position * parent.width - control.first.position * parent.width - 6 : 6
             height: control.horizontal ? 6 : control.second.position * parent.height - control.first.position * parent.height - 6
-            color:FluTheme.dark ? FluTheme.primaryColor.lighter :FluTheme.primaryColor.dark
+            color: FluTheme.primaryColor
         }
     }
     FluTooltip{

@@ -173,8 +173,14 @@ void InchiWrapper::loadMoleculeFromInchi(const char* inchi_string, Molecule& mol
     if (inchi_output.szLog)
         log.readString(inchi_output.szLog, true);
 
-    if (retcode != inchi_Ret_OKAY && retcode != inchi_Ret_WARNING && retcode != inchi_Ret_EOF) // empty structure is acceptable
-        throw Error("Indigo-InChI: InChI loading failed: %s. Code: %d.", inchi_output.szMessage, retcode);
+    if (retcode == inchi_Ret_EOF) /* no structural data has been provided */
+        throw Error("Wrong InChI format");
+
+    if (retcode == inchi_Ret_BUSY) /* Previuos call to InChI has not returned yet */
+        throw Error("Internal error parsing InChI string");
+
+    if (retcode != inchi_Ret_OKAY && retcode != inchi_Ret_WARNING)
+        throw Error("Internal error parsing InChI string");
 
     // Check stereo options
     _stereo_opt = _STEREO_ABS;
@@ -256,15 +262,15 @@ void InchiWrapper::parseInchiOutput(const InchiOutput& inchi_output, Molecule& m
                 throw Molecule::Error("Indigo-InChI: ALTERN-typed bonds are not supported");
             int bond_idx = mol.addBond(atom_indices[i], atom_indices[nei], bond_order);
 
-            if (bond_stereo == 1)
+            if (bond_stereo == BIOVIA_STEREO_UP)
                 mol.setBondDirection(bond_idx, BOND_UP);
-            else if (bond_stereo == 6)
+            else if (bond_stereo == BIOVIA_STEREO_DOWN)
                 mol.setBondDirection(bond_idx, BOND_DOWN);
-            else if (bond_stereo == 4)
+            else if (bond_stereo == BIOVIA_STEREO_ETHER)
                 mol.setBondDirection(bond_idx, BOND_EITHER);
-            else if (bond_stereo == 3)
+            else if (bond_stereo == BIOVIA_STEREO_DOUBLE_CISTRANS)
                 mol.cis_trans.ignore(bond_idx);
-            else if (bond_stereo != 0)
+            else if (bond_stereo != BIOVIA_STEREO_NO)
                 throw Error("unknown number for bond stereo: %d", bond_stereo);
         }
     }
