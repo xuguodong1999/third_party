@@ -211,6 +211,7 @@ function(xgd_external_check_env)
             check_cxx_source_compiles("
                 #include <${CHECK_SRC_DIR}/power.cpp>
                 int main() {}" _XGD_BOOST_ARCH_POWER)
+            break()
         endwhile ()
     endif ()
 
