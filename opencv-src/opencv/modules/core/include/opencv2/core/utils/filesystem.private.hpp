@@ -27,6 +27,7 @@
 #    define OPENCV_HAVE_FILESYSTEM_SUPPORT 0
 #  endif
 #endif
+#undef OPENCV_HAVE_FILESYSTEM_SUPPORT
 
 #if OPENCV_HAVE_FILESYSTEM_SUPPORT
 namespace cv { namespace utils { namespace fs {
