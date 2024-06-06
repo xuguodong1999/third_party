@@ -300,6 +300,49 @@ diff --git a/openbabel-src/openbabel/src/formats/nwchemformat.cpp b/openbabel-sr
          else if (vs[0][0] == '2')
          {
              double value = atof(vs[4].c_str());
+Subject: [PATCH] disable opencv link to dl
+---
+Index: opencv-src/opencv/modules/core/src/utils/datafile.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/opencv-src/opencv/modules/core/src/utils/datafile.cpp b/opencv-src/opencv/modules/core/src/utils/datafile.cpp
+--- a/opencv-src/opencv/modules/core/src/utils/datafile.cpp	(revision 007bb7788e8ceb953d33a4135a7be4bb256c36a8)
++++ b/opencv-src/opencv/modules/core/src/utils/datafile.cpp	(date 1717678879072)
+@@ -110,6 +110,7 @@
+ static cv::String getModuleLocation(const void* addr)
+ {
+     CV_UNUSED(addr);
++#ifdef OPENCV_HAVE_FILESYSTEM_SUPPORT
+ #ifdef _WIN32
+     HMODULE m = 0;
+ #if _WIN32_WINNT >= 0x0501 && (!defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP))
+@@ -151,6 +152,7 @@
+ # endif
+ #else
+     // not supported, skip
++#endif
+ #endif
+     return cv::String();
+ }
+Index: opencv-src/opencv/modules/core/include/opencv2/core/utils/filesystem.private.hpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/opencv-src/opencv/modules/core/include/opencv2/core/utils/filesystem.private.hpp b/opencv-src/opencv/modules/core/include/opencv2/core/utils/filesystem.private.hpp
+--- a/opencv-src/opencv/modules/core/include/opencv2/core/utils/filesystem.private.hpp	(revision 007bb7788e8ceb953d33a4135a7be4bb256c36a8)
++++ b/opencv-src/opencv/modules/core/include/opencv2/core/utils/filesystem.private.hpp	(date 1717678879062)
+@@ -27,6 +27,7 @@
+ #    define OPENCV_HAVE_FILESYSTEM_SUPPORT 0
+ #  endif
+ #endif
++#undef OPENCV_HAVE_FILESYSTEM_SUPPORT
+
+ #if OPENCV_HAVE_FILESYSTEM_SUPPORT
+ namespace cv { namespace utils { namespace fs {
+
 Index: opencv-src/opencv/modules/highgui/src/window_QT.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
