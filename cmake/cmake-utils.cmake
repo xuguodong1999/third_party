@@ -1,14 +1,4 @@
 macro(xgd_external_find_package)
-    if (XGD_USE_OPENMP AND NOT ANDROID) # on android, openmp is always available
-        find_package(OpenMP QUIET)
-        if (NOT OpenMP_CXX_FOUND)
-            set(XGD_USE_OPENMP OFF CACHE INTERNAL "" FORCE)
-            message(WARNING "XGD_USE_OPENMP set to OFF:"
-                    " OpenMP_CXX_FOUND=\"${OpenMP_CXX_FOUND}\""
-                    " ANDROID=\"${ANDROID}\"")
-        endif ()
-    endif ()
-
     if (XGD_USE_CUDA)
         if (MSVC OR ((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
             find_package(CUDAToolkit QUIET)
@@ -338,7 +328,6 @@ function(xgd_external_check_env)
     unset(_CMAKE_CXX_STANDARD_REQUIRED)
 
     set(_XGD_VARS
-            XGD_USE_OPENMP
             XGD_USE_CUDA
             XGD_USE_QT
             XGD_USE_VK
@@ -1075,6 +1064,7 @@ function(xgd_link_qt TARGET)
             ${TARGET}
             PRIVATE QT_DISABLE_DEPRECATED_BEFORE=0x060000
             QT_NO_KEYWORDS
+            QT_MESSAGELOGCONTEXT
     )
     set_target_properties(${TARGET} PROPERTIES AUTOUIC ON AUTOMOC ON AUTORCC ON)
 endfunction()
@@ -1107,10 +1097,6 @@ endfunction()
 # openmp
 function(xgd_link_omp TARGET)
     cmake_parse_arguments(param "" "LINK_TYPE" "" ${ARGN})
-    get_target_property(XGD_OMP_TRY_LINKED ${TARGET} XGD_OMP_TRY_LINKED)
-    if (XGD_OMP_TRY_LINKED)
-        return()
-    endif ()
     if (param_LINK_TYPE)
         set(LINK_TYPE ${param_LINK_TYPE})
     else ()
@@ -1119,26 +1105,10 @@ function(xgd_link_omp TARGET)
     if (ANDROID)
         target_link_libraries(${TARGET} ${LINK_TYPE} -fopenmp -static-openmp)
         set_target_properties(${TARGET} PROPERTIES COMPILE_OPTIONS -fopenmp)
-        set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 1)
     elseif (OpenMP_CXX_FOUND)
         target_link_libraries(${TARGET} ${LINK_TYPE} OpenMP::OpenMP_CXX)
-        set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 1)
     else ()
         message(STATUS "openmp: OpenMP_CXX not found for ${TARGET}")
-        set_target_properties(${TARGET} PROPERTIES XGD_OMP_LINKED 0)
-    endif ()
-    set_target_properties(${TARGET} PROPERTIES XGD_OMP_TRY_LINKED 1)
-endfunction()
-
-function(xgd_link_ncnn_omp TARGET)
-    get_target_property(XGD_OMP_LINKED ${TARGET} XGD_OMP_LINKED)
-    if (XGD_OMP_LINKED)
-        return()
-    endif ()
-    if (TARGET ncnn_omp)
-        add_dependencies(${TARGET} ncnn_omp)
-        target_link_libraries(${TARGET} PRIVATE ncnn_omp)
-        message(STATUS "openmp: link ${TARGET} to ncnn simpleomp")
     endif ()
 endfunction()
 

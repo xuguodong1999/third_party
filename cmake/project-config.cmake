@@ -1,7 +1,6 @@
 find_package(Threads REQUIRED)
 
 # system libraries
-option(XGD_USE_OPENMP "" ON)
 option(XGD_USE_CUDA "" ON)
 option(XGD_USE_QT "" ON)
 option(XGD_USE_VK "" ON)

@@ -30,7 +30,6 @@ xgd_add_library(
         INCLUDE_DIRS ${OB_INC_DIR}
 )
 
-xgd_link_omp(openbabel)
 xgd_link_libraries(openbabel
         PRIVATE
         zlib xml2 inchi maeparser rapidjson lbfgs cairo

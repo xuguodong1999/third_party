@@ -527,7 +527,10 @@ xgd_create_boost_deps(local_function INTERFACE config mpl preprocessor scope_exi
 xgd_create_boost_deps(locale PRIVATE core predef thread PUBLIC assert config iterator)
 xgd_create_boost_deps(lockfree INTERFACE align array assert atomic config core integer iterator mpl parameter predef
         static_assert tuple type_traits utility)
-xgd_create_boost_deps(log INTERFACE atomic thread)
+xgd_create_boost_deps(log INTERFACE
+        atomic thread
+        array assert config container core date_time filesystem function_types fusion intrusive move mpl parameter phoenix predef preprocessor proto range smart_ptr static_assert system throw_exception type_index type_traits utility winapi
+        align asio bind exception interprocess optional random spirit)
 xgd_create_boost_deps(logic INTERFACE config core)
 xgd_create_boost_deps(math INTERFACE assert concept_check config core integer lexical_cast
         predef random static_assert throw_exception)
