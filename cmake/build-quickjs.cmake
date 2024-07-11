@@ -13,7 +13,7 @@ xgd_add_library(quickjs STATIC
         INCLUDE_DIRS ${INC_DIR})
 target_compile_definitions(quickjs PRIVATE
         "CONFIG_BIGNUM"
-        "CONFIG_VERSION=\"2021-03-27\"")
+        "CONFIG_VERSION=\"2024-02-14\"")
 if (NOT EMSCRIPTEN AND NOT WIN32)
     xgd_link_threads(quickjs LINK_TYPE PRIVATE)
 endif ()

@@ -1011,7 +1011,6 @@ function(xgd_link_gtest TARGET)
             endif ()
             set(TEST_COMMAND
                     "${XGD_NODEJS_RUNTIME}"
-                    "--experimental-wasm-threads"
                     "--stack-size=8192"
                     "-e"
                     "import('${OUTPUT_JS}').then(m => ('function' === typeof m?.default) ? m.default() : 0)")
