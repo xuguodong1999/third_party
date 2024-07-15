@@ -187,6 +187,13 @@
 #    define GGML_API
 #endif
 
+#undef GGML_API
+#include <ggml_export.h>
+#undef GGML_DEPRECATED
+#ifndef GGML_API
+#define GGML_API GGML_EXPORT
+#endif
+
 #ifdef GGML_MULTIPLATFORM
 #    if defined(_WIN32)
 #        define GGML_CALL
@@ -1521,7 +1528,7 @@ extern "C" {
         "use ggml_rope_ext_inplace instead");
 
     // compute correction dims for YaRN RoPE scaling
-    GGML_CALL void ggml_rope_yarn_corr_dims(
+    GGML_API GGML_CALL void ggml_rope_yarn_corr_dims(
         int n_dims, int n_ctx_orig, float freq_base, float beta_fast, float beta_slow, float dims[2]);
 
     // rotary position embedding backward, i.e compute dx from dy

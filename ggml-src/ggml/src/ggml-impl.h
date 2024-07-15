@@ -437,6 +437,7 @@ static inline ggml_fp16_t ggml_compute_fp32_to_fp16(float f) {
 
 #ifdef __wasm_simd128__
 #include <wasm_simd128.h>
+#include <immintrin.h>
 #else
 #ifdef __POWER9_VECTOR__
 #include <altivec.h>
