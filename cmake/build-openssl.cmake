@@ -26,7 +26,7 @@ endif ()
 if (XGD_OPT_RC)
     string(TIMESTAMP BUILDINF_DATE "%Y-%m-%d %H:%M:%S UTC" UTC)
 else ()
-    string(TIMESTAMP BUILDINF_DATE "%Y-%m-%d UTC" UTC)
+    string(TIMESTAMP BUILDINF_DATE "%Y UTC" UTC)
 endif ()
 configure_file(${ROOT_DIR}/crypto/buildinf.h.cmake
         ${GEN_DIR}/crypto/buildinf.h)
