@@ -14,6 +14,7 @@
 
 #include <cstdint>
 
+namespace {
 struct SkSFNTHeader {
     uint32_t    fVersion;
     uint16_t    fNumTables;
@@ -21,6 +22,7 @@ struct SkSFNTHeader {
     uint16_t    fEntrySelector;
     uint16_t    fRangeShift;
 };
+}
 
 struct SkTTCFHeader {
     uint32_t    fTag;

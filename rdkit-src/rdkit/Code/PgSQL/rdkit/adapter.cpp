@@ -123,9 +123,9 @@ constexpr unsigned int pickleDefault =
 
 class ByteA : public std::string {
  public:
-  ByteA() : string(){};
-  ByteA(bytea *b) : string(VARDATA(b), VARSIZE(b) - VARHDRSZ){};
-  ByteA(string &s) : string(s){};
+  ByteA() : string() {};
+  ByteA(bytea *b) : string(VARDATA(b), VARSIZE(b) - VARHDRSZ) {};
+  ByteA(string &s) : string(s) {};
 
   /*
    * Convert string to bytea. Convertaion is in pgsql's memory
@@ -400,15 +400,15 @@ extern "C" bool isValidMolBlob(char *data, int len) {
 }
 
 extern "C" char *makeMolText(CROMol data, int *len, bool asSmarts,
-                             bool cxSmiles) {
+                             bool cxSmiles, bool doIsomeric) {
   auto *mol = (ROMol *)data;
 
   try {
     if (!asSmarts) {
       if (!cxSmiles) {
-        StringData = MolToSmiles(*mol);
+        StringData = MolToSmiles(*mol, doIsomeric);
       } else {
-        StringData = MolToCXSmiles(*mol);
+        StringData = MolToCXSmiles(*mol, doIsomeric);
       }
     } else {
       if (!cxSmiles) {
@@ -564,8 +564,8 @@ extern "C" int molcmp(CROMol i, CROMol a) {
     return res;
   }
 
-  res = int(RDKit::Descriptors::calcAMW(*im, false)) -
-        int(RDKit::Descriptors::calcAMW(*am, false));
+  res = int(RDKit::MolOps::getAvgMolWt(*im, false)) -
+        int(RDKit::MolOps::getAvgMolWt(*am, false));
   if (res) {
     return res;
   }
@@ -720,8 +720,8 @@ extern "C" char *makeMolFormulaText(CROMol data, int *len,
   auto *mol = (ROMol *)data;
 
   try {
-    StringData = RDKit::Descriptors::calcMolFormula(*mol, separateIsotopes,
-                                                    abbreviateHIsotopes);
+    StringData = RDKit::MolOps::getMolFormula(*mol, separateIsotopes,
+                                              abbreviateHIsotopes);
   } catch (...) {
     ereport(WARNING,
             (errcode(ERRCODE_WARNING),
@@ -1950,7 +1950,7 @@ MoleculeDescriptors *calcMolecularDescriptorsReaction(
   for (; begin != end; ++begin) {
     des->nAtoms += begin->get()->getNumHeavyAtoms();
     des->nBonds += begin->get()->getNumBonds(true);
-    des->MW = RDKit::Descriptors::calcAMW(*begin->get(), true);
+    des->MW = RDKit::MolOps::getAvgMolWt(*begin->get(), true);
     if (!begin->get()->getRingInfo()->isSssrOrBetter()) {
       begin->get()->updatePropertyCache();
       RDKit::MolOps::findSSSR(*begin->get());

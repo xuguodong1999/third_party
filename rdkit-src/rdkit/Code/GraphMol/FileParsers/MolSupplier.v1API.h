@@ -178,8 +178,7 @@ class RDKIT_FILEPARSERS_EXPORT SDMolSupplier : public ForwardSDMolSupplier {
   ROMol *operator[](unsigned int idx) {
     PRECONDITION(dp_supplier, "no supplier");
     return static_cast<ContainedType *>(dp_supplier.get())
-        ->
-        operator[](idx)
+        ->operator[](idx)
         .release();
   }
   /*! \brief returns the text block for a particular item
@@ -309,8 +308,7 @@ class RDKIT_FILEPARSERS_EXPORT SmilesMolSupplier : public MolSupplier {
   ROMol *operator[](unsigned int idx) {
     PRECONDITION(dp_supplier, "no supplier");
     return static_cast<ContainedType *>(dp_supplier.get())
-        ->
-        operator[](idx)
+        ->operator[](idx)
         .release();
   }
   /*! \brief returns the text block for a particular item
@@ -393,8 +391,7 @@ class RDKIT_FILEPARSERS_EXPORT TDTMolSupplier : public MolSupplier {
   ROMol *operator[](unsigned int idx) {
     PRECONDITION(dp_supplier, "no supplier");
     return static_cast<ContainedType *>(dp_supplier.get())
-        ->
-        operator[](idx)
+        ->operator[](idx)
         .release();
   }
   /*! \brief returns the text block for a particular item
@@ -408,33 +405,6 @@ class RDKIT_FILEPARSERS_EXPORT TDTMolSupplier : public MolSupplier {
   unsigned int length() {
     PRECONDITION(dp_supplier, "no supplier");
     return static_cast<ContainedType *>(dp_supplier.get())->length();
-  }
-};
-
-//! Deprecated, will be removed in 2024.09 release
-class RDKIT_FILEPARSERS_EXPORT PDBMolSupplier : public MolSupplier {
- public:
-  explicit PDBMolSupplier(std::istream *inStream, bool takeOwnership = true,
-                          bool sanitize = true, bool removeHs = true,
-                          unsigned int flavor = 0,
-                          bool proximityBonding = true) {
-    v2::FileParsers::PDBParserParams params;
-    params.sanitize = sanitize;
-    params.removeHs = removeHs;
-    params.flavor = flavor;
-    params.proximityBonding = proximityBonding;
-    dp_supplier.reset(
-        new v2::FileParsers::PDBMolSupplier(inStream, takeOwnership, params));
-  }
-  explicit PDBMolSupplier(const std::string &fname, bool sanitize = true,
-                          bool removeHs = true, unsigned int flavor = 0,
-                          bool proximityBonding = true) {
-    v2::FileParsers::PDBParserParams params;
-    params.sanitize = sanitize;
-    params.removeHs = removeHs;
-    params.flavor = flavor;
-    params.proximityBonding = proximityBonding;
-    dp_supplier.reset(new v2::FileParsers::PDBMolSupplier(fname, params));
   }
 };
 
@@ -481,8 +451,7 @@ class RDKIT_FILEPARSERS_EXPORT MaeMolSupplier : public MolSupplier {
   RWMol *operator[](unsigned int idx) {
     PRECONDITION(dp_supplier, "no supplier");
     return static_cast<ContainedType *>(dp_supplier.get())
-        ->
-        operator[](idx)
+        ->operator[](idx)
         .release();
   }
   unsigned int length() {

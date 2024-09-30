@@ -1,7 +1,7 @@
 
 /* pngconf.h - machine-configurable file for libpng
  *
- * libpng version 1.6.43
+ * libpng version 1.6.44
  *
  * Copyright (c) 2018-2024 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2016,2018 Glenn Randers-Pehrson
@@ -89,7 +89,7 @@
 
 /* The PNGARG macro was used in versions of libpng prior to 1.6.0 to protect
  * against legacy (pre ISOC90) compilers that did not understand function
- * prototypes.  It is not required for modern C compilers.
+ * prototypes.  [Deprecated.]
  */
 #ifndef PNGARG
 #  define PNGARG(arglist) arglist
@@ -163,6 +163,14 @@
  * PNG_EXPORT_TYPE(type) A macro that pre or appends PNG_IMPEXP to
  *                       'type', compiler specific.
  *
+ * PNG_DLL_EXPORT Set to the magic to use during a libpng build to
+ *                make a symbol exported from the DLL.  Not used in the
+ *                public header files; see pngpriv.h for how it is used
+ *                in the libpng build.
+ *
+ * PNG_DLL_IMPORT Set to the magic to force the libpng symbols to come
+ *                from a DLL - used to define PNG_IMPEXP when
+ *                PNG_USE_DLL is set.
  */
 
 /* System specific discovery.
@@ -173,7 +181,6 @@
  * compiler-specific macros to the values required to change the calling
  * conventions of the various functions.
  */
-
 #if defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || \
     defined(__CYGWIN__)
   /* Windows system (DOS doesn't support DLLs).  Includes builds under Cygwin or
@@ -217,6 +224,25 @@
 #     error "PNG_USER_PRIVATEBUILD must be defined if PNGAPI is changed"
 #  endif
 
+#if 0
+#  if (defined(_MSC_VER) && _MSC_VER < 800) ||\
+      (defined(__BORLANDC__) && __BORLANDC__ < 0x500)
+   /* older Borland and MSC
+    * compilers used '__export' and required this to be after
+    * the type.
+    */
+#    ifndef PNG_EXPORT_TYPE
+#      define PNG_EXPORT_TYPE(type) type PNG_IMPEXP
+#    endif
+#    define PNG_DLL_EXPORT __export
+#  else /* newer compiler */
+#    define PNG_DLL_EXPORT __declspec(dllexport)
+#    ifndef PNG_DLL_IMPORT
+#      define PNG_DLL_IMPORT __declspec(dllimport)
+#    endif
+#  endif /* compiler */
+#endif
+
 #else /* !Windows */
 #  if (defined(__IBMC__) || defined(__IBMCPP__)) && defined(__OS2__)
 #    define PNGAPI _System
@@ -242,6 +268,18 @@
  * then in an internal header file when building the library, otherwise (when
  * using the library) it is set here.
  */
+#if 0
+#ifndef PNG_IMPEXP
+#  if defined(PNG_USE_DLL) && defined(PNG_DLL_IMPORT)
+   /* This forces use of a DLL, disallowing static linking */
+#    define PNG_IMPEXP PNG_DLL_IMPORT
+#  endif
+
+#  ifndef PNG_IMPEXP
+#    define PNG_IMPEXP
+#  endif
+#endif
+#endif
 #  ifndef PNG_IMPEXP
 #    define PNG_IMPEXP LIBPNG_EXPORT
 #  endif
@@ -268,7 +306,7 @@
 
 #ifndef PNG_EXPORTA
 #  define PNG_EXPORTA(ordinal, type, name, args, attributes) \
-      PNG_FUNCTION(PNG_EXPORT_TYPE(type), (PNGAPI name), PNGARG(args), \
+      PNG_FUNCTION(PNG_EXPORT_TYPE(type), (PNGAPI name), args, \
       PNG_LINKAGE_API attributes)
 #endif
 
@@ -286,7 +324,7 @@
 #endif
 
 #ifndef PNG_CALLBACK
-#  define PNG_CALLBACK(type, name, args) type (PNGCBAPI name) PNGARG(args)
+#  define PNG_CALLBACK(type, name, args) type (PNGCBAPI name) args
 #endif
 
 /* Support for compiler specific function attributes.  These are used

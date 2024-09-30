@@ -27,11 +27,11 @@ using namespace GarethUtil;
 class GA_EXPORT GaBase {
  private:
   std::string fileName;
-  GarethUtil::RandomUtil& rng = RandomUtil::getInstance();
+  GarethUtil::RandomUtil &rng = RandomUtil::getInstance();
   size_t popsize = 100;
   double selectionPressure = 1.1;
-  GaBase(const GaBase& other) = delete;
-  GaBase& operator=(const GaBase& other) = delete;
+  GaBase(const GaBase &other) = delete;
+  GaBase &operator=(const GaBase &other) = delete;
 
  public:
   GaBase();
@@ -41,7 +41,7 @@ class GA_EXPORT GaBase {
 
   size_t getPopsize() const { return popsize; }
 
-  GarethUtil::RandomUtil& getRng() { return rng; }
+  GarethUtil::RandomUtil &getRng() { return rng; }
 
  protected:
   void setSelectionPressure(double selectionPressure) {

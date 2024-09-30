@@ -358,7 +358,7 @@ public:
                                       std::string_view label,
                                       sk_sp<GrRenderTask>* outTask = nullptr);
 
-#if defined(GR_TEST_UTILS)
+#if defined(GPU_TEST_UTILS)
     int32_t testingOnly_getBackingRefCnt() const;
     GrInternalSurfaceFlags testingOnly_getFlags() const;
     SkString dump() const;
@@ -367,7 +367,7 @@ public:
 #ifdef SK_DEBUG
     void validate(GrContext_Base*) const;
     SkString getDebugName() {
-        return fDebugName.isEmpty() ? SkStringPrintf("%d", this->uniqueID().asUInt()) : fDebugName;
+        return fDebugName.isEmpty() ? SkStringPrintf("%u", this->uniqueID().asUInt()) : fDebugName;
     }
     void setDebugName(SkString name) { fDebugName = std::move(name); }
 #endif

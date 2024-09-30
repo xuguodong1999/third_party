@@ -29,10 +29,12 @@ class ComputeStep;
 enum class Coverage;
 class DrawParams;
 enum class DstReadRequirement;
+class Geometry;
 class GraphicsPipelineDesc;
 class PaintParams;
 class PipelineDataGatherer;
 class Recorder;
+struct RenderPassDesc;
 class RenderStep;
 class RuntimeEffectDictionary;
 class ShaderNode;
@@ -42,29 +44,34 @@ struct ResourceBindingRequirements;
 
 struct VertSkSLInfo {
     std::string fSkSL;
-    int fRenderStepUniformsTotalBytes = 0;
+
+    std::string fLabel;
 };
 
 struct FragSkSLInfo {
     std::string fSkSL;
     BlendInfo fBlendInfo;
+
+    std::string fLabel;
+
     bool fRequiresLocalCoords = false;
-    int fNumTexturesAndSamplers = 0;
-    int fNumPaintUniforms = 0;
-    int fRenderStepUniformsTotalBytes = 0;
-    int fPaintUniformsTotalBytes = 0;
+    int  fNumTexturesAndSamplers = 0;
+    bool fHasPaintUniforms = false;
+    bool fHasGradientBuffer = false;
+    skia_private::TArray<uint32_t> fData = {};
 };
 
-std::tuple<UniquePaintParamsID, const UniformDataBlock*, const TextureDataBlock*>
-ExtractPaintData(Recorder*,
-                 PipelineDataGatherer* gatherer,
-                 PaintParamsKeyBuilder* builder,
-                 const Layout layout,
-                 const SkM44& local2Dev,
-                 const PaintParams&,
-                 sk_sp<TextureProxy> dstTexture,
-                 SkIPoint dstOffset,
-                 const SkColorInfo& targetColorInfo);
+std::tuple<UniquePaintParamsID, const UniformDataBlock*, const TextureDataBlock*> ExtractPaintData(
+        Recorder*,
+        PipelineDataGatherer* gatherer,
+        PaintParamsKeyBuilder* builder,
+        const Layout layout,
+        const SkM44& local2Dev,
+        const PaintParams&,
+        const Geometry& geometry,
+        sk_sp<TextureProxy> dstTexture,
+        SkIPoint dstOffset,
+        const SkColorInfo& targetColorInfo);
 
 std::tuple<const UniformDataBlock*, const TextureDataBlock*> ExtractRenderStepData(
         UniformDataCache* uniformDataCache,
@@ -81,6 +88,8 @@ VertSkSLInfo BuildVertexSkSL(const ResourceBindingRequirements&,
                              bool defineShadingSsboIndexVarying,
                              bool defineLocalCoordsVarying);
 
+// TODO(b/347072931): Refactor to return std::unique_ptr<ShaderInfo> instead such that snippet
+// data can remain tied to its snippet ID.
 FragSkSLInfo BuildFragmentSkSL(const Caps* caps,
                                const ShaderCodeDictionary*,
                                const RuntimeEffectDictionary*,
@@ -89,21 +98,24 @@ FragSkSLInfo BuildFragmentSkSL(const Caps* caps,
                                bool useStorageBuffers,
                                skgpu::Swizzle writeSwizzle);
 
+std::string GetPipelineLabel(const ShaderCodeDictionary*,
+                             const RenderPassDesc& renderPassDesc,
+                             const RenderStep* renderStep,
+                             UniquePaintParamsID paintID);
+
 std::string BuildComputeSkSL(const Caps*, const ComputeStep*);
 
 std::string EmitPaintParamsUniforms(int bufferID,
                                     const Layout layout,
                                     SkSpan<const ShaderNode*> nodes,
-                                    int* numPaintUniforms,
-                                    int* paintUniformsTotalBytes,
+                                    bool* hasUniforms,
                                     bool* wrotePaintColor);
 std::string EmitRenderStepUniforms(int bufferID,
                                    const Layout layout,
-                                   SkSpan<const Uniform> uniforms,
-                                   int* renderStepUniformsTotalBytes);
+                                   SkSpan<const Uniform> uniforms);
 std::string EmitPaintParamsStorageBuffer(int bufferID,
                                          SkSpan<const ShaderNode*> nodes,
-                                         int* numPaintUniforms,
+                                         bool* hasUniforms,
                                          bool* wrotePaintColor);
 std::string EmitRenderStepStorageBuffer(int bufferID,
                                         SkSpan<const Uniform> uniforms);

@@ -378,7 +378,7 @@ sk_sp<GrSurfaceProxy> GrSurfaceProxy::Copy(GrRecordingContext* context,
                 outTask);
 }
 
-#if defined(GR_TEST_UTILS)
+#if defined(GPU_TEST_UTILS)
 int32_t GrSurfaceProxy::testingOnly_getBackingRefCnt() const {
     if (fTarget) {
         return fTarget->testingOnly_getRefCnt();
@@ -394,7 +394,7 @@ GrInternalSurfaceFlags GrSurfaceProxy::testingOnly_getFlags() const {
 SkString GrSurfaceProxy::dump() const {
     SkString tmp;
 
-    tmp.appendf("proxyID: %d - surfaceID: %d",
+    tmp.appendf("proxyID: %u - surfaceID: %u",
                 this->uniqueID().asUInt(),
                 this->peekSurface() ? this->peekSurface()->uniqueID().asUInt()
                                     : -1);

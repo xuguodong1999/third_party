@@ -8,13 +8,16 @@
 #ifndef GrContextThreadSafeProxy_DEFINED
 #define GrContextThreadSafeProxy_DEFINED
 
-#include "include/core/SkImageInfo.h"
 #include "include/core/SkRefCnt.h"
+#include "include/core/SkTypes.h"
 #include "include/gpu/GpuTypes.h"
 #include "include/gpu/GrContextOptions.h"
 #include "include/gpu/GrTypes.h"
 
 #include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 
 class GrBackendFormat;
 class GrCaps;
@@ -23,7 +26,9 @@ class GrSurfaceCharacterization;
 class GrThreadSafeCache;
 class GrThreadSafePipelineBuilder;
 class SkSurfaceProps;
+enum SkColorType : int;
 enum class SkTextureCompressionType;
+struct SkImageInfo;
 
 namespace sktext::gpu { class TextBlobRedrawCoordinator; }
 
@@ -96,21 +101,6 @@ public:
             bool vkRTSupportsInputAttachment = false,
             bool forVulkanSecondaryCommandBuffer = false);
 
-#if !defined(SK_DISABLE_LEGACY_CREATE_CHARACTERIZATION)
-    GrSurfaceCharacterization createCharacterization(
-            size_t cacheMaxResourceBytes,
-            const SkImageInfo& ii,
-            const GrBackendFormat& backendFormat,
-            int sampleCount,
-            GrSurfaceOrigin origin,
-            const SkSurfaceProps& surfaceProps,
-            bool isMipmapped,
-            bool willUseGLFBO0 = false,
-            bool isTextureable = true,
-            skgpu::Protected isProtected = GrProtected::kNo,
-            bool vkRTSupportsInputAttachment = false,
-            bool forVulkanSecondaryCommandBuffer = false);
-#endif
     /*
      * Retrieve the default GrBackendFormat for a given SkColorType and renderability.
      * It is guaranteed that this backend format will be the one used by the following

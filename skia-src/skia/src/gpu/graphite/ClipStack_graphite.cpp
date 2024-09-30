@@ -282,7 +282,8 @@ ClipStack::SimplifyResult ClipStack::Simplify(const TransformedShape& a,
 ClipStack::RawElement::RawElement(const Rect& deviceBounds,
                                   const Transform& localToDevice,
                                   const Shape& shape,
-                                  SkClipOp op)
+                                  SkClipOp op,
+                                  PixelSnapping snapping)
         : Element{shape, localToDevice, op}
         , fUsageBounds{Rect::InfiniteInverted()}
         , fOrder(DrawOrder::kNoIntersection)
@@ -309,6 +310,9 @@ ClipStack::RawElement::RawElement(const Rect& deviceBounds,
         if (fShape.isRect()) {
             // The actual geometry can be updated to the device-intersected bounds and we know the
             // inner bounds are equal to the outer.
+            if (snapping == PixelSnapping::kYes) {
+                fOuterBounds.round();
+            }
             fShape.setRect(fOuterBounds);
             fLocalToDevice = kIdentity;
             fInnerBounds = fOuterBounds;
@@ -317,6 +321,12 @@ ClipStack::RawElement::RawElement(const Rect& deviceBounds,
             // ill-formed scale+translate matrices can cause invalid rrect radii.
             SkRRect xformed;
             if (fShape.rrect().transform(fLocalToDevice, &xformed)) {
+                if (snapping == PixelSnapping::kYes) {
+                    // The rounded corners will still be anti-aliased, but snap the horizontal and
+                    // vertical edges to pixel values.
+                    xformed.setRectRadii(SkRect::Make(xformed.rect().round()),
+                                         xformed.radii().data());
+                }
                 fShape.setRRect(xformed);
                 fLocalToDevice = kIdentity;
                 // Refresh outer bounds to match the transformed round rect in case
@@ -1048,7 +1058,8 @@ void ClipStack::clipShader(sk_sp<SkShader> shader) {
 
 void ClipStack::clipShape(const Transform& localToDevice,
                           const Shape& shape,
-                          SkClipOp op) {
+                          SkClipOp op,
+                          PixelSnapping snapping) {
     if (this->currentSaveRecord().state() == ClipState::kEmpty) {
         return;
     }
@@ -1058,7 +1069,7 @@ void ClipStack::clipShape(const Transform& localToDevice,
     // effect of all elements while device bounds clipping happens implicitly. During addElement,
     // we may still be able to invalidate some older elements).
     // NOTE: Does not try to simplify the shape type by inspecting the SkPath.
-    RawElement element{this->deviceBounds(), localToDevice, shape, op};
+    RawElement element{this->deviceBounds(), localToDevice, shape, op, snapping};
 
     // An empty op means do nothing (for difference), or close the save record, so we try and detect
     // that early before doing additional unnecessary save record allocation.
@@ -1114,7 +1125,7 @@ Clip ClipStack::visitClipStackForDraw(const Transform& localToDevice,
     }
 
     auto origSize = geometry.bounds().size();
-    if (!std::isfinite(origSize.x()) || !std::isfinite(origSize.y())) {
+    if (!SkIsFinite(origSize.x(), origSize.y())) {
         // Discard all non-finite geometry as if it were clipped out
         return kClippedOut;
     }
@@ -1141,7 +1152,7 @@ Clip ClipStack::visitClipStackForDraw(const Transform& localToDevice,
     // Some renderers make the drawn area larger than the geometry for anti-aliasing
     float rendererOutset = outsetBoundsForAA ? localToDevice.localAARadius(styledShape->bounds())
                                              : 0.f;
-    if (!SkScalarIsFinite(rendererOutset)) {
+    if (!SkIsFinite(rendererOutset)) {
         transformedShapeBounds = deviceBounds;
         infiniteBounds = true;
     } else {

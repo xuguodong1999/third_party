@@ -128,6 +128,24 @@ static_assert(HAS_REMOTE_API == 0 ? AUTO_DOWNLOAD == 0 : true,
 #include <utility>
 #include <vector>
 
+#if 0
+#ifdef _WIN32
+#  ifdef DATE_BUILD_DLL
+#    define DATE_API __declspec(dllexport)
+#  elif defined(DATE_USE_DLL)
+#    define DATE_API __declspec(dllimport)
+#  else
+#    define DATE_API
+#  endif
+#else
+#  ifdef DATE_BUILD_DLL
+#    define DATE_API __attribute__ ((visibility ("default")))
+#  else
+#    define DATE_API
+#  endif
+#endif
+#endif
+
 namespace arrow_vendored
 {
 namespace date

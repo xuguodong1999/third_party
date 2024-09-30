@@ -169,6 +169,9 @@
  * xxHash prototypes and implementation
  */
 
+#if defined (__cplusplus)
+extern "C" {
+#endif
 
 /* ****************************
  *  INLINE mode
@@ -6765,3 +6768,6 @@ XXH3_generateSecret_fromSeed(XXH_NOESCAPE void* secretBuffer, XXH64_hash_t seed)
 #endif  /* XXH_IMPLEMENTATION */
 
 
+#if defined (__cplusplus)
+} /* extern "C" */
+#endif

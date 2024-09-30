@@ -28,6 +28,37 @@
 #pragma GCC diagnostic ignored "-Wattributes"
 #endif
 
+#if 0
+#if defined(__cplusplus) && defined(__GNUC__) && !defined(__clang__)
+// Use C++ attribute syntax where possible to avoid GCC parser bug
+// (https://stackoverflow.com/questions/57993818/gcc-how-to-combine-attribute-dllexport-and-nodiscard-in-a-struct-de)
+#define ARROW_DLLEXPORT [[gnu::dllexport]]
+#define ARROW_DLLIMPORT [[gnu::dllimport]]
+#else
+#define ARROW_DLLEXPORT __declspec(dllexport)
+#define ARROW_DLLIMPORT __declspec(dllimport)
+#endif
+
+// _declspec(dllexport) even when the #included by a non-arrow source
+#define ARROW_FORCE_EXPORT ARROW_DLLEXPORT
+
+#ifdef ARROW_STATIC
+#define ARROW_EXPORT
+#define ARROW_FRIEND_EXPORT
+#define ARROW_TEMPLATE_EXPORT
+#elif defined(ARROW_EXPORTING)
+#define ARROW_EXPORT ARROW_DLLEXPORT
+// For some reason [[gnu::dllexport]] doesn't work well with friend declarations
+#define ARROW_FRIEND_EXPORT __declspec(dllexport)
+#define ARROW_TEMPLATE_EXPORT ARROW_DLLEXPORT
+#else
+#define ARROW_EXPORT ARROW_DLLIMPORT
+#define ARROW_FRIEND_EXPORT __declspec(dllimport)
+#define ARROW_TEMPLATE_EXPORT ARROW_DLLIMPORT
+#endif
+
+#define ARROW_NO_EXPORT
+#endif
 #define ARROW_FRIEND_EXPORT ARROW_EXPORT
 #define ARROW_TEMPLATE_EXPORT ARROW_EXPORT
 
@@ -35,6 +66,24 @@
 
 // Non-Windows
 
+#if 0
+#if defined(__cplusplus) && (defined(__GNUC__) || defined(__clang__))
+#ifndef ARROW_EXPORT
+#define ARROW_EXPORT [[gnu::visibility("default")]]
+#endif
+#ifndef ARROW_NO_EXPORT
+#define ARROW_NO_EXPORT [[gnu::visibility("hidden")]]
+#endif
+#else
+// Not C++, or not gcc/clang
+#ifndef ARROW_EXPORT
+#define ARROW_EXPORT
+#endif
+#ifndef ARROW_NO_EXPORT
+#define ARROW_NO_EXPORT
+#endif
+#endif
+#endif
 
 #define ARROW_FRIEND_EXPORT
 #define ARROW_TEMPLATE_EXPORT
