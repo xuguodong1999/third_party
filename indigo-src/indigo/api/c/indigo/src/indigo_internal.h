@@ -66,6 +66,7 @@ namespace indigo
     class PropertiesMap;
     class MoleculeJsonSaver;
     class ReactionJsonSaver;
+    class PathwayReactionJsonSaver;
 
     typedef ObjArray<PropertiesMap> MonomersProperties;
 } // namespace indigo
@@ -92,6 +93,7 @@ public:
         RDF_MOLECULE,
         RDF_REACTION,
         RDF_LOADER,
+        PATHWAY_REACTION,
         SMILES_MOLECULE,
         SMILES_REACTION,
         MULTILINE_SMILES_LOADER,
@@ -166,6 +168,8 @@ public:
         GROSS_REACTION,
         JSON_MOLECULE,
         JSON_REACTION,
+        MONOMER_LIBRARY,
+        KET_DOCUMENT,
         INDIGO_OBJECT_LAST_TYPE // must be the last element in the enum
     };
 
@@ -346,6 +350,7 @@ public:
     void initRxnfileSaver(RxnfileSaver& saver);
     void initMoleculeJsonSaver(MoleculeJsonSaver& saver);
     void initReactionJsonSaver(ReactionJsonSaver& saver);
+    void initReactionJsonSaver(PathwayReactionJsonSaver& saver);
 
     bool preserve_ordering_in_serialize;
 
@@ -421,6 +426,7 @@ protected:
     }
 
 INDIGO_EXPORT Indigo& indigoGetInstance();
+INDIGO_EXPORT _SessionLocalContainer<Indigo>& indigoSelf();
 
 class INDIGO_EXPORT IndigoError : public Exception
 {

@@ -20,6 +20,7 @@
 #define __base_molecule__
 
 #include <map>
+#include <optional>
 #include <set>
 
 #include "base_cpp/obj_array.h"
@@ -128,7 +129,7 @@ namespace indigo
         class MonomerFilterBase
         {
         public:
-            MonomerFilterBase(BaseMolecule& mol, const std::unordered_map<int, std::map<int, int>>& directions_map) : _mol(mol), _directions_map(directions_map)
+            MonomerFilterBase(BaseMolecule& mol, const std::vector<std::map<int, int>>& directions_map) : _mol(mol), _directions_map(directions_map)
             {
             }
             virtual bool operator()(int atom_idx) const = 0;
@@ -137,7 +138,7 @@ namespace indigo
             }
 
         protected:
-            const std::unordered_map<int, std::map<int, int>>& _directions_map;
+            const std::vector<std::map<int, int>>& _directions_map;
             BaseMolecule& _mol;
         };
 
@@ -197,7 +198,7 @@ namespace indigo
         virtual int getAtomSubstCount(int idx) = 0;
         virtual int getAtomRingBondsCount(int idx) = 0; // >= 0 -- ring bonds count, -1 -- not sure
         virtual int getAtomConnectivity(int idx) = 0;
-        virtual void setExplicitValence(int idx, int valence){};
+        virtual void setExplicitValence(int /*idx*/, int /*valence*/){};
 
         int getAtomRadical_NoThrow(int idx, int fallback);
         int getAtomValence_NoThrow(int idx, int fallback);
@@ -214,11 +215,15 @@ namespace indigo
         virtual bool isTemplateAtom(int idx) = 0;
         virtual const char* getTemplateAtom(int idx) = 0;
         virtual const int getTemplateAtomSeqid(int idx) = 0;
+        virtual const char* getTemplateAtomSeqName(int idx) = 0;
         virtual const char* getTemplateAtomClass(int idx) = 0;
         virtual const int getTemplateAtomDisplayOption(int idx) = 0;
         virtual const int getTemplateAtomTemplateIndex(int idx) = 0;
-        virtual void getTemplatesMap(std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash>& templates_map) = 0;
-        virtual void getTemplateAtomDirectionsMap(std::unordered_map<int, std::map<int, int>>& directions_map) = 0;
+
+        bool getUnresolvedTemplatesList(BaseMolecule& bmol, std::string& unresolved);
+
+        void getTemplatesMap(std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash>& templates_map);
+        void getTemplateAtomDirectionsMap(std::vector<std::map<int, int>>& directions_map);
 
         int countRSites();
         int countTemplateAtoms();
@@ -230,9 +235,9 @@ namespace indigo
 
         int transformSCSRtoFullCTAB();
         int transformFullCTABtoSCSR(ObjArray<TGroup>& templates);
-        int transformHELMtoSGroups(Array<char>& helm_class, Array<char>& name, Array<char>& code, Array<char>& natreplace, StringPool& r_names);
+        int transformHELMtoSGroups(Array<char>& helm_class, Array<char>& helm_name, Array<char>& code, Array<char>& natreplace, StringPool& r_names);
         void transformSuperatomsToTemplates(int template_id);
-        void transformTemplatesToSuperatoms(MonomerFilterBase& filter);
+        void transformTemplatesToSuperatoms();
 
         virtual bool isRSite(int atom_idx) = 0;
         virtual dword getRSiteBits(int atom_idx) = 0;
@@ -251,6 +256,7 @@ namespace indigo
         void getTemplateAtomAttachmentPointId(int atom_idx, int order, Array<char>& apid);
         int getTemplateAtomAttachmentPointsCount(int atom_idx);
         int getTemplateAtomAttachmentPointById(int atom_idx, Array<char>& att_id);
+        std::optional<std::pair<int, std::reference_wrapper<ObjPool<int>>>> getTemplateAtomAttachmentPointIdxs(int atom_idx, int att_point_idx);
 
         void addAttachmentPoint(int order, int atom_index);
 
@@ -285,6 +291,7 @@ namespace indigo
 
         // human-readable atom and bond desciptions for diagnostic purposes
         virtual void getAtomDescription(int idx, Array<char>& description) = 0;
+        std::string getAtomDescription(int idx);
         virtual void getBondDescription(int idx, Array<char>& description) = 0;
 
         // true if the bond can be that order, false otherwise
@@ -362,6 +369,7 @@ namespace indigo
         }
 
         ObjPool<TemplateAttPoint> template_attachment_points;
+        ObjArray<ObjPool<int>> template_attachment_indexes;
 
         MoleculeSGroups sgroups;
 

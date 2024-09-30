@@ -19,6 +19,7 @@
 #include "modules/skparagraph/src/Run.h"
 #include "modules/skparagraph/src/TextLine.h"
 #include "modules/skparagraph/src/TextWrapper.h"
+#include "modules/skunicode/include/SkUnicode.h"
 #include "src/base/SkUTF.h"
 #include "src/core/SkTextBlobPriv.h"
 
@@ -74,7 +75,7 @@ ParagraphImpl::ParagraphImpl(const SkString& text,
                              TArray<Block, true> blocks,
                              TArray<Placeholder, true> placeholders,
                              sk_sp<FontCollection> fonts,
-                             std::shared_ptr<SkUnicode> unicode)
+                             sk_sp<SkUnicode> unicode)
         : Paragraph(std::move(style), std::move(fonts))
         , fTextStyles(std::move(blocks))
         , fPlaceholders(std::move(placeholders))
@@ -98,7 +99,7 @@ ParagraphImpl::ParagraphImpl(const std::u16string& utf16text,
                              TArray<Block, true> blocks,
                              TArray<Placeholder, true> placeholders,
                              sk_sp<FontCollection> fonts,
-                             std::shared_ptr<SkUnicode> unicode)
+                             sk_sp<SkUnicode> unicode)
         : ParagraphImpl(SkString(),
                         std::move(style),
                         std::move(blocks),
@@ -140,7 +141,7 @@ void ParagraphImpl::layout(SkScalar rawWidth) {
         floorWidth = SkScalarFloorToScalar(floorWidth);
     }
 
-    if ((!SkScalarIsFinite(rawWidth) || fLongestLine <= floorWidth) &&
+    if ((!SkIsFinite(rawWidth) || fLongestLine <= floorWidth) &&
         fState >= kLineBroken &&
          fLines.size() == 1 && fLines.front().ellipsis() == nullptr) {
         // Most common case: one line of text (and one line is never justified, so no cluster shifts)
@@ -671,7 +672,7 @@ void ParagraphImpl::formatLines(SkScalar maxWidth) {
     const bool isLeftAligned = effectiveAlign == TextAlign::kLeft
         || (effectiveAlign == TextAlign::kJustify && fParagraphStyle.getTextDirection() == TextDirection::kLtr);
 
-    if (!SkScalarIsFinite(maxWidth) && !isLeftAligned) {
+    if (!SkIsFinite(maxWidth) && !isLeftAligned) {
         // Special case: clean all text in case of maxWidth == INF & align != left
         // We had to go through shaping though because we need all the measurement numbers
         fLines.clear();
@@ -1224,10 +1225,9 @@ int ParagraphImpl::getLineNumberAt(TextIndex codeUnitIndex) const {
     if (codeUnitIndex >= fText.size()) {
         return -1;
     }
-    SkAssertResult(fLines.size() > 0);
     size_t startLine = 0;
     size_t endLine = fLines.size() - 1;
-    if (fLines[endLine].textWithNewlines().end <= codeUnitIndex) {
+    if (fLines.empty() || fLines[endLine].textWithNewlines().end <= codeUnitIndex) {
         return -1;
     }
 
@@ -1243,7 +1243,7 @@ int ParagraphImpl::getLineNumberAt(TextIndex codeUnitIndex) const {
             return midLine;
         }
     }
-    SkAssertResult(startLine == endLine);
+    SkASSERT(startLine == endLine);
     return startLine;
 }
 
@@ -1289,7 +1289,7 @@ bool ParagraphImpl::getGlyphClusterAt(TextIndex codeUnitIndex, GlyphClusterInfo*
                                     RectHeightStyle::kTight,
                                     RectWidthStyle::kTight,
                                     boxes);
-            if (boxes.size() > 0) {
+            if (!boxes.empty()) {
                 if (glyphInfo) {
                     *glyphInfo = {boxes[0].rect, cluster.textRange(), boxes[0].direction};
                 }
@@ -1304,10 +1304,10 @@ bool ParagraphImpl::getClosestGlyphClusterAt(SkScalar dx,
                                              SkScalar dy,
                                              GlyphClusterInfo* glyphInfo) {
     const PositionWithAffinity res = this->getGlyphPositionAtCoordinate(dx, dy);
-    SkAssertResult(res.position != 0 || res.affinity != Affinity::kUpstream);
+    SkASSERT(res.position != 0 || res.affinity != Affinity::kUpstream);
     const size_t utf16Offset = res.position + (res.affinity == Affinity::kDownstream ? 0 : -1);
     this->ensureUTF16Mapping();
-    SkAssertResult(utf16Offset < SkToSizeT(fUTF8IndexForUTF16Index.size()));
+    SkASSERT(utf16Offset < SkToSizeT(fUTF8IndexForUTF16Index.size()));
     return this->getGlyphClusterAt(fUTF8IndexForUTF16Index[utf16Offset], glyphInfo);
 }
 
@@ -1333,8 +1333,10 @@ bool ParagraphImpl::getGlyphInfoAtUTF16Offset(size_t codeUnitIndex, GlyphInfo* g
     // `startIndex` and `endIndex` must be on the same line.
     std::vector<TextBox> boxes;
     line.getRectsForRange({startIndex, endIndex}, RectHeightStyle::kTight, RectWidthStyle::kTight, boxes);
-    SkAssertResult(boxes.size() > 0);
-    if (glyphInfo && boxes.size() > 0) {
+    // TODO: currently placeholders with height=0 and width=0 are ignored so boxes
+    // can be empty. These placeholders should still be reported for their
+    // offset information.
+    if (glyphInfo && !boxes.empty()) {
         *glyphInfo = {
             boxes[0].rect,
             { fUTF16IndexForUTF8Index[startIndex], fUTF16IndexForUTF8Index[endIndex] },
@@ -1347,7 +1349,7 @@ bool ParagraphImpl::getGlyphInfoAtUTF16Offset(size_t codeUnitIndex, GlyphInfo* g
 
 bool ParagraphImpl::getClosestUTF16GlyphInfoAt(SkScalar dx, SkScalar dy, GlyphInfo* glyphInfo) {
     const PositionWithAffinity res = this->getGlyphPositionAtCoordinate(dx, dy);
-    SkAssertResult(res.position != 0 || res.affinity != Affinity::kUpstream);
+    SkASSERT(res.position != 0 || res.affinity != Affinity::kUpstream);
     const size_t utf16Offset = res.position + (res.affinity == Affinity::kDownstream ? 0 : -1);
     return getGlyphInfoAtUTF16Offset(utf16Offset, glyphInfo);
 }

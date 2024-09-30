@@ -103,7 +103,7 @@ void CmfSaver::saveMolecule(Molecule& mol)
     /* Encode first atom */
     if (v_seq.size() > 0)
     {
-        _encodeAtom(mol, v_seq[0].idx, mapping.ptr());
+        _encodeAtom(mol, v_seq[0].idx, mapping);
         _atom_sequence.push(v_seq[0].idx);
 
         int j, openings = walk.numOpenings(v_seq[0].idx);
@@ -142,7 +142,7 @@ void CmfSaver::saveMolecule(Molecule& mol)
             if (branch_counters[v_prev_idx] > branches)
                 throw Error("unexpected branch");
 
-            _encodeBond(mol, e_idx, mapping.ptr());
+            _encodeBond(mol, e_idx, mapping);
             bond_mapping[e_idx] = bond_index++;
 
             if (save_bond_dirs)
@@ -167,7 +167,7 @@ void CmfSaver::saveMolecule(Molecule& mol)
                     else
                         throw Error("internal");
 
-                    _encode(dir);
+                    _encode(static_cast<byte>(dir));
                 }
             }
 
@@ -191,7 +191,7 @@ void CmfSaver::saveMolecule(Molecule& mol)
 
         if (write_atom)
         {
-            _encodeAtom(mol, v_idx, mapping.ptr());
+            _encodeAtom(mol, v_idx, mapping);
             _atom_sequence.push(v_idx);
 
             int openings = walk.numOpenings(v_idx);
@@ -268,7 +268,7 @@ void CmfSaver::_encodeUIntArraySkipNegative(const Array<int>& data)
     }
 }
 
-void CmfSaver::_encodeBaseSGroup(Molecule& mol, SGroup& sgroup, const Mapping& mapping)
+void CmfSaver::_encodeBaseSGroup(Molecule& /* mol */, SGroup& sgroup, const Mapping& mapping)
 {
     _encodeUIntArray(sgroup.atoms, *mapping.atom_mapping);
     _encodeUIntArray(sgroup.bonds, *mapping.bond_mapping);
@@ -353,7 +353,7 @@ void CmfSaver::_encodeExtSection(Molecule& mol, const Mapping& mapping)
             _encodeBaseSGroup(mol, sa, mapping);
             _encodeString(sa.subscript);
             _encodeString(sa.sa_class);
-            byte packed = ((int)sa.contracted & 0x01) | (sa.bond_connections.size() << 1);
+            byte packed = static_cast<byte>(((int)sa.contracted & 0x01) | (sa.bond_connections.size() << 1));
             _output->writeByte(packed);
             if (sa.bond_connections.size() > 0)
             {
@@ -448,7 +448,7 @@ void CmfSaver::_encodeString(const Array<char>& str)
     _output->write(str.ptr(), len);
 }
 
-void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
+void CmfSaver::_encodeAtom(Molecule& mol, int idx, const Array<int>& mapping)
 {
     int number = 0;
 
@@ -481,7 +481,7 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
         else
         {
             _encode(CMF_RSITE);
-            _encode(bits);
+            _encode(static_cast<byte>(bits));
         }
     }
     else
@@ -491,7 +491,7 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
         if (number <= 0 || number >= ELEM_MAX)
             throw Error("unexpected atom label");
 
-        _encode(number);
+        _encode(static_cast<byte>(number));
     }
 
     int charge = mol.getAtomCharge(idx);
@@ -506,10 +506,10 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
             int charge3 = charge + 128;
             if (charge3 < 0 || charge >= 256)
                 throw Error("unexpected atom charge: %d", charge);
-            _encode(charge3);
+            _encode(static_cast<byte>(charge3));
         }
         else
-            _encode(charge2 + CMF_CHARGES);
+            _encode(static_cast<byte>(charge2 + CMF_CHARGES));
     }
 
     int isotope = mol.getAtomIsotope(idx);
@@ -536,7 +536,7 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
                 throw Error("unexpected %s isotope: %d", Element::toString(number), isotope);
             }
             _encode(CMF_ISOTOPE_OTHER);
-            _encode(deviation);
+            _encode(static_cast<byte>(deviation));
         }
     }
 
@@ -601,7 +601,7 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
             // CMF_STEREO_*_0 -> CMF_STEREO_*_1
             code += CMF_MAX_STEREOGROUPS * 2 + 1;
 
-        _encode(code);
+        _encode(static_cast<byte>(code));
     }
 
     if (mol.allene_stereo.isCenter(idx))
@@ -630,7 +630,7 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
             if (impl_h < 0 || impl_h > CMF_MAX_IMPLICIT_H)
                 throw Error("implicit hydrogen count %d out of range", impl_h);
 
-            _encode(CMF_IMPLICIT_H + impl_h);
+            _encode(static_cast<byte>(CMF_IMPLICIT_H + impl_h));
         }
         catch (Element::Error)
         {
@@ -650,7 +650,7 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
                     _output->writePackedUInt(valence);
                 }
                 else
-                    _encode(CMF_VALENCE + valence);
+                    _encode(static_cast<byte>(CMF_VALENCE + valence));
             }
             catch (Element::Error)
             {
@@ -668,17 +668,17 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
             if (aidx == idx)
             {
                 _encode(CMF_ATTACHPT);
-                _encode(i);
+                _encode(static_cast<byte>(i));
             }
     }
 
     if (atom_flags != 0)
     {
-        int i, flags = atom_flags[idx];
+        int flags = atom_flags[idx];
 
         for (i = 0; i < CMF_NUM_OF_ATOM_FLAGS; i++)
             if (flags & (1 << i))
-                _encode(CMF_ATOM_FLAGS + i);
+                _encode(static_cast<byte>(CMF_ATOM_FLAGS + i));
     }
 
     if (save_highlighting)
@@ -686,7 +686,7 @@ void CmfSaver::_encodeAtom(Molecule& mol, int idx, const int* mapping)
             _encode(CMF_HIGHLIGHTED);
 }
 
-void CmfSaver::_encodeBond(Molecule& mol, int idx, const int* mapping)
+void CmfSaver::_encodeBond(Molecule& mol, int idx, const Array<int>& mapping)
 {
     int order = mol.getBondOrder(idx);
 
@@ -703,7 +703,7 @@ void CmfSaver::_encodeBond(Molecule& mol, int idx, const int* mapping)
 
         if (parity != 0)
         {
-            int mapped_parity = MoleculeCisTrans::applyMapping(parity, mol.cis_trans.getSubstituents(idx), mapping, true);
+            int mapped_parity = MoleculeCisTrans::applyMapping(parity, mol.cis_trans.getSubstituents(idx), mapping.ptr(), true);
 
             if (mapped_parity == MoleculeCisTrans::CIS)
             {
@@ -753,7 +753,7 @@ void CmfSaver::_encodeBond(Molecule& mol, int idx, const int* mapping)
 
         for (i = 0; i < CMF_NUM_OF_BOND_FLAGS; i++)
             if (flags & (1 << i))
-                _encode(CMF_BOND_FLAGS + i);
+                _encode(static_cast<byte>(CMF_BOND_FLAGS + i));
     }
 
     if (save_highlighting)
@@ -768,7 +768,7 @@ void CmfSaver::_encodeCycleNumer(int n)
         _encode(CMF_CYCLES_PLUS);
         n -= CMF_NUM_OF_CYCLES;
     }
-    _encode(CMF_CYCLES + n);
+    _encode(static_cast<byte>(CMF_CYCLES + n));
 }
 
 void CmfSaver::_encode(byte symbol)

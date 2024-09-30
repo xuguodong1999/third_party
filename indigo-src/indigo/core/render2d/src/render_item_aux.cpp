@@ -25,6 +25,11 @@
 #include "render_internal.h"
 #include <codecvt>
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+
 using namespace indigo;
 
 IMPL_ERROR(RenderItemAuxiliary, "RenderItemAuxiliary");
@@ -169,11 +174,11 @@ void RenderItemAuxiliary::_drawPlus()
 void RenderItemAuxiliary::_drawArrow(const KETReactionArrow& ar)
 {
     _rc.setSingleSource(CWC_BASE);
-    auto beg = ar._begin;
-    auto end = ar._end;
+    Vec2f beg = ar.getTail();
+    Vec2f end = ar.getHead();
     scale(beg);
     scale(end);
-    switch (ar._arrow_type)
+    switch (ar.getArrowType())
     {
     case KETReactionArrow::EOpenAngle:
         _rc.drawCustomArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, false, false);
@@ -228,19 +233,19 @@ void RenderItemAuxiliary::_drawArrow(const KETReactionArrow& ar)
         break;
 
     case KETReactionArrow::EEllipticalArcFilledBow:
-        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar._height, ar._arrow_type);
+        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
         break;
 
     case KETReactionArrow::EEllipticalArcFilledTriangle:
-        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar._height, ar._arrow_type);
+        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
         break;
 
     case KETReactionArrow::EEllipticalArcOpenAngle:
-        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar._height, ar._arrow_type);
+        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
         break;
 
     case KETReactionArrow::EEllipticalArcOpenHalfAngle:
-        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar._height, ar._arrow_type);
+        _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
         break;
 
     default:
@@ -287,7 +292,19 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
     {
         _rc.setSingleSource(CWC_BASE);
         const auto& md = meta->metaData();
+        // images go first
+        std::vector<int> order_indexes, back_indexes;
         for (int i = 0; i < md.size(); ++i)
+        {
+            const auto& mobj = *md[i];
+            if (mobj._class_id == KETImage::CID)
+                order_indexes.push_back(i);
+            else
+                back_indexes.push_back(i);
+        }
+        order_indexes.insert(order_indexes.end(), back_indexes.begin(), back_indexes.end());
+
+        for (auto i : order_indexes)
         {
             const auto& mobj = *md[i];
             switch (mobj._class_id)
@@ -316,11 +333,11 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
                     {
                         if (first_index == -1)
                         {
-                            first_index = kvp.first;
+                            first_index = static_cast<int>(kvp.first);
                             current_styles = kvp.second;
                             continue;
                         }
-                        second_index = kvp.first;
+                        second_index = static_cast<int>(kvp.first);
 
                         std::wstring_convert<std::codecvt_utf8<wchar_t>> utf82w;
                         std::wstring_convert<std::codecvt_utf8<wchar_t>> w2utf8;
@@ -329,8 +346,8 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
                         ti.text.readString(sub_text.c_str(), true);
                         fillKETStyle(ti, current_styles);
                         _rc.setTextItemSize(ti);
-                        ti.bbp.x = text_origin.x - ti.relpos.x + text_offset_x;
-                        ti.bbp.y = text_origin.y - ti.relpos.y + text_max_height / 2 + text_offset_y;
+                        ti.bbp.x = static_cast<float>(text_origin.x - ti.relpos.x + text_offset_x);
+                        ti.bbp.y = static_cast<float>(text_origin.y - ti.relpos.y + text_max_height / 2 + text_offset_y);
                         _rc.drawTextItemText(ti, Vec3f(0, 0, 0), idle);
 
                         text_offset_x += ti.bbsz.x + _settings.boundExtent;
@@ -345,7 +362,7 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
             case KETReactionPlus::CID: {
                 const KETReactionPlus& rp = static_cast<const KETReactionPlus&>(mobj);
                 _rc.setSingleSource(CWC_BASE);
-                auto plus_pos = rp._pos;
+                Vec2f plus_pos = rp.getPos();
                 scale(plus_pos);
                 _rc.drawPlus(plus_pos, _settings.metaLineWidth, _settings.plusSize);
             }
@@ -355,8 +372,28 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
                 _drawArrow(ar);
             }
             break;
+            case KETImage::CID: {
+                const KETImage& img = static_cast<const KETImage&>(mobj);
+                _drawImage(img);
+            }
+            break;
             }
         }
+    }
+}
+
+void RenderItemAuxiliary::_drawImage(const KETImage& img)
+{
+    auto& bb = img.getBoundingBox();
+    auto v1 = bb.leftBottom();
+    auto v2 = bb.rightTop();
+    scale(v1);
+    scale(v2);
+    if (img.getFormat() == KETImage::EKETPNG)
+        _rc.drawPng(img.getData(), Rect2f(v1, v2));
+    else if (img.getFormat() == KETImage::EKETPNG)
+    {
+        // TODO: implement SVG-rendering
     }
 }
 
@@ -458,11 +495,11 @@ float RenderItemAuxiliary::_getMaxHeight(const KETTextObject::KETTextLine& tl)
     {
         if (first_index == -1)
         {
-            first_index = kvp.first;
+            first_index = static_cast<int>(kvp.first);
             current_styles = kvp.second;
             continue;
         }
-        second_index = kvp.first;
+        second_index = static_cast<int>(kvp.first);
 
         std::wstring_convert<std::codecvt_utf8<wchar_t>> utf82w;
         std::wstring_convert<std::codecvt_utf8<wchar_t>> w2utf8;
@@ -477,3 +514,7 @@ float RenderItemAuxiliary::_getMaxHeight(const KETTextObject::KETTextLine& tl)
     }
     return sz;
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

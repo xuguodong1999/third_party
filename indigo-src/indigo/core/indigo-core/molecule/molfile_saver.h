@@ -19,6 +19,11 @@
 #ifndef __molfile_saver__
 #define __molfile_saver__
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#endif
+
 #include "base_cpp/array.h"
 #include "base_cpp/tlscont.h"
 #include "molecule/base_molecule.h"
@@ -36,8 +41,7 @@ namespace indigo
         class MonomersToSgroupFilter : public BaseMolecule::MonomerFilterBase
         {
         public:
-            MonomersToSgroupFilter(BaseMolecule& mol, const std::unordered_map<int, std::map<int, int>>& directions_map)
-                : MonomerFilterBase(mol, directions_map)
+            MonomersToSgroupFilter(BaseMolecule& mol, const std::vector<std::map<int, int>>& directions_map) : MonomerFilterBase(mol, directions_map)
             {
             }
             bool operator()(int atom_idx) const override;
@@ -78,9 +82,11 @@ namespace indigo
     protected:
         friend class MoleculeCIPCalculator;
 
-        void _saveMolecule(BaseMolecule& mol, bool query);
+        void _saveMolecule(BaseMolecule& bmol, bool query);
+        void _validate(BaseMolecule& bmol);
         void _handleCIP(BaseMolecule& mol);
         void _handleMonomers(BaseMolecule& mol);
+        void _calculateSEQIDs(BaseMolecule& mol, const std::vector<std::map<int, int>>& directions_map, std::vector<std::deque<int>>& sequences);
 
         void _writeHeader(BaseMolecule& mol, Output& output, bool zcoord);
         void _writeCtabHeader(Output& output);
@@ -124,5 +130,9 @@ namespace indigo
     };
 
 } // namespace indigo
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif

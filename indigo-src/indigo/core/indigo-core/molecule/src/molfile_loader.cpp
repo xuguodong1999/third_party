@@ -52,9 +52,6 @@ MolfileLoader::MolfileLoader(Scanner& scanner)
     ignore_no_chiral_flag = false;
     ignore_bad_valence = false;
     treat_stereo_as = 0;
-    _left_apid.readString(kLeftAttachmentPoint, true);
-    _right_apid.readString(kRightAttachmentPoint, true);
-    _xlink_apid.readString(kBranchAttachmentPoint, true);
 }
 
 void MolfileLoader::loadMolecule(Molecule& mol)
@@ -1119,8 +1116,7 @@ void MolfileLoader::_readCtab2000()
                     {
                         if (strscan.isEOF())
                             break;
-                        int c = strscan.readChar();
-                        sgroup.name.push(c);
+                        sgroup.name.push(strscan.readChar());
                     }
                     // Remove last spaces because name can have multiple words
                     while (sgroup.name.size() > 0)
@@ -1139,8 +1135,7 @@ void MolfileLoader::_readCtab2000()
                     {
                         if (strscan.isEOF())
                             break;
-                        int c = strscan.readChar();
-                        sgroup.type.push(c);
+                        sgroup.type.push(strscan.readChar());
                     }
                     sgroup.type.push(0);
 
@@ -1150,8 +1145,7 @@ void MolfileLoader::_readCtab2000()
                     {
                         if (strscan.isEOF())
                             break;
-                        int c = strscan.readChar();
-                        sgroup.description.push(c);
+                        sgroup.description.push(strscan.readChar());
                     }
                     // Remove last spaces because dscription can have multiple words?
                     while (sgroup.description.size() > 0)
@@ -1169,8 +1163,7 @@ void MolfileLoader::_readCtab2000()
                     {
                         if (strscan.isEOF())
                             break;
-                        int c = strscan.readChar();
-                        sgroup.querycode.push(c);
+                        sgroup.querycode.push(strscan.readChar());
                     }
                     while (sgroup.querycode.size() > 0)
                     {
@@ -1187,8 +1180,7 @@ void MolfileLoader::_readCtab2000()
                     {
                         if (strscan.isEOF())
                             break;
-                        int c = strscan.readChar();
-                        sgroup.queryoper.push(c);
+                        sgroup.queryoper.push(strscan.readChar());
                     }
                     while (sgroup.queryoper.size() > 0)
                     {
@@ -1360,10 +1352,8 @@ void MolfileLoader::_readCtab2000()
                         _scanner.skip(1);
                         ap.lvidx = _scanner.readIntFix(3) - 1;
                         _scanner.skip(1);
-                        char c = _scanner.readChar();
-                        ap.apid.push(c);
-                        c = _scanner.readChar();
-                        ap.apid.push(c);
+                        ap.apid.push(_scanner.readChar());
+                        ap.apid.push(_scanner.readChar());
                         ap.apid.push(0);
                     }
                 }
@@ -1874,7 +1864,7 @@ void MolfileLoader::_readRGroupOccurrenceRanges(const char* str, Array<int>& ran
     ranges.push((beg << 16) | end);
 }
 
-int MolfileLoader::_asc_cmp_cb(int& v1, int& v2, void* context)
+int MolfileLoader::_asc_cmp_cb(int& v1, int& v2, void* /*context*/)
 {
     return v2 - v1;
 }
@@ -1936,10 +1926,10 @@ void MolfileLoader::_postLoad()
             DataSGroup& dsg = static_cast<DataSGroup&>(sgroup);
             if (dsg.parent_idx > -1 && std::string(dsg.name.ptr()) == "SMMX:class")
             {
-                SGroup& sgroup = _bmol->sgroups.getSGroup(dsg.parent_idx);
-                if (sgroup.sgroup_type == SGroup::SG_TYPE_SUP)
+                SGroup& parent_sgroup = _bmol->sgroups.getSGroup(dsg.parent_idx);
+                if (parent_sgroup.sgroup_type == SGroup::SG_TYPE_SUP)
                 {
-                    auto& sa = (Superatom&)sgroup;
+                    auto& sa = static_cast<Superatom&>(parent_sgroup);
                     if (sa.sa_natreplace.size() == 0)
                         sa.sa_natreplace.copy(dsg.sa_natreplace);
                     if (sa.sa_class.size() == 0)
@@ -2101,6 +2091,7 @@ void MolfileLoader::_postLoad()
     cip.convertSGroupsToCIP(*_bmol);
 
     // collect unique nucleotide templates
+
     std::unordered_map<std::string, int> nucleo_templates;
     for (int tg_idx = _bmol->tgroups.begin(); tg_idx != _bmol->tgroups.end(); tg_idx = _bmol->tgroups.next(tg_idx))
     {
@@ -2174,9 +2165,9 @@ bool MolfileLoader::_expandNucleotide(int nuc_atom_idx, int tg_idx, std::unorder
     {
         if (_mol)
         {
-            auto& ph = nuc.at(MonomerType::Phosphate).get();
-            auto& sugar = nuc.at(MonomerType::Sugar).get();
-            auto& base = nuc.at(MonomerType::Base).get();
+            auto& ph = nuc.at(MonomerClass::Phosphate).get();
+            auto& sugar = nuc.at(MonomerClass::Sugar).get();
+            auto& base = nuc.at(MonomerClass::Base).get();
             int seq_id = _mol->getTemplateAtomSeqid(nuc_atom_idx);
             // collect attachment points. only left attachment remains untouched.
             std::unordered_map<std::string, int> atp_map;
@@ -2187,6 +2178,9 @@ bool MolfileLoader::_expandNucleotide(int nuc_atom_idx, int tg_idx, std::unorder
                 {
                     atp_map.emplace(ap.ap_id.ptr(), ap.ap_aidx);
                     _mol->template_attachment_points.remove(j);
+                    auto att_idxs = _mol->getTemplateAtomAttachmentPointIdxs(nuc_atom_idx, j);
+                    if (att_idxs.has_value())
+                        att_idxs.value().second.get().remove(att_idxs.value().first);
                 }
             }
 
@@ -2218,7 +2212,7 @@ bool MolfileLoader::_expandNucleotide(int nuc_atom_idx, int tg_idx, std::unorder
                 // [sugar <- (Al) right nucleotide]
                 _mol->updateTemplateAtomAttachmentDestination(right_idx, nuc_atom_idx, sugar_idx);
                 // [sugar (Br) -> right nucleotide]
-                _mol->setTemplateAtomAttachmentDestination(sugar_idx, right_idx, _right_apid);
+                _mol->setTemplateAtomAttachmentOrder(sugar_idx, right_idx, kRightAttachmentPoint);
                 atp_map.erase(right_it);
             }
 
@@ -2230,23 +2224,21 @@ bool MolfileLoader::_expandNucleotide(int nuc_atom_idx, int tg_idx, std::unorder
                 // [sugar <- (Al) right nucleotide]
                 _mol->updateTemplateAtomAttachmentDestination(atp.second, nuc_atom_idx, base_idx);
                 // [sugar (Br) -> right nucleotide]
-                Array<char> att;
-                att.readString(atp.first.c_str(), true);
-                _mol->setTemplateAtomAttachmentDestination(base_idx, right_it->second, att);
+                _mol->setTemplateAtomAttachmentOrder(base_idx, right_it->second, atp.first.c_str());
             }
 
             // connect phosphate to the sugar
             _mol->addBond_Silent(nuc_atom_idx, sugar_idx, BOND_SINGLE);
             // [phosphate (Br) -> sugar]
-            _mol->setTemplateAtomAttachmentDestination(nuc_atom_idx, sugar_idx, _right_apid);
+            _mol->setTemplateAtomAttachmentOrder(nuc_atom_idx, sugar_idx, kRightAttachmentPoint);
             // [phosphate <- (Al) sugar]
-            _mol->setTemplateAtomAttachmentDestination(sugar_idx, nuc_atom_idx, _left_apid);
+            _mol->setTemplateAtomAttachmentOrder(sugar_idx, nuc_atom_idx, kLeftAttachmentPoint);
             // connect base to sugar
             _mol->addBond_Silent(sugar_idx, base_idx, BOND_SINGLE);
             // [sugar (Cx) -> base]
-            _mol->setTemplateAtomAttachmentDestination(sugar_idx, base_idx, _xlink_apid);
+            _mol->setTemplateAtomAttachmentOrder(sugar_idx, base_idx, kBranchAttachmentPoint);
             // [sugar <- (Al) base]
-            _mol->setTemplateAtomAttachmentDestination(base_idx, sugar_idx, _left_apid);
+            _mol->setTemplateAtomAttachmentOrder(base_idx, sugar_idx, kLeftAttachmentPoint);
             // fix coordinates
             Vec3f sugar_pos, base_pos;
             if (!_bmol->getMiddlePoint(nuc_atom_idx, right_idx, sugar_pos))
@@ -3508,7 +3500,7 @@ void MolfileLoader::_readSGroup3000(const char* str)
             n = scanner.readInt1();
             while (n-- > 0)
             {
-                int idx = scanner.readInt() - 1;
+                idx = scanner.readInt() - 1;
 
                 if (sgroup->sgroup_type == SGroup::SG_TYPE_MUL)
                     ((MultipleGroup*)sgroup)->parent_atoms.push(idx);
@@ -3717,7 +3709,7 @@ void MolfileLoader::_readSGroup3000(const char* str)
                     throw Error("CSTATE number is %d (must be 4)", n);
                 scanner.skipSpace();
                 Superatom::_BondConnection& bond = sup->bond_connections.push();
-                int idx = scanner.readInt() - 1;
+                idx = scanner.readInt() - 1;
                 bond.bond_idx = idx;
                 scanner.skipSpace();
                 bond.bond_dir.x = scanner.readFloat();
@@ -3743,7 +3735,7 @@ void MolfileLoader::_readSGroup3000(const char* str)
                 if (n != 3)
                     throw Error("SAP number is %d (must be 3)", n);
                 scanner.skipSpace();
-                int idx = scanner.readInt() - 1;
+                idx = scanner.readInt() - 1;
                 int idap = sup->attachment_points.add();
                 Superatom::_AttachmentPoint& ap = sup->attachment_points.at(idap);
                 ap.aidx = idx;

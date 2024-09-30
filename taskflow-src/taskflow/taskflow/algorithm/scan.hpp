@@ -8,11 +8,11 @@ namespace detail {
 
 // Function: scan_loop
 template <typename Iterator, typename BufferT, typename B>
-TF_FORCE_INLINE void scan_loop(
+void scan_loop(
   tf::Runtime& rt,
   std::atomic<size_t>& counter, 
   BufferT& buf, 
-  B&& bop, 
+  B bop, 
   Iterator d_beg, 
   size_t W,
   size_t w, 
@@ -42,15 +42,21 @@ TF_FORCE_INLINE void scan_loop(
   }
 }
 
+}  // end of namespace tf::detail ---------------------------------------------
+
+
 // Function: make_inclusive_scan_task
-template <typename B, typename E, typename D, typename BOP>
-TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bop) {
+template <typename B, typename E, typename D, typename BOP, typename P = DefaultPartitioner,
+  std::enable_if_t<is_partitioner_v<std::decay_t<P>>, void>* = nullptr
+>
+auto make_inclusive_scan_task(
+  B first, E last, D d_first, BOP bop, P part = P()
+) {
   
   using B_t = std::decay_t<unwrap_ref_decay_t<B>>;
   using E_t = std::decay_t<unwrap_ref_decay_t<E>>;
   using D_t = std::decay_t<unwrap_ref_decay_t<D>>;
   using value_type = typename std::iterator_traits<B_t>::value_type;
-  using namespace std::string_literals;
   
   return [=] (Runtime& rt) mutable {
 
@@ -68,7 +74,9 @@ TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bo
 
     // only myself - no need to spawn another graph
     if(W <= 1 || N <= 2) {
-      std::inclusive_scan(s_beg, s_end, d_beg, bop);
+      launch_loop(part, [&](){
+        std::inclusive_scan(s_beg, s_end, d_beg, bop);
+      });
       return;
     }
 
@@ -90,8 +98,7 @@ TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bo
       chunk_size = std::min(Q + (w < R), N - curr_b);
 
       // block scan
-      launch_loop(W, w, rt, [=, &rt, &bop, &buf, &counter] () mutable {
-
+      launch_loop(W, w, rt, part, [=, &rt, &bop, &buf, &counter] () mutable {
         auto result = d_beg;
 
         // local scan per worker
@@ -134,19 +141,22 @@ TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bo
       curr_b += chunk_size;
     }
 
-    rt.join();
+    rt.corun_all();
   };
 }
 
 // Function: make_inclusive_scan_task
-template <typename B, typename E, typename D, typename BOP, typename T>
-TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bop, T init) {
+template <typename B, typename E, typename D, typename BOP, typename T, typename P = DefaultPartitioner,
+  std::enable_if_t<!is_partitioner_v<std::decay_t<T>>, void>* = nullptr
+>
+auto make_inclusive_scan_task(
+  B first, E last, D d_first, BOP bop, T init, P part = P()
+) {
   
   using B_t = std::decay_t<unwrap_ref_decay_t<B>>;
   using E_t = std::decay_t<unwrap_ref_decay_t<E>>;
   using D_t = std::decay_t<unwrap_ref_decay_t<D>>;
   using value_type = typename std::iterator_traits<B_t>::value_type;
-  using namespace std::string_literals;
   
   return [=] (Runtime& rt) mutable {
 
@@ -164,7 +174,9 @@ TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bo
 
     // only myself - no need to spawn another graph
     if(W <= 1 || N <= 2) {
-      std::inclusive_scan(s_beg, s_end, d_beg, bop, init);
+      launch_loop(part, [&](){
+        std::inclusive_scan(s_beg, s_end, d_beg, bop, init);
+      });
       return;
     }
 
@@ -186,16 +198,15 @@ TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bo
       chunk_size = std::min(Q + (w < R), N - curr_b);
 
       // block scan
-      launch_loop(W, w, rt, [=, &rt, &bop, &buf, &counter] () mutable {
-
+      launch_loop(W, w, rt, part, [=, &rt, &bop, &buf, &counter] () mutable {
         auto result = d_beg;
 
         // local scan per worker
-        auto& init = buf[w].data;
-        *d_beg++ = init = (w == 0) ? bop(init, *s_beg++) : *s_beg++;
+        auto& local = buf[w].data;
+        *d_beg++ = local = (w == 0) ? bop(local, *s_beg++) : *s_beg++;
 
         for(size_t i=1; i<chunk_size; i++){
-          *d_beg++ = init = bop(init, *s_beg++); 
+          *d_beg++ = local = bop(local, *s_beg++); 
         }
         
         // block scan
@@ -207,7 +218,7 @@ TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bo
       curr_b += chunk_size;
     }
 
-    rt.join();
+    rt.corun_all();
   };
 }
 
@@ -216,16 +227,17 @@ TF_FORCE_INLINE auto make_inclusive_scan_task(B first, E last, D d_first, BOP bo
 // ----------------------------------------------------------------------------
 
 // Function: transform_inclusive_scan
-template <typename B, typename E, typename D, typename BOP, typename UOP>
-TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
-  B first, E last, D d_first, BOP bop, UOP uop
+template <typename B, typename E, typename D, typename BOP, typename UOP, typename P = DefaultPartitioner,
+  std::enable_if_t<is_partitioner_v<std::decay_t<P>>, void>* = nullptr
+>
+auto make_transform_inclusive_scan_task(
+  B first, E last, D d_first, BOP bop, UOP uop, P part = P()
 ) {
   
   using B_t = std::decay_t<unwrap_ref_decay_t<B>>;
   using E_t = std::decay_t<unwrap_ref_decay_t<E>>;
   using D_t = std::decay_t<unwrap_ref_decay_t<D>>;
   using value_type = typename std::iterator_traits<B_t>::value_type;
-  using namespace std::string_literals;
   
   return [=] (Runtime& rt) mutable {
 
@@ -243,7 +255,9 @@ TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
 
     // only myself - no need to spawn another graph
     if(W <= 1 || N <= 2) {
-      std::transform_inclusive_scan(s_beg, s_end, d_beg, bop, uop);
+      launch_loop(part, [&](){
+        std::transform_inclusive_scan(s_beg, s_end, d_beg, bop, uop); 
+      });
       return;
     }
 
@@ -262,8 +276,7 @@ TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
       chunk_size = std::min(Q + (w < R), N - curr_b);
 
       // block scan
-      launch_loop(W, w, rt, [=, &rt, &bop, &uop, &buf, &counter] () mutable {
-
+      launch_loop(W, w, rt, part, [=, &rt, &bop, &uop, &buf, &counter] () mutable {
         auto result = d_beg;
 
         // local scan per worker
@@ -283,21 +296,22 @@ TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
       curr_b += chunk_size;
     }
 
-    rt.join();
+    rt.corun_all();
   };
 }
 
 // Function: transform_inclusive_scan
-template <typename B, typename E, typename D, typename BOP, typename UOP, typename T>
-TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
-  B first, E last, D d_first, BOP bop, UOP uop, T init
+template <typename B, typename E, typename D, typename BOP, typename UOP, typename T, typename P = DefaultPartitioner,
+  std::enable_if_t<!is_partitioner_v<std::decay_t<T>>, void>* = nullptr
+>
+auto make_transform_inclusive_scan_task(
+  B first, E last, D d_first, BOP bop, UOP uop, T init, P part = P()
 ) {
   
   using B_t = std::decay_t<unwrap_ref_decay_t<B>>;
   using E_t = std::decay_t<unwrap_ref_decay_t<E>>;
   using D_t = std::decay_t<unwrap_ref_decay_t<D>>;
   using value_type = typename std::iterator_traits<B_t>::value_type;
-  using namespace std::string_literals;
   
   return [=] (Runtime& rt) mutable {
 
@@ -315,7 +329,9 @@ TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
 
     // only myself - no need to spawn another graph
     if(W <= 1 || N <= 2) {
-      std::transform_inclusive_scan(s_beg, s_end, d_beg, bop, uop, init);
+      launch_loop(part, [&](){
+        std::transform_inclusive_scan(s_beg, s_end, d_beg, bop, uop, init);
+      });
       return;
     }
 
@@ -337,16 +353,15 @@ TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
       chunk_size = std::min(Q + (w < R), N - curr_b);
 
       // block scan
-      launch_loop(W, w, rt, [=, &rt, &bop, &uop, &buf, &counter] () mutable {
-
+      launch_loop(W, w, rt, part, [=, &rt, &bop, &uop, &buf, &counter] () mutable {
         auto result = d_beg;
 
         // local scan per worker
-        auto& init = buf[w].data;
-        *d_beg++ = init = (w == 0) ? bop(init, uop(*s_beg++)) : uop(*s_beg++);
+        auto& local = buf[w].data;
+        *d_beg++ = local = (w == 0) ? bop(local, uop(*s_beg++)) : uop(*s_beg++);
 
         for(size_t i=1; i<chunk_size; i++){
-          *d_beg++ = init = bop(init, uop(*s_beg++)); 
+          *d_beg++ = local = bop(local, uop(*s_beg++)); 
         }
         
         // block scan
@@ -358,7 +373,7 @@ TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
       curr_b += chunk_size;
     }
 
-    rt.join();
+    rt.corun_all();
     
   };
 }
@@ -368,16 +383,15 @@ TF_FORCE_INLINE auto make_transform_inclusive_scan_task(
 // ----------------------------------------------------------------------------
 
 // Function: make_exclusive_scan_task
-template <typename B, typename E, typename D, typename T, typename BOP>
-TF_FORCE_INLINE auto make_exclusive_scan_task(
-  B first, E last, D d_first, T init, BOP bop
+template <typename B, typename E, typename D, typename T, typename BOP, typename P = DefaultPartitioner>
+auto make_exclusive_scan_task(
+  B first, E last, D d_first, T init, BOP bop, P part = P()
 ) {
   
   using B_t = std::decay_t<unwrap_ref_decay_t<B>>;
   using E_t = std::decay_t<unwrap_ref_decay_t<E>>;
   using D_t = std::decay_t<unwrap_ref_decay_t<D>>;
   using value_type = typename std::iterator_traits<B_t>::value_type;
-  using namespace std::string_literals;
   
   return [=] (Runtime& rt) mutable {
 
@@ -395,7 +409,9 @@ TF_FORCE_INLINE auto make_exclusive_scan_task(
 
     // only myself - no need to spawn another graph
     if(W <= 1 || N <= 2) {
-      std::exclusive_scan(s_beg, s_end, d_beg, init, bop);
+      launch_loop(part, [&](){
+        std::exclusive_scan(s_beg, s_end, d_beg, init, bop);
+      });
       return;
     }
 
@@ -423,19 +439,18 @@ TF_FORCE_INLINE auto make_exclusive_scan_task(
       chunk_size = std::min(Q + (w < R), N - curr_b);
 
       // block scan
-      launch_loop(W, w, rt, [=, &rt, &bop, &buf, &counter] () mutable {
-
+      launch_loop(W, w, rt, part, [=, &rt, &bop, &buf, &counter] () mutable {
         auto result = d_beg;
 
         // local scan per worker
-        auto& init = buf[w].data;
+        auto& local = buf[w].data;
 
         for(size_t i=1; i<chunk_size; i++) {
-          auto v = init;
-          init = bop(init, *s_beg++);
+          auto v = local;
+          local = bop(local, *s_beg++);
           *d_beg++ = std::move(v);
         }
-        *d_beg++ = init;
+        *d_beg++ = local;
         
         // block scan
         detail::scan_loop(rt, counter, buf, bop, result, W, w, chunk_size);
@@ -446,7 +461,7 @@ TF_FORCE_INLINE auto make_exclusive_scan_task(
       curr_b += chunk_size;
     }
 
-    rt.join();
+    rt.corun_all();
     
   };
 }
@@ -456,16 +471,15 @@ TF_FORCE_INLINE auto make_exclusive_scan_task(
 // ----------------------------------------------------------------------------
 
 // Function: 
-template <typename B, typename E, typename D, typename T, typename BOP, typename UOP>
-TF_FORCE_INLINE auto make_transform_exclusive_scan_task(
-  B first, E last, D d_first, T init, BOP bop, UOP uop
+template <typename B, typename E, typename D, typename T, typename BOP, typename UOP, typename P = DefaultPartitioner>
+auto make_transform_exclusive_scan_task(
+  B first, E last, D d_first, T init, BOP bop, UOP uop, P part = P()
 ) {
   
   using B_t = std::decay_t<unwrap_ref_decay_t<B>>;
   using E_t = std::decay_t<unwrap_ref_decay_t<E>>;
   using D_t = std::decay_t<unwrap_ref_decay_t<D>>;
   using value_type = typename std::iterator_traits<B_t>::value_type;
-  using namespace std::string_literals;
   
   return [=] (Runtime& rt) mutable {
 
@@ -483,7 +497,9 @@ TF_FORCE_INLINE auto make_transform_exclusive_scan_task(
 
     // only myself - no need to spawn another graph
     if(W <= 1 || N <= 2) {
-      std::transform_exclusive_scan(s_beg, s_end, d_beg, init, bop, uop);
+      launch_loop(part, [&](){
+        std::transform_exclusive_scan(s_beg, s_end, d_beg, init, bop, uop);
+      });
       return;
     }
 
@@ -511,19 +527,18 @@ TF_FORCE_INLINE auto make_transform_exclusive_scan_task(
       chunk_size = std::min(Q + (w < R), N - curr_b);
 
       // block scan
-      launch_loop(W, w, rt, [=, &rt, &bop, &uop, &buf, &counter] () mutable {
-
+      launch_loop(W, w, rt, part, [=, &rt, &bop, &uop, &buf, &counter] () mutable {
         auto result = d_beg;
 
         // local scan per worker
-        auto& init = buf[w].data;
+        auto& local = buf[w].data;
 
         for(size_t i=1; i<chunk_size; i++) {
-          auto v = init;
-          init = bop(init, uop(*s_beg++));
+          auto v = local;
+          local = bop(local, uop(*s_beg++));
           *d_beg++ = std::move(v);
         }
-        *d_beg++ = init;
+        *d_beg++ = local;
         
         // block scan
         detail::scan_loop(rt, counter, buf, bop, result, W, w, chunk_size);
@@ -534,31 +549,30 @@ TF_FORCE_INLINE auto make_transform_exclusive_scan_task(
       curr_b += chunk_size;
     }
 
-    rt.join();
+    rt.corun_all();
     
   };
 }
 
-}  // end of namespace tf::detail ---------------------------------------------
 
 // ----------------------------------------------------------------------------
 // Inclusive Scan
 // ----------------------------------------------------------------------------
 
 // Function: inclusive_scan
-template <typename B, typename E, typename D, typename BOP>
-Task FlowBuilder::inclusive_scan(B first, E last, D d_first, BOP bop) {
-  return emplace(detail::make_inclusive_scan_task(
-    first, last, d_first, bop
-  ));
+template <typename B, typename E, typename D, typename BOP, typename P,
+  std::enable_if_t<is_partitioner_v<std::decay_t<P>>, void>*
+>
+Task FlowBuilder::inclusive_scan(B first, E last, D d_first, BOP bop, P part) {
+  return emplace(make_inclusive_scan_task(first, last, d_first, bop, part));
 }
 
 // Function: inclusive_scan
-template <typename B, typename E, typename D, typename BOP, typename T>
-Task FlowBuilder::inclusive_scan(B first, E last, D d_first, BOP bop, T init) {
-  return emplace(detail::make_inclusive_scan_task(
-    first, last, d_first, bop, init
-  ));
+template <typename B, typename E, typename D, typename BOP, typename T, typename P,
+  std::enable_if_t<!is_partitioner_v<std::decay_t<T>>, void>*
+>
+Task FlowBuilder::inclusive_scan(B first, E last, D d_first, BOP bop, T init, P part) {
+  return emplace(make_inclusive_scan_task(first, last, d_first, bop, init, part));
 }
 
 // ----------------------------------------------------------------------------
@@ -566,22 +580,26 @@ Task FlowBuilder::inclusive_scan(B first, E last, D d_first, BOP bop, T init) {
 // ----------------------------------------------------------------------------
 
 // Function: transform_inclusive_scan
-template <typename B, typename E, typename D, typename BOP, typename UOP>
+template <typename B, typename E, typename D, typename BOP, typename UOP, typename P,
+  std::enable_if_t<is_partitioner_v<std::decay_t<P>>, void>*
+>
 Task FlowBuilder::transform_inclusive_scan(
-  B first, E last, D d_first, BOP bop, UOP uop
+  B first, E last, D d_first, BOP bop, UOP uop, P part
 ) {
-  return emplace(detail::make_transform_inclusive_scan_task(
-    first, last, d_first, bop, uop
+  return emplace(make_transform_inclusive_scan_task(
+    first, last, d_first, bop, uop, part
   ));
 }
 
 // Function: transform_inclusive_scan
-template <typename B, typename E, typename D, typename BOP, typename UOP, typename T>
+template <typename B, typename E, typename D, typename BOP, typename UOP, typename T, typename P,
+  std::enable_if_t<!is_partitioner_v<std::decay_t<T>>, void>*
+>
 Task FlowBuilder::transform_inclusive_scan(
-  B first, E last, D d_first, BOP bop, UOP uop, T init
+  B first, E last, D d_first, BOP bop, UOP uop, T init, P part
 ) {
-  return emplace(detail::make_transform_inclusive_scan_task(
-    first, last, d_first, bop, uop, init
+  return emplace(make_transform_inclusive_scan_task(
+    first, last, d_first, bop, uop, init, part
   ));  
 }
 
@@ -590,10 +608,10 @@ Task FlowBuilder::transform_inclusive_scan(
 // ----------------------------------------------------------------------------
 
 // Function: exclusive_scan
-template <typename B, typename E, typename D, typename T, typename BOP>
-Task FlowBuilder::exclusive_scan(B first, E last, D d_first, T init, BOP bop) {
-  return emplace(detail::make_exclusive_scan_task(
-    first, last, d_first, init, bop
+template <typename B, typename E, typename D, typename T, typename BOP, typename P>
+Task FlowBuilder::exclusive_scan(B first, E last, D d_first, T init, BOP bop, P part) {
+  return emplace(make_exclusive_scan_task(
+    first, last, d_first, init, bop, part
   ));
 }
 
@@ -602,13 +620,14 @@ Task FlowBuilder::exclusive_scan(B first, E last, D d_first, T init, BOP bop) {
 // ----------------------------------------------------------------------------
 
 // Function: transform_exclusive_scan
-template <typename B, typename E, typename D, typename T, typename BOP, typename UOP>
+template <typename B, typename E, typename D, typename T, typename BOP, typename UOP, typename P>
 Task FlowBuilder::transform_exclusive_scan(
-  B first, E last, D d_first, T init, BOP bop, UOP uop
+  B first, E last, D d_first, T init, BOP bop, UOP uop, P part
 ) {
-  return emplace(detail::make_transform_exclusive_scan_task(
-    first, last, d_first, init, bop, uop
+  return emplace(make_transform_exclusive_scan_task(
+    first, last, d_first, init, bop, uop, part
   )); 
 }
 
 }  // end of namespace tf -----------------------------------------------------
+

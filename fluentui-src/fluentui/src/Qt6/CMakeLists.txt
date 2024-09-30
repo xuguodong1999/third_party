@@ -40,7 +40,9 @@ xgd_link_qt(${PROJECT_NAME} PRIVATE Quick)
 
 aux_source_directory(${SRC_DIR} source_files)
 aux_source_directory(${SRC_DIR}/qrcode source_files)
-list(REMOVE_ITEM source_files "${SRC_DIR}/fluentuiplugin.cpp")
+list(REMOVE_ITEM source_files
+        "${SRC_DIR}/FluHotkey.cpp"
+        "${SRC_DIR}/fluentuiplugin.cpp")
 
 # create target ${PROJECT_NAME}plugin
 qt_add_qml_module(${PROJECT_NAME}

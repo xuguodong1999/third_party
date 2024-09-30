@@ -27,6 +27,7 @@
 #include "molecule/molecule_fingerprint.h"
 #include "molecule/molecule_json_saver.h"
 #include "molecule/molfile_saver.h"
+#include "reaction/pathway_reaction_json_saver.h"
 #include "reaction/reaction_json_saver.h"
 #include "reaction/rxnfile_saver.h"
 
@@ -39,11 +40,15 @@
 #include <iostream>
 #endif
 
-static _SessionLocalContainer<Indigo> indigo_self;
+_SessionLocalContainer<Indigo>& indigoSelf()
+{
+    static _SessionLocalContainer<Indigo> indigo_self;
+    return indigo_self;
+}
 
 Indigo& indigoGetInstance()
 {
-    return indigo_self.getLocalCopy();
+    return indigoSelf().getLocalCopy();
 }
 
 const char* indigoVersion()
@@ -51,7 +56,7 @@ const char* indigoVersion()
     return INDIGO_VERSION "-" INDIGO_PLATFORM;
 }
 
-CEXPORT const char* indigoVersionInfo()
+const char* indigoVersionInfo()
 {
     INDIGO_BEGIN
     {
@@ -208,6 +213,12 @@ void Indigo::initReactionJsonSaver(ReactionJsonSaver& saver)
     saver.pretty_json = json_saving_pretty;
 }
 
+void Indigo::initReactionJsonSaver(PathwayReactionJsonSaver& saver)
+{
+    saver.add_stereo_desc = json_saving_add_stereo_desc;
+    saver.pretty_json = json_saving_pretty;
+}
+
 void Indigo::initRxnfileSaver(RxnfileSaver& saver)
 {
     saver.molfile_saving_mode = molfile_saving_mode;
@@ -301,7 +312,7 @@ qword indigoAllocSessionId()
 {
     qword id = TL_ALLOC_SESSION_ID();
     TL_SET_SESSION_ID(id);
-    Indigo& indigo = indigo_self.createOrGetLocalCopy(id);
+    Indigo& indigo = indigoSelf().createOrGetLocalCopy(id);
     indigo.init();
     sf::xlock_safe_ptr(IndigoLocaleHandler::handler())->setLocale(LC_NUMERIC, "C");
     IndigoOptionManager::getIndigoOptionManager().createOrGetLocalCopy(id);
@@ -324,7 +335,7 @@ void indigoReleaseSessionId(qword id)
     TL_SET_SESSION_ID(id);
     indigoGetInstance().removeAllObjects();
     IndigoOptionManager::getIndigoOptionManager().removeLocalCopy(id);
-    indigo_self.removeLocalCopy(id);
+    indigoSelf().removeLocalCopy(id);
     TL_RELEASE_SESSION_ID(id);
 #ifdef INDIGO_DEBUG
     std::stringstream ss;
@@ -346,7 +357,7 @@ void indigoSetErrorHandler(INDIGO_ERROR_HANDLER handler, void* context)
 int indigoFree(int handle)
 {
     // In some runtimes (e.g. Python) session could be removed before objects during resource releasing stage)
-    if (indigo_self.hasLocalCopy())
+    if (indigoSelf().hasLocalCopy())
     {
         try
         {

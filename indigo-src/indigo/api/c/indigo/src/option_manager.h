@@ -19,6 +19,11 @@
 #ifndef __otion_manager_h__
 #define __otion_manager_h__
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#endif
+
 #include "base_cpp/os_sync_wrapper.h"
 #include "base_cpp/red_black.h"
 #include "indigo.h"
@@ -189,5 +194,9 @@ private:
 
 INDIGO_EXPORT sf::safe_shared_hide_obj<IndigoOptionManager> &
 indigoGetOptionManager(const qword id = TL_GET_SESSION_ID());
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif //__otion_manager_h__

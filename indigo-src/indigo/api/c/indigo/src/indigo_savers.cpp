@@ -40,7 +40,9 @@
 #include <memory>
 
 #include "indigo_io.h"
+#include "indigo_ket_document.h"
 #include "indigo_molecule.h"
+#include "indigo_monomer_library.h"
 #include "indigo_reaction.h"
 
 //
@@ -108,7 +110,7 @@ void IndigoSaver::appendObject(IndigoObject& object)
 
 void IndigoSdfSaver::appendMolfile(Output& out, IndigoObject& obj)
 {
-    if (IndigoBaseMolecule::is(obj))
+    if (IndigoBaseMolecule::is(obj) || IndigoKetDocument::is(obj))
     {
         Indigo& indigo = indigoGetInstance();
 
@@ -166,7 +168,7 @@ int indigoSdfAppend(int output, int molecule)
 void IndigoSmilesSaver::generateSmiles(IndigoObject& obj, Array<char>& out_buffer, SmilesSaver::SMILES_MODE smiles_format)
 {
     ArrayOutput output(out_buffer);
-    if (IndigoBaseMolecule::is(obj))
+    if (IndigoBaseMolecule::is(obj) || IndigoKetDocument::is(obj))
     {
         BaseMolecule& mol = obj.getBaseMolecule();
         SmilesSaver saver(output);
@@ -582,7 +584,27 @@ int indigoSaveMolfile(int molecule, int output)
     INDIGO_END(-1);
 }
 
-CEXPORT int indigoSaveSequence(int item, int output)
+CEXPORT int indigoSaveSequence(int item, int output, int library)
+{
+    INDIGO_BEGIN
+    {
+        IndigoObject& obj = self.getObject(item);
+        Output& out = IndigoOutput::get(self.getObject(output));
+        if (IndigoBaseMolecule::is(obj) || IndigoKetDocument::is(obj))
+        {
+            IndigoObject& lib_obj = self.getObject(library);
+            SequenceSaver saver(out, IndigoMonomerLibrary::get(lib_obj));
+            BaseMolecule& mol = obj.getBaseMolecule();
+            saver.saveMolecule(mol);
+            out.flush();
+            return 1;
+        }
+        throw IndigoError("indigoSaveSequence(): expected molecule, got %s", obj.debugInfo());
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoSaveFasta(int item, int output, int library)
 {
     INDIGO_BEGIN
     {
@@ -590,13 +612,54 @@ CEXPORT int indigoSaveSequence(int item, int output)
         Output& out = IndigoOutput::get(self.getObject(output));
         if (IndigoBaseMolecule::is(obj))
         {
-            SequenceSaver saver(out);
+            IndigoObject& lib_obj = self.getObject(library);
+            SequenceSaver saver(out, IndigoMonomerLibrary::get(lib_obj));
             BaseMolecule& mol = obj.getBaseMolecule();
-            saver.saveMolecule(mol);
+            saver.saveMolecule(mol, SequenceSaver::SeqFormat::FASTA);
             out.flush();
             return 1;
         }
-        throw IndigoError("indigoSaveSequence(): expected molecule, got %s", obj.debugInfo());
+        throw IndigoError("indigoSaveFasta(): expected molecule, got %s", obj.debugInfo());
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoSaveIdt(int item, int output, int library)
+{
+    INDIGO_BEGIN
+    {
+        IndigoObject& obj = self.getObject(item);
+        Output& out = IndigoOutput::get(self.getObject(output));
+        if (IndigoBaseMolecule::is(obj))
+        {
+            IndigoObject& lib_obj = self.getObject(library);
+            SequenceSaver saver(out, IndigoMonomerLibrary::get(lib_obj));
+            BaseMolecule& mol = obj.getBaseMolecule();
+            saver.saveMolecule(mol, SequenceSaver::SeqFormat::IDT);
+            out.flush();
+            return 1;
+        }
+        throw IndigoError("indigoSaveIdt(): expected molecule, got %s", obj.debugInfo());
+    }
+    INDIGO_END(-1);
+}
+
+CEXPORT int indigoSaveHelm(int item, int output, int library)
+{
+    INDIGO_BEGIN
+    {
+        IndigoObject& obj = self.getObject(item);
+        Output& out = IndigoOutput::get(self.getObject(output));
+        if (IndigoBaseMolecule::is(obj))
+        {
+            IndigoObject& lib_obj = self.getObject(library);
+            SequenceSaver saver(out, IndigoMonomerLibrary::get(lib_obj));
+            BaseMolecule& mol = obj.getBaseMolecule();
+            saver.saveMolecule(mol, SequenceSaver::SeqFormat::HELM);
+            out.flush();
+            return 1;
+        }
+        throw IndigoError("indigoSaveHelm(): expected molecule, got %s", obj.debugInfo());
     }
     INDIGO_END(-1);
 }
@@ -636,7 +699,7 @@ int indigoSaveCml(int item, int output)
     {
         IndigoObject& obj = self.getObject(item);
         Output& out = IndigoOutput::get(self.getObject(output));
-        if (IndigoBaseMolecule::is(obj))
+        if (IndigoBaseMolecule::is(obj) || IndigoKetDocument::is(obj))
         {
             CmlSaver saver(out);
 
@@ -744,6 +807,13 @@ int indigoSaveCdxml(int item, int output)
                 QueryMolecule& mol = obj.getQueryMolecule();
                 saver.saveMolecule(mol);
             }
+            out.flush();
+            return 1;
+        }
+        if (IndigoKetDocument::is(obj))
+        {
+            MoleculeCdxmlSaver saver(out);
+            saver.saveMolecule(obj.getBaseMolecule());
             out.flush();
             return 1;
         }

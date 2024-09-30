@@ -21,6 +21,7 @@
 #include "include/core/SkSurfaceProps.h"
 #include "include/core/SkTileMode.h"
 #include "include/core/SkTypes.h"
+#include "include/private/base/SkFloatingPoint.h"
 #include "include/private/base/SkTArray.h"
 #include "include/private/base/SkTPin.h"
 #include "include/private/base/SkTo.h"
@@ -75,7 +76,7 @@ struct Vector {
     Vector(SkScalar x, SkScalar y) : fX(x), fY(y) {}
     explicit Vector(const SkVector& v) : fX(v.fX), fY(v.fY) {}
 
-    bool isFinite() const { return SkScalarsAreFinite(fX, fY); }
+    bool isFinite() const { return SkIsFinite(fX, fY); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -413,6 +414,10 @@ public:
     LayerSpace<SkIPoint> topLeft() const { return LayerSpace<SkIPoint>(fData.topLeft()); }
     LayerSpace<SkISize> size() const { return LayerSpace<SkISize>(fData.size()); }
 
+    static bool Intersects(const LayerSpace<SkIRect>& a, const LayerSpace<SkIRect>& b) {
+        return SkIRect::Intersects(a.fData, b.fData);
+    }
+
     bool intersect(const LayerSpace<SkIRect>& r) { return fData.intersect(r.fData); }
     void join(const LayerSpace<SkIRect>& r) { fData.join(r.fData); }
     void offset(const LayerSpace<IVector>& v) { fData.offset(SkIVector(v)); }
@@ -695,14 +700,7 @@ public:
             : FilterResult(std::move(image), LayerSpace<SkIPoint>({0, 0})) {}
 
     FilterResult(sk_sp<SkSpecialImage> image, const LayerSpace<SkIPoint>& origin)
-            : fImage(std::move(image))
-            , fSamplingOptions(kDefaultSampling)
-            , fTileMode(SkTileMode::kDecal)
-            , fTransform(SkMatrix::Translate(origin.x(), origin.y()))
-            , fColorFilter(nullptr)
-            , fLayerBounds(
-                    fTransform.mapRect(LayerSpace<SkIRect>(fImage ? fImage->dimensions()
-                                                                  : SkISize{0, 0}))) {}
+            : FilterResult(std::move(image), origin, PixelBoundary::kUnknown) {}
 
     // Renders the 'pic', clipped by 'cullRect', into an optimally sized surface (depending on
     // picture bounds and 'ctx's desired output). The picture is transformed by the context's
@@ -724,8 +722,8 @@ public:
     // on the context's desired output. 'image' must not be null.
     static FilterResult MakeFromImage(const Context& ctx,
                                       sk_sp<SkImage> image,
-                                      const SkRect& srcRect,
-                                      const ParameterSpace<SkRect>& dstRect,
+                                      SkRect srcRect,
+                                      ParameterSpace<SkRect> dstRect,
                                       const SkSamplingOptions& sampling);
 
     // Bilinear is used as the default because it can be downgraded to nearest-neighbor when the
@@ -790,6 +788,12 @@ public:
      // If 'blender' is null, it's equivalent to kSrcOver blending.
     void draw(const Context& ctx, SkDevice* target, const SkBlender* blender) const;
 
+    // SkCanvas can prepare layer source images with transparent padding, similarly to AutoSurface.
+    // This adjusts the FilterResult metadata to be aware of that padding. This should only be
+    // called when it's externally known that the FilterResult has a 1px buffer of transparent
+    // black pixels and has had no further modifications.
+    FilterResult insetForSaveLayer() const;
+
     class Builder;
 
     enum class ShaderFlags : int {
@@ -812,6 +816,25 @@ private:
 
     class AutoSurface;
 
+    enum class PixelBoundary : int {
+        kUnknown,     // Pixels outside the image subset are of unknown value, possibly unitialized
+        kTransparent, // Pixels bordering the image subset are transparent black
+        kInitialized, // Pixels bordering the image are known to be initialized
+    };
+
+    FilterResult(sk_sp<SkSpecialImage> image,
+                 const LayerSpace<SkIPoint>& origin,
+                 PixelBoundary boundary)
+            : fImage(std::move(image))
+            , fBoundary(boundary)
+            , fSamplingOptions(kDefaultSampling)
+            , fTileMode(SkTileMode::kDecal)
+            , fTransform(SkMatrix::Translate(origin.x(), origin.y()))
+            , fColorFilter(nullptr)
+            , fLayerBounds(
+                    fTransform.mapRect(LayerSpace<SkIRect>(fImage ? fImage->dimensions()
+                                                                  : SkISize{0, 0}))) {}
+
     // Renders this FilterResult into a new, but visually equivalent, image that fills 'dstBounds',
     // has default sampling, no color filter, and a transform that translates by only 'dstBounds's
     // top-left corner. 'dstBounds' is intersected with 'fLayerBounds' unless 'preserveDstBounds'
@@ -825,6 +848,8 @@ private:
     FilterResult subset(const LayerSpace<SkIPoint>& knownOrigin,
                         const LayerSpace<SkIRect>& subsetBounds,
                         bool clampSrcIfDisjoint=false) const;
+    // Convenient version of subset() that insets a single pixel.
+    FilterResult insetByPixel() const;
 
     enum class BoundsAnalysis : int {
         // The image can be drawn directly, without needing to apply tiling, or handling how any
@@ -855,7 +880,8 @@ private:
     enum class BoundsScope : int {
         kDeferred,        // The bounds analysis won't be used for any rendering yet
         kCanDrawDirectly, // The rendering may draw the image directly if analysis allows it
-        kShaderOnly       // The rendering will always use a filling shader, e.g. drawPaint()
+        kShaderOnly,      // The rendering will always use a filling shader, e.g. drawPaint()
+        kRescale          // The rendering is controlled by rescaling logic, so ignores decal size
     };
 
     // Determine what effects are visible based on the target 'dstBounds' and extra transform that
@@ -871,6 +897,15 @@ private:
         return this->analyzeBounds(SkMatrix::I(), SkIRect(dstBounds), scope);
     }
 
+    // If true, the tile mode can be changed to kClamp to sample the transparent black pixels in
+    // the boundary. This will be visually equivalent to the decal tiling or anti-aliasing of a
+    // drawn image.
+    bool canClampToTransparentBoundary(SkEnumBitMask<BoundsAnalysis> analysis) const {
+        return fTileMode == SkTileMode::kDecal &&
+               fBoundary == PixelBoundary::kTransparent &&
+               !(analysis & BoundsAnalysis::kRequiresDecalInLayerSpace);
+    }
+
     // Return an equivalent FilterResult such that its backing image dimensions have been reduced
     // by the X and Y scale factors in 'scale' (assumed to be in [0, 1]). The returned FilterResult
     // will have a transform that aligns it with the original FilterResult (i.e. a deferred upscale)
@@ -883,7 +918,6 @@ private:
     FilterResult rescale(const Context& ctx,
                          const LayerSpace<SkSize>& scale,
                          bool enforceDecal) const;
-
     // Draw directly to the device, which draws the same image as produced by resolve() but can be
     // useful if multiple operations need to be performed on the canvas.
     //
@@ -899,6 +933,14 @@ private:
               SkDevice* device,
               bool preserveDeviceState,
               const SkBlender* blender=nullptr) const;
+
+    // This variant should only be called after analysis and final sampling has been determined,
+    // and there's no need to fall back to filling the device with shader.
+    void drawAnalyzedImage(const Context& ctx,
+                           SkDevice* device,
+                           const SkSamplingOptions& finalSampling,
+                           SkEnumBitMask<BoundsAnalysis> analysis,
+                           const SkBlender* blender=nullptr) const;
 
     // Returns the FilterResult as a shader, ideally without resolving to an axis-aligned image.
     // 'xtraSampling' is the sampling that any parent shader applies to the FilterResult.
@@ -927,6 +969,8 @@ private:
     // respecting 'fTileMode' (on the SkSpecialImage's subset), transformed by 'fTransform',
     // filtered by 'fColorFilter', and then clipped to 'fLayerBounds'.
     sk_sp<SkSpecialImage> fImage;
+    PixelBoundary         fBoundary;
+
     SkSamplingOptions     fSamplingOptions;
     SkTileMode            fTileMode;
     // Typically this will be an integer translation that encodes the origin of the top left corner,
@@ -1057,6 +1101,10 @@ public:
 
     // TODO: Once all Backends provide a blur engine, maybe just have Backend extend it.
     virtual const SkBlurEngine* getBlurEngine() const = 0;
+
+    // TODO: Can be removed once all blur engines rely on FilterResult::rescale and not their own
+    // rescale implementations.
+    virtual bool useLegacyFilterResultBlur() const { return true; }
 
     // Properties controlling the pixel data for offscreen surfaces rendered to during filtering.
     const SkSurfaceProps& surfaceProps() const { return fSurfaceProps; }

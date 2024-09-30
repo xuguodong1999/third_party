@@ -88,7 +88,7 @@ void Dearomatizer::enumerateDearomatizations(DearomatizationsStorage& dearomatiz
     QueryMolecule qsubmolecule;
 
     dearomatizations.setGroupsCount(_connectivityGroups);
-    dearomatizations.setDearomatizationParams(_dearomatizationParams);
+    dearomatizations.setDearomatizationParams(static_cast<byte>(_dearomatizationParams));
 
     _aromaticGroups.constructGroups(dearomatizations, true);
 
@@ -120,7 +120,7 @@ void Dearomatizer::enumerateDearomatizations(DearomatizationsStorage& dearomatiz
     }
 }
 
-void Dearomatizer::_fixHeteratom(int atom_idx, bool toFix)
+void Dearomatizer::_fixHeteratom(int atom_idx, bool /* toFix */)
 {
 
     if (!_verticesFixed.get(atom_idx))
@@ -160,7 +160,7 @@ void Dearomatizer::_enumerateMatching(void)
 {
     // Find strong edge in alternating circle
     const Edge* edge = 0;
-    int e_idx;
+    int e_idx = -1;
     bool found = false;
     for (int i = 0; i < _aromaticGroupData.bonds.size(); i++)
     {
@@ -492,7 +492,7 @@ int DearomatizationsStorage::getGroupHeteroAtomsCount(int group) const
 void DearomatizationsStorage::saveBinary(Output& output) const
 {
     output.writeByte(_dearomParams);
-    output.writePackedShort(_aromaticGroups.size());
+    output.writePackedShort(static_cast<short>(_aromaticGroups.size()));
     if (_dearomParams != Dearomatizer::PARAMS_SAVE_JUST_HETERATOMS)
     {
         for (int i = 0; i < _aromaticGroups.size(); i++)
@@ -503,9 +503,9 @@ void DearomatizationsStorage::saveBinary(Output& output) const
                                  _aromaticGroups[i - 1].dearomBondsState.count * bitGetSize(_aromaticGroups[i - 1].aromBondsIndices.count);
             if (i != 0 && _aromaticGroups[i].dearomBondsState.offset != expectedOffset)
                 throw Error("DearomatizationsStorage::saveBinary: invalid data order #1");
-            output.writePackedShort(_aromaticGroups[i].dearomBondsState.count);
+            output.writePackedShort(static_cast<short>(_aromaticGroups[i].dearomBondsState.count));
         }
-        output.writePackedShort(_dearomBondsStateArray.size());
+        output.writePackedShort(static_cast<short>(_dearomBondsStateArray.size()));
         if (_dearomBondsStateArray.size() != 0)
             output.write(_dearomBondsStateArray.ptr(), _dearomBondsStateArray.size() * sizeof(byte));
     }
@@ -519,10 +519,10 @@ void DearomatizationsStorage::saveBinary(Output& output) const
                                  _aromaticGroups[i - 1].heteroAtomsState.count * bitGetSize(_aromaticGroups[i - 1].heteroAtomsIndices.count);
             if (i != 0 && _aromaticGroups[i].heteroAtomsState.offset != expectedOffset)
                 throw Error("DearomatizationsStorage::saveBinary: invalid data order #2");
-            output.writePackedShort(_aromaticGroups[i].heteroAtomsState.count);
+            output.writePackedShort(static_cast<short>(_aromaticGroups[i].heteroAtomsState.count));
         }
 
-        output.writePackedShort(_heteroAtomsStateArray.size());
+        output.writePackedShort(static_cast<short>(_heteroAtomsStateArray.size()));
         if (_heteroAtomsStateArray.size() != 0)
             output.write(_heteroAtomsStateArray.ptr(), _heteroAtomsStateArray.size() * sizeof(byte));
     }
@@ -594,8 +594,8 @@ DearomatizationsGroups::DearomatizationsGroups(BaseMolecule& molecule, bool skip
             SGroup& sgroup = molecule.sgroups.getSGroup(i);
             if (sgroup.sgroup_type == SGroup::SG_TYPE_SUP)
             {
-                for (int i = 0; i < sgroup.atoms.size(); i++)
-                    _inside_superatoms.find_or_insert(sgroup.atoms[i]);
+                for (int j = 0; j < sgroup.atoms.size(); j++)
+                    _inside_superatoms.find_or_insert(sgroup.atoms[j]);
             }
         }
 }

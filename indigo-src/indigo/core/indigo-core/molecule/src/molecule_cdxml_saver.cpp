@@ -16,6 +16,11 @@
  * limitations under the License.
  ***************************************************************************/
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4315) // TODO: Fix CDXFont allign issue
+#endif
+
 #include "molecule/molecule_cdxml_saver.h"
 #include "base_cpp/locale_guard.h"
 #include "base_cpp/output.h"
@@ -33,6 +38,49 @@
 using namespace indigo;
 using namespace tinyxml2;
 
+tinyxml2::XMLElement* MoleculeCdxmlSaver::create_text(tinyxml2::XMLElement* parent, float x, float y, const char* label_justification)
+{
+    XMLElement* t = _doc->NewElement("t");
+    parent->LinkEndChild(t);
+    Array<char> buf;
+    ArrayOutput out(buf);
+    out.printf("%f %f", x, y);
+    buf.push(0);
+    t->SetAttribute("p", buf.ptr());
+    if (label_justification)
+        t->SetAttribute("LabelJustification", label_justification);
+    return t;
+}
+
+void MoleculeCdxmlSaver::add_style_str(tinyxml2::XMLElement* parent, int font, int size, int face, const char* str)
+{
+    XMLElement* s = _doc->NewElement("s");
+    parent->LinkEndChild(s);
+    s->SetAttribute("font", font);
+    s->SetAttribute("size", size);
+    s->SetAttribute("face", face);
+    XMLText* txt = _doc->NewText(str);
+    s->LinkEndChild(txt);
+}
+
+void MoleculeCdxmlSaver::add_charge(tinyxml2::XMLElement* parent, int font, int size, int charge)
+{
+    if (charge == 0 || charge == CHARGE_UNKNOWN)
+        return;
+    if (charge > 0)
+    {
+        if (charge > 1)
+            add_style_str(parent, font, size, 64, std::to_string(charge).c_str());
+        add_style_str(parent, font, size, 96, "+");
+    }
+    else if (charge < 0)
+    {
+        if (charge < -1)
+            add_style_str(parent, font, size, 64, std::to_string(-charge).c_str());
+        add_style_str(parent, font, size, 96, "-");
+    }
+}
+
 void MoleculeCdxmlSaver::writeBinaryTextValue(const tinyxml2::XMLElement* pTextElement)
 {
     if (std::string(pTextElement->Name()) != "t")
@@ -48,15 +96,15 @@ void MoleculeCdxmlSaver::writeBinaryTextValue(const tinyxml2::XMLElement* pTextE
             {
                 std::string attr_name = pAttr->Name();
                 if (attr_name == "font")
-                    ts.font_index = pAttr->IntValue();
+                    ts.font_index = static_cast<uint16_t>(pAttr->IntValue());
                 else if (attr_name == "size")
-                    ts.font_size = pAttr->FloatValue() * kCDXMLSizeMultiplier;
+                    ts.font_size = static_cast<uint16_t>(pAttr->FloatValue() * kCDXMLSizeMultiplier);
                 else if (attr_name == "color")
-                    ts.font_color = pAttr->IntValue();
+                    ts.font_color = static_cast<uint16_t>(pAttr->IntValue());
                 else if (attr_name == "face")
-                    ts.font_face = pAttr->IntValue();
+                    ts.font_face = static_cast<uint16_t>(pAttr->IntValue());
             }
-            ts.offset = text.size();
+            ts.offset = static_cast<uint16_t>(text.size());
             styled_strings.push_back(ts);
             auto ptext = pStyleElem->GetText();
             if (ptext)
@@ -67,8 +115,8 @@ void MoleculeCdxmlSaver::writeBinaryTextValue(const tinyxml2::XMLElement* pTextE
     _output.writeBinaryUInt16(kCDXProp_Text);
     if (text.size())
     {
-        _output.writeBinaryUInt16(styled_strings.size() * sizeof(CDXTextStyle) + sizeof(uint16_t) + text.size());
-        _output.writeBinaryUInt16(styled_strings.size());
+        _output.writeBinaryUInt16(static_cast<uint16_t>(styled_strings.size() * sizeof(CDXTextStyle) + sizeof(uint16_t) + text.size()));
+        _output.writeBinaryUInt16(static_cast<uint16_t>(styled_strings.size()));
         for (const auto& ss : styled_strings)
         {
             _output.writeBinaryUInt16(ss.offset);
@@ -77,7 +125,7 @@ void MoleculeCdxmlSaver::writeBinaryTextValue(const tinyxml2::XMLElement* pTextE
             _output.writeBinaryUInt16(ss.font_size);
             _output.writeBinaryUInt16(ss.font_color);
         }
-        _output.write(text.c_str(), text.size());
+        _output.write(text.c_str(), static_cast<int>(text.size()));
     }
     else
         _output.writeBinaryUInt16(0);
@@ -91,9 +139,9 @@ void MoleculeCdxmlSaver::writeBinaryValue(const XMLAttribute* pAttr, int16_t tag
     case ECDXType::CDXString: {
         std::string val = pAttr->Value();
         uint16_t styles = 0;
-        _output.writeBinaryUInt16(val.size() + sizeof(styles));
+        _output.writeBinaryUInt16(static_cast<uint16_t>(val.size() + sizeof(styles)));
         _output.writeBinaryUInt16(styles);
-        _output.write((const void*)val.data(), val.size());
+        _output.write(val.data(), static_cast<int>(val.size()));
     }
     break;
 
@@ -112,7 +160,7 @@ void MoleculeCdxmlSaver::writeBinaryValue(const XMLAttribute* pAttr, int16_t tag
             val = kLabelAlignmentStrToInt.at(pAttr->Value());
             break;
         case kCDXProp_Atom_Radical:
-            val = kRadicalStrToId.at(pAttr->Value());
+            val = static_cast<int8_t>(kRadicalStrToId.at(pAttr->Value()));
             break;
         case kCDXProp_Bond_CIPStereochemistry:
             val = kCIPBondStereochemistryIndexToChar.at(pAttr->Value()[0]);
@@ -121,16 +169,16 @@ void MoleculeCdxmlSaver::writeBinaryValue(const XMLAttribute* pAttr, int16_t tag
             val = kCIPStereochemistryCharToIndex.at(pAttr->Value()[0]);
             break;
         case kCDXProp_Arrow_Type:
-            val = kCDXProp_Arrow_TypeStrToID.at(pAttr->Value());
+            val = static_cast<int8_t>(kCDXProp_Arrow_TypeStrToID.at(pAttr->Value()));
             break;
         case kCDXProp_Atom_Geometry:
-            val = KGeometryTypeNameToInt.at(pAttr->Value());
+            val = static_cast<int8_t>(KGeometryTypeNameToInt.at(pAttr->Value()));
             break;
         case kCDXProp_Atom_EnhancedStereoType:
-            val = (int)kCDXEnhancedStereoStrToID.at(pAttr->Value());
+            val = static_cast<int8_t>(kCDXEnhancedStereoStrToID.at(pAttr->Value()));
             break;
         default:
-            val = pAttr->IntValue();
+            val = static_cast<int8_t>(pAttr->IntValue());
             break;
         }
         _output.writeBinaryUInt16(sizeof(val));
@@ -140,14 +188,14 @@ void MoleculeCdxmlSaver::writeBinaryValue(const XMLAttribute* pAttr, int16_t tag
 
     case ECDXType::CDXINT16:
     case ECDXType::CDXUINT16: {
-        int16_t val = pAttr->IntValue();
+        int16_t val = static_cast<int16_t>(pAttr->IntValue());
         switch (tag)
         {
         case kCDXProp_Node_Type:
-            val = KNodeTypeNameToInt.at(pAttr->Value());
+            val = static_cast<int16_t>(KNodeTypeNameToInt.at(pAttr->Value()));
             break;
         case kCDXProp_Graphic_Type:
-            val = kCDXPropGraphicTypeStrToID.at(pAttr->Value());
+            val = static_cast<int16_t>(kCDXPropGraphicTypeStrToID.at(pAttr->Value()));
             break;
         case kCDXProp_Rectangle_Type: {
             auto vecs = split(pAttr->Value(), ' ');
@@ -159,18 +207,42 @@ void MoleculeCdxmlSaver::writeBinaryValue(const XMLAttribute* pAttr, int16_t tag
             val *= kBondSpacingMultiplier;
             break;
         case kCDXProp_Line_Type:
-            val = kLineTypeStrToInt.at(pAttr->Value());
+            val = static_cast<int16_t>(kLineTypeStrToInt.at(pAttr->Value()));
             break;
         case kCDXProp_Arrow_Type:
-            val = kCDXProp_Arrow_TypeStrToID.at(pAttr->Value());
+            val = static_cast<int16_t>(kCDXProp_Arrow_TypeStrToID.at(pAttr->Value()));
             break;
         case kCDXProp_Arrow_ArrowHead_Head:
         case kCDXProp_Arrow_ArrowHead_Tail:
             val = kCDXProp_Arrow_ArrowHeadStrToInt.at(pAttr->Value());
             break;
-        case kCDXProp_Bond_Display:
-            val = kCDXProp_Bond_DisplayStrToID.at(pAttr->Value());
+        case kCDXProp_Arrowhead_Type: {
+            auto it = kCDXProp_Arrow_ArrowHeadTypeStrToInt.find(pAttr->Value());
+            if (it != kCDXProp_Arrow_ArrowHeadTypeStrToInt.end())
+                val = it->second;
             break;
+        }
+        case kCDXProp_Symbol_Type: {
+            auto it = kCDXPropSymbolTypeStrToID.find(pAttr->Value());
+            if (it != kCDXPropSymbolTypeStrToID.end())
+                val = it->second;
+            break;
+        }
+        case kCDXProp_Bond_Display:
+        case kCDXProp_Bond_Display2:
+            val = static_cast<int16_t>(kCDXProp_Bond_DisplayStrToID.at(pAttr->Value()));
+            break;
+        case kCDXProp_Bond_Order: {
+            auto vals = split(pAttr->Value(), ' ');
+            val = 0;
+            for (auto& value : vals)
+            {
+                val |= static_cast<int16_t>(kBondOrderStrToId.at(value));
+            }
+            if (val == 0)
+                val = -1;
+        }
+        break;
         }
 
         _output.writeBinaryUInt16(sizeof(val));
@@ -195,22 +267,22 @@ void MoleculeCdxmlSaver::writeBinaryValue(const XMLAttribute* pAttr, int16_t tag
         auto vec_strs = split(values, ' ');
         if (vec_strs.size() % 2 == 0)
         {
-            for (int i = 0; i < vec_strs.size(); i += 2)
+            for (size_t i = 0; i < vec_strs.size(); i += 2)
                 std::swap(vec_strs[i], vec_strs[i + 1]);
         }
 
-        _output.writeBinaryUInt16(sizeof(int32_t) * vec_strs.size());
+        _output.writeBinaryUInt16(static_cast<uint16_t>(sizeof(int32_t) * vec_strs.size()));
 
         for (const auto& v : vec_strs)
         {
-            int32_t coord = std::stof(v) * (1 << 16);
+            int32_t coord = static_cast<int32_t>(std::stof(v) * (1 << 16));
             _output.writeBinaryInt(coord);
         }
     }
     break;
 
     case ECDXType::CDXCoordinate: {
-        int32_t coord = pAttr->FloatValue() * (1 << 16);
+        int32_t coord = static_cast<int32_t>(pAttr->FloatValue() * (1 << 16));
         _output.writeBinaryUInt16(sizeof(coord));
         _output.writeBinaryInt(coord);
     }
@@ -233,24 +305,24 @@ void MoleculeCdxmlSaver::writeBinaryValue(const XMLAttribute* pAttr, int16_t tag
     case ECDXType::CDXUnformatted: {
         std::string values = pAttr->Value();
         std::vector<uint8_t> bytes_vector;
-        for (int i = 0; i < values.size(); i += 2)
+        for (size_t i = 0; i < values.size(); i += 2)
         {
             uint32_t val;
             std::string hex_str = values.substr(i, 2);
             std::stringstream converter;
             converter << std::hex << hex_str;
             converter >> val;
-            bytes_vector.push_back(val);
+            bytes_vector.push_back(static_cast<uint8_t>(val));
         }
-        _output.writeBinaryUInt16(bytes_vector.size());
-        _output.write(bytes_vector.data(), bytes_vector.size());
+        _output.writeBinaryUInt16(static_cast<uint16_t>(bytes_vector.size()));
+        _output.write(bytes_vector.data(), static_cast<int>(bytes_vector.size()));
     }
     break;
 
     case ECDXType::CDXObjectIDArray: {
         std::string values = pAttr->Value();
         auto vals = split(values, ' ');
-        _output.writeBinaryUInt16(vals.size() * sizeof(int32_t));
+        _output.writeBinaryUInt16(static_cast<uint16_t>(vals.size() * sizeof(int32_t)));
         for (const auto& val : vals)
             _output.writeBinaryInt(std::stoi(val));
     }
@@ -361,7 +433,7 @@ void MoleculeCdxmlSaver::beginDocument(Bounds* bounds)
 
         mac_print_info[12] = 871; // magic number
 
-        mac_print_info[13] = height / 5; // magic scaling coeffient
+        mac_print_info[13] = height / 5; // magic scaling coefficient
         mac_print_info[14] = width / 5;
 
         mac_print_info[24] = 100; // horizontal scale, in percent
@@ -380,7 +452,7 @@ void MoleculeCdxmlSaver::beginDocument(Bounds* bounds)
     _current = _root;
 }
 
-void MoleculeCdxmlSaver::beginPage(Bounds* bounds)
+void MoleculeCdxmlSaver::beginPage(Bounds* /* bounds */)
 {
     _page = _doc->NewElement("page");
     _root->LinkEndChild(_page);
@@ -492,7 +564,7 @@ void MoleculeCdxmlSaver::addDefaultColorTable()
 int MoleculeCdxmlSaver::_getAttachmentPoint(BaseMolecule& mol, int atom_idx)
 {
     int val = 0;
-    if (mol.attachmentPointCount())
+    if (mol.attachmentPointCount() != 0)
     {
         for (int idx = 1; idx <= mol.attachmentPointCount(); idx++)
         {
@@ -514,6 +586,14 @@ void MoleculeCdxmlSaver::addNodeToFragment(BaseMolecule& mol, XMLElement* fragme
 {
     Vec3f pos3 = mol.getAtomXyz(atom_idx);
     Vec2f pos(pos3.x, pos3.y);
+
+    bool have_z = BaseMolecule::hasZCoord(mol);
+    if (have_z)
+    {
+        Vec3f offset(1, -1, -1);
+        pos3.add(offset);
+        pos3.scale(_scale);
+    }
 
     pos.add(offset);
     if (atom_idx == mol.vertexBegin())
@@ -651,6 +731,14 @@ void MoleculeCdxmlSaver::addNodeToFragment(BaseMolecule& mol, XMLElement* fragme
         out.printf("%f %f", pos.x, -pos.y);
         buf.push(0);
         node->SetAttribute("p", buf.ptr());
+        if (have_z)
+        {
+            QS_DEF(Array<char>, buf);
+            ArrayOutput out(buf);
+            out.printf("%f %f %f", pos3.x, -pos3.y, -pos3.z);
+            buf.push(0);
+            node->SetAttribute("xyz", buf.ptr());
+        }
     }
 
     int enh_stereo_type = mol.stereocenters.getType(atom_idx);
@@ -694,164 +782,59 @@ void MoleculeCdxmlSaver::addNodeToFragment(BaseMolecule& mol, XMLElement* fragme
 
     if (mol.getVertex(atom_idx).degree() == 0 && atom_number == ELEM_C && charge == 0 && radical == 0)
     {
-        XMLElement* t = _doc->NewElement("t");
-        node->LinkEndChild(t);
-
-        QS_DEF(Array<char>, buf);
-        ArrayOutput out(buf);
-        out.printf("%f %f", pos.x, -pos.y);
-        buf.push(0);
-        t->SetAttribute("p", buf.ptr());
+        XMLElement* t = create_text(node, pos.x, -pos.y, nullptr);
         t->SetAttribute("Justification", "Center");
-
-        XMLElement* s = _doc->NewElement("s");
-        t->LinkEndChild(s);
-        s->SetAttribute("font", 3);
-        s->SetAttribute("size", 10);
-        s->SetAttribute("face", 96);
-
-        XMLText* txt = _doc->NewText("CH4");
-        s->LinkEndChild(txt);
+        add_style_str(t, 3, 10, 96, "CH4");
+        add_charge(t, 3, 10, charge);
     }
     else if (mol.isRSite(atom_idx))
     {
-        XMLElement* t = _doc->NewElement("t");
-        node->LinkEndChild(t);
-
+        XMLElement* t = create_text(node, pos.x, -pos.y, "Left");
         QS_DEF(Array<char>, buf);
-        ArrayOutput out(buf);
-        out.printf("%f %f", pos.x, -pos.y);
-        buf.push(0);
-        t->SetAttribute("p", buf.ptr());
-        t->SetAttribute("LabelJustification", "Left");
-
-        XMLElement* s = _doc->NewElement("s");
-        t->LinkEndChild(s);
-        s->SetAttribute("font", 3);
-        s->SetAttribute("size", 10);
-        s->SetAttribute("face", 96);
-
-        out.clear();
-        //			out.printf("A");
         mol.getAtomSymbol(atom_idx, buf);
-        /*
-         * Skip charge since Chemdraw is pure. May be in future it will be fixed by Chemdraw
-         */
-        /*if (charge != 0) {
-            if (charge > 0) {
-                out.printf("+%d", charge);
-            }
-            else {
-                out.printf("-%d", charge);
-            }
-        }*/
         buf.push(0);
-
-        XMLText* txt = _doc->NewText(buf.ptr());
-        s->LinkEndChild(txt);
+        add_style_str(t, 3, 10, 96, buf.ptr());
+        add_charge(t, 3, 10, charge);
     }
     else if (mol.isPseudoAtom(atom_idx))
     {
-        XMLElement* t = _doc->NewElement("t");
-        node->LinkEndChild(t);
-
-        QS_DEF(Array<char>, buf);
-        ArrayOutput out(buf);
-        out.printf("%f %f", pos.x, -pos.y);
-        buf.push(0);
-        t->SetAttribute("p", buf.ptr());
-        t->SetAttribute("LabelJustification", "Left");
-
-        XMLElement* s = _doc->NewElement("s");
-        t->LinkEndChild(s);
-        s->SetAttribute("font", 3);
-        s->SetAttribute("size", 10);
-        s->SetAttribute("face", 96);
-
-        out.clear();
-
-        out.printf("%s", mol.getPseudoAtom(atom_idx));
-        /*
-         * Skip charge since Chemdraw is pure. May be in future it will be fixed by Chemdraw
-         */
-        /*if (charge != 0) {
-            if (charge > 0) {
-                out.printf("+%d", charge);
-            }
-            else {
-                out.printf("-%d", charge);
-            }
-        }*/
-        buf.push(0);
-        XMLText* txt = _doc->NewText(buf.ptr());
-        s->LinkEndChild(txt);
+        XMLElement* t = create_text(node, pos.x, -pos.y, "Left");
+        add_style_str(t, 3, 10, 96, mol.getPseudoAtom(atom_idx));
+        add_charge(t, 3, 10, charge);
     }
     else if (atom_number > 0 && atom_number != ELEM_C)
     {
-        XMLElement* t = _doc->NewElement("t");
-        node->LinkEndChild(t);
+        XMLElement* t = create_text(node, pos.x, -pos.y, "Left");
 
         QS_DEF(Array<char>, buf);
         ArrayOutput out(buf);
-        out.printf("%f %f", pos.x, -pos.y);
-        buf.push(0);
-        t->SetAttribute("p", buf.ptr());
-        t->SetAttribute("LabelJustification", "Left");
-
-        XMLElement* s = _doc->NewElement("s");
-        t->LinkEndChild(s);
-        s->SetAttribute("font", 3);
-        s->SetAttribute("size", 10);
-        s->SetAttribute("face", 96);
-
-        out.clear();
         mol.getAtomSymbol(atom_idx, buf);
         if (hcount > 0)
         {
             buf.pop();
             buf.push('H');
         }
-
         buf.push(0);
-        XMLText* txt = _doc->NewText(buf.ptr());
-        s->LinkEndChild(txt);
+        add_style_str(t, 3, 10, 96, buf.ptr());
+
         if (hcount > 1)
         {
-            XMLElement* s = _doc->NewElement("s");
-            t->LinkEndChild(s);
-            s->SetAttribute("font", 3);
-            s->SetAttribute("size", 10);
-            s->SetAttribute("face", 32);
-
             out.clear();
             out.printf("%d", hcount);
             buf.push(0);
-            XMLText* txt = _doc->NewText(buf.ptr());
-            s->LinkEndChild(txt);
+            add_style_str(t, 3, 10, 32, buf.ptr());
         }
+        add_charge(t, 3, 10, charge);
     }
     else if (atom_number < 0 && mol.isQueryMolecule())
     {
-        XMLElement* t = _doc->NewElement("t");
-        node->LinkEndChild(t);
+        XMLElement* t = create_text(node, pos.x, -pos.y, "Left");
 
         QS_DEF(Array<char>, buf);
         ArrayOutput out(buf);
-        out.printf("%f %f", pos.x, -pos.y);
-        buf.push(0);
-        t->SetAttribute("p", buf.ptr());
-        t->SetAttribute("LabelJustification", "Left");
-
-        XMLElement* s = _doc->NewElement("s");
-        t->LinkEndChild(s);
-        s->SetAttribute("font", 3);
-        s->SetAttribute("size", 10);
-        s->SetAttribute("face", 96);
 
         QS_DEF(Array<int>, list);
         int query_atom_type;
-
-        out.clear();
 
         if (mol.isQueryMolecule() && (query_atom_type = QueryMolecule::parseQueryAtom(mol.asQueryMolecule(), atom_idx, list)) != -1)
         {
@@ -874,47 +857,44 @@ void MoleculeCdxmlSaver::addNodeToFragment(BaseMolecule& mol, XMLElement* fragme
                 mol.getAtomSymbol(atom_idx, buf);
         }
 
-        XMLText* txt = _doc->NewText(buf.ptr());
-        s->LinkEndChild(txt);
+        add_style_str(t, 3, 10, 96, buf.ptr());
     }
 }
 
 void MoleculeCdxmlSaver::_collectSuperatoms(BaseMolecule& mol)
 {
-    _atoms_excluded.clear();
-    _bonds_excluded.clear();
-    _bonds_included.clear();
     for (int i = mol.sgroups.begin(); i != mol.sgroups.end(); i = mol.sgroups.next(i))
     {
         SGroup& sgroup = mol.sgroups.getSGroup(i);
         if (sgroup.sgroup_type == SGroup::SG_TYPE_SUP)
         {
-            _super_atoms.emplace(i, std::vector<int>{});
-            auto& atoms_list = _super_atoms.at(i);
+            _superatoms.emplace(i, ++_id);
+            auto& atoms_list = _superatoms.at(i).atoms;
+
             Superatom& sa = (Superatom&)sgroup;
+            // collect atoms of all the superatoms
             for (int j = 0; j < sa.atoms.size(); ++j)
             {
-                _atoms_excluded.insert(sa.atoms[j]);
+                _superatoms_atoms.emplace(sa.atoms[j], i);
                 atoms_list.push_back(sa.atoms[j]);
             }
         }
     }
 
-    if (_atoms_excluded.size())
+    if (_superatoms_atoms.size())
         for (int i = mol.edgeBegin(); i != mol.edgeEnd(); i = mol.edgeNext(i))
         {
             auto& edge = mol.getEdge(i);
-            int v_count = 0;
-            if (_atoms_excluded.find(edge.beg) != _atoms_excluded.end())
-                v_count++;
-            if (_atoms_excluded.find(edge.end) != _atoms_excluded.end())
-                v_count++;
+            auto beg_it = _superatoms_atoms.find(edge.beg);
+            auto end_it = _superatoms_atoms.find(edge.end);
 
-            if (v_count)
-                _bonds_excluded.insert(i);
+            if (beg_it != _superatoms_atoms.end() && end_it != _superatoms_atoms.end() && beg_it->second == end_it->second)
+                _superatoms.at(beg_it->second).bonds.push_back(i);
 
-            if (v_count == 2) // 2 means that both bond's atoms belongs to superatom
-                _bonds_included.insert(i);
+            if (beg_it != _superatoms_atoms.end())
+                _superatoms_bonds.emplace(i, beg_it->second);
+            else if (end_it != _superatoms_atoms.end())
+                _superatoms_bonds.emplace(i, end_it->second);
         }
 }
 
@@ -929,24 +909,57 @@ void MoleculeCdxmlSaver::addBondToFragment(BaseMolecule& mol, tinyxml2::XMLEleme
     bond->SetAttribute("E", _atoms_ids[edge.end]);
 
     int order = mol.getBondOrder(bond_idx);
+    if (order < 0 && mol.isQueryMolecule())
+        order = QueryMolecule::getQueryBondType(mol.asQueryMolecule().getBond(bond_idx));
+
+    int dir = mol.getBondDirection(bond_idx);
+
+    if (mol.cis_trans.isIgnored(bond_idx))
+    {
+        order = BOND_DOUBLE;
+        dir = BOND_EITHER;
+    }
 
     if (order == BOND_DOUBLE || order == BOND_TRIPLE)
         bond->SetAttribute("Order", order);
     else if (order == BOND_AROMATIC)
     {
-        bond->SetAttribute("Order", "1.5");
-        bond->SetAttribute("Display", "Dash");
-        bond->SetAttribute("Display2", "Dash");
+        bond->SetAttribute("Order", kBondOrderIntToStr.at(kCDXBondOrder_OneHalf).c_str());
+        bond->SetAttribute("Display", kCDXProp_Bond_DisplayIdToStr.at(kCDXBondDisplay_Dash).c_str());
+        bond->SetAttribute("Display2", kCDXProp_Bond_DisplayIdToStr.at(kCDXBondDisplay_Dash).c_str());
+    }
+    else if (order == _BOND_SINGLE_OR_DOUBLE)
+    {
+        bond->SetAttribute("Order", (kBondOrderIntToStr.at(kCDXBondOrder_Single) + " " + kBondOrderIntToStr.at(kCDXBondOrder_Double)).c_str());
+    }
+    else if (order == _BOND_SINGLE_OR_AROMATIC)
+    {
+        bond->SetAttribute("Order", (kBondOrderIntToStr.at(kCDXBondOrder_Single) + " " + kBondOrderIntToStr.at(kCDXBondOrder_OneHalf)).c_str());
+    }
+    else if (order == _BOND_DOUBLE_OR_AROMATIC)
+    {
+        bond->SetAttribute("Order", (kBondOrderIntToStr.at(kCDXBondOrder_Double) + " " + kBondOrderIntToStr.at(kCDXBondOrder_OneHalf)).c_str());
+    }
+    else if (order == _BOND_ANY)
+    {
+        bond->SetAttribute("Order", kBondOrderIntToStr.at(kCDXBondOrder_Any).c_str());
+    }
+    else if (order == _BOND_COORDINATION)
+    {
+        bond->SetAttribute("Order", kBondOrderIntToStr.at(kCDXBondOrder_Dative).c_str());
+    }
+    else if (order == _BOND_HYDROGEN)
+    {
+        bond->SetAttribute("Order", kBondOrderIntToStr.at(kCDXBondOrder_Hydrogen).c_str());
     }
     else
         ; // Do not write single bond order
 
-    int dir = mol.getBondDirection(bond_idx);
     int parity = mol.cis_trans.getParity(bond_idx);
 
     if (mol.have_xyz && (dir == BOND_UP || dir == BOND_DOWN))
     {
-        bond->SetAttribute("Display", (dir == BOND_UP) ? "WedgeBegin" : "WedgedHashBegin");
+        bond->SetAttribute("Display", kCDXProp_Bond_DisplayIdToStr.at((dir == BOND_UP) ? kCDXBondDisplay_WedgeBegin : kCDXBondDisplay_WedgedHashBegin).c_str());
     }
     else if (!mol.have_xyz && parity != 0)
     {
@@ -965,13 +978,33 @@ void MoleculeCdxmlSaver::addBondToFragment(BaseMolecule& mol, tinyxml2::XMLEleme
         buf.push(0);
         bond->SetAttribute("BondCircularOrdering", buf.ptr());
     }
+    else if (dir == BOND_EITHER)
+    {
+        bond->SetAttribute("Display", kCDXProp_Bond_DisplayIdToStr.at(kCDXBondDisplay_Wavy).c_str());
+    }
+
+    if (mol.reaction_bond_reacting_center[bond_idx] != RC_UNMARKED)
+    {
+        auto it = reaction_center_to_bond_rxn_participation.find(mol.reaction_bond_reacting_center[bond_idx]);
+        if (it != reaction_center_to_bond_rxn_participation.end())
+            bond->SetAttribute("RxnParticipation", it->second);
+    }
+
+    if (mol.isQueryMolecule())
+    {
+        int topology = VALUE_UNKNOWN;
+        mol.asQueryMolecule().getBond(bond_idx).sureValue(QueryMolecule::BOND_TOPOLOGY, topology);
+        if (topology > 0)
+            bond->SetAttribute("Topology", topology_to_cdx_topology.at(topology));
+    }
 }
 
 void MoleculeCdxmlSaver::addBondsToFragment(BaseMolecule& mol, tinyxml2::XMLElement* fragment)
 {
     for (int i = mol.edgeBegin(); i != mol.edgeEnd(); i = mol.edgeNext(i))
     {
-        if (_bonds_excluded.find(i) == _bonds_excluded.end())
+        // skip bonds from superatoms
+        if (_superatoms_bonds.find(i) == _superatoms_bonds.end())
             addBondToFragment(mol, fragment, i);
     }
 }
@@ -981,36 +1014,43 @@ void MoleculeCdxmlSaver::addNodesToFragment(BaseMolecule& mol, XMLElement* fragm
     Vec2f dummy_pos;
     for (int i = mol.vertexBegin(); i != mol.vertexEnd(); i = mol.vertexNext(i))
     {
-        if (_atoms_excluded.find(i) == _atoms_excluded.end()) // skip atoms from superatoms
+        // skip atoms from superatoms
+        if (_superatoms_atoms.find(i) == _superatoms_atoms.end())
             addNodeToFragment(mol, fragment, i, offset, min_coord, max_coord, dummy_pos);
     }
 }
 
 void MoleculeCdxmlSaver::addFragmentNodes(BaseMolecule& mol, tinyxml2::XMLElement* fragment, const Vec2f& offset, Vec2f& min_coord, Vec2f& max_coord)
 {
-    for (auto& kvp : _super_atoms)
+    // iterate over superatoms
+    std::unordered_map<std::pair<int, int>, int, pair_int_hash> outer_bond_ids;
+
+    for (auto& kvp : _superatoms)
     {
         std::vector<std::pair<int, int>> ext_connections;
         std::vector<int> connection_order, bond_ordering;
-        std::set<int> int_connections;
         XMLElement* node = _doc->NewElement("n");
         fragment->LinkEndChild(node);
-        node->SetAttribute("id", ++_id);
-        int fragment_node_id = _id;
+        int fragment_node_id = kvp.second.id;
+        node->SetAttribute("id", fragment_node_id);
         node->SetAttribute("NodeType", "Fragment");
         XMLElement* super_fragment = _doc->NewElement("fragment");
         super_fragment->SetAttribute("id", ++_id);
         node->LinkEndChild(super_fragment);
-        for (auto atom_idx : kvp.second)
+        // iterate atoms in the superatom
+        for (auto atom_idx : kvp.second.atoms)
         {
             Vec2f pos;
             addNodeToFragment(mol, super_fragment, atom_idx, offset, min_coord, max_coord, pos);
             auto& vx = mol.getVertex(atom_idx);
+            // iterate neighbors
             for (auto nei_idx = vx.neiBegin(); nei_idx != vx.neiEnd(); nei_idx = vx.neiNext(nei_idx))
             {
                 int nei_atom_idx = vx.neiVertex(nei_idx);
                 int nei_edge_idx = vx.neiEdge(nei_idx);
-                if (_atoms_excluded.find(nei_atom_idx) == _atoms_excluded.end())
+                auto ex_atom_it = _superatoms_atoms.find(nei_atom_idx);
+                // if atom is not in the superatom
+                if (ex_atom_it == _superatoms_atoms.end() || ex_atom_it->second != kvp.first)
                 {
                     // external neighbor found
                     XMLElement* connection_node = _doc->NewElement("n");
@@ -1019,19 +1059,25 @@ void MoleculeCdxmlSaver::addFragmentNodes(BaseMolecule& mol, tinyxml2::XMLElemen
                     connection_node->SetAttribute("NodeType", "ExternalConnectionPoint");
                     ext_connections.emplace_back(_id, _atoms_ids[atom_idx]);
                     connection_order.push_back(_id);
-                    bond_ordering.push_back(++_id);
-                    _out_connections.emplace_back(_id, _atoms_ids[nei_atom_idx], fragment_node_id);
-                }
-
-                if (_bonds_included.find(nei_edge_idx) != _bonds_included.end())
-                {
-                    if (int_connections.find(nei_edge_idx) == int_connections.end())
-                        int_connections.insert(nei_edge_idx);
+                    // if this connection already exists, _id should be reused for bond_ordering
+                    auto out_bond = std::make_pair(std::min(nei_atom_idx, atom_idx), std::max(nei_atom_idx, atom_idx));
+                    auto outer_bond_it = outer_bond_ids.find(out_bond);
+                    if (outer_bond_it == outer_bond_ids.end())
+                    {
+                        bond_ordering.push_back(++_id);
+                        if (ex_atom_it != _superatoms_atoms.end() && ex_atom_it->second != kvp.first)
+                            _out_connections.emplace_back(_id, _superatoms.at(ex_atom_it->second).id, fragment_node_id);
+                        else
+                            _out_connections.emplace_back(_id, _atoms_ids[nei_atom_idx], fragment_node_id);
+                        outer_bond_ids.emplace(out_bond, _id);
+                    }
+                    else
+                        bond_ordering.push_back(outer_bond_it->second);
                 }
             }
         }
 
-        for (int edge_idx : int_connections)
+        for (int edge_idx : kvp.second.bonds)
             addBondToFragment(mol, super_fragment, edge_idx);
 
         for (const auto& ext_bond : ext_connections)
@@ -1046,7 +1092,7 @@ void MoleculeCdxmlSaver::addFragmentNodes(BaseMolecule& mol, tinyxml2::XMLElemen
         if (connection_order.size() > 1)
         {
             std::string order;
-            for (int i = 0; i < connection_order.size(); ++i)
+            for (size_t i = 0; i < connection_order.size(); ++i)
             {
                 if (i)
                     order += " ";
@@ -1058,7 +1104,7 @@ void MoleculeCdxmlSaver::addFragmentNodes(BaseMolecule& mol, tinyxml2::XMLElemen
         if (bond_ordering.size() > 1)
         {
             std::string order;
-            for (int i = 0; i < bond_ordering.size(); ++i)
+            for (size_t i = 0; i < bond_ordering.size(); ++i)
             {
                 if (i)
                     order += " ";
@@ -1068,27 +1114,30 @@ void MoleculeCdxmlSaver::addFragmentNodes(BaseMolecule& mol, tinyxml2::XMLElemen
         }
 
         auto& sa = (Superatom&)mol.sgroups.getSGroup(kvp.first);
-        XMLElement* t = _doc->NewElement("t");
-        node->LinkEndChild(t);
-        t->SetAttribute("LabelJustification", "Left");
-        t->SetAttribute("LabelAlignment", "Above");
-        XMLElement* s = _doc->NewElement("s");
-        t->LinkEndChild(s);
-        XMLText* txt = _doc->NewText(sa.subscript.ptr());
-        s->LinkEndChild(txt);
+        if (sa.subscript.size())
+        {
+            XMLElement* t = _doc->NewElement("t");
+            node->LinkEndChild(t);
+            t->SetAttribute("LabelJustification", "Left");
+            t->SetAttribute("LabelAlignment", "Above");
+            XMLElement* s = _doc->NewElement("s");
+            t->LinkEndChild(s);
+            XMLText* txt = _doc->NewText(sa.subscript.ptr());
+            s->LinkEndChild(txt);
+        }
     }
 }
 
-void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& mol, const Vec2f& offset, float scale)
+void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& bmol, const Vec2f& offset, float scale)
 {
-    std::vector<int> ids;
+    std::map<int, int> atom_ids;
     int id = 0;
-    saveMoleculeFragment(mol, offset, scale, -1, id, ids);
+    saveMoleculeFragment(bmol, offset, scale, -1, id, atom_ids);
 }
 
 void MoleculeCdxmlSaver::saveRGroup(PtrPool<BaseMolecule>& fragments, const Vec2f& offset, int rgnum)
 {
-    XMLElement* parent = _current;
+    // XMLElement* parent = _current;
     XMLElement* fragment = _doc->NewElement("altgroup");
     _current->LinkEndChild(fragment);
     _current = fragment;
@@ -1126,14 +1175,18 @@ void MoleculeCdxmlSaver::saveRGroup(PtrPool<BaseMolecule>& fragments, const Vec2
     fragment->SetAttribute("Valence", valence);
 }
 
-void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& mol, const Vec2f& offset, float structure_scale, int frag_id, int& id, std::vector<int>& ids)
+void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& bmol, const Vec2f& offset, float structure_scale, int frag_id, int& id,
+                                              std::map<int, int>& atom_ids)
 {
+    std::unique_ptr<BaseMolecule> mol(bmol.neu());
+    mol->clone(bmol);
+    deleteNamelessSGroups(*mol);
+    mol->transformTemplatesToSuperatoms();
     _atoms_ids.clear();
     _bonds_ids.clear();
-    _super_atoms.clear();
-    _atoms_excluded.clear();
-    _bonds_excluded.clear();
-    _bonds_included.clear();
+    _superatoms.clear();
+    _superatoms_atoms.clear();
+    _superatoms_bonds.clear();
     _out_connections.clear();
 
     _scale = structure_scale * _bond_length;
@@ -1153,25 +1206,28 @@ void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& mol, const Vec2f& of
     else
         fragment->SetAttribute("id", ++_id);
 
-    if (ids.size())
+    if (atom_ids.size())
     {
-        _atoms_ids = ids;
-        if (_atoms_ids.back() > _id)
-            _id = _atoms_ids.back();
+        _atoms_ids = atom_ids;
+        auto back_it = std::prev(_atoms_ids.end());
+        if (back_it->second > _id)
+            _id = back_it->second;
     }
     else
-        for (int i = mol.vertexBegin(); i != mol.vertexEnd(); i = mol.vertexNext(i))
-            _atoms_ids.push_back(++_id);
+        for (int i = mol->vertexBegin(); i != mol->vertexEnd(); i = mol->vertexNext(i))
+            _atoms_ids.emplace(i, ++_id);
 
-    for (int i = mol.edgeBegin(); i != mol.edgeEnd(); i = mol.edgeNext(i))
-        _bonds_ids.push_back(++_id);
+    for (int i = mol->edgeBegin(); i != mol->edgeEnd(); i = mol->edgeNext(i))
+    {
+        _bonds_ids.emplace(i, ++_id);
+    }
 
     Vec2f min_coord, max_coord;
 
-    _collectSuperatoms(mol);
-    addFragmentNodes(mol, fragment, offset, min_coord, max_coord);
-    addNodesToFragment(mol, fragment, offset, min_coord, max_coord);
-    addBondsToFragment(mol, fragment);
+    _collectSuperatoms(*mol);
+    addFragmentNodes(*mol, fragment, offset, min_coord, max_coord);
+    addNodesToFragment(*mol, fragment, offset, min_coord, max_coord);
+    addBondsToFragment(*mol, fragment);
 
     for (const auto& out_bond : _out_connections)
     {
@@ -1182,7 +1238,7 @@ void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& mol, const Vec2f& of
         bond->SetAttribute("E", out_bond.end);
     }
 
-    if (mol.isChiral())
+    if (mol->isChiral())
     {
         Vec2f chiral_pos(max_coord.x, max_coord.y);
         Vec2f bbox(_scale * chiral_pos.x, -_scale * chiral_pos.y);
@@ -1204,8 +1260,8 @@ void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& mol, const Vec2f& of
         _current = fragment;
     }
 
-    for (int i = 0; i < mol.meta().metaData().size(); ++i)
-        addMetaObject(*mol.meta().metaData()[i], ++_id);
+    for (int i = 0; i < mol->meta().metaData().size(); ++i)
+        addMetaObject(*mol->meta().metaData()[i], ++_id);
 
     _current = parent;
     id = _id;
@@ -1319,15 +1375,15 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
     {
     case KETReactionArrow::CID: {
         KETReactionArrow& ar = (KETReactionArrow&)(obj);
-        addArrow(id, ar._arrow_type, ar._begin, ar._end);
+        addArrow(id, ar.getArrowType(), ar.getTail(), ar.getHead());
     }
     break;
     case KETReactionPlus::CID: {
         KETReactionPlus& rp = (KETReactionPlus&)(obj);
         attrs.insert("GraphicType", "Symbol");
         attrs.insert("SymbolType", "Plus");
-        Vec2f v1(rp._pos.x, rp._pos.y - PLUS_HALF_HEIGHT / _bond_length);
-        Vec2f v2(rp._pos.x, rp._pos.y + PLUS_HALF_HEIGHT / _bond_length);
+        Vec2f v1(rp.getPos().x, rp.getPos().y - PLUS_HALF_HEIGHT / _bond_length);
+        Vec2f v2(rp.getPos().x, rp.getPos().y + PLUS_HALF_HEIGHT / _bond_length);
         addElement("graphic", id, v1, v2, attrs);
     }
     break;
@@ -1375,14 +1431,15 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
     break;
     case KETTextObject::CID: {
         const KETTextObject& ko = static_cast<const KETTextObject&>(obj);
-        double text_offset_y = 0;
-        int font_size = KETDefaultFontSize;
+        // double text_offset_y = 0;
+        int font_size = static_cast<int>(KETDefaultFontSize);
         CDXMLFontStyle font_face(0);
         for (auto& text_item : ko._block)
         {
-            int first_index = -1;
-            int second_index = -1;
-            double text_offset_x = 0;
+            bool is_first_index = true;
+            size_t first_index = 0;
+            size_t second_index = 0;
+            // double text_offset_x = 0;
             FONT_STYLE_SET current_styles;
             Vec2f text_origin(ko._pos.x, ko._pos.y);
             std::string pos_str = std::to_string(_bond_length * text_origin.x) + " " + std::to_string(-_bond_length * text_origin.y);
@@ -1394,10 +1451,11 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
             t->SetAttribute("InterpretChemically", "no");
             for (auto& kvp : text_item.styles)
             {
-                if (first_index == -1)
+                if (is_first_index)
                 {
                     first_index = kvp.first;
                     current_styles = kvp.second;
+                    is_first_index = false;
                     continue;
                 }
                 second_index = kvp.first;
@@ -1426,7 +1484,7 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
                         font_face.is_subscript = text_style.second;
                         break;
                     default:
-                        font_size = text_style.second ? text_style.first : KETDefaultFontSize;
+                        font_size = text_style.second ? text_style.first : static_cast<int>(KETDefaultFontSize);
                         break;
                     }
                 }
@@ -1630,6 +1688,7 @@ void MoleculeCdxmlSaver::writeIrregularElement(tinyxml2::XMLElement* pElement, i
     {
     case kCDXProp_FontTable: {
         std::vector<CDXFont> font_table;
+
         uint16_t total_size = sizeof(uint16_t) * 2; // platform type + fonts counter
         for (auto pElem = pElement->FirstChildElement(); pElem; pElem = pElem->NextSiblingElement())
         {
@@ -1640,29 +1699,29 @@ void MoleculeCdxmlSaver::writeIrregularElement(tinyxml2::XMLElement* pElement, i
                 {
                     std::string attr_name = pAttr->Name();
                     if (attr_name == "id")
-                        font.font_id = pAttr->IntValue();
+                        font.font_id = static_cast<uint16_t>(pAttr->IntValue());
                     else if (attr_name == "charset")
                     {
-                        font.char_set = kCharsetStrToInt.at(pAttr->Value());
+                        font.char_set = static_cast<uint16_t>(kCharsetStrToInt.at(pAttr->Value()));
                     }
                     else if (attr_name == "name")
                         font.name = pAttr->Value();
                 }
                 font_table.push_back(font);
-                total_size += sizeof(uint16_t) * 3 + font.name.size(); // font id + charset + name length + name
+                total_size += static_cast<uint16_t>(sizeof(uint16_t) * 3 + font.name.size()); // font id + charset + name length + name
             }
         }
 
         _output.writeBinaryUInt16(total_size);
         _output.writeBinaryUInt16(0); // platform type
-        _output.writeBinaryUInt16(font_table.size());
+        _output.writeBinaryUInt16(static_cast<uint16_t>(font_table.size()));
 
         for (const auto& ft : font_table)
         {
             _output.writeBinaryUInt16(ft.font_id);
             _output.writeBinaryUInt16(ft.char_set);
-            _output.writeBinaryUInt16(ft.name.size());
-            _output.write(ft.name.c_str(), ft.name.size());
+            _output.writeBinaryUInt16(static_cast<uint16_t>(ft.name.size()));
+            _output.write(ft.name.c_str(), static_cast<int>(ft.name.size()));
         }
     }
     break;
@@ -1689,8 +1748,8 @@ void MoleculeCdxmlSaver::writeIrregularElement(tinyxml2::XMLElement* pElement, i
             }
             color_table.emplace_back(r, g, b);
         }
-        _output.writeBinaryUInt16(color_table.size() * sizeof(CDXColor) + sizeof(uint16_t));
-        _output.writeBinaryUInt16(color_table.size());
+        _output.writeBinaryUInt16(static_cast<uint16_t>(color_table.size() * sizeof(CDXColor) + sizeof(uint16_t)));
+        _output.writeBinaryUInt16(static_cast<uint16_t>(color_table.size()));
         for (const auto& rgb : color_table)
         {
             _output.write(&rgb, sizeof(rgb));
@@ -1732,17 +1791,17 @@ void MoleculeCdxmlSaver::writeBinaryElement(tinyxml2::XMLElement* element)
 {
     std::string objname = element->Value();
     int id = 0, tag = 0;
-    bool is_object = false;
+    // bool is_object = false;
     if (objname != "CDXML")
     {
         auto it = KCDXNameToObjID.find(objname);
         if (it != KCDXNameToObjID.end())
         {
             tag = it->second;
-            _output.writeBinaryUInt16(tag);
+            _output.writeBinaryUInt16(static_cast<uint16_t>(tag));
             if (tag < kCDXTag_Object)
             {
-                writeIrregularElement(element, tag);
+                writeIrregularElement(element, static_cast<uint16_t>(tag));
                 return;
             }
         }
@@ -1778,6 +1837,8 @@ void MoleculeCdxmlSaver::endDocument()
         _output.writeString(kCDX_HeaderString);
         _output.writeBinaryInt(kCDXMagicNumber);
         _output.write(kCDXReserved, sizeof(kCDXReserved));
+        _output.writeBinaryWord(0); // TODO: change to kCDXObj_Document); // First object is document
+        _output.writeBinaryInt(0);  // Document ID 4 bytes.
         auto cdxml = _doc->FirstChildElement();
         writeBinaryElement(cdxml);
         _output.writeBinaryUInt16(0);
@@ -1830,18 +1891,26 @@ int MoleculeCdxmlSaver::getHydrogenCount(BaseMolecule& mol, int idx, int charge,
     return h;
 }
 
-void MoleculeCdxmlSaver::saveMolecule(BaseMolecule& mol)
+void MoleculeCdxmlSaver::_validate(BaseMolecule& bmol)
 {
+    std::string unresolved;
+    if (bmol.getUnresolvedTemplatesList(bmol, unresolved))
+        throw Error("%s cannot be written in CDXML/CDX format.", unresolved.c_str());
+}
+
+void MoleculeCdxmlSaver::saveMolecule(BaseMolecule& bmol)
+{
+    _validate(bmol);
     Vec3f min_coord, max_coord;
 
     _id = 0;
 
-    if (mol.have_xyz)
+    if (bmol.have_xyz)
     {
-        for (int i = mol.vertexBegin(); i != mol.vertexEnd(); i = mol.vertexNext(i))
+        for (int i = bmol.vertexBegin(); i != bmol.vertexEnd(); i = bmol.vertexNext(i))
         {
-            Vec3f& pos = mol.getAtomXyz(i);
-            if (i == mol.vertexBegin())
+            Vec3f& pos = bmol.getAtomXyz(i);
+            if (i == bmol.vertexBegin())
                 min_coord = max_coord = pos;
             else
             {
@@ -1866,10 +1935,10 @@ void MoleculeCdxmlSaver::saveMolecule(BaseMolecule& mol)
 
     Vec2f offset(-min_coord.x, -max_coord.y);
 
-    saveMoleculeFragment(mol, offset, 1);
-    for (int i = 1; i <= mol.rgroups.getRGroupCount(); i++)
+    saveMoleculeFragment(bmol, offset, 1);
+    for (int i = 1; i <= bmol.rgroups.getRGroupCount(); i++)
     {
-        auto& rgrp = mol.rgroups.getRGroup(i);
+        auto& rgrp = bmol.rgroups.getRGroup(i);
         if (rgrp.fragments.size())
             saveRGroup(rgrp.fragments, offset, i);
     }
@@ -1877,3 +1946,21 @@ void MoleculeCdxmlSaver::saveMolecule(BaseMolecule& mol)
     endPage();
     endDocument();
 }
+
+void MoleculeCdxmlSaver::deleteNamelessSGroups(BaseMolecule& bmol)
+{
+    for (int j = bmol.sgroups.begin(); j != bmol.sgroups.end(); j = bmol.sgroups.next(j))
+    {
+        SGroup& sg = bmol.sgroups.getSGroup(j);
+        if (sg.sgroup_type == SGroup::SG_TYPE_SUP)
+        {
+            auto& sa = static_cast<Superatom&>(sg);
+            if (sa.subscript.size() == 0 || std::string(sa.subscript.ptr()).size() == 0)
+                bmol.sgroups.remove(j);
+        }
+    }
+}
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

@@ -41,6 +41,9 @@ namespace indigo
     const auto KETFontSuperscriptStr = "SUPERSCRIPT";
     const auto KETFontSubscriptStr = "SUBSCRIPT";
     const auto KETFontCustomSizeStr = "CUSTOM_FONT_SIZE";
+    const auto KImagePNG = "image/png";
+    const auto KImageSVG = "image/svg+xml";
+
     const uint8_t KETReactantArea = 0;
     const uint8_t KETReagentUpArea = 1;
     const uint8_t KETReagentDownArea = 2;
@@ -230,6 +233,7 @@ namespace indigo
             EEllipticalArcFilledTriangle,
             EEllipticalArcOpenAngle,
             EEllipticalArcOpenHalfAngle,
+            ERetrosynthetic,
         };
 
         KETReactionArrow(int arrow_type, const Vec2f& begin, const Vec2f& end, float height = 0)
@@ -240,6 +244,27 @@ namespace indigo
             return new KETReactionArrow(_arrow_type, _begin, _end, _height);
         }
 
+        int getArrowType() const
+        {
+            return _arrow_type;
+        }
+
+        float getHeight() const
+        {
+            return _height;
+        }
+
+        const auto& getHead() const
+        {
+            return _end;
+        }
+
+        const auto& getTail() const
+        {
+            return _begin;
+        }
+
+    private:
         int _arrow_type;
         float _height;
         Vec2f _begin;
@@ -263,7 +288,53 @@ namespace indigo
             EKETRectangle,
             EKETLine
         };
+        const auto& getPos() const
+        {
+            return _pos;
+        }
+
+    private:
         Vec2f _pos;
+    };
+
+    class KETImage : public MetaObject
+    {
+    public:
+        enum ImageFormat
+        {
+            EKETPNG,
+            EKETSVG
+        };
+
+        static const std::uint32_t CID = "KET embedded image"_hash;
+        KETImage(const Rect2f& bbox, KETImage::ImageFormat format, const std::string& base64);
+
+        MetaObject* clone() const override
+        {
+            return new KETImage(_bbox, _image_format, getBase64());
+        }
+
+        auto& getBoundingBox() const
+        {
+            return _bbox;
+        }
+
+        std::string getBase64() const;
+
+        const std::string& getData() const
+        {
+            return _image_data;
+        }
+
+        ImageFormat getFormat() const
+        {
+            return _image_format;
+        }
+
+    private:
+        Rect2f _bbox;
+        std::string _image_data;
+        ImageFormat _image_format;
     };
 
     struct MolSumm
@@ -299,7 +370,8 @@ namespace indigo
             ARROW_ELLIPTICAL_ARC_FILLED_BOW,
             ARROW_ELLIPTICAL_ARC_FILLED_TRIANGLE,
             ARROW_ELLIPTICAL_ARC_OPEN_ANGLE,
-            ARROW_ELLIPTICAL_ARC_OPEN_HALF_ANGLE
+            ARROW_ELLIPTICAL_ARC_OPEN_HALF_ANGLE,
+            ARROW_RETROSYNTHETIC,
         };
 
         enum
@@ -337,5 +409,22 @@ namespace indigo
             return bh(p.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
     };
+
+    struct commutative_pair_int_hash
+    {
+        pair_int_hash pih;
+
+    public:
+        size_t operator()(const std::pair<int, int>& p) const
+        {
+            std::pair<int, int> sorted_pair(p);
+            if (sorted_pair.first > sorted_pair.second)
+                std::swap(sorted_pair.first, sorted_pair.second);
+            auto c_val = pih(sorted_pair);
+            std::cout << "hash:" << c_val << std::endl;
+            return c_val;
+        }
+    };
+
 }
 #endif

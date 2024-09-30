@@ -77,13 +77,11 @@ static inline void spatialGradientKernel_vec( T& vx, T& vy,
 #endif
 
 template <typename T>
-static
-#if _MSC_VER >= 1930 && _MSC_VER < 1940 // FIXME: MSVC 2022, static build, got fatal error C1001
-__declspec(noinline)
+#if 1930 <= _MSC_VER && _MSC_VER < 1940 // FIXME: MSVC 2022, static build, got fatal error C1001
+static __declspec(noinline) void spatialGradientKernel( T& vx, T& vy,
 #else
-inline
+static inline void spatialGradientKernel( T& vx, T& vy,
 #endif
-void spatialGradientKernel( T& vx, T& vy,
                                           const T& v00, const T& v01, const T& v02,
                                           const T& v10,               const T& v12,
                                           const T& v20, const T& v21, const T& v22 )

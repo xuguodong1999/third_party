@@ -20,6 +20,11 @@
 #define __defs_h__
 
 #include "indigo_core_export.h"
+#if 0
+#if !defined(__sign)
+#define __sign(a) (a > 0 ? 1 : (a < 0 ? -1 : 0))
+#endif
+#endif
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 // #define vsnprintf _vsnprintf
@@ -65,10 +70,30 @@ typedef unsigned int UINT32;
 #endif
 
 #ifndef EXPORT_SYMBOL
+#if 0
+#ifdef _WIN32
+#define EXPORT_SYMBOL __declspec(dllexport)
+#elif (defined __GNUC__ || defined __APPLE__)
+#define EXPORT_SYMBOL __attribute__((visibility("default")))
+#else
+#define EXPORT_SYMBOL
+#endif
+#endif
 #define EXPORT_SYMBOL INDIGO_CORE_EXPORT
 #endif
 
 #ifndef DLLEXPORT
+#if 0
+#ifdef _WIN32
+#ifdef INDIGO_PLUGIN
+#define DLLEXPORT __declspec(dllimport)
+#else
+#define DLLEXPORT EXPORT_SYMBOL
+#endif
+#else
+#define DLLEXPORT EXPORT_SYMBOL
+#endif
+#endif
 #define DLLEXPORT EXPORT_SYMBOL
 #endif
 

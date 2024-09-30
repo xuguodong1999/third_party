@@ -7,14 +7,13 @@
 
 #include "include/private/base/SkFeatures.h"
 #include "src/core/SkCpu.h"
-#include "src/core/SkOpts.h"
 #include "src/core/SkOptsTargets.h"
 #include "src/core/SkSwizzlePriv.h"
 
 #define SK_OPTS_TARGET SK_OPTS_TARGET_DEFAULT
 #include "src/opts/SkOpts_SetTarget.h"
 
-#include "src/opts/SkSwizzler_opts.h"  // IWYU pragma: keep
+#include "src/opts/SkSwizzler_opts.inc"  // IWYU pragma: keep
 
 #include "src/opts/SkOpts_RestoreTarget.h"
 
@@ -34,6 +33,7 @@ namespace SkOpts {
 
     void Init_Swizzler_ssse3();
     void Init_Swizzler_hsw();
+    void Init_Swizzler_lasx();
 
     static bool init() {
     #if defined(SK_ENABLE_OPTIMIZE_SIZE)
@@ -45,6 +45,10 @@ namespace SkOpts {
 
         #if SK_CPU_SSE_LEVEL < SK_CPU_SSE_LEVEL_AVX2
             if (SkCpu::Supports(SkCpu::HSW)) { Init_Swizzler_hsw(); }
+        #endif
+    #elif defined(SK_CPU_LOONGARCH)
+        #if SK_CPU_LSX_LEVEL < SK_CPU_LSX_LEVEL_LASX
+            if (SkCpu::Supports(SkCpu::LOONGARCH_ASX)) { Init_Swizzler_lasx(); }
         #endif
     #endif
       return true;

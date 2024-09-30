@@ -21,7 +21,9 @@
 #endif
 
 #include "molecule/ket_commons.h"
+#include "base_cpp/scanner.h"
 #include "molecule/monomer_commons.h"
+#include <cppcodec/base64_default_rfc4648.hpp>
 
 namespace indigo
 {
@@ -129,6 +131,17 @@ namespace indigo
             break;
         }
         return res;
+    }
+
+    KETImage::KETImage(const Rect2f& bbox, KETImage::ImageFormat format, const std::string& base64) : MetaObject(CID), _bbox(bbox), _image_format(format)
+    {
+        BufferScanner b64decode(base64.c_str(), true);
+        b64decode.readAll(_image_data);
+    }
+
+    std::string KETImage::getBase64() const
+    {
+        return base64::encode(_image_data.c_str(), _image_data.size());
     }
 
 }

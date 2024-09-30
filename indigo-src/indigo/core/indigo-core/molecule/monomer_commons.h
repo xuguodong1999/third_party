@@ -39,9 +39,14 @@ namespace indigo
 
     const auto kMonomerClassMOD = "MOD";
     const auto kMonomerClassXLINK = "XLINK";
+    const auto kMonomerClassLINKER = "LINKER";
+
+    const auto kFASTA_HEADER = "FASTA_HEADER";
 
     const auto kPrefix_d("d");
     const auto kPrefix_r("r");
+
+    std::string extractMonomerName(const std::string& str);
 
     bool isNucleicClass(const std::string& monomer_class);
 
@@ -91,5 +96,22 @@ namespace indigo
         int leaving_group;
         std::string id;
     };
+
+    const auto kHELMPolymerTypePEPTIDE = kMonomerClassPEPTIDE;
+    const auto kHELMPolymerTypeRNA = kMonomerClassRNA;
+    const auto kHELMPolymerTypeCHEM = kMonomerClassCHEM;
+    const auto kHELMPolymerTypeUnknown = "BLOB";
+
+    enum class HELMType
+    {
+        Peptide,
+        RNA,
+        Chem,
+        Unknown
+    };
+
+    HELMType getHELMTypeFromString(const std::string& helm_type);
+    const std::string& getStringFromHELMType(HELMType helm_type);
+
 }
 #endif

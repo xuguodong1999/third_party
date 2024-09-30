@@ -16,6 +16,10 @@
  * limitations under the License.
  ***************************************************************************/
 
+#ifdef _MSC_VER
+#pragma warning(push, 4)
+#endif
+
 #include <unordered_map>
 
 #include "molecule/base_molecule.h"
@@ -23,6 +27,18 @@
 
 namespace indigo
 {
+    std::string extractMonomerName(const std::string& str)
+    {
+        std::string res = str;
+        if (str.size())
+        {
+            auto nat_replace = split(std::string(str.c_str()), '/');
+            if (nat_replace.size() > 1)
+                res = normalizeMonomerName(nat_replace.front(), nat_replace[1]);
+        }
+        return res;
+    }
+
     std::string classToPrefix(const std::string& monomer_class)
     {
         if (monomer_class == kMonomerClassdAA || monomer_class == kMonomerClassDNA)
@@ -67,7 +83,7 @@ namespace indigo
     bool isBackboneClass(const std::string& monomer_class)
     {
         return isAminoAcidClass(monomer_class) || monomer_class == kMonomerClassSUGAR || monomer_class == kMonomerClassPHOSPHATE ||
-               isNucleotideClass(monomer_class);
+               monomer_class == kMonomerClassCHEM || isNucleotideClass(monomer_class);
     }
 
     bool isBasicAminoAcid(const std::string& monomer_class, const std::string& alias)
@@ -134,7 +150,7 @@ namespace indigo
         {
             if (is_lower_case(name) || is_upper_case(name))
                 for (auto it = res.begin(); it < res.end(); ++it)
-                    *it = it > res.begin() ? std::tolower(*it) : std::toupper(*it);
+                    *it = it > res.begin() ? std::tolower(*it, std::locale()) : std::toupper(*it, std::locale());
         }
         // do not add prefix
         auto prefix = classToPrefix(monomer_class);
@@ -154,8 +170,8 @@ namespace indigo
     std::string getAttachmentLabel(int order)
     {
         std::string second_chars = "lrx";
-        std::string label(1, 'A' + order);
-        if (order > second_chars.size() - 1)
+        std::string label(1, static_cast<char>('A' + order));
+        if (order > static_cast<long>(second_chars.size()) - 1)
             label += second_chars.back();
         else
             label += second_chars[order];
@@ -165,9 +181,9 @@ namespace indigo
     int getAttachmentOrder(const std::string& label)
     {
         if (label == kLeftAttachmentPoint)
-            return 0;
+            return kLeftAttachmentPointIdx;
         if (label == kRightAttachmentPoint)
-            return 1;
+            return kRightAttachmentPointIdx;
         if (label.size() > 1 || isupper(label[0]))
         {
             if (label[0] == 'R')
@@ -179,6 +195,9 @@ namespace indigo
             if (label[1] == 'x')
                 return label[0] - 'A';
         }
+        // TODO: return right value at this point
+        //       this value returned just to avoid warnings
+        return kBranchAttachmentPointIdx;
     }
 
     bool isAttachmentPointsInOrder(int order, const std::string& label)
@@ -231,7 +250,7 @@ namespace indigo
         {
             alias = name;
             if (name.size() == 1)
-                alias = std::toupper(name.front());
+                std::transform(alias.begin(), alias.end(), alias.begin(), ::toupper);
             else if (name.empty())
                 alias = std::string("#") + std::to_string(tg.tgroup_id - 1);
         }
@@ -250,4 +269,34 @@ namespace indigo
         }
         return tg_it == templates_map.end() ? std::nullopt : std::optional<std::reference_wrapper<TGroup>>(std::ref(tg_it->second));
     }
+
+    HELMType getHELMTypeFromString(const std::string& helm_type)
+    {
+        static const std::unordered_map<std::string, HELMType> strToType = {
+            {kHELMPolymerTypePEPTIDE, HELMType::Peptide},
+            {kHELMPolymerTypeRNA, HELMType::RNA},
+            {kHELMPolymerTypeCHEM, HELMType::Chem},
+            {kHELMPolymerTypeUnknown, HELMType::Unknown},
+        };
+        auto it = strToType.find(helm_type);
+        if (it != strToType.end())
+            return it->second;
+        return HELMType::Unknown;
+    }
+
+    const std::string& getStringFromHELMType(HELMType helm_type)
+    {
+        static const std::unordered_map<HELMType, std::string> typeToStr = {
+            {HELMType::Peptide, kHELMPolymerTypePEPTIDE},
+            {HELMType::RNA, kHELMPolymerTypeRNA},
+            {HELMType::Chem, kHELMPolymerTypeCHEM},
+            {HELMType::Unknown, kHELMPolymerTypeUnknown},
+        };
+        return typeToStr.at(helm_type);
+    }
+
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

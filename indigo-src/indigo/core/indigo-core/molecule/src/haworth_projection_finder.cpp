@@ -313,7 +313,7 @@ void HaworthProjectionFinder::_markRingBonds(const Array<int>& vertices, const A
     }
 }
 
-void HaworthProjectionFinder::_addRingStereocenters(const Array<int>& vertices, const Array<int>& edges)
+void HaworthProjectionFinder::_addRingStereocenters(const Array<int>& vertices, const Array<int>& /* edges */)
 {
     // Find left vertex
     int j_left = -1;
@@ -370,8 +370,7 @@ void HaworthProjectionFinder::_addRingStereocenters(const Array<int>& vertices, 
                 break;
             }
 
-            float yn = _mol.getAtomXyz(vn).y;
-            if (yn > yc)
+            if (_mol.getAtomXyz(vn).y > yc)
                 vi_top = vn;
             else
                 vi_bottom = vn;

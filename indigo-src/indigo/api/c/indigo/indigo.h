@@ -28,6 +28,26 @@
 #define qword unsigned long long
 #endif
 
+#if 0
+#ifndef EXPORT_SYMBOL
+#ifdef _WIN32
+#define EXPORT_SYMBOL __declspec(dllexport)
+#elif (defined __GNUC__ || defined __APPLE__)
+#define EXPORT_SYMBOL __attribute__((visibility("default")))
+#else
+#define EXPORT_SYMBOL
+#endif
+#endif
+
+#ifndef CEXPORT
+#ifndef __cplusplus
+#define CEXPORT EXPORT_SYMBOL
+#else
+#define CEXPORT extern "C" EXPORT_SYMBOL
+#endif
+#endif
+#endif
+
 #ifndef __byte_typedef__
 #define __byte_typedef__
 typedef unsigned char byte;
@@ -181,17 +201,45 @@ INDIGO_EXPORT int indigoLoadSmartsFromString(const char* string);
 INDIGO_EXPORT int indigoLoadSmartsFromFile(const char* filename);
 INDIGO_EXPORT int indigoLoadSmartsFromBuffer(const char* buffer, int size);
 
-INDIGO_EXPORT int indigoLoadSequence(int source, const char* seq_type);
-INDIGO_EXPORT int indigoLoadSequenceFromString(const char* string, const char* seq_type);
-INDIGO_EXPORT int indigoLoadSequenceFromFile(const char* filename, const char* seq_type);
+INDIGO_EXPORT int indigoLoadMonomerLibrary(int source);
+INDIGO_EXPORT int indigoLoadMonomerLibraryFromString(const char* string);
+INDIGO_EXPORT int indigoLoadMonomerLibraryFromFile(const char* filename);
+
+INDIGO_EXPORT int indigoLoadSequence(int source, const char* seq_type, int library);
+INDIGO_EXPORT int indigoLoadSequenceFromString(const char* string, const char* seq_type, int library);
+INDIGO_EXPORT int indigoLoadSequenceFromFile(const char* filename, const char* seq_type, int library);
+
+INDIGO_EXPORT int indigoLoadFasta(int source, const char* seq_type, int library);
+INDIGO_EXPORT int indigoLoadFastaFromString(const char* string, const char* seq_type, int library);
+INDIGO_EXPORT int indigoLoadFastaFromFile(const char* filename, const char* seq_type, int library);
+
+INDIGO_EXPORT int indigoLoadIdt(int source, int library);
+INDIGO_EXPORT int indigoLoadIdtFromString(const char* string, int library);
+INDIGO_EXPORT int indigoLoadIdtFromFile(const char* filename, int library);
+
+INDIGO_EXPORT int indigoLoadHelm(int source, int library);
+INDIGO_EXPORT int indigoLoadHelmFromString(const char* string, int library);
+INDIGO_EXPORT int indigoLoadHelmFromFile(const char* filename, int library);
 
 INDIGO_EXPORT int indigoSaveMolfile(int molecule, int output);
 INDIGO_EXPORT int indigoSaveMolfileToFile(int molecule, const char* filename);
 INDIGO_EXPORT const char* indigoMolfile(int molecule);
 
-INDIGO_EXPORT int indigoSaveSequence(int molecule, int output);
-INDIGO_EXPORT int indigoSaveSequenceToFile(int molecule, const char* filename);
-INDIGO_EXPORT const char* indigoSequence(int molecule);
+INDIGO_EXPORT int indigoSaveSequence(int molecule, int output, int library);
+INDIGO_EXPORT int indigoSaveSequenceToFile(int molecule, const char* filename, int library);
+INDIGO_EXPORT const char* indigoSequence(int molecule, int library);
+
+INDIGO_EXPORT int indigoSaveFasta(int molecule, int output, int library);
+INDIGO_EXPORT int indigoSaveFastaToFile(int molecule, const char* filename, int library);
+INDIGO_EXPORT const char* indigoFasta(int molecule, int library);
+
+INDIGO_EXPORT int indigoSaveIdt(int molecule, int output, int library);
+INDIGO_EXPORT int indigoSaveIdtToFile(int molecule, const char* filename, int library);
+INDIGO_EXPORT const char* indigoIdt(int molecule, int library);
+
+INDIGO_EXPORT int indigoSaveHelm(int molecule, int output, int library);
+INDIGO_EXPORT int indigoSaveHelmToFile(int molecule, const char* filename, int library);
+INDIGO_EXPORT const char* indigoHelm(int molecule, int library);
 
 INDIGO_EXPORT int indigoSaveJsonToFile(int item, const char* filename);
 INDIGO_EXPORT int indigoSaveJson(int item, int output);

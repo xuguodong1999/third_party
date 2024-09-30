@@ -9,13 +9,14 @@ FluWatermark::FluWatermark(QQuickItem *parent) : QQuickPaintedItem(parent) {
     _textColor = QColor(222, 222, 222, 222);
     _textSize = 16;
     setZ(9999);
-    connect(this, &FluWatermark::textColorChanged, this, [=] { update(); });
-    connect(this, &FluWatermark::gapChanged, this, [=] { update(); });
-    connect(this, &FluWatermark::offsetChanged, this, [=] { update(); });
-    connect(this, &FluWatermark::textChanged, this, [=] { update(); });
-    connect(this, &FluWatermark::rotateChanged, this, [=] { update(); });
-    connect(this, &FluWatermark::textSizeChanged, this, [=] { update(); });
+    connect(this, &FluWatermark::textColorChanged, this, [=, this] { update(); });
+    connect(this, &FluWatermark::gapChanged, this, [=, this] { update(); });
+    connect(this, &FluWatermark::offsetChanged, this, [=, this] { update(); });
+    connect(this, &FluWatermark::textChanged, this, [=, this] { update(); });
+    connect(this, &FluWatermark::rotateChanged, this, [=, this] { update(); });
+    connect(this, &FluWatermark::textSizeChanged, this, [=, this] { update(); });
 }
+
 
 void FluWatermark::paint(QPainter *painter) {
     QFont font;
@@ -37,7 +38,8 @@ void FluWatermark::paint(QPainter *painter) {
             painter->save();
             painter->translate(centerX, centerY);
             painter->rotate(_rotate);
-            painter->drawText(QRectF(-fontWidth / 2.0, -fontHeight / 2.0, fontWidth, fontHeight), _text);
+            painter->drawText(QRectF(-fontWidth / 2.0, -fontHeight / 2.0, fontWidth, fontHeight),
+                              _text);
             painter->restore();
         }
     }

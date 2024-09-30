@@ -24,6 +24,7 @@
 #include "molecule/query_molecule.h"
 
 #include <deque>
+#include <functional>
 #include <queue>
 #include <vector>
 
@@ -34,36 +35,55 @@
 
 namespace indigo
 {
-    const int kRowSpacing = 4;
+    struct PriorityElement
+    {
+        PriorityElement(const std::pair<int, int>& dir, const std::pair<int, int>& back_dir) : dir(dir), from_dir(back_dir)
+        {
+        }
+
+        PriorityElement(int to_dir_id, int to_atom, int back_dir_id, int back_atom) : dir(to_dir_id, to_atom), from_dir(back_dir_id, back_atom)
+        {
+        }
+
+        std::pair<int, int> dir;      // left, right, branch -> destination atom
+        std::pair<int, int> from_dir; // left, right, branch -> source atom
+    };
+
+    using SequenceLayoutMap = std::map<int, std::map<int, int>>;
+    struct CompareDirectionsPair
+    {
+        bool operator()(const PriorityElement& lhs, const PriorityElement& rhs) const
+        {
+            return lhs.dir.first > rhs.dir.first;
+        }
+    };
+
+    using DirectionsPriorityQueue = std::priority_queue<PriorityElement, std::vector<PriorityElement>, CompareDirectionsPair>;
+
     class DLLEXPORT SequenceLayout
     {
     public:
-        struct PriorityElement
-        {
-            PriorityElement(int dir, int atom_idx, int col, int row) : dir(dir), atom_idx(atom_idx), col(col), row(row)
-            {
-            }
-            int dir;
-            int atom_idx;
-            int col;
-            int row;
-        };
-
         static constexpr float DEFAULT_BOND_LENGTH = 1.6f;
 
         explicit SequenceLayout(BaseMolecule& molecule);
         void make();
-        void make(int first_atom_idx);
-        void calculateLayout(int first_atom_idx, std::map<int, std::map<int, int>>& layout_sequence);
-        const std::unordered_map<int, std::map<int, int>>& directionsMap();
+        void sequenceExtract(std::vector<std::deque<int>>& sequences);
+        void calculateCoordinates(SequenceLayoutMap& layout_sequence);
+
+        const std::vector<std::map<int, int>>& directionsMap();
 
         DECL_ERROR;
 
     private:
-        static void processPosition(BaseMolecule& mol, int& row, int& col, int atom_from_idx, const std::pair<int, int>& dir);
+        bool _isMonomerBackbone(int atom_idx);
+        void addSequenceElement(BaseMolecule& mol, PriorityElement& pel, std::vector<std::deque<int>>& sequences);
+        void addNeigbourDirections(BaseMolecule& mol, DirectionsPriorityQueue& pq, const std::set<int>& valid_atoms, int atom_idx);
+
+        const std::pair<int, int> _getBackDir(int src_idx, int dst_idx);
+        bool _isValidAndBackbone(const std::pair<int, int>& dir);
         BaseMolecule& _molecule;
-        std::map<int, std::map<int, int>> _layout_sequence;
-        std::unordered_map<int, std::map<int, int>> _directions_map;
+        SequenceLayoutMap _layout_sequence;
+        std::vector<std::map<int, int>> _directions_map;
     };
 
 } // namespace indigo

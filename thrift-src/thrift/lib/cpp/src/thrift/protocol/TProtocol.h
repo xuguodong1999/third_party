@@ -49,6 +49,7 @@
 #include <thrift/protocol/TList.h>
 #include <thrift/protocol/TSet.h>
 #include <thrift/protocol/TMap.h>
+#include <thrift/TUuid.h>
 
 #include <memory>
 
@@ -275,6 +276,8 @@ public:
 
   virtual uint32_t writeBinary_virt(const std::string& str) = 0;
 
+  virtual uint32_t writeUUID_virt(const TUuid& uuid) = 0;
+
   uint32_t writeMessageBegin(const std::string& name,
                              const TMessageType messageType,
                              const int32_t seqid) {
@@ -382,6 +385,11 @@ public:
     return writeBinary_virt(str);
   }
 
+  uint32_t writeUUID(const TUuid& uuid) {
+    T_VIRTUAL_CALL();
+    return writeUUID_virt(uuid);
+  }
+
   /**
    * Reading functions
    */
@@ -429,6 +437,8 @@ public:
   virtual uint32_t readString_virt(std::string& str) = 0;
 
   virtual uint32_t readBinary_virt(std::string& str) = 0;
+
+  virtual uint32_t readUUID_virt(TUuid& uuid) = 0;
 
   uint32_t readMessageBegin(std::string& name, TMessageType& messageType, int32_t& seqid) {
     T_VIRTUAL_CALL();
@@ -528,6 +538,11 @@ public:
   uint32_t readBinary(std::string& str) {
     T_VIRTUAL_CALL();
     return readBinary_virt(str);
+  }
+
+  uint32_t readUUID(TUuid& uuid) {
+    T_VIRTUAL_CALL();
+    return readUUID_virt(uuid);
   }
 
   /*

@@ -81,6 +81,8 @@ void SmilesSaver::saveQueryMolecule(QueryMolecule& mol)
 
 void SmilesSaver::_saveMolecule()
 {
+    _validate(*_bmol);
+
     int i, j, k;
 
     _ignored_vertices.clear_resize(_bmol->vertexEnd());
@@ -125,7 +127,7 @@ void SmilesSaver::_saveMolecule()
         _hcount[i] = 0;
         if (_mol != 0)
         {
-            if (!_mol->isPseudoAtom(i) && !_mol->isRSite(i))
+            if (!_mol->isPseudoAtom(i) && !_mol->isTemplateAtom(i) && !_mol->isRSite(i))
                 _hcount[i] = _mol->getImplicitH_NoThrow(i, -1);
         }
         else
@@ -196,7 +198,7 @@ void SmilesSaver::_saveMolecule()
             return; // No atoms to save
         std::set<int> components;
         int cur_component = -1;
-        for (int i = 0; i < v_seq.size(); ++i && _qmol->components.size() > 0)
+        for (i = 0; i < v_seq.size(); ++i && _qmol->components.size() > 0)
         {
             // In v_seq each fragment started with vertex which parent == -1
             // In SMARTS some fragments could be grouped (component-level grouping)
@@ -245,7 +247,6 @@ void SmilesSaver::_saveMolecule()
         {
             if (walk.isClosure(e_idx))
             {
-                int k;
                 for (k = atom.neighbors.begin(); k != atom.neighbors.end(); k = atom.neighbors.next(k))
                 {
                     if (atom.neighbors[k] == -1)
@@ -415,10 +416,9 @@ void SmilesSaver::_saveMolecule()
 
     if (canonize_chiralities)
     {
-        int i, j;
         QS_DEF(Array<int>, marked);
         QS_DEF(Array<int>, ids);
-        const MoleculeStereocenters& stereocenters = _bmol->stereocenters;
+        stereocenters = _bmol->stereocenters;
 
         marked.clear_resize(_bmol->vertexEnd());
         marked.zerofill();
@@ -729,7 +729,7 @@ void SmilesSaver::_writeCycleNumber(int n) const
         throw Error("bad cycle number: %d", n);
 }
 
-void SmilesSaver::_writeAtom(int idx, bool aromatic, bool lowercase, int chirality) const
+void SmilesSaver::_writeAtom(int idx, bool /*aromatic*/, bool lowercase, int chirality) const
 {
     int i;
     bool need_brackets = false;
@@ -757,7 +757,7 @@ void SmilesSaver::_writeAtom(int idx, bool aromatic, bool lowercase, int chirali
     if (charge == CHARGE_UNKNOWN)
         charge = 0;
 
-    if (_bmol->isPseudoAtom(idx)) // pseudo-atom
+    if (_bmol->isPseudoAtom(idx) || _bmol->isTemplateAtom(idx)) // pseudo-atom
     {
         if ((chirality == 0) && (charge == 0))
             _output.printf("*");
@@ -1701,7 +1701,7 @@ void SmilesSaver::_writeWedges()
         for (int i = 0; i < _written_bonds.size(); ++i)
         {
             auto bond_idx = _written_bonds[i];
-            auto& e = _bmol->getEdge(bond_idx);
+            // auto& e = _bmol->getEdge(bond_idx);
             auto bdir = _bmol->getBondDirection(bond_idx);
             if (bdir)
             {
@@ -2207,4 +2207,11 @@ void SmilesSaver::saveFormatMode(SmilesSaver::SMILES_MODE mode, std::string& out
     default:
         throw Error("unknown SMILES format mode: %d", mode);
     }
+}
+
+void SmilesSaver::_validate(BaseMolecule& bmol)
+{
+    std::string unresolved;
+    if (bmol.getUnresolvedTemplatesList(bmol, unresolved))
+        throw Error("%s cannot be written in SMILES/SMARTS format.", unresolved.c_str());
 }

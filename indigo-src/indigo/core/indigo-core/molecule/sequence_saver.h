@@ -21,6 +21,7 @@
 
 #include "base_cpp/exception.h"
 #include "base_cpp/tlscont.h"
+#include "molecule/monomers_lib.h"
 
 #ifdef _WIN32
 #pragma warning(push)
@@ -36,16 +37,37 @@ namespace indigo
     class DLLEXPORT SequenceSaver
     {
     public:
+        enum class SeqFormat
+        {
+            Sequence,
+            FASTA,
+            IDT,
+            HELM
+        };
+
+        static constexpr uint32_t SEQ_LINE_LENGTH = 80;
+
         DECL_ERROR;
 
-        SequenceSaver(Output& output);
+        SequenceSaver(Output& output, MonomerTemplateLibrary& library);
         ~SequenceSaver();
 
-        void saveMolecule(BaseMolecule& mol);
+        void saveMolecule(BaseMolecule& mol, SeqFormat sf = SeqFormat::Sequence);
+
+    protected:
+        TGroup& getTGroup();
+        std::string saveIdt(BaseMolecule& mol, std::deque<int>& sequence);
+        std::string saveHELM(BaseMolecule& mol, std::vector<std::deque<int>>& sequence);
+        void _validateSequence(BaseMolecule& bmol);
 
     private:
+        std::string getMonomerAlias(BaseMolecule& mol, int atom_idx);
+        std::string getHelmPolymerClass(BaseMolecule& mol, int atom_idx);
         SequenceSaver(const SequenceSaver&); // no implicit copy
         Output& _output;
+        const MonomerTemplates& _mon_lib;
+        std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash> _templates;
+        MonomerTemplateLibrary& _library;
     };
 
 } // namespace indigo

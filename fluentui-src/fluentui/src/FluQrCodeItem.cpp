@@ -8,10 +8,10 @@ FluQrCodeItem::FluQrCodeItem(QQuickItem *parent) : QQuickPaintedItem(parent) {
     _size = 100;
     setWidth(_size);
     setHeight(_size);
-    connect(this, &FluQrCodeItem::textChanged, this, [=] { update(); });
-    connect(this, &FluQrCodeItem::colorChanged, this, [=] { update(); });
-    connect(this, &FluQrCodeItem::bgColorChanged, this, [=] { update(); });
-    connect(this, &FluQrCodeItem::sizeChanged, this, [=] {
+    connect(this, &FluQrCodeItem::textChanged, this, [=, this] { update(); });
+    connect(this, &FluQrCodeItem::colorChanged, this, [=, this] { update(); });
+    connect(this, &FluQrCodeItem::bgColorChanged, this, [=, this] { update(); });
+    connect(this, &FluQrCodeItem::sizeChanged, this, [=, this] {
         setWidth(_size);
         setHeight(_size);
         update();

@@ -19,6 +19,11 @@
 #ifndef __reaction_auto_loader__
 #define __reaction_auto_loader__
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251 4275)
+#endif
+
 #include "base_cpp/array.h"
 #include "molecule/molecule_arom.h"
 #include "molecule/molecule_stereocenter_options.h"
@@ -41,6 +46,7 @@ namespace indigo
         ~ReactionAutoLoader();
 
         void loadReaction(BaseReaction& reaction);
+        std::unique_ptr<BaseReaction> loadReaction(bool query);
         // to keep C++ API compatible
         void loadQueryReaction(QueryReaction& qreaction);
 
@@ -52,6 +58,7 @@ namespace indigo
         bool ignore_no_chiral_flag;
         bool ignore_bad_valence;
         bool dearomatize_on_load;
+        int treat_stereo_as;
         AromaticityOptions arom_options;
 
         DECL_ERROR;
@@ -61,7 +68,7 @@ namespace indigo
         bool _own_scanner;
 
         void _init();
-        void _loadReaction(BaseReaction& reaction);
+        std::unique_ptr<BaseReaction> _loadReaction(bool query);
         bool _isSingleLine();
 
     private:
@@ -69,5 +76,9 @@ namespace indigo
     };
 
 } // namespace indigo
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif

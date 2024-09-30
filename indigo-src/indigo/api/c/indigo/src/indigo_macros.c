@@ -19,7 +19,7 @@
 #include "indigo.h"
 
 #define WRAPPER_LOAD_FROM_STRING(name)                                                                                                                         \
-    INDIGO_EXPORT int name##FromString(const char* string)                                                                                                           \
+    int name##FromString(const char* string)                                                                                                           \
     {                                                                                                                                                          \
         int source = indigoReadString(string);                                                                                                                 \
         int result;                                                                                                                                            \
@@ -33,7 +33,7 @@
     }
 
 #define WRAPPER_LOAD_FROM_FILE(name)                                                                                                                           \
-    INDIGO_EXPORT int name##FromFile(const char* filename)                                                                                                           \
+    int name##FromFile(const char* filename)                                                                                                           \
     {                                                                                                                                                          \
         int source = indigoReadFile(filename);                                                                                                                 \
         int result;                                                                                                                                            \
@@ -47,7 +47,7 @@
     }
 
 #define WRAPPER_LOAD_FROM_BUFFER(name)                                                                                                                         \
-    INDIGO_EXPORT int name##FromBuffer(const char* buf, int size)                                                                                                    \
+    int name##FromBuffer(const char* buf, int size)                                                                                                    \
     {                                                                                                                                                          \
         int source = indigoReadBuffer(buf, size);                                                                                                              \
         int result;                                                                                                                                            \
@@ -84,7 +84,7 @@ WRAPPER_LOAD_FROM_STRING(indigoLoadReactionSmarts)
 WRAPPER_LOAD_FROM_FILE(indigoLoadReactionSmarts)
 WRAPPER_LOAD_FROM_BUFFER(indigoLoadReactionSmarts)
 
-INDIGO_EXPORT int indigoSaveMolfileToFile(int molecule, const char* filename)
+int indigoSaveMolfileToFile(int molecule, const char* filename)
 {
     int f = indigoWriteFile(filename);
     int res;
@@ -98,7 +98,7 @@ INDIGO_EXPORT int indigoSaveMolfileToFile(int molecule, const char* filename)
     return res;
 }
 
-INDIGO_EXPORT int indigoSaveJsonToFile(int item, const char* filename)
+int indigoSaveJsonToFile(int item, const char* filename)
 {
     int f = indigoWriteFile(filename);
     int res;
@@ -112,7 +112,7 @@ INDIGO_EXPORT int indigoSaveJsonToFile(int item, const char* filename)
     return res;
 }
 
-INDIGO_EXPORT int indigoSaveSequenceToFile(int item, const char* filename)
+int indigoSaveSequenceToFile(int item, const char* filename, int library)
 {
     int f = indigoWriteFile(filename);
     int res;
@@ -120,13 +120,55 @@ INDIGO_EXPORT int indigoSaveSequenceToFile(int item, const char* filename)
     if (f == -1)
         return -1;
 
-    res = indigoSaveSequence(item, f);
+    res = indigoSaveSequence(item, f, library);
 
     indigoFree(f);
     return res;
 }
 
-INDIGO_EXPORT int indigoSaveCmlToFile(int molecule, const char* filename)
+int indigoSaveFastaToFile(int item, const char* filename, int library)
+{
+    int f = indigoWriteFile(filename);
+    int res;
+
+    if (f == -1)
+        return -1;
+
+    res = indigoSaveFasta(item, f, library);
+
+    indigoFree(f);
+    return res;
+}
+
+int indigoSaveIdtToFile(int item, const char* filename, int library)
+{
+    int f = indigoWriteFile(filename);
+    int res;
+
+    if (f == -1)
+        return -1;
+
+    res = indigoSaveIdt(item, f, library);
+
+    indigoFree(f);
+    return res;
+}
+
+int indigoSaveHelmToFile(int item, const char* filename, int library)
+{
+    int f = indigoWriteFile(filename);
+    int res;
+
+    if (f == -1)
+        return -1;
+
+    res = indigoSaveHelm(item, f, library);
+
+    indigoFree(f);
+    return res;
+}
+
+int indigoSaveCmlToFile(int molecule, const char* filename)
 {
     int f = indigoWriteFile(filename);
     int res;
@@ -140,7 +182,7 @@ INDIGO_EXPORT int indigoSaveCmlToFile(int molecule, const char* filename)
     return res;
 }
 
-INDIGO_EXPORT const char* indigoMolfile(int molecule)
+const char* indigoMolfile(int molecule)
 {
     int b = indigoWriteBuffer();
     const char* res;
@@ -156,7 +198,7 @@ INDIGO_EXPORT const char* indigoMolfile(int molecule)
     return res;
 }
 
-INDIGO_EXPORT const char* indigoSequence(int molecule)
+const char* indigoSequence(int molecule, int library)
 {
     int b = indigoWriteBuffer();
     const char* res;
@@ -164,7 +206,7 @@ INDIGO_EXPORT const char* indigoSequence(int molecule)
     if (b == -1)
         return 0;
 
-    if (indigoSaveSequence(molecule, b) == -1)
+    if (indigoSaveSequence(molecule, b, library) == -1)
         return 0;
 
     res = indigoToString(b);
@@ -172,7 +214,55 @@ INDIGO_EXPORT const char* indigoSequence(int molecule)
     return res;
 }
 
-INDIGO_EXPORT const char* indigoCdxBase64(int object)
+const char* indigoFasta(int molecule, int library)
+{
+    int b = indigoWriteBuffer();
+    const char* res;
+
+    if (b == -1)
+        return 0;
+
+    if (indigoSaveFasta(molecule, b, library) == -1)
+        return 0;
+
+    res = indigoToString(b);
+    indigoFree(b);
+    return res;
+}
+
+const char* indigoIdt(int molecule, int library)
+{
+    int b = indigoWriteBuffer();
+    const char* res;
+
+    if (b == -1)
+        return 0;
+
+    if (indigoSaveIdt(molecule, b, library) == -1)
+        return 0;
+
+    res = indigoToString(b);
+    indigoFree(b);
+    return res;
+}
+
+const char* indigoHelm(int molecule, int library)
+{
+    int b = indigoWriteBuffer();
+    const char* res;
+
+    if (b == -1)
+        return 0;
+
+    if (indigoSaveHelm(molecule, b, library) == -1)
+        return 0;
+
+    res = indigoToString(b);
+    indigoFree(b);
+    return res;
+}
+
+const char* indigoCdxBase64(int object)
 {
     int b = indigoWriteBuffer();
     const char* res;
@@ -188,7 +278,7 @@ INDIGO_EXPORT const char* indigoCdxBase64(int object)
     return res;
 }
 
-INDIGO_EXPORT const char* indigoCml(int molecule)
+const char* indigoCml(int molecule)
 {
     int b = indigoWriteBuffer();
     const char* res;
@@ -204,7 +294,7 @@ INDIGO_EXPORT const char* indigoCml(int molecule)
     return res;
 }
 
-INDIGO_EXPORT int indigoSaveRxnfileToFile(int reaction, const char* filename)
+int indigoSaveRxnfileToFile(int reaction, const char* filename)
 {
     int f = indigoWriteFile(filename);
     int res;
@@ -218,7 +308,7 @@ INDIGO_EXPORT int indigoSaveRxnfileToFile(int reaction, const char* filename)
     return res;
 }
 
-INDIGO_EXPORT const char* indigoRxnfile(int molecule)
+const char* indigoRxnfile(int molecule)
 {
     int b = indigoWriteBuffer();
     const char* res;
@@ -234,7 +324,7 @@ INDIGO_EXPORT const char* indigoRxnfile(int molecule)
     return res;
 }
 
-INDIGO_EXPORT int indigoSaveCdxmlToFile(int item, const char* filename)
+int indigoSaveCdxmlToFile(int item, const char* filename)
 {
     int f = indigoWriteFile(filename);
     int res;
@@ -248,7 +338,7 @@ INDIGO_EXPORT int indigoSaveCdxmlToFile(int item, const char* filename)
     return res;
 }
 
-INDIGO_EXPORT int indigoSaveCdxToFile(int item, const char* filename)
+int indigoSaveCdxToFile(int item, const char* filename)
 {
     int f = indigoWriteFile(filename);
     int res;
@@ -262,7 +352,7 @@ INDIGO_EXPORT int indigoSaveCdxToFile(int item, const char* filename)
     return res;
 }
 
-INDIGO_EXPORT const char* indigoCdxml(int item)
+const char* indigoCdxml(int item)
 {
     int b = indigoWriteBuffer();
     const char* res;

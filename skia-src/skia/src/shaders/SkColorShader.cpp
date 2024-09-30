@@ -11,8 +11,8 @@
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkData.h"
 #include "include/core/SkFlattenable.h"
-#include "include/core/SkScalar.h"
 #include "include/core/SkShader.h"
+#include "include/private/base/SkFloatingPoint.h"
 #include "include/private/base/SkTPin.h"
 #include "src/core/SkColorSpacePriv.h"
 #include "src/core/SkColorSpaceXformSteps.h"
@@ -81,11 +81,11 @@ bool SkColor4Shader::appendStages(const SkStageRec& rec, const SkShaders::Matrix
     return true;
 }
 
-bool SkColor4Shader::onAsLuminanceColor(SkColor* lum) const {
+bool SkColor4Shader::onAsLuminanceColor(SkColor4f* lum) const {
     SkColor4f color = fColor;
     SkColorSpaceXformSteps(fColorSpace.get(),   kUnpremul_SkAlphaType,
                            sk_srgb_singleton(), kUnpremul_SkAlphaType).apply(color.vec());
-    *lum = color.toSkColor();
+    *lum = color;
     return true;
 }
 
@@ -103,7 +103,7 @@ namespace SkShaders {
 sk_sp<SkShader> Color(SkColor color) { return sk_make_sp<SkColorShader>(color); }
 
 sk_sp<SkShader> Color(const SkColor4f& color, sk_sp<SkColorSpace> space) {
-    if (!SkScalarsAreFinite(color.vec(), 4)) {
+    if (!SkIsFinite(color.vec(), 4)) {
         return nullptr;
     }
     return sk_make_sp<SkColor4Shader>(color, std::move(space));

@@ -2,9 +2,16 @@
 #define _H_CDXCommons
 
 #include "CDXConstants.h"
+#include "reaction/reaction.h"
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
+
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable : 4200)
+#endif
 
 namespace indigo
 {
@@ -23,17 +30,21 @@ namespace indigo
     const int kBondSpacingMultiplier = 10;
     const int kCDXMLStyleSizeIndex = 2;
     const uint32_t kCDXMagicNumber = 0x01020304;
-    const char kCDXReserved[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    const char kCDXReserved[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     const float kColorMult = ((1 << 16) - 1);
     const float kCDXMLFonsSizeMultiplier = 1.5;
     const std::uint16_t KCDXMLFontStyleSubscript = 0x20;
     const std::uint16_t KCDXMLFontStyleSuperscript = 0x40;
+    constexpr uint32_t kCDXUnitsPerPoint = 65536;
+    constexpr uint32_t kCDXAngleMultiplier = 65536;
+    constexpr uint32_t kCDXBondSpacingMultiplier = 10;
 
 #pragma pack(push, 1)
 
     struct CDXColor
     {
-        CDXColor(float red, float green, float blue) : r(red * kColorMult), g(green * kColorMult), b(blue * kColorMult)
+        CDXColor(float red, float green, float blue)
+            : r(static_cast<uint16_t>(red * kColorMult)), g(static_cast<uint16_t>(green * kColorMult)), b(static_cast<uint16_t>(blue * kColorMult))
         {
         }
         uint16_t r;
@@ -50,7 +61,7 @@ namespace indigo
 
     struct CDXTextStyle
     {
-        CDXTextStyle() : offset(0), font_index(-1), font_face(0), font_size(0), font_color(0){};
+        CDXTextStyle() : offset(0), font_index(static_cast<uint16_t>(-1)), font_face(0), font_size(0), font_color(0){};
         uint16_t offset;
         uint16_t font_index;
         uint16_t font_face;
@@ -102,7 +113,11 @@ namespace indigo
         CDXFontStyle
     };
 
-    const std::unordered_map<std::string, int16_t> kCDXProp_Arrow_ArrowHeadStrToInt = {{"Full", 1}};
+    const std::unordered_map<std::string, int16_t> kCDXProp_Arrow_ArrowHeadStrToInt = {{"Full", 2}, {"HalfLeft", 3}, {"HalfRight", 4}};
+
+    const std::unordered_map<std::string, int16_t> kCDXProp_Arrow_ArrowHeadTypeStrToInt = {{"Solid", 1}, {"Hollow", 2}, {"Angled", 3}};
+
+    const std::unordered_map<int16_t, std::string> kCDXProp_Arrow_ArrowHeadTypeIntToStr = {{1, "Solid"}, {2, "Hollow"}, {3, "Angled"}};
 
     const std::unordered_map<std::string, CDXLineType> kLineTypeStrToInt = {
         {"Solid", kCDXLineType_Solid}, {"Dashed", kCDXLineType_Dashed}, {"Bold", kCDXLineType_Bold}, {"Wavy", kCDXLineType_Wavy}};
@@ -326,7 +341,8 @@ namespace indigo
                                                                      {kCDXBondOrder_ThreeCenter, "threecenter"},
                                                                      {kCDXBondOrder_SingleOrDouble, "singleordouble"},
                                                                      {kCDXBondOrder_SingleOrAromatic, "singleoraromatic"},
-                                                                     {kCDXBondOrder_DoubleOrAromatic, "doubleoraromatic"}};
+                                                                     {kCDXBondOrder_DoubleOrAromatic, "doubleoraromatic"},
+                                                                     {kCDXBondOrder_Any, "any"}};
 
     const std::unordered_map<std::string, CDXBondOrder> kBondOrderStrToId = {{"1", kCDXBondOrder_Single},
                                                                              {"2", kCDXBondOrder_Double},
@@ -346,7 +362,8 @@ namespace indigo
                                                                              {"threecenter", kCDXBondOrder_ThreeCenter},
                                                                              {"singleordouble", kCDXBondOrder_SingleOrDouble},
                                                                              {"singleoraromatic", kCDXBondOrder_SingleOrAromatic},
-                                                                             {"doubleoraromatic", kCDXBondOrder_DoubleOrAromatic}};
+                                                                             {"doubleoraromatic", kCDXBondOrder_DoubleOrAromatic},
+                                                                             {"any", kCDXBondOrder_Any}};
 
     const std::unordered_map<std::string, CDXArrowType> kCDXProp_Arrow_TypeStrToID = {{"NoHead", kCDXArrowType_NoHead},
                                                                                       {"HalfHead", kCDXArrowType_HalfHead},
@@ -438,6 +455,17 @@ namespace indigo
                                                                                {kCDXBondDisplay_WavyWedgeEnd, "WavyWedgeEnd"},
                                                                                {kCDXBondDisplay_Dot, "Dot"},
                                                                                {kCDXBondDisplay_DashDot, "DashDot"}};
+
+    static const std::unordered_map<int, std::pair<int, bool>> display_to_direction = {{kCDXBondDisplay_WedgedHashBegin, {BOND_DOWN, false}},
+                                                                                       {kCDXBondDisplay_WedgedHashEnd, {BOND_DOWN, true}},
+                                                                                       {kCDXBondDisplay_Hash, {BOND_DOWN, false}},
+                                                                                       {kCDXBondDisplay_Dash, {BOND_DOWN, false}},
+                                                                                       {kCDXBondDisplay_WedgeBegin, {BOND_UP, false}},
+                                                                                       {kCDXBondDisplay_WedgeEnd, {BOND_UP, true}},
+                                                                                       {kCDXBondDisplay_HollowWedgeBegin, {BOND_UP, false}},
+                                                                                       {kCDXBondDisplay_HollowWedgeEnd, {BOND_UP, true}},
+                                                                                       {kCDXBondDisplay_Bold, {BOND_UP, false}},
+                                                                                       {kCDXBondDisplay_Wavy, {BOND_EITHER, false}}};
 
     const std::unordered_map<std::string, EnhancedStereoType> kCDXEnhancedStereoStrToID = {{"Unspecified", EnhancedStereoType::UNSPECIFIED},
                                                                                            {"None", EnhancedStereoType::NONE},
@@ -1243,6 +1271,56 @@ namespace indigo
 
     const std::vector<std::string> KStyleProperties = {"font", "face", "size", "color"};
 
+    const std::unordered_map<std::string, uint8_t> kBondReactionParticipationNameToInt{
+        {"Unspecified", kCDXBondReactionParticipation_Unspecified},     {"ReactionCenter", kCDXBondReactionParticipation_ReactionCenter},
+        {"MakeOrBreak", kCDXBondReactionParticipation_MakeOrBreak},     {"ChangeType", kCDXBondReactionParticipation_ChangeType},
+        {"MakeAndChange", kCDXBondReactionParticipation_MakeAndChange}, {"NotReactionCenter", kCDXBondReactionParticipation_NotReactionCenter},
+        {"NoChange", kCDXBondReactionParticipation_NoChange},           {"Unmapped", kCDXBondReactionParticipation_Unmapped}};
+    const std::unordered_map<uint8_t, std::string> kBondReactionParticipationIntToName{
+        {kCDXBondReactionParticipation_Unspecified, "Unspecified"},     {kCDXBondReactionParticipation_ReactionCenter, "ReactionCenter"},
+        {kCDXBondReactionParticipation_MakeOrBreak, "MakeOrBreak"},     {kCDXBondReactionParticipation_ChangeType, "ChangeType"},
+        {kCDXBondReactionParticipation_MakeAndChange, "MakeAndChange"}, {kCDXBondReactionParticipation_NotReactionCenter, "NotReactionCenter"},
+        {kCDXBondReactionParticipation_NoChange, "NoChange"},           {kCDXBondReactionParticipation_Unmapped, "Unmapped"}};
+
+    const std::unordered_map<std::string, uint8_t> kBondTopologyNameToInt{{"Unspecified", kCDXBondTopology_Unspecified},
+                                                                          {"Ring", kCDXBondTopology_Ring},
+                                                                          {"Chain", kCDXBondTopology_Chain},
+                                                                          {"RingOrChain", kCDXBondTopology_RingOrChain}};
+    const std::unordered_map<uint8_t, std::string> kBondTopologyIntToName{{kCDXBondTopology_Unspecified, "Unspecified"},
+                                                                          {kCDXBondTopology_Ring, "Ring"},
+                                                                          {kCDXBondTopology_Chain, "Chain"},
+                                                                          {kCDXBondTopology_RingOrChain, "RingOrChain"}};
+
+    static const std::unordered_map<uint8_t, int> bond_rxn_participation_to_reaction_center = {
+        {kCDXBondReactionParticipation_Unspecified, RC_UNMARKED},
+        {kCDXBondReactionParticipation_ReactionCenter, RC_CENTER},
+        {kCDXBondReactionParticipation_MakeOrBreak, RC_MADE_OR_BROKEN},
+        {kCDXBondReactionParticipation_ChangeType, RC_ORDER_CHANGED},
+        {kCDXBondReactionParticipation_MakeAndChange, RC_MADE_OR_BROKEN | RC_ORDER_CHANGED},
+        {kCDXBondReactionParticipation_NotReactionCenter, RC_NOT_CENTER},
+        {kCDXBondReactionParticipation_NoChange, RC_UNCHANGED},
+        {kCDXBondReactionParticipation_Unmapped, RC_UNMARKED}};
+    static const std::unordered_map<int, uint8_t> reaction_center_to_bond_rxn_participation = {
+        {RC_UNMARKED, kCDXBondReactionParticipation_Unspecified},
+        {RC_CENTER, kCDXBondReactionParticipation_ReactionCenter},
+        {RC_MADE_OR_BROKEN, kCDXBondReactionParticipation_MakeOrBreak},
+        {RC_ORDER_CHANGED, kCDXBondReactionParticipation_ChangeType},
+        {RC_MADE_OR_BROKEN | RC_ORDER_CHANGED, kCDXBondReactionParticipation_MakeAndChange},
+        {RC_NOT_CENTER, kCDXBondReactionParticipation_NotReactionCenter},
+        {RC_UNCHANGED, kCDXBondReactionParticipation_NoChange},
+        {RC_UNMARKED, kCDXBondReactionParticipation_Unmapped}};
+
+    static const std::unordered_map<uint8_t, int> cdx_topology_to_topology = {{kCDXBondTopology_Unspecified, TOPOLOGY_ANY},
+                                                                              {kCDXBondTopology_Ring, TOPOLOGY_RING},
+                                                                              {kCDXBondTopology_Chain, TOPOLOGY_CHAIN},
+                                                                              {kCDXBondTopology_RingOrChain, TOPOLOGY_ANY}};
+    static const std::unordered_map<int, uint8_t> topology_to_cdx_topology = {
+        {TOPOLOGY_ANY, kCDXBondTopology_Unspecified}, {TOPOLOGY_RING, kCDXBondTopology_Ring}, {TOPOLOGY_CHAIN, kCDXBondTopology_Chain}};
+
 }
+
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #endif // _H_CDXCommons

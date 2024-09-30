@@ -26,6 +26,10 @@
 #include "molecule/molecule_standardize.h"
 #include "molecule/monomer_commons.h"
 
+#ifdef _MSC_VER
+#pragma warning(push, 4)
+#endif
+
 using namespace indigo;
 
 Molecule::Molecule()
@@ -70,7 +74,7 @@ void Molecule::_flipBond(int atom_parent, int atom_from, int atom_to)
     updateEditRevision();
 }
 
-void Molecule::_mergeWithSubmolecule(BaseMolecule& bmol, const Array<int>& vertices, const Array<int>* edges, const Array<int>& mapping, int skip_flags)
+void Molecule::_mergeWithSubmolecule(BaseMolecule& bmol, const Array<int>& vertices, const Array<int>* edges, const Array<int>& mapping, int /*skip_flags*/)
 {
     Molecule& mol = bmol.asMolecule();
     _ignore_bad_valence = mol.getIgnoreBadValenceFlag();
@@ -391,6 +395,16 @@ void Molecule::setTemplateAtomSeqid(int idx, int seq_id)
     updateEditRevision();
 }
 
+void Molecule::setTemplateAtomSeqName(int idx, const char* seq_name)
+{
+    if (_atoms[idx].number != ELEM_TEMPLATE)
+        throw Error("setTemplateAtomSeqName(): atom #%d is not a template atom", idx);
+
+    _TemplateOccurrence& occur = _template_occurrences.at(_atoms[idx].template_occur_idx);
+    occur.seq_name.readString(seq_name, true);
+    updateEditRevision();
+}
+
 void Molecule::setTemplateAtomTemplateIndex(int idx, int temp_idx)
 {
     if (_atoms[idx].number != ELEM_TEMPLATE)
@@ -536,7 +550,7 @@ int Molecule::totalHydrogensCount()
     return total_h;
 }
 
-int Molecule::matchAtomsCmp(Graph& g1, Graph& g2, int idx1, int idx2, void* userdata)
+int Molecule::matchAtomsCmp(Graph& g1, Graph& g2, int idx1, int idx2, void* /*userdata*/)
 {
     Molecule& m1 = ((BaseMolecule&)g1).asMolecule();
     Molecule& m2 = ((BaseMolecule&)g2).asMolecule();
@@ -846,7 +860,7 @@ int Molecule::_getImplicitHForConnectivity(int idx, int conn, bool use_cache)
         }
         else
         {
-            int radical = -1;
+            radical = -1;
 
             if (_radicals.size() > idx)
                 radical = _radicals[idx];
@@ -864,7 +878,9 @@ int Molecule::_getImplicitHForConnectivity(int idx, int conn, bool use_cache)
                 else if (Element::calcValence(atom.number, atom.charge, RADICAL_DOUBLET, conn, valence, impl_h, false))
                     radical = RADICAL_DOUBLET;
                 else
+                {
                     throw Element::Error("can not calculate valence on %s, charge %d, connectivity %d", Element::toString(atom.number), atom.charge, conn);
+                }
                 if (use_cache)
                 {
                     _radicals.expandFill(idx + 1, -1);
@@ -1419,6 +1435,17 @@ const char* Molecule::getTemplateAtomClass(int idx)
     return res;
 }
 
+const char* Molecule::getTemplateAtomSeqName(int idx)
+{
+    const _Atom& atom = _atoms[idx];
+
+    if (atom.number != ELEM_TEMPLATE)
+        throw Error("getTemplateAtomClass(): atom #%d is not a template atom", idx);
+
+    _TemplateOccurrence& occur = _template_occurrences.at(atom.template_occur_idx);
+    return occur.seq_name.ptr();
+}
+
 const int Molecule::getTemplateAtomTemplateIndex(int idx)
 {
     const _Atom& atom = _atoms[idx];
@@ -1456,33 +1483,6 @@ const int Molecule::getTemplateAtomDisplayOption(int idx)
     // const int res = occur.contracted;
 
     return res;
-}
-
-void Molecule::getTemplatesMap(std::unordered_map<std::pair<std::string, std::string>, std::reference_wrapper<TGroup>, pair_hash>& templates_map)
-{
-    templates_map.clear();
-    int temp_idx = 0;
-    for (int i = tgroups.begin(); i != tgroups.end(); i = tgroups.next(i))
-    {
-        auto& tg = tgroups.getTGroup(i);
-        std::string tname = tg.tgroup_name.size() ? tg.tgroup_name.ptr() : monomerAlias(tg);
-        templates_map.emplace(std::make_pair(tname, tg.tgroup_class.ptr()), std::ref(tg));
-    }
-}
-
-void Molecule::getTemplateAtomDirectionsMap(std::unordered_map<int, std::map<int, int>>& directions_map)
-{
-    for (int i = template_attachment_points.begin(); i != template_attachment_points.end(); i = template_attachment_points.next(i))
-    {
-        auto& tap = template_attachment_points[i];
-        if (tap.ap_id.size())
-        {
-            Array<char> atom_label;
-            getAtomSymbol(tap.ap_occur_idx, atom_label);
-            int ap_id = tap.ap_id[0] - 'A';
-            directions_map[tap.ap_occur_idx].emplace(ap_id, tap.ap_aidx);
-        }
-    }
 }
 
 BaseMolecule* Molecule::neu()
@@ -1717,7 +1717,7 @@ bool Molecule::ionize(float ph, float ph_toll, const IonizeOptions& options)
     return MoleculeIonizer::ionize(*this, ph, ph_toll, options);
 }
 
-bool Molecule::isPossibleFischerProjection(const char* options)
+bool Molecule::isPossibleFischerProjection(const char* /*options*/)
 {
     if (!BaseMolecule::hasCoord(*this) || BaseMolecule::hasZCoord(*this))
         return false;
@@ -1788,3 +1788,7 @@ bool Molecule::isPiBonded(const int atom_index) const
     }
     return false;
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

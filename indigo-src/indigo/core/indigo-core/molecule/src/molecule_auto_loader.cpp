@@ -33,7 +33,9 @@
 #include "molecule/molecule_json_loader.h"
 #include "molecule/molecule_name_parser.h"
 #include "molecule/molfile_loader.h"
+#include "molecule/molfile_saver.h"
 #include "molecule/monomer_commons.h"
+#include "molecule/monomers_template_library.h"
 #include "molecule/parse_utils.h"
 #include "molecule/query_molecule.h"
 #include "molecule/sdf_loader.h"
@@ -90,14 +92,56 @@ void MoleculeAutoLoader::loadQueryMolecule(QueryMolecule& qmol)
     loadMolecule(qmol);
 }
 
-void MoleculeAutoLoader::loadMolecule(BaseMolecule& mol)
+void MoleculeAutoLoader::loadMolecule(BaseMolecule& bmol)
 {
-    _loadMolecule(mol);
-    if (!mol.isQueryMolecule())
+    try
     {
-        mol.asMolecule().setIgnoreBadValenceFlag(ignore_bad_valence);
+        _loadMolecule(bmol);
+    }
+    catch (Exception e)
+    {
+        bool error_flag = false;
+        if (bmol.isQueryMolecule())
+        {
+            // trying to load as molecule
+            Molecule mol;
+            _scanner->seek(0, SEEK_SET);
+            try
+            {
+                _loadMolecule(mol);
+                if (mol.tgroups.getTGroupCount())
+                {
+                    mol.transformTemplatesToSuperatoms();
+                    Array<char> mol_out_buffer;
+                    ArrayOutput mol_output(mol_out_buffer);
+                    MolfileSaver saver_tmp(mol_output);
+                    saver_tmp.saveMolecule(mol.asMolecule());
+                    mol_out_buffer.push(0);
+                    if (_own_scanner)
+                        delete _scanner;
+                    _own_scanner = true;
+                    _scanner = new BufferScanner(mol_out_buffer);
+                    _loadMolecule(bmol);
+                }
+                else
+                    error_flag = true;
+            }
+            catch (...)
+            {
+                error_flag = true;
+            }
+        }
+        else
+            error_flag = true;
+        if (error_flag)
+            throw;
+    }
+
+    if (!bmol.isQueryMolecule())
+    {
+        bmol.asMolecule().setIgnoreBadValenceFlag(ignore_bad_valence);
         if (dearomatize_on_load)
-            mol.dearomatize(arom_options);
+            bmol.dearomatize(arom_options);
     }
 }
 
@@ -131,8 +175,7 @@ bool MoleculeAutoLoader::tryMDLCT(Scanner& scanner, Array<char>& outbuf)
                 scanner.seek(pos, SEEK_SET);
                 return false;
             }
-            int c = scanner.readChar();
-            curline.push(c);
+            curline.push(scanner.readChar());
         }
 
         curline.push(0);
@@ -219,7 +262,7 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
         base64_str.erase(std::remove_if(base64_str.begin(), base64_str.end(), [](char c) { return c == '\n' || c == '\r'; }), base64_str.end());
         if (validate_base64(base64_str))
         {
-            base64_data.copy(base64_str.data(), base64_str.size());
+            base64_data.copy(base64_str.data(), static_cast<int>(base64_str.size()));
             base64_scanner = std::make_unique<BufferScanner>(base64_data, true);
             local_scanner = base64_scanner.get();
         }
@@ -255,15 +298,13 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
         }
     }
 
+    if (local_scanner->startsWith(kCDX_HeaderString))
     {
-        if (local_scanner->findWord(kCDX_HeaderString))
-        {
-            local_scanner->seek(kCDX_HeaderLength, SEEK_CUR);
-            MoleculeCdxmlLoader loader(*local_scanner, true);
-            loader.stereochemistry_options = stereochemistry_options;
-            loader.loadMolecule(mol);
-            return;
-        }
+        local_scanner->seek(kCDX_HeaderLength, SEEK_CUR);
+        MoleculeCdxmlLoader loader(*local_scanner, true);
+        loader.stereochemistry_options = stereochemistry_options;
+        loader.loadMolecule(mol);
+        return;
     }
 
     _scanner->skipBom();
@@ -391,13 +432,16 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
             const std::string kPeptide = "PEPTIDE:";
             const std::string kRNA = "RNA:";
             const std::string kDNA = "DNA:";
+            const std::string kIDT = "IDT:";
+            const std::string kHELM = "HELM:";
 
             long long start_pos = _scanner->tell();
-            if (_scanner->length() > kRNA.size())
+            if (_scanner->length() > static_cast<long long>(kRNA.size()))
             {
+                MonomerTemplateLibrary lib;
                 std::vector<char> tag(kPeptide.size() + 1, 0);
-                _scanner->readCharsFix(kRNA.size(), tag.data());
-                SequenceLoader sl(*_scanner);
+                _scanner->readCharsFix(static_cast<int>(kRNA.size()), tag.data());
+                SequenceLoader sl(*_scanner, lib);
                 if (kRNA == tag.data())
                 {
                     sl.loadSequence(mol, SequenceLoader::SeqType::RNASeq);
@@ -408,12 +452,22 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
                     sl.loadSequence(mol, SequenceLoader::SeqType::DNASeq);
                     return;
                 }
+                else if (kIDT == tag.data())
+                {
+                    sl.loadIdt(mol);
+                    return;
+                }
+                else if (kHELM == tag.data())
+                {
+                    // sl.loadHelm(mol);
+                    return;
+                }
                 else
                 {
                     _scanner->seek(start_pos, SEEK_SET);
-                    if (_scanner->length() > kPeptide.size())
+                    if (_scanner->length() > static_cast<long long>(kPeptide.size()))
                     {
-                        _scanner->readCharsFix(kPeptide.size(), tag.data());
+                        _scanner->readCharsFix(static_cast<int>(kPeptide.size()), tag.data());
                         if (kPeptide == tag.data())
                         {
                             sl.loadSequence(mol, SequenceLoader::SeqType::PEPTIDESeq);
@@ -448,11 +502,11 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
                     throw Error("InChI input doesn't support query molecules");
                 }
 
-                Array<char> inchi;
-                _scanner->readWord(inchi, " ");
+                Array<char> inchi_data;
+                _scanner->readWord(inchi_data, " ");
 
                 InchiWrapper loader;
-                loader.loadMoleculeFromInchi(inchi.ptr(), (Molecule&)mol);
+                loader.loadMoleculeFromInchi(inchi_data.ptr(), (Molecule&)mol);
                 return;
             }
         }
@@ -480,7 +534,7 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
                 {
                     loader.loadQueryMolecule(static_cast<QueryMolecule&>(mol));
                 }
-                catch (Exception& e)
+                catch (Exception&)
                 {
                     _scanner->seek(start, SEEK_SET);
                     loader.loadSMARTS(static_cast<QueryMolecule&>(mol));
@@ -507,7 +561,7 @@ void MoleculeAutoLoader::_loadMolecule(BaseMolecule& mol)
             parser.parseMolecule(name.ptr(), static_cast<Molecule&>(mol));
             return;
         }
-        catch (Exception& e)
+        catch (Exception&)
         {
         }
 

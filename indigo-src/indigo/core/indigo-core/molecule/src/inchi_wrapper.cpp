@@ -543,9 +543,9 @@ void InchiWrapper::generateInchiInput(Molecule& mol, inchi_Input& input, Array<i
         else if (type == MoleculeStereocenters::ATOM_OR)
             setOptions("/SRel");
 
-        for (int i = 0; i < 4; i++)
-            if (pyramid[i] != -1)
-                pyramid[i] = mapping[pyramid[i]];
+        for (int k = 0; k < 4; k++)
+            if (pyramid[k] != -1)
+                pyramid[k] = mapping[pyramid[k]];
 
         inchi_Stereo0D& st = stereo.push();
 
@@ -596,8 +596,16 @@ void InchiWrapper::generateInchiInput(Molecule& mol, inchi_Input& input, Array<i
     input.szOptions = options.ptr();
 }
 
+void InchiWrapper::_validate(BaseMolecule& bmol)
+{
+    std::string unresolved;
+    if (bmol.getUnresolvedTemplatesList(bmol, unresolved))
+        throw Error("%s cannot be written in InChi format.", unresolved.c_str());
+}
+
 void InchiWrapper::saveMoleculeIntoInchi(Molecule& mol, Array<char>& inchi)
 {
+    _validate(mol);
     inchi_Input input{nullptr, nullptr, nullptr, 0, 0};
     QS_DEF(Array<inchi_Atom>, atoms);
     QS_DEF(Array<inchi_Stereo0D>, stereo);
@@ -624,7 +632,7 @@ void InchiWrapper::saveMoleculeIntoInchi(Molecule& mol, Array<char>& inchi)
             arom_options.unique_dearomatization = true;
             dearom->dearomatize(arom_options);
         }
-        catch (NonUniqueDearomatizationException& ex)
+        catch (NonUniqueDearomatizationException&)
         {
             // Do not allow non-unique dearomatizations
             throw;
