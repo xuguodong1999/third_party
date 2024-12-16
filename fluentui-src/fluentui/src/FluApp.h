@@ -38,9 +38,7 @@ public:
 
     Q_INVOKABLE void init(QObject *launcher, QLocale locale = QLocale::system());
 
-#if 0
     [[maybe_unused]] Q_INVOKABLE static QJsonArray iconData(const QString &keyword = "");
-#endif
 
 private:
     QQmlEngine *_engine{};

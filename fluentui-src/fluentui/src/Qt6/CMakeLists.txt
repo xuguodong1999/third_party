@@ -46,11 +46,11 @@ list(REMOVE_ITEM source_files
 
 # create target ${PROJECT_NAME}plugin
 qt_add_qml_module(${PROJECT_NAME}
-        PLUGIN_TARGET ""
         OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}"
         VERSION 1.0
         URI FluentUI
         TYPEINFO "plugins.qmltypes"
+        NO_GENERATE_EXTRA_QMLDIRS
         SOURCES ${source_files}
         QML_FILES ${qml_files}
         RESOURCES ${resource_files}

@@ -16,6 +16,6 @@ Text {
     opacity: iconSource>0
     FontLoader{
         id: font_loader
-        source: "qrc:/qt/qml/FluentUI/Font/FluentIcons.ttf"
+        source: "qrc:/FluentUI/Font/FluentIcons.ttf"
     }
 }

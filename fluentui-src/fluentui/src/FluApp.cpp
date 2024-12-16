@@ -32,7 +32,6 @@ void FluApp::init(QObject *launcher, QLocale locale) {
     }
 }
 
-#if 0
 [[maybe_unused]] QJsonArray FluApp::iconData(const QString &keyword) {
     QJsonArray arr;
     QMetaEnum enumType = FluentIcons::staticMetaObject.enumerator(
@@ -49,4 +48,3 @@ void FluApp::init(QObject *launcher, QLocale locale) {
     }
     return arr;
 }
-#endif
