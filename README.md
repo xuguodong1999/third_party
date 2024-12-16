@@ -28,10 +28,10 @@ Record compilers and cross-build platforms that work fine with unofficial custom
 |                   | Windows              | Linux         | MacOS                |
 |-------------------|----------------------|---------------|----------------------|
 | msvc-14.38        | &check;              | _             | _                    |
-| gcc-11.4.0        | _                    | &check;       | _                    |
+| gcc-11.5.0        | _                    | &check;       | _                    |
 | gcc-13.2.0        | _                    | &check;       | _                    |
 | apple-clang-15    | _                    | _             | &check; (Xcode 15.4) |
-| ndk-26.2.11394342 | &check;              | &check;       | &check;              |
+| ndk-27.2.12479018 | &check;              | &check;       | &check;              |
 | emscripten-3.1.56 | &check;              | &check;       | &check;              |
 | mingw-gcc-11.2.0  | &check; (Qt bundled) | &check; (MXE) | _                    |
 
