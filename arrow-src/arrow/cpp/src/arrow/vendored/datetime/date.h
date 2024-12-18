@@ -4204,7 +4204,7 @@ make_time(const std::chrono::duration<Rep, Period>& d)
     return hh_mm_ss<std::chrono::duration<Rep, Period>>(d);
 }
 
-#if !((defined(__APPLE__) && defined(__clang__)) || defined(__EMSCRIPTEN__))
+#if !defined(__clang__)
 template <class CharT, class Traits, class Duration>
 inline
 typename std::enable_if
