@@ -12663,6 +12663,23 @@ diff --git a/openbabel-src/openbabel/src/ops/op2d.cpp b/openbabel-src/openbabel/
  {
    OBMol* pmol = dynamic_cast<OBMol*>(pOb);
    if(!pmol)
+Index: arrow-src/arrow/cpp/src/arrow/status.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/arrow-src/arrow/cpp/src/arrow/status.h b/arrow-src/arrow/cpp/src/arrow/status.h
+--- a/arrow-src/arrow/cpp/src/arrow/status.h	(revision 272715f6df2a042d69881ffa03d5078c58e4b345)
++++ b/arrow-src/arrow/cpp/src/arrow/status.h	(date 1745756897385)
+@@ -132,7 +132,7 @@
+ ///
+ /// Additionally, if an error occurred, a specific error message is generally
+ /// attached.
+-class ARROW_EXPORT [[nodiscard]] Status : public util::EqualityComparable<Status>,
++class ARROW_EXPORT Status : public util::EqualityComparable<Status>,
+                                           public util::ToStringOstreamable<Status> {
+  public:
+   // Create a success status.
 Index: openbabel-src/openbabel/src/ops/optransform.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -12935,22 +12952,6 @@ diff --git a/openbabel-src/openbabel/src/math/matrix3x3.cpp b/openbabel-src/open
                {
                  dtemp = v[n*i+k];
                  v[n*i+k] = v[n*i+j];
-Index: boost-src/boost/libs/serialization/src/text_wiarchive.cpp
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/boost-src/boost/libs/serialization/src/text_wiarchive.cpp b/boost-src/boost/libs/serialization/src/text_wiarchive.cpp
---- a/boost-src/boost/libs/serialization/src/text_wiarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
-+++ b/boost-src/boost/libs/serialization/src/text_wiarchive.cpp	(date 1745583016164)
-@@ -14,6 +14,7 @@
- #error "wide char i/o not supported on this platform"
- #else
- 
-+#define BOOST_ARCHIVE_SOURCE
- #define BOOST_WARCHIVE_SOURCE
- #include <boost/serialization/config.hpp>
- #include <boost/archive/text_wiarchive.hpp>
 Index: openbabel-src/openbabel/src/charges/qeq.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -12977,6 +12978,22 @@ diff --git a/openbabel-src/openbabel/src/charges/qeq.cpp b/openbabel-src/openbab
      if (OpenDatafile(ifs, "qeq.txt").length() == 0) {
        obErrorLog.ThrowError(__FUNCTION__, "Cannot open qeq.txt", obError);
        return;
+Index: boost-src/boost/libs/serialization/src/text_wiarchive.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/boost-src/boost/libs/serialization/src/text_wiarchive.cpp b/boost-src/boost/libs/serialization/src/text_wiarchive.cpp
+--- a/boost-src/boost/libs/serialization/src/text_wiarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
++++ b/boost-src/boost/libs/serialization/src/text_wiarchive.cpp	(date 1745583016164)
+@@ -14,6 +14,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/text_wiarchive.hpp>
 Index: rdkit-src/rdkit/Code/GraphMol/MolAlign/O3AAlignMolecules.h
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -13400,22 +13417,6 @@ diff --git a/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.h b/inchi-src/in
  
  
  
-Index: boost-src/boost/libs/serialization/src/text_woarchive.cpp
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/boost-src/boost/libs/serialization/src/text_woarchive.cpp b/boost-src/boost/libs/serialization/src/text_woarchive.cpp
---- a/boost-src/boost/libs/serialization/src/text_woarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
-+++ b/boost-src/boost/libs/serialization/src/text_woarchive.cpp	(date 1745583016179)
-@@ -13,6 +13,7 @@
- #error "wide char i/o not supported on this platform"
- #else
- 
-+#define BOOST_ARCHIVE_SOURCE
- #define BOOST_WARCHIVE_SOURCE
- #include <boost/serialization/config.hpp>
- #include <boost/archive/text_woarchive.hpp>
 Index: inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.c
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -13469,6 +13470,22 @@ diff --git a/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a.c b/inchi-src/in
  
  #include "inchi_dll_a.h" /* not inchi_api.h as it hides internal data types */
  #include "inchi_dll.h"
+Index: boost-src/boost/libs/serialization/src/text_woarchive.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/boost-src/boost/libs/serialization/src/text_woarchive.cpp b/boost-src/boost/libs/serialization/src/text_woarchive.cpp
+--- a/boost-src/boost/libs/serialization/src/text_woarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
++++ b/boost-src/boost/libs/serialization/src/text_woarchive.cpp	(date 1745583016179)
+@@ -13,6 +13,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/text_woarchive.hpp>
 Index: inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll_a2.c
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -13753,22 +13770,6 @@ diff --git a/inchi-src/inchi/INCHI_API/libinchi/src/inchi_dll.c b/inchi-src/inch
  
  #include "inchi_dll.h"
  
-Index: boost-src/boost/libs/serialization/src/xml_wgrammar.cpp
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp b/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp
---- a/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
-+++ b/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp	(date 1745583016148)
-@@ -14,6 +14,7 @@
- #error "wide char i/o not supported on this platform"
- #else
- 
-+#define BOOST_ARCHIVE_SOURCE
- #define BOOST_WARCHIVE_SOURCE
- #include <boost/serialization/config.hpp>
- #include <boost/archive/impl/basic_xml_grammar.hpp>
 Index: openbabel-src/openbabel/src/formats/mdffformat.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -13800,6 +13801,22 @@ diff --git a/openbabel-src/openbabel/src/formats/mdffformat.cpp b/openbabel-src/
      string short_fn = full_path.substr(path.length(), string::npos);
  
      // Open files
+Index: boost-src/boost/libs/serialization/src/xml_wgrammar.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp b/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp
+--- a/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
++++ b/boost-src/boost/libs/serialization/src/xml_wgrammar.cpp	(date 1745583016148)
+@@ -14,6 +14,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/impl/basic_xml_grammar.hpp>
 Index: arrow-src/arrow/cpp/src/arrow/vendored/uriparser/UriBase.h
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -13884,22 +13901,6 @@ diff --git a/arrow-src/arrow/cpp/src/arrow/vendored/datetime/tz.h b/arrow-src/ar
  
  namespace arrow_vendored::date
  {
-Index: boost-src/boost/libs/serialization/src/binary_wiarchive.cpp
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp b/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp
---- a/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
-+++ b/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp	(date 1745583016179)
-@@ -14,6 +14,7 @@
- #error "wide char i/o not supported on this platform"
- #else
- 
-+#define BOOST_ARCHIVE_SOURCE
- #define BOOST_WARCHIVE_SOURCE
- #include <boost/archive/binary_wiarchive.hpp>
- #include <boost/archive/detail/archive_serializer_map.hpp>
 Index: inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_mol.c
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -13927,6 +13928,22 @@ diff --git a/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_read_mol.c b/inchi-s
  
  #include "ixa_status.h"
  #include "ixa_mol.h"
+Index: boost-src/boost/libs/serialization/src/binary_wiarchive.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp b/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp
+--- a/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
++++ b/boost-src/boost/libs/serialization/src/binary_wiarchive.cpp	(date 1745583016179)
+@@ -14,6 +14,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/archive/binary_wiarchive.hpp>
+ #include <boost/archive/detail/archive_serializer_map.hpp>
 Index: boost-src/boost/libs/gil/include/boost/gil/extension/rasterization/ellipse.hpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -14030,22 +14047,6 @@ diff --git a/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_mol.c b/inchi-src/in
  
  #include "ixa_mol.h"
  #include "ixa_status.h"
-Index: boost-src/boost/libs/serialization/src/xml_wiarchive.cpp
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp b/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp
---- a/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
-+++ b/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp	(date 1745583016148)
-@@ -17,6 +17,7 @@
- #error "wide char i/o not supported on this platform"
- #else
- 
-+#define BOOST_ARCHIVE_SOURCE
- #define BOOST_WARCHIVE_SOURCE
- #include <boost/serialization/config.hpp>
- #include <boost/archive/xml_wiarchive.hpp>
 Index: openbabel-src/openbabel/src/formats/chemdrawcdx.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -14082,6 +14083,22 @@ diff --git a/inchi-src/inchi/INCHI_API/libinchi/src/ixa/ixa_status.c b/inchi-src
  #include "ixa_status.h"
  #include <string.h>
  #include <stdarg.h>
+Index: boost-src/boost/libs/serialization/src/xml_wiarchive.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp b/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp
+--- a/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp	(revision a20c4d97c37e5f437c8ba78f296830edb79cff9e)
++++ b/boost-src/boost/libs/serialization/src/xml_wiarchive.cpp	(date 1745583016148)
+@@ -17,6 +17,7 @@
+ #error "wide char i/o not supported on this platform"
+ #else
+ 
++#define BOOST_ARCHIVE_SOURCE
+ #define BOOST_WARCHIVE_SOURCE
+ #include <boost/serialization/config.hpp>
+ #include <boost/archive/xml_wiarchive.hpp>
 Index: openbabel-src/openbabel/src/formats/fchkformat.cpp
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
