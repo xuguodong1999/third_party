@@ -18,6 +18,10 @@
 	path = benchmark-src/benchmark
 	url = https://github.com/google/benchmark.git
     ignore = dirty
+[submodule "better-enums-src/better-enums"]
+	path = better-enums-src/better-enums
+	url = https://github.com/aantron/better-enums.git
+	ignore = dirty
 [submodule "boost-src/boost"]
 	path = boost-src/boost
 	url = https://github.com/boostorg/boost.git
@@ -90,6 +94,10 @@
 	path = libxml2-src/libxml2
 	url = https://github.com/GNOME/libxml2.git
     ignore = dirty
+[submodule "lunasvg-src/lunasvg"]
+	path = lunasvg-src/lunasvg
+	url = https://github.com/sammycage/lunasvg.git
+	ignore = dirty
 [submodule "maeparser-src/maeparser"]
 	path = maeparser-src/maeparser
 	url = https://github.com/schrodinger/maeparser.git
@@ -122,6 +130,10 @@
 	path = pixman-src/pixman
 	url = https://gitee.com/mirrors/Pixman.git
     ignore = dirty
+[submodule "plutovg-src/plutovg"]
+	path = plutovg-src/plutovg
+	url = https://github.com/sammycage/plutovg.git
+	ignore = dirty
 [submodule "protobuf-src/protobuf"]
 	path = protobuf-src/protobuf
 	url = https://github.com/protocolbuffers/protobuf.git
