@@ -2244,7 +2244,7 @@ Result<void*> LoadDynamicLibrary(const char* path) {
   auto* error = dlerror();
   return Status::IOError("dlopen(", path, ") failed: ", error ? error : "unknown error");
 #else
-    return Status::IOError("Not Implemented");
+  return Status::IOError("Not Implemented");
 #endif
 #endif
 }
@@ -2283,7 +2283,7 @@ Result<void*> GetSymbol(void* handle, const char* name) {
   auto* error = dlerror();
   return Status::IOError("dlsym(", name, ") failed: ", error ? error : "unknown error");
 #else
-    return Status::IOError("Not Implemented");
+  return Status::IOError("Not Implemented");
 #endif
 #endif
 }
