@@ -933,7 +933,7 @@ xmlParserValidityWarning(void *ctx, const char *msg ATTRIBUTE_UNUSED, ...)
 xmlError *
 xmlGetLastError(void)
 {
-    const xmlError *error = xmlGetLastErrorInternal();
+    xmlError *error = xmlGetLastErrorInternal();
 
     if (error->code == XML_ERR_OK)
         return(NULL);
