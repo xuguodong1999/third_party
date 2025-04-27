@@ -2,7 +2,9 @@
 #include <utility>
 #include <vector>
 
+#include <RDGeneral/BoostStartInclude.h>
 #include <boost/dynamic_bitset.hpp>
+#include <RDGeneral/BoostEndInclude.h>
 
 #include "StereoGroup.h"
 #include "Atom.h"
@@ -51,7 +53,7 @@ StereoGroup::StereoGroup(StereoGroupType grouptype, std::vector<Atom *> &&atoms,
 
 StereoGroup::StereoGroup(StereoGroupType grouptype,
                          const std::vector<Atom *> &atoms,
-                         std::vector<Bond *> &bonds, unsigned readId)
+                         const std::vector<Bond *> &bonds, unsigned readId)
     : d_grouptype(grouptype),
       d_atoms(std::move(atoms)),
       d_bonds(std::move(bonds)),
@@ -149,7 +151,7 @@ void assignStereoGroupIds(std::vector<StereoGroup> &groups) {
     if (sg.getGroupType() == StereoGroupType::STEREO_AND) {
       assignMissingIds(andIds, andId, sg);
     } else if (sg.getGroupType() == StereoGroupType::STEREO_OR) {
-      assignMissingIds(andIds, orId, sg);
+      assignMissingIds(orIds, orId, sg);
     }
   }
 }

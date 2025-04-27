@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+#include "cutlass/numeric_types.h"
+
 #if !defined(__CUDACC_RTC__)
 #include <cuda.h>
 #include <cinttypes>
@@ -37,6 +39,8 @@
 
 #include <cute/config.hpp>
 
+#include <cute/arch/util.hpp>   // cute::cast_smem_ptr_to_uint
+#include <cute/arch/config.hpp> // CUTE_ARCH_TMA_SMxx_ENABLED
 #include <cute/arch/copy.hpp>
 #include <cute/arch/copy_sm90.hpp>
 
@@ -134,6 +138,15 @@ enum class SmemSwizzleBits : uint8_t {
   B128 = 3,
 };
 
+enum class SmemSwizzleBase : uint8_t {
+  SWIZZLE_BASE_16B         = 0,
+  
+  SWIZZLE_BASE_32B         = 1,
+  SWIZZLE_BASE_32B_FLIP_8B = 2,
+  SWIZZLE_BASE_64B         = 3,
+  
+};
+
 enum class OOBFill : uint8_t {
   ZERO = 0,
   CONSTANT = 1,
@@ -176,6 +189,14 @@ enum class CacheHintSm90 : uint64_t {
   EVICT_LAST = 0x14F0000000000000,
 };
 
+
+enum class CacheHintSm100 : uint64_t {
+  EVICT_NORMAL = 0x1000000000000000,
+  EVICT_FIRST = 0x12F0000000000000,
+  EVICT_LAST = 0x14F0000000000000,
+};
+
+
 #if (__CUDACC_VER_MAJOR__ >= 12)
 
 #if !defined(__CUDACC_RTC__)
@@ -187,6 +208,8 @@ to_CUtensorMapDataType() {
   if constexpr (is_same_v<T,      uint8_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT8;    } else
   if constexpr (is_same_v<T, float_e4m3_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT8;    } else
   if constexpr (is_same_v<T, float_e5m2_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT8;    } else
+  if constexpr (is_same_v<T, float_ue8m0_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT8;   } else
+  if constexpr (is_same_v<T, type_erased_dynamic_float8_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT8;} else 
   if constexpr (is_same_v<T,     uint16_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT16;   } else
   if constexpr (is_same_v<T,     uint32_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT32;   } else
   if constexpr (is_same_v<T,     uint64_t>) { return CU_TENSOR_MAP_DATA_TYPE_UINT64;   } else
@@ -197,17 +220,45 @@ to_CUtensorMapDataType() {
   if constexpr (is_same_v<T,       double>) { return CU_TENSOR_MAP_DATA_TYPE_FLOAT64;  } else
   if constexpr (is_same_v<T,   bfloat16_t>) { return CU_TENSOR_MAP_DATA_TYPE_BFLOAT16; } else
   if constexpr (is_same_v<T,   tfloat32_t>) { return CU_TENSOR_MAP_DATA_TYPE_TFLOAT32; } else
+  #if ((__CUDACC_VER_MAJOR__ > 12) || ((__CUDACC_VER_MAJOR__ == 12) && (__CUDACC_VER_MINOR__ > 6)))
+  if constexpr (is_same_v<T, float_e2m1_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U4_ALIGN8B;  } else
+  if constexpr (is_same_v<T, float_e2m3_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U6_ALIGN16B; } else
+  if constexpr (is_same_v<T, float_e3m2_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U6_ALIGN16B; } else
+  if constexpr (is_same_v<T, type_erased_dynamic_float4_t>)    { return CU_TENSOR_MAP_DATA_TYPE_16U4_ALIGN8B;  } else
+  if constexpr (is_same_v<T, type_erased_dynamic_float6_t>)    { return CU_TENSOR_MAP_DATA_TYPE_16U6_ALIGN16B; } else
+  if constexpr (is_same_v<T, detail::float_e2m1_unpacksmem_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U4_ALIGN16B; } else
+  if constexpr (is_same_v<T, detail::float_e2m3_unpacksmem_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U6_ALIGN16B; } else
+  if constexpr (is_same_v<T, detail::float_e3m2_unpacksmem_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U6_ALIGN16B; } else
+  if constexpr (is_same_v<T, detail::type_erased_dynamic_float4_unpacksmem_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U4_ALIGN16B; } else
+  if constexpr (is_same_v<T, detail::type_erased_dynamic_float6_unpacksmem_t>) { return CU_TENSOR_MAP_DATA_TYPE_16U6_ALIGN16B; } else
+  #endif
+
   { static_assert(sizeof(T) < 0, "Unknown TMA Format!"); }
 }
 
 inline CUtensorMapSwizzle
-to_CUtensorMapSwizzle(SmemSwizzleBits const& t) {
+to_CUtensorMapSwizzle(SmemSwizzleBits const& t, SmemSwizzleBase const& b) {
   switch (t) {
-    default:                       assert(false && "Unknown SmemSwizzleBits!");
-    case SmemSwizzleBits::DISABLE: return CU_TENSOR_MAP_SWIZZLE_NONE;
-    case SmemSwizzleBits::B32:     return CU_TENSOR_MAP_SWIZZLE_32B;
-    case SmemSwizzleBits::B64:     return CU_TENSOR_MAP_SWIZZLE_64B;
-    case SmemSwizzleBits::B128:    return CU_TENSOR_MAP_SWIZZLE_128B;
+    default: assert(false && "Unsupported pair of SmemSwizzleBits and SmemSwizzleBase!");
+    case SmemSwizzleBits::DISABLE: 
+      assert((b == SmemSwizzleBase::SWIZZLE_BASE_16B) && "Expected 16B swizzle base for 0B swizzle bits.");
+      return CU_TENSOR_MAP_SWIZZLE_NONE;
+    case SmemSwizzleBits::B32:
+      assert((b == SmemSwizzleBase::SWIZZLE_BASE_16B) && "Expected 16B swizzle base for 32B swizzle bits.");
+      return CU_TENSOR_MAP_SWIZZLE_32B;
+    case SmemSwizzleBits::B64:
+      assert((b == SmemSwizzleBase::SWIZZLE_BASE_16B) && "Expected 16B swizzle base for 64B swizzle bits.");
+      return CU_TENSOR_MAP_SWIZZLE_64B;
+    case SmemSwizzleBits::B128:
+      switch (b) {
+        default: assert(false && "Unsupported pair of SmemSwizzleBits and SmemSwizzleBase!");
+        case SmemSwizzleBase::SWIZZLE_BASE_16B: return CU_TENSOR_MAP_SWIZZLE_128B;
+        
+        #if ((__CUDACC_VER_MAJOR__ > 12) || ((__CUDACC_VER_MAJOR__ == 12) && (__CUDACC_VER_MINOR__ > 6)))
+        case SmemSwizzleBase::SWIZZLE_BASE_32B: return CU_TENSOR_MAP_SWIZZLE_128B_ATOM_32B;
+        case SmemSwizzleBase::SWIZZLE_BASE_64B: return CU_TENSOR_MAP_SWIZZLE_128B_ATOM_64B;
+        #endif
+      }
   }
 }
 
@@ -282,7 +333,7 @@ tma_descriptor_replace_addr_in_global_mem(TmaDescriptor const* desc_ptr,
     "tensormap.replace.tile.global_address.global.b1024.b64 [%0], %1;"
     :: "l"(gmem_int_desc), "l"(new_desc_addr));
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -295,15 +346,11 @@ tma_descriptor_replace_addr_in_shared_mem(TmaDescriptor& smem_desc,
 #if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint32_t smem_int_desc = cast_smem_ptr_to_uint(&smem_desc);
   uint64_t const new_desc_addr = reinterpret_cast<uint64_t>(new_tensor_ptr);
-  uint64_t const smem_int64_desc = 0;
-  asm volatile (
-    "cvt.u64.u32 %0, %1;"
-    :: "l"(smem_int64_desc), "r"(smem_int_desc));
   asm volatile (
     "tensormap.replace.tile.global_address.shared::cta.b1024.b64 [%0], %1;"
-    :: "l"(smem_int64_desc), "l"(new_desc_addr));
+    :: "r"(smem_int_desc), "l"(new_desc_addr));
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -311,8 +358,8 @@ tma_descriptor_replace_addr_in_shared_mem(TmaDescriptor& smem_desc,
 CUTE_HOST_DEVICE
 void
 tma_descriptor_replace_dims_strides_in_shared_mem(TmaDescriptor                 & smem_desc,
-                                                  cute::array<uint32_t, 3> const& prob_shape,
-                                                  cute::array<uint64_t, 3> const& prob_stride)
+                                                  cute::array<uint32_t, 5> const& prob_shape,
+                                                  cute::array<uint64_t, 5> const& prob_stride)
 {
 #if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   uint32_t smem_int_desc = cast_smem_ptr_to_uint(&smem_desc);
@@ -329,25 +376,43 @@ tma_descriptor_replace_dims_strides_in_shared_mem(TmaDescriptor                 
   asm volatile (
     "tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [%0], 2, %1;"
     :: "l"(smem_int64_desc), "r"(prob_shape[2]));
+  asm volatile (
+    "tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [%0], 3, %1;"
+    :: "l"(smem_int64_desc), "r"(prob_shape[3]));
+  asm volatile (
+    "tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [%0], 4, %1;"
+    :: "l"(smem_int64_desc), "r"(prob_shape[4]));
   // Strides must be a multiple of 16. Also, stride for the intermost dimension is implicitly 1
   #if ((__CUDACC_VER_MAJOR__ > 12) || ((__CUDACC_VER_MAJOR__ == 12) && (__CUDACC_VER_MINOR__ >= 5)))
-  // 4 LSBs are not included
   asm volatile (
     "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 0, %1;"
     :: "l"(smem_int64_desc), "l"(prob_stride[1]));
   asm volatile (
     "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 1, %1;"
     :: "l"(smem_int64_desc), "l"(prob_stride[2]));
+  asm volatile (
+    "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 2, %1;"
+    :: "l"(smem_int64_desc), "l"(prob_stride[3]));
+  asm volatile (
+    "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 3, %1;"
+    :: "l"(smem_int64_desc), "l"(prob_stride[4]));
   #else
+  // 4 LSBs are not included
   asm volatile (
     "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 0, %1;"
     :: "l"(smem_int64_desc), "l"(prob_stride[1] >> 4));
   asm volatile (
     "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 1, %1;"
     :: "l"(smem_int64_desc), "l"(prob_stride[2] >> 4));
+  asm volatile (
+    "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 2, %1;"
+    :: "l"(smem_int64_desc), "l"(prob_stride[3] >> 4));
+  asm volatile (
+    "tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [%0], 3, %1;"
+    :: "l"(smem_int64_desc), "l"(prob_stride[4] >> 4));
   #endif
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -366,7 +431,7 @@ tma_descriptor_cp_fence_release(TmaDescriptor const* gmem_desc_ptr, TmaDescripto
     "tensormap.cp_fenceproxy.global.shared::cta.tensormap::generic.release.gpu.sync.aligned [%0], [%1], 128;"
     :: "l"(gmem_int_desc), "r"(smem_int_desc));
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -381,7 +446,7 @@ tma_descriptor_fence_release()
 #if defined(CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED)
   asm volatile ("fence.proxy.tensormap::generic.release.gpu;");
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 
@@ -400,13 +465,8 @@ tma_descriptor_fence_acquire(TmaDescriptor const* desc_ptr)
     :
     : "l"(gmem_int_desc)
     : "memory");
-  asm volatile (
-    "cvta.global.u64 %0, %0;"
-    :
-    : "l"(gmem_int_desc), "l"(gmem_int_desc)
-    : "memory");
 #else
-  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_TMA_SM90_ENABLED and CUDA 12.3");
+  CUTE_INVALID_CONTROL_PATH("Using TMA Descriptor modification without CUTE_ARCH_DEVICE_MODIFIABLE_TMA_SM90_ENABLED and CUDA 12.3");
 #endif
 }
 

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -760,6 +760,58 @@ struct DefaultGemmConfiguration<
       ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
 
   using Operator = arch::OpMultiplyAdd;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <
+  typename ElementC>
+struct DefaultGemmConfiguration<
+  arch::OpClassTensorOp,
+  arch::Sm80,
+  int4b_t,
+  int8_t,
+  ElementC,
+  int32_t> {
+
+  static int const kAlignmentA = 128 / sizeof_bits<int4b_t>::value;
+  static int const kAlignmentB = 128 / sizeof_bits<int8_t>::value;
+
+  using ThreadblockShape = GemmShape<128, 256, 64>;
+  using WarpShape = GemmShape<64, 64, 64>;
+  using InstructionShape = GemmShape<16, 8, 32>;
+  static int const kStages = 3;
+
+  using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
+      ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
+
+  using Operator = arch::OpMultiplyAddSaturate;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <
+  typename ElementC>
+struct DefaultGemmConfiguration<
+  arch::OpClassTensorOp,
+  arch::Sm80,
+  int8_t,
+  int4b_t,
+  ElementC,
+  int32_t> {
+
+  static int const kAlignmentA = 128 / sizeof_bits<int8_t>::value;
+  static int const kAlignmentB = 128 / sizeof_bits<int4b_t>::value;
+
+  using ThreadblockShape = GemmShape<128, 256, 64>;
+  using WarpShape = GemmShape<64, 64, 64>;
+  using InstructionShape = GemmShape<16, 8, 32>;
+  static int const kStages = 3;
+
+  using EpilogueOutputOp = epilogue::thread::LinearCombinationClamp<
+      ElementC, 128 / sizeof_bits<ElementC>::value, int32_t, float>;
+
+  using Operator = arch::OpMultiplyAddSaturate;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

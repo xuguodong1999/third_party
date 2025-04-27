@@ -19,7 +19,11 @@ namespace skgpu::graphite {
 namespace {
 
 wgpu::ShaderModule CreateNoopFragment(const wgpu::Device& device) {
+#if defined(__EMSCRIPTEN__)
     wgpu::ShaderModuleWGSLDescriptor wgslDesc;
+#else
+    wgpu::ShaderSourceWGSL wgslDesc;
+#endif
     wgslDesc.code =
             "@fragment\n"
             "fn main() {}\n";
@@ -47,13 +51,15 @@ sk_sp<SharedContext> DawnSharedContext::Make(const DawnBackendContext& backendCo
 
     return sk_sp<SharedContext>(new DawnSharedContext(backendContext,
                                                       std::move(caps),
-                                                      std::move(noopFragment)));
+                                                      std::move(noopFragment),
+                                                      options.fUserDefinedKnownRuntimeEffects));
 }
 
 DawnSharedContext::DawnSharedContext(const DawnBackendContext& backendContext,
                                      std::unique_ptr<const DawnCaps> caps,
-                                     wgpu::ShaderModule noopFragment)
-        : skgpu::graphite::SharedContext(std::move(caps), BackendApi::kDawn)
+                                     wgpu::ShaderModule noopFragment,
+                                     SkSpan<sk_sp<SkRuntimeEffect>> userDefinedKnownRuntimeEffects)
+        : SharedContext(std::move(caps), BackendApi::kDawn, userDefinedKnownRuntimeEffects)
         , fInstance(backendContext.fInstance)
         , fDevice(backendContext.fDevice)
         , fQueue(backendContext.fQueue)

@@ -56,7 +56,6 @@
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/io/io_win32.h"
 #include "google/protobuf/io/zero_copy_stream_impl.h"
-#include "google/protobuf/test_util.h"
 #include "google/protobuf/test_util2.h"
 
 #if HAVE_ZLIB
@@ -1180,7 +1179,7 @@ TEST(CordOutputStreamTest, ProperHintCreatesSingleFlatCord) {
   EXPECT_EQ(flat, std::string(2000, 'a'));
 }
 
-TEST(CordOutputStreamTest, SizeHintDicatesTotalSize) {
+TEST(CordOutputStreamTest, SizeHintDictatesTotalSize) {
   absl::Cord cord(std::string(500, 'a'));
   CordOutputStream output(std::move(cord), 2000);
   void* data;

@@ -36,6 +36,7 @@
 #include "src/core/SkMask.h"
 #include "src/core/SkMaskFilterBase.h"
 #include "src/core/SkMatrixPriv.h"
+#include "src/core/SkPathEffectBase.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkScalerContext.h"
 #include "src/core/SkStrike.h"
@@ -55,15 +56,14 @@
 #include <algorithm>
 #include <climits>
 #include <cstdint>
-#include <initializer_list>
 #include <new>
 #include <optional>
 #include <vector>
 
 #if defined(SK_GANESH) || defined(SK_USE_LEGACY_GANESH_TEXT_APIS)
 #include "include/core/SkRRect.h"
-#include "include/private/SkColorData.h"
 #include "include/private/gpu/ganesh/GrTypesPriv.h"
+#include "src/core/SkColorData.h"
 #include "src/core/SkPaintPriv.h"
 #include "src/gpu/ganesh/GrClip.h"
 #include "src/gpu/ganesh/GrColorInfo.h"
@@ -1651,14 +1651,14 @@ make_sdft_strike_spec(const SkFont& font, const SkPaint& paint,
 
     // Check for dashing and adjust the intervals.
     if (SkPathEffect* pathEffect = paint.getPathEffect(); pathEffect != nullptr) {
-        SkPathEffect::DashInfo dashInfo;
-        if (pathEffect->asADash(&dashInfo) == SkPathEffect::kDash_DashType) {
+        SkPathEffectBase::DashInfo dashInfo;
+        if (as_PEB(pathEffect)->asADash(&dashInfo) == SkPathEffectBase::DashType::kDash) {
             if (dashInfo.fCount > 0) {
                 // Allocate the intervals.
                 std::vector<SkScalar> scaledIntervals(dashInfo.fCount);
                 dashInfo.fIntervals = scaledIntervals.data();
                 // Call again to get the interval data.
-                (void)pathEffect->asADash(&dashInfo);
+                (void)as_PEB(pathEffect)->asADash(&dashInfo);
                 for (SkScalar& interval : scaledIntervals) {
                     interval /= strikeToSourceScale;
                 }

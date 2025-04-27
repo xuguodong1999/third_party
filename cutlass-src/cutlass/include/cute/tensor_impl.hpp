@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,18 +41,16 @@
 
 #pragma once
 
-#include <cute/config.hpp>
-
-#include <cute/util/type_traits.hpp>
-#include <cute/numeric/integral_constant.hpp>
-#include <cute/numeric/integer_sequence.hpp>
-
-#include <cute/container/tuple.hpp>
-#include <cute/container/array_aligned.hpp>
-#include <cute/container/array_subbyte.hpp>
-
-#include <cute/pointer.hpp>
-#include <cute/layout.hpp>
+#include <cute/config.hpp>                     // CUTE_HOST_DEVICE
+#include <cute/layout.hpp>                     // cute::Shape
+#include <cute/layout_composed.hpp>            // cute::is_composed_layout
+#include <cute/pointer.hpp>                    // cute::recast_ptr
+#include <cute/pointer_base.hpp>               // cute::iterator_traits
+#include <cute/container/array_aligned.hpp>    // cute::array_aligned
+#include <cute/container/array_subbyte.hpp>    // cute::array_subbyte
+#include <cute/container/tuple.hpp>            // cute::tuple
+#include <cute/numeric/integral_constant.hpp>  // cute::is_integral
+#include <cute/util/type_traits.hpp>           // __CUTE_REQUIRES
 
 namespace cute
 {
@@ -69,7 +67,7 @@ namespace cute
 //   iterator begin();
 // };
 
-template <class T, int N>
+template <class T, size_t N>
 struct ArrayEngine
 {
   using Storage = typename conditional<(sizeof_bits<T>::value % 8 == 0),
@@ -83,6 +81,26 @@ struct ArrayEngine
 
   CUTE_HOST_DEVICE constexpr auto begin() const { return storage_.begin(); }
   CUTE_HOST_DEVICE constexpr auto begin()       { return storage_.begin(); }
+};
+
+// Specialization for sparse_elem<S,T> tensor allocation/iteration
+// NOTE: This can and should be used for allocation of SMEM as well!
+//       Fuse these two ArrayEngines?
+template <int S, class T, size_t N>
+struct ArrayEngine<sparse_elem<S,T>, N>
+{
+  static_assert(N % S == 0, "Expected a multiple of the sparsity.");
+  using value_type   = sparse_elem<S,T>;
+  using Storage      = typename conditional<(sizeof_bits<T>::value % 8 == 0),
+                                            array_aligned<T,N/S>,
+                                            array_subbyte<T,N/S>>::type;
+  using iterator     = sparse_ptr<S,sparse_elem<S,T>*>;
+  using reference    = typename iterator_traits<iterator>::reference;
+  using element_type = typename iterator_traits<iterator>::element_type;
+  Storage storage_;
+
+  CUTE_HOST_DEVICE constexpr auto begin() const { return recast_ptr<value_type>(storage_.begin()); }
+  CUTE_HOST_DEVICE constexpr auto begin()       { return recast_ptr<value_type>(storage_.begin()); }
 };
 
 template <class Iterator>
@@ -217,7 +235,7 @@ struct Tensor
   decltype(auto)
   operator()(Coord const& coord) {
     if constexpr (has_underscore<Coord>::value) {
-      auto const& [sliced_layout,offset] = slice_and_offset(coord, layout());
+      auto [sliced_layout,offset] = slice_and_offset(coord, layout());
       return make_tensor(data() + offset, sliced_layout);
     } else {
       return data()[layout()(coord)];
@@ -231,7 +249,7 @@ struct Tensor
   decltype(auto)
   operator()(Coord const& coord) const {
     if constexpr (has_underscore<Coord>::value) {
-      auto const& [sliced_layout,offset] = slice_and_offset(coord, layout());
+      auto [sliced_layout,offset] = slice_and_offset(coord, layout());
       return make_tensor(data() + offset, sliced_layout);
     } else {
       return data()[layout()(coord)];
@@ -363,6 +381,8 @@ struct MakeTensor
         return Tensor<Engine,Layout>();
       }
     }
+
+    CUTE_GCC_UNREACHABLE;
   }
 };
 
@@ -463,7 +483,7 @@ CUTE_HOST_DEVICE constexpr
 auto
 make_counting_tensor(Layout const& layout)
 {
-  return make_tensor(make_inttuple_iter(repeat_like(coshape(layout), Int<0>{})), layout);
+  return make_tensor(make_inttuple_iter(coprofile(layout)), layout);
 }
 
 //
@@ -622,6 +642,30 @@ filter_zeros(Tensor<Engine,Layout>&& tensor) {
   return make_tensor(tensor.data(), filter_zeros(tensor.layout()));
 }
 
+template <class Engine, class Layout, class Profile>
+CUTE_HOST_DEVICE constexpr
+auto
+filter_zeros(Tensor<Engine,Layout> const& tensor, Profile const& profile)
+{
+  return make_tensor(tensor.data(), filter_zeros(tensor.layout(), profile));
+}
+
+template <class Engine, class Layout, class Profile>
+CUTE_HOST_DEVICE constexpr
+auto
+filter_zeros(Tensor<Engine,Layout>& tensor, Profile const& profile)
+{
+  return make_tensor(tensor.data(), filter_zeros(tensor.layout(), profile));
+}
+
+template <class Engine, class Layout, class Profile>
+CUTE_HOST_DEVICE constexpr
+auto
+filter_zeros(Tensor<Engine,Layout>&& tensor, Profile const& profile)
+{
+  return make_tensor(tensor.data(), filter_zeros(tensor.layout(), profile));
+}
+
 // Remove all of the 0-strides and 1-sizes
 template <class Engine, class Layout>
 CUTE_HOST_DEVICE constexpr
@@ -746,7 +790,7 @@ recast(Tensor&& tensor)
  * vectorization should be attempted.
  *
  * Note that the return value does NOT include alignment concerns such as the pointer value and
- * the divisbility of dynamic strides.
+ * the divisibility of dynamic strides.
  */
 template <class SrcEngine, class SrcLayout,
           class DstEngine, class DstLayout>
@@ -755,10 +799,10 @@ auto
 max_common_vector(Tensor<SrcEngine,SrcLayout> const& a,
                   Tensor<DstEngine,DstLayout> const& b)
 {
-  using SrcType = typename Tensor<SrcEngine,SrcLayout>::value_type;
-  using DstType = typename Tensor<DstEngine,DstLayout>::value_type;
-  using SrcRef  = typename Tensor<SrcEngine,SrcLayout>::reference;
-  using DstRef  = typename Tensor<SrcEngine,SrcLayout>::reference;
+  using SrcType = typename SrcEngine::value_type;
+  using SrcRef  = typename SrcEngine::reference;
+  using DstType = typename DstEngine::value_type;
+  using DstRef  = typename DstEngine::reference;
 
   // Determine if vectorization candidates at all
   if constexpr (// Should be the same value_types, else the copy is also performing a cast
@@ -786,7 +830,7 @@ max_common_vector(Tensor<SrcEngine,SrcLayout> const& a,
  *          are both identity Layouts.
  *
  * Note that the returned layout does NOT include alignment concerns such as the pointer value and
- * the divisbility of dynamic strides.
+ * the divisibility of dynamic strides.
  */
 template <class SrcEngine, class SrcLayout,
           class DstEngine, class DstLayout>
@@ -795,10 +839,10 @@ auto
 max_common_layout(Tensor<SrcEngine,SrcLayout> const& a,
                   Tensor<DstEngine,DstLayout> const& b)
 {
-  using SrcType = typename Tensor<SrcEngine,SrcLayout>::value_type;
-  using DstType = typename Tensor<DstEngine,DstLayout>::value_type;
-  using SrcRef  = typename Tensor<SrcEngine,SrcLayout>::reference;
-  using DstRef  = typename Tensor<SrcEngine,SrcLayout>::reference;
+  using SrcType = typename SrcEngine::value_type;
+  using SrcRef  = typename SrcEngine::reference;
+  using DstType = typename DstEngine::value_type;
+  using DstRef  = typename DstEngine::reference;
 
   // Determine if vectorization candidates at all
   if constexpr (// Should be the same value_types, else the copy is also performing a cast
@@ -816,6 +860,17 @@ max_common_layout(Tensor<SrcEngine,SrcLayout> const& a,
   }
 
   CUTE_GCC_UNREACHABLE;
+}
+
+/* Return the maximum (statically known) alignment of a Tensor in the number of bits
+ */
+template <class Engine, class Layout>
+CUTE_HOST_DEVICE constexpr
+auto
+max_alignment(Tensor<Engine,Layout> const& t)
+{
+  return gcd(max_alignment(t.data()),
+             max_alignment(t.layout()) * static_value<sizeof_bits<typename Engine::value_type>>());
 }
 
 //
@@ -991,8 +1046,8 @@ local_tile(Tensor    && tensor,
 //   auto cta_tiler = Shape<_32, _64, _4>{};
 //   auto cta_coord = make_coord(blockIdx.x, blockIdx.y, _);
 //   Tensor ctaA = local_tile(dataA, cta_tiler, cta_coord, Step<_1, X,_1>{});  // (_32,_4,k)
-//   Tensor ctaB = local_tile(dataA, cta_tiler, cta_coord, Step< X,_1,_1>{});  // (_64,_4,k)
-//   Tensor ctaC = local_tile(dataA, cta_tiler, cta_coord, Step<_1,_1, X>{});  // (_32,_64)
+//   Tensor ctaB = local_tile(dataB, cta_tiler, cta_coord, Step< X,_1,_1>{});  // (_64,_4,k)
+//   Tensor ctaC = local_tile(dataC, cta_tiler, cta_coord, Step<_1,_1, X>{});  // (_32,_64)
 template <class Tensor, class Tiler, class Coord, class Proj,
           __CUTE_REQUIRES(is_tensor<remove_cvref_t<Tensor>>::value)>
 CUTE_HOST_DEVICE

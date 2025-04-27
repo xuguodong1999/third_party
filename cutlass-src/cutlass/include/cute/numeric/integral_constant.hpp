@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,9 @@
  **************************************************************************************************/
 #pragma once
 
-#include "cute/util/print.hpp"
-#include "cute/util/type_traits.hpp"
-#include "cute/numeric/math.hpp"
-#include "cutlass/fast_math.h"
+#include <cute/numeric/math.hpp>      // cute::max, etc
+#include <cute/util/print.hpp>        // cute::print
+#include <cute/util/type_traits.hpp>  // __CUTE_REQUIRES, cute::is_std_integral
 
 namespace cute
 {
@@ -65,7 +64,7 @@ struct integral_constant : C<v> {
   static constexpr T value = v;
   using value_type = T;
   // Disambiguate C<v>::operator value_type()
-  //CUTE_HOST_DEVICE constexpr operator   value_type() const noexcept { return value; }  
+  //CUTE_HOST_DEVICE constexpr operator   value_type() const noexcept { return value; }
   CUTE_HOST_DEVICE constexpr value_type operator()() const noexcept { return value; }
 };
 
@@ -75,29 +74,40 @@ struct integral_constant : C<v> {
 
 // Use cute::is_std_integral<T> to match built-in integral types (int, int64_t, unsigned, etc)
 // Use cute::is_integral<T> to match both built-in integral types AND static integral types.
-
 template <class T>
 struct is_integral : bool_constant<is_std_integral<T>::value> {};
 template <auto v>
 struct is_integral<C<v>                  > : true_type {};
 template <class T, T v>
 struct is_integral<integral_constant<T,v>> : true_type {};
+template <class T>
+constexpr bool is_integral_v = is_integral<T>::value;
 
-// Register FastDivmod as the integral type
+// Register FastDivmod as integral type
 template<>
 struct is_integral<cutlass::FastDivmod> : true_type {};
 
 // is_static detects if an (abstract) value is defined completely by its type (no members)
 template <class T>
-struct is_static : bool_constant<is_empty<remove_cvref_t<T>>::value> {};
-
+struct is_static : bool_constant<is_empty<T>::value> {};
+template <class T>
+struct is_static<T const > : is_static<T> {};
+template <class T>
+struct is_static<T const&> : is_static<T> {};
+template <class T>
+struct is_static<T      &> : is_static<T> {};
+template <class T>
+struct is_static<T     &&> : is_static<T> {};
 template <class T>
 constexpr bool is_static_v = is_static<T>::value;
 
 // is_constant detects if a type is a static integral type and if v is equal to a value
-
 template <auto n, class T>
 struct is_constant : false_type {};
+template <auto n, auto v>
+struct is_constant<n, C<v>                  > : bool_constant<v == n> {};
+template <auto n, class T, T v>
+struct is_constant<n, integral_constant<T,v>> : bool_constant<v == n> {};
 template <auto n, class T>
 struct is_constant<n, T const > : is_constant<n,T> {};
 template <auto n, class T>
@@ -106,10 +116,8 @@ template <auto n, class T>
 struct is_constant<n, T      &> : is_constant<n,T> {};
 template <auto n, class T>
 struct is_constant<n, T     &&> : is_constant<n,T> {};
-template <auto n, auto v>
-struct is_constant<n, C<v>                  > : bool_constant<v == n> {};
-template <auto n, class T, T v>
-struct is_constant<n, integral_constant<T,v>> : bool_constant<v == n> {};
+template <auto n, class T>
+constexpr bool is_constant_v = is_constant<n,T>::value;
 
 //
 // Specializations
@@ -147,19 +155,33 @@ using _12     = Int<12>;
 using _16     = Int<16>;
 using _24     = Int<24>;
 using _32     = Int<32>;
+using _40     = Int<40>;
 using _48     = Int<48>;
+using _56     = Int<56>;
 using _64     = Int<64>;
+using _72     = Int<72>;
 using _80     = Int<80>;
+using _88     = Int<88>;
 using _96     = Int<96>;
+using _104    = Int<104>;
 using _112    = Int<112>;
+using _120    = Int<120>;
 using _128    = Int<128>;
+using _136    = Int<136>;
 using _144    = Int<144>;
+using _152    = Int<152>;
 using _160    = Int<160>;
+using _168    = Int<168>;
 using _176    = Int<176>;
+using _184    = Int<184>;
 using _192    = Int<192>;
+using _200    = Int<200>;
 using _208    = Int<208>;
+using _216    = Int<216>;
 using _224    = Int<224>;
+using _232    = Int<232>;
 using _240    = Int<240>;
+using _248    = Int<248>;
 using _256    = Int<256>;
 using _384    = Int<384>;
 using _512    = Int<512>;
@@ -328,14 +350,14 @@ operator||(U, C<t>) {
 #define CUTE_NAMED_UNARY_FN(OP)                                      \
   template <auto t>                                                  \
   CUTE_HOST_DEVICE constexpr                                         \
-  C<OP(t)> OP (C<t>) {                                               \
-    return {};                                                       \
+  auto OP (C<t>) {                                                   \
+    return C<OP(t)>{};                                               \
   }
 #define CUTE_NAMED_BINARY_FN(OP)                                     \
   template <auto t, auto u>                                          \
   CUTE_HOST_DEVICE constexpr                                         \
-  C<OP(t,u)> OP (C<t>, C<u>) {                                       \
-    return {};                                                       \
+  auto OP (C<t>, C<u>) {                                             \
+    return C<OP(t,u)>{};                                             \
   }                                                                  \
   template <auto t, class U,                                         \
             __CUTE_REQUIRES(is_std_integral<U>::value)>              \
@@ -406,6 +428,20 @@ conditional_return(false_type, TrueType&&, FalseType&& f) {
   return static_cast<FalseType&&>(f);
 }
 
+template <auto v>
+CUTE_HOST_DEVICE constexpr
+auto
+conditional_return(bool b, C<v> const&, C<v> const&) {
+  return C<v>{};
+}
+
+template <auto v, auto u>
+CUTE_HOST_DEVICE constexpr
+auto
+conditional_return(bool b, C<v> const&, C<u> const&) {
+  return b ? v : u;
+}
+
 // TrueType and FalseType must have a common type
 template <class TrueType, class FalseType>
 CUTE_HOST_DEVICE constexpr
@@ -435,7 +471,7 @@ static_value()
     return Int<Trait::value>{};
   } else {
     return Trait::value;
-  } 
+  }
   CUTE_GCC_UNREACHABLE;
 }
 

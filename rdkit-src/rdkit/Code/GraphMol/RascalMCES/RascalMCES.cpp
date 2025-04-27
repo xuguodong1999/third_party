@@ -23,8 +23,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include <RDGeneral/BoostStartInclude.h>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/algorithm/string.hpp>
+#include <RDGeneral/BoostEndInclude.h>
 
 #include <GraphMol/ROMol.h>
 #include <GraphMol/MolOps.h>
@@ -265,23 +267,14 @@ void getBondLabels(const ROMol &mol, const RascalOptions &opts,
     } else {
       bondType = std::to_string(b->getBondType());
     }
-    if (b->getBeginAtom()->getAtomicNum() == b->getEndAtom()->getAtomicNum()) {
-      if (b->getEndAtom()->getDegree() < b->getBeginAtom()->getDegree()) {
-        bondLabels[b->getIdx()] = atomLabels[b->getEndAtomIdx()] + bondType +
-                                  atomLabels[b->getBeginAtomIdx()];
-      } else {
-        bondLabels[b->getIdx()] = atomLabels[b->getBeginAtomIdx()] + bondType +
-                                  atomLabels[b->getEndAtomIdx()];
-      }
-    } else {
-      if (b->getBeginAtom()->getAtomicNum() < b->getEndAtom()->getAtomicNum()) {
-        bondLabels[b->getIdx()] = atomLabels[b->getBeginAtomIdx()] + bondType +
-                                  atomLabels[b->getEndAtomIdx()];
-      } else {
-        bondLabels[b->getIdx()] = atomLabels[b->getEndAtomIdx()] + bondType +
-                                  atomLabels[b->getBeginAtomIdx()];
-      }
+    // The atom labels need to be in consistent order irrespective
+    // of input order.
+    auto lbl1 = atomLabels[b->getBeginAtomIdx()];
+    auto lbl2 = atomLabels[b->getEndAtomIdx()];
+    if (lbl1 < lbl2) {
+      std::swap(lbl1, lbl2);
     }
+    bondLabels[b->getIdx()] = lbl1 + bondType + lbl2;
   }
 }
 
@@ -338,20 +331,35 @@ void makeLineGraph(const ROMol &mol, std::vector<std::vector<int>> &adjMatrix) {
   }
 }
 
-// make sure that mol1_bond in mol1 and mol2_bond in mol2 are, if aromatic, in
-// at least one ring that is the same.
-bool checkAromaticRings(const ROMol &mol1,
+// make sure that mol1_bond in mol1 and mol2_bond in mol2 are, in at least one
+// ring that is the same. If aromaticRingsMatchOnly is true, then only aromatic
+// bonds are considered.
+bool checkRings(const ROMol &mol1,
                         std::vector<std::string> &mol1RingSmiles,
                         int mol1BondIdx, const ROMol &mol2,
                         std::vector<std::string> &mol2RingSmiles,
-                        int mol2BondIdx) {
+                        int mol2BondIdx,
+                        bool aromaticRingsMatchOnly) {
   auto mol1Bond = mol1.getBondWithIdx(mol1BondIdx);
   auto mol2Bond = mol2.getBondWithIdx(mol2BondIdx);
-  if (!mol1Bond->getIsAromatic() || !mol2Bond->getIsAromatic()) {
+  if (aromaticRingsMatchOnly && (!mol1Bond->getIsAromatic() || !mol2Bond->getIsAromatic())) {
     return true;
   }
+
+  if (mol1Bond->getBondType() != mol2Bond->getBondType()) {
+    return false;
+  }
+
+  // If neither bond was in a ring, but they were marked aromatic, then
+  // the two mols are fragments so it's ok to match these bonds.
   const auto &mol1BondRings = mol1.getRingInfo()->bondRings();
   const auto &mol2BondRings = mol2.getRingInfo()->bondRings();
+  bool mol1BondInRing = mol1.getRingInfo()->numBondRings(mol1BondIdx);
+  bool mol2BondInRing = mol2.getRingInfo()->numBondRings(mol2BondIdx);
+  if (!mol1BondInRing && !mol2BondInRing) {
+    return true;
+  }
+
   for (size_t i = 0u; i < mol1BondRings.size(); ++i) {
     if (std::find(mol1BondRings[i].begin(), mol1BondRings[i].end(),
                   mol1BondIdx) == mol1BondRings[i].end()) {
@@ -419,7 +427,8 @@ bool checkRingMatchesRing(const ROMol &mol1, int mol1BondIdx, const ROMol &mol2,
   return true;
 }
 
-// Make the set of pairs of vertices, where they're a pair if the labels match.
+// Make the set of pairs of vertices, where they're a pair if the labels
+// match.
 void buildPairs(const ROMol &mol1, const std::vector<unsigned int> &vtxLabels1,
                 const ROMol &mol2, const std::vector<unsigned int> &vtxLabels2,
                 const RascalOptions &opts,
@@ -427,7 +436,8 @@ void buildPairs(const ROMol &mol1, const std::vector<unsigned int> &vtxLabels1,
   std::vector<std::string> mol1RingSmiles, mol2RingSmiles;
   std::vector<std::unique_ptr<ROMol>> mol1Rings, mol2Rings;
   // For these purposes, it is correct that n1cccc1 and [nH]1cccc1 match - the
-  // former would be from an N-substituted pyrrole, the latter from a plain one.
+  // former would be from an N-substituted pyrrole, the latter from a plain
+  // one.
   static const std::regex reg(R"(\[([np])H\])");
   if (opts.completeAromaticRings) {
     extractRings(mol1, mol1Rings, mol1RingSmiles);
@@ -443,12 +453,16 @@ void buildPairs(const ROMol &mol1, const std::vector<unsigned int> &vtxLabels1,
   for (auto i = 0u; i < vtxLabels1.size(); ++i) {
     for (auto j = 0u; j < vtxLabels2.size(); ++j) {
       if (vtxLabels1[i] == vtxLabels2[j]) {
-        if (opts.completeAromaticRings &&
-            !checkAromaticRings(mol1, mol1RingSmiles, i, mol2, mol2RingSmiles,
-                                j)) {
+        // completeSmallestRings automatically implies completeAromaticRings and 
+        // ringMatchesRingsOnly
+        if (opts.completeSmallestRings &&
+            !checkRings(mol1, mol1RingSmiles, i, mol2, mol2RingSmiles, j, false)) {
+          continue;
+        } else if (opts.completeAromaticRings &&
+            !checkRings(mol1, mol1RingSmiles, i, mol2, mol2RingSmiles, j, true)) {
           continue;
         }
-        if (opts.ringMatchesRingOnly &&
+        if (!opts.completeSmallestRings && opts.ringMatchesRingOnly &&
             !checkRingMatchesRing(mol1, i, mol2, j)) {
           continue;
         }
@@ -481,8 +495,8 @@ void makeModularProduct(const ROMol &mol1,
     return;
   }
   if (vtxPairs.size() > opts.maxBondMatchPairs) {
-    std::cerr << "Too many matching bond pairs (" << vtxPairs.size()
-              << ") so can't continue." << std::endl;
+    BOOST_LOG(rdErrorLog) << "Too many matching bond pairs (" << vtxPairs.size()
+                          << ") so can't continue." << std::endl;
     modProd.clear();
     return;
   }
@@ -660,7 +674,8 @@ RWMol *makeCliqueFrags(const ROMol &mol,
   return molFrags;
 }
 
-// Calculate the shortest bond distance between the 2 fragments in the molecule.
+// Calculate the shortest bond distance between the 2 fragments in the
+// molecule.
 int minFragSeparation(const ROMol &mol, const ROMol &molFrags,
                       std::vector<int> &fragMapping, int frag1, int frag2) {
   auto extractFragAtoms = [&](int fragNum, std::vector<int> &fragAtoms) {
@@ -758,7 +773,8 @@ void updateMaxClique(const std::vector<unsigned int> &clique, bool deltaYPoss,
   }
 }
 
-// If the current time is beyond the timeout limit, throws a TimedOutException.
+// If the current time is beyond the timeout limit, throws a
+// TimedOutException.
 void checkTimeout(
     const std::chrono::time_point<std::chrono::high_resolution_clock>
         &startTime,
@@ -924,8 +940,8 @@ void explorePartitions(
 bool deltaYExchangePossible(const ROMol &mol1, const ROMol &mol2) {
   // A Delta-y exchange is an incorrect match when a cyclopropyl ring (the
   // delta) is matched to a C(C)(C) group (the y) because they both have
-  // isomorphic line graphs.  This checks to see if that's something we need to
-  // worry about for these molecules.
+  // isomorphic line graphs.  This checks to see if that's something we need
+  // to worry about for these molecules.
   const static std::unique_ptr<ROMol> delta(SmartsToMol("C1CC1"));
   const static std::unique_ptr<ROMol> y(SmartsToMol("C(C)C"));
   return (hasSubstructMatch(mol1, *delta) && hasSubstructMatch(mol2, *y)) ||
@@ -1072,9 +1088,12 @@ RascalStartPoint makeInitialPartitionSet(const ROMol *mol1, const ROMol *mol2,
   if (starter.d_modProd.empty()) {
     return starter;
   }
-  starter.d_lowerBound = calcLowerBound(*starter.d_mol1, *starter.d_mol2,
-                                        opts.similarityThreshold);
-
+  if (opts.minCliqueSize > 0) {
+    starter.d_lowerBound = opts.minCliqueSize;
+  } else {
+    starter.d_lowerBound = calcLowerBound(*starter.d_mol1, *starter.d_mol2,
+                                          opts.similarityThreshold);
+  }
   starter.d_partSet.reset(new PartitionSet(starter.d_modProd,
                                            starter.d_vtxPairs, bondLabels1,
                                            bondLabels2, starter.d_lowerBound));
@@ -1108,7 +1127,7 @@ std::vector<RascalResult> findMCES(RascalStartPoint &starter,
   try {
     explorePartitions(starter, startTime, tmpOpts, maxCliques);
   } catch (TimedOutException &e) {
-    std::cout << e.what() << std::endl;
+    BOOST_LOG(rdWarningLog) << e.what() << std::endl;
     maxCliques = e.d_cliques;
     timedOut = true;
   }
@@ -1122,12 +1141,60 @@ std::vector<RascalResult> findMCES(RascalStartPoint &starter,
                      opts.maxFragSeparation, opts.exactConnectionsMatch,
                      opts.equivalentAtoms, opts.ignoreBondOrders));
   }
-  std::sort(results.begin(), results.end(), details::resultCompare);
+  if (opts.singleLargestFrag) {
+    std::sort(
+        results.begin(), results.end(),
+        [](const RascalResult &r1, const RascalResult &r2) -> bool {
+          if (r1.getAtomMatches().size() == r2.getAtomMatches().size()) {
+            if (r1.getBondMatches().size() == r2.getBondMatches().size()) {
+              if (r1.getAtomMatches() == r2.getAtomMatches()) {
+                return (r1.getBondMatches() < r2.getBondMatches());
+              }
+              return r1.getAtomMatches() < r2.getAtomMatches();
+            }
+            return r1.getBondMatches().size() > r2.getBondMatches().size();
+          }
+          return (r1.getAtomMatches().size() > r2.getAtomMatches().size());
+        });
+
+    // the singleLargestFrag method throws bits of solutions out, so there may
+    // now be duplicates and results that are different sizes.
+    results.erase(
+        std::unique(results.begin(), results.end(),
+                    [](const RascalResult &r1, const RascalResult &r2) -> bool {
+                      return (r1.getAtomMatches() == r2.getAtomMatches() &&
+                              r1.getBondMatches() == r2.getBondMatches());
+                    }),
+        results.end());
+    boost::dynamic_bitset<> want(results.size());
+    want.set();
+    for (size_t i = 1; i < results.size(); ++i) {
+      if (results[i].getAtomMatches().size() <
+              results[0].getAtomMatches().size() ||
+          results[i].getBondMatches().size() <
+              results[0].getBondMatches().size()) {
+        want[i] = false;
+      }
+    }
+    if (want.count() < results.size()) {
+      size_t j = 0;
+      for (size_t i = 0; i < results.size(); ++i) {
+        if (want[i]) {
+          results[j++] = results[i];
+        }
+      }
+      results.erase(results.begin() + j, results.end());
+    }
+  } else {
+    // If 2 cliques are the same size, this sort puts the one with the smaller
+    // number of fragments first, which may have fewer atoms.
+    std::sort(results.begin(), results.end(), details::resultCompare);
+  }
   return results;
 }
 
-// calculate the RASCAL MCES between the 2 molecules, provided it is within the
-// similarity threshold given.
+// calculate the RASCAL MCES between the 2 molecules, provided it is within
+// the similarity threshold given.
 std::vector<RascalResult> rascalMCES(const ROMol &mol1, const ROMol &mol2,
                                      const RascalOptions &opts) {
   auto starter = makeInitialPartitionSet(&mol1, &mol2, opts);
@@ -1135,11 +1202,14 @@ std::vector<RascalResult> rascalMCES(const ROMol &mol1, const ROMol &mol2,
     if (opts.returnEmptyMCES) {
       return std::vector<RascalResult>(
           1, RascalResult(starter.d_tier1Sim, starter.d_tier2Sim));
-    } else {
-      return std::vector<RascalResult>();
     }
+    return std::vector<RascalResult>();
   }
   auto results = findMCES(starter, opts);
+  if (results.empty() && opts.returnEmptyMCES) {
+    return std::vector<RascalResult>(
+        1, RascalResult(starter.d_tier1Sim, starter.d_tier2Sim));
+  }
   if (!opts.allBestMCESs && results.size() > 1) {
     results.erase(results.begin() + 1, results.end());
   }

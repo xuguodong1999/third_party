@@ -1,5 +1,5 @@
   /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@
 #include "cutlass/cutlass.h"
 #include "cutlass/numeric_types.h"
 #include "cutlass/platform/platform.h"
-
 #if defined(__CUDACC_RTC__)
 #include "cutlass/floating_point_nvrtc.h"
 #endif
@@ -51,11 +50,56 @@
 
 #ifdef _MSC_VER
 // Provides support for alternate operators such as 'and', 'or', ...
-#include <iso646.h>
+#include <ciso646>
+#include <intrin.h>
 #endif // _MSC_VER
+
+#if defined(CUTLASS_ARCH_MMA_SM100A_ENABLED) || defined(CUTLASS_ARCH_MMA_SM100F_ENABLED)
+#  define CUTLASS_ARCH_CREDUX_ENABLED
+#endif
 
 namespace cutlass {
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+
+  CUTLASS_HOST_DEVICE int32_t popcount(int32_t x) {
+    #if defined(__CUDA_ARCH__)
+    return __popc(x);
+    #elif defined(__GNUC__) || defined(__clang__)
+    return __builtin_popcount(x);
+    #elif (defined(_MSC_VER) && !defined(_M_ARM64))
+    return __popcnt(x);
+    #else
+    int32_t count = 0;
+    while (x) {
+      count += x & 1;
+      x >>= 1;
+    }
+    return count;
+    #endif
+  }
+
+  CUTLASS_HOST_DEVICE int64_t popcount(int64_t x) {
+    #if defined(__CUDA_ARCH__)
+    return __popcll(x);
+    #elif defined(__GNUC__) || defined(__clang__)
+    return __builtin_popcountll(x);
+    #elif (defined(_MSC_VER) && !defined(_M_ARM64))
+    return __popcnt64(x);
+    #else
+    int64_t count = 0;
+    while (x) {
+      count += x & 1;
+      x >>= 1;
+    }
+    return count;
+    #endif
+  }
+
+} // namespace detail
+  
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -234,7 +278,7 @@ template <>
 struct inverse_square_root<half_t> {
   CUTLASS_HOST_DEVICE
   half_t operator()(half_t const &lhs) const {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ > 520
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 520)
     auto result = hrsqrt(reinterpret_cast<__half const &>(lhs));
     return reinterpret_cast<half_t const &>(result);
 #else
@@ -275,6 +319,16 @@ struct reciprocal_approximate <float> {
     return ret;
   }
 };
+
+
+template <>
+struct reciprocal_approximate<cutlass::float_ue8m0_t> {
+  CUTLASS_HOST_DEVICE
+  cutlass::float_ue8m0_t operator()(cutlass::float_ue8m0_t lhs) const {
+    return cutlass::float_ue8m0_t::bitcast(static_cast<uint8_t>(static_cast<uint8_t>(254u) - lhs.storage));
+  }
+};
+
 
 /// reciprocal_approximate with ftz
 template<typename T>
@@ -350,7 +404,21 @@ template <typename T, bool PropagateNaN = false>
 struct maximum {
   CUTLASS_HOST_DEVICE
   T operator()(T const &lhs, T const &rhs) const {
-    return (lhs < rhs ? rhs : lhs);
+    if constexpr (PropagateNaN && cutlass::platform::is_floating_point<T>::value) {
+      using CUTLASS_CMATH_NAMESPACE :: isnan;
+
+      // Call isnan unqualified, so argument-dependent lookup (ADL)
+      // will find overloads such as cutlass::isnan(half_t).
+      // Calling ::isnan or std::isnan directly would force
+      // implicit conversions to float of custom number types
+      // in the cutlass namespace (e.g., cutlass::half_t).
+      return lhs > rhs || isnan(lhs) ? lhs : rhs;
+    }
+    else {
+      return (lhs < rhs ? rhs : lhs);
+    }
+
+    CUTE_GCC_UNREACHABLE;
   }
 };
 
@@ -363,23 +431,6 @@ template<typename T>
 struct maximum_with_default_nan_propagation : public maximum<T>
 {};
 
-// Maximum with nan propagation
-// To propagate NANs, the "max" of a two element that contains NaNs should also return a NaN
-template <typename T>
-struct maximum<T, true> {
-  CUTLASS_HOST_DEVICE
-  T operator()(T const &lhs, T const &rhs) const {
-    using CUTLASS_CMATH_NAMESPACE :: isnan;
-
-    // Call isnan unqualified, so argument-dependent lookup (ADL)
-    // will find overloads such as cutlass::isnan(half_t).
-    // Calling ::isnan or std::isnan directly would force
-    // implicit conversions to float of custom number types
-    // in the cutlass namespace (e.g., cutlass::half_t).
-    return lhs > rhs || isnan(lhs) ? lhs : rhs;
-  }
-};
-
 template <>
 struct maximum<float, false> {
   CUTLASS_HOST_DEVICE
@@ -391,13 +442,14 @@ struct maximum<float, false> {
 template <>
 struct maximum<float, true> {
   CUTLASS_HOST_DEVICE
-  float operator()(float const lhs, float const rhs) const {
+  float operator()(float lhs, float rhs) const {
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
     float res;
     asm volatile("max.NaN.f32 %0, %1, %2;\n" : "=f"(res) : "f"(lhs), "f"(rhs));
     return res;
 #else
     using CUTLASS_CMATH_NAMESPACE :: isnan;
+
     return lhs > rhs || isnan(lhs) ? lhs : rhs;
 #endif
   }
@@ -418,20 +470,17 @@ template <typename T>
 using maximum_with_nan_propogation = maximum_with_nan_propagation<T>;
 
 template <typename T, bool PropagateNaN = false>
-struct minimum{
+struct minimum {
   CUTLASS_HOST_DEVICE
   T operator()(T const &lhs, T const &rhs) const {
-    return (rhs < lhs ? rhs : lhs);
-  }
-};
+    if constexpr (PropagateNaN && cutlass::platform::is_floating_point<T>::value) {
+      using CUTLASS_CMATH_NAMESPACE :: isnan;
 
-template <typename T>
-struct minimum<T, true> {
-  CUTLASS_HOST_DEVICE
-  T operator()(T const &lhs, T const &rhs) const {
-    using CUTLASS_CMATH_NAMESPACE :: isnan;
-
-    return lhs < rhs || isnan(lhs) ? lhs : rhs;
+      return lhs < rhs || isnan(lhs) ? lhs : rhs;
+    }
+    else {
+      return (rhs < lhs ? rhs : lhs);
+    }
   }
 };
 
@@ -440,6 +489,21 @@ struct minimum<float, false> {
   CUTLASS_HOST_DEVICE
   float operator()(float const &lhs, float const &rhs) const {
     return fminf(lhs, rhs);
+  }
+};
+
+template <>
+struct minimum<float, true> {
+  CUTLASS_HOST_DEVICE
+  float operator()(float lhs, float rhs) const {
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
+    float res;
+    asm volatile("min.NaN.f32 %0, %1, %2;\n" : "=f"(res) : "f"(lhs), "f"(rhs));
+    return res;
+#else
+    // No need for ADL; call std::isnan(float) on host and ::isnan(float) on device.
+    return lhs < rhs || (CUTLASS_CMATH_NAMESPACE :: isnan(lhs)) ? lhs : rhs;
+#endif
   }
 };
 
@@ -579,6 +643,18 @@ struct guarded_multiply_add_relu0<half_t, half_t, half_t> {
   }
 };
 
+
+/// Fused and-popc-add
+template <typename A, typename B = A, typename C = A>
+struct and_popc_add {
+  CUTLASS_HOST_DEVICE
+  C operator()(A const &a, B const &b, C const &c) const {
+    A and_result = a & b;
+    int32_t popc_result = detail::popcount(and_result);
+    return C(popc_result) + c;
+  }
+};
+
 /// Fused multiply-add
 template <typename T>
 struct and_add {
@@ -589,12 +665,46 @@ struct and_add {
 };
 
 
+
+/// Fused xor-popc-add
+template <typename A, typename B = A, typename C = A>
+struct xor_popc_add {
+  CUTLASS_HOST_DEVICE
+  C operator()(A const &a, B const &b, C const &c) const {
+    A xor_result = a ^ b;
+    int32_t popc_result = detail::popcount(xor_result);
+    return C(popc_result) + c;
+  }
+};
+
 /// Fused multiply-add
 template <typename T>
 struct xor_add {
   CUTLASS_HOST_DEVICE
   T operator()(T const &a, T const &b, T const &c) const {
     return ((a ^ b) + c);
+  }
+};
+
+
+/// Fused or-popc-add
+template <typename A, typename B = A, typename C = A>
+struct or_popc_add {
+  CUTLASS_HOST_DEVICE
+  C operator()(A const &a, B const &b, C const &c) const {
+    A or_result = a | b;
+    int32_t popc_result = detail::popcount(or_result);
+    return C(popc_result) + c;
+  }
+};
+
+
+/// Fused multiply-add
+template <typename T>
+struct or_add {
+  CUTLASS_HOST_DEVICE
+  T operator()(T const &a, T const &b, T const &c) const {
+    return ((a | b) + c);
   }
 };
 
@@ -819,9 +929,9 @@ struct atomic_add<half2>
   void operator()(half2 *ptr, const half2 &data)
   {
 #if !defined(__CUDA_ARCH__) || (defined(__CUDA_ARCH__)  && (__CUDA_ARCH__ < 600))
-    CUTLASS_UNUSED(ptr);
-    CUTLASS_UNUSED(data);
-    CUTLASS_NOT_IMPLEMENTED();
+      CUTLASS_UNUSED(ptr);
+      CUTLASS_UNUSED(data);
+      CUTLASS_NOT_IMPLEMENTED();
 #else
     // Vector-2 atomic reduction requires .target sm_60 or higher
     uint32_t word = reinterpret_cast<const uint32_t&>(data);
@@ -878,6 +988,77 @@ template <class T>
 struct is_atomic<atomic_add<T>> : platform::true_type {};
 template <class T>
 struct is_atomic<atomic_maximum<T>> : platform::true_type {};
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+/// Parallel Synchronization and Communication Instructions
+template <typename T>
+struct redux_abs_max_nan_propagation_sync_warp;
+
+template <>
+struct redux_abs_max_nan_propagation_sync_warp <float>{
+  CUTLASS_DEVICE
+  float operator()(float const &lhs) const {
+#if defined(CUTLASS_ARCH_CREDUX_ENABLED)
+    float result;
+    asm volatile("redux.sync.max.abs.NaN.f32 %0, %1, 0xffffffff;\n" : "=f"(result) : "f"(lhs));
+    return result;
+#elif defined(__CUDA_ARCH__)
+    cutlass::maximum<float, /*PropagateNaN*/true> max_op;
+    int shuffle_width = 32;
+    float abs_max = cutlass::absolute_value_op<float>{}(lhs);
+    CUTLASS_PRAGMA_UNROLL
+    for(int offset = shuffle_width / 2; offset > 0; offset /= 2) {
+      float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
+      abs_max = max_op(abs_max,value);
+    }
+    // Broadcast the maximum to all threads participating in the reduction.
+    abs_max = __shfl_sync(0xffffffff, abs_max, 0, shuffle_width);
+    return abs_max;
+#else
+    CUTLASS_UNUSED(lhs);
+    CUTLASS_NOT_IMPLEMENTED();
+    return 0;
+#endif
+  }
+};
+
+template <typename T>
+struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31;
+
+template <>
+struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
+  CUTLASS_DEVICE
+  float operator()(float const &max) const {
+#if defined(CUTLASS_ARCH_CREDUX_ENABLED)
+    int half_warp_idx = threadIdx.x / (NumThreadsPerWarp / 2);
+    bool first_half_threads = (half_warp_idx % 2) == 0;
+    float value0 =  first_half_threads ? max : 0;
+    float v0 = cutlass::redux_abs_max_nan_propagation_sync_warp<float>{}(value0);
+
+    float value1 = !first_half_threads ? max : 0;
+    float v1 = cutlass::redux_abs_max_nan_propagation_sync_warp<float>{}(value1);
+    return first_half_threads ? v0: v1;
+    
+#elif defined(__CUDA_ARCH__)
+    float abs_max = cutlass::absolute_value_op<float>{}(max);
+    cutlass::maximum<float, /*PropagateNaN*/true> max_op;
+    constexpr int shuffle_width = 16;
+    CUTLASS_PRAGMA_UNROLL
+    for(int offset = shuffle_width/2; offset > 0; offset /= 2) {
+      float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
+        abs_max  = max_op(abs_max,value);
+    }
+    // Broadcast the maximum to all threads participating in the reduction.
+    abs_max = __shfl_sync(0xffffffff, abs_max, 0, shuffle_width);
+    return abs_max;
+#else 
+    CUTLASS_UNUSED(max);
+    CUTLASS_NOT_IMPLEMENTED();
+    return 0;
+#endif
+  }
+};
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

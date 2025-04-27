@@ -14,12 +14,11 @@
 #include "include/core/SkRefCnt.h"
 #include "include/core/SkScalar.h"
 #include "include/core/SkString.h"
-#include "include/gpu/GrRecordingContext.h"
-#include "include/gpu/GrTypes.h"
-#include "include/private/SkColorData.h"
+#include "include/gpu/ganesh/GrRecordingContext.h"
 #include "include/private/base/SkAlignedStorage.h"
 #include "include/private/base/SkAssert.h"
 #include "include/private/base/SkDebug.h"
+#include "include/private/base/SkMacros.h"
 #include "include/private/base/SkOnce.h"
 #include "include/private/base/SkPoint_impl.h"
 #include "include/private/base/SkTArray.h"
@@ -27,6 +26,7 @@
 #include "src/base/SkArenaAlloc.h"
 #include "src/base/SkUtils.h"
 #include "src/base/SkVx.h"
+#include "src/core/SkColorData.h"
 #include "src/core/SkRRectPriv.h"
 #include "src/core/SkSLTypeShared.h"
 #include "src/gpu/BufferWriter.h"
@@ -175,7 +175,7 @@ private:
     };
     constexpr static int kNumProcessorFlags = 5;
 
-    GR_DECL_BITFIELD_CLASS_OPS_FRIENDS(ProcessorFlags);
+    SK_DECL_BITFIELD_CLASS_OPS_FRIENDS(ProcessorFlags);
 
     class Processor;
 
@@ -230,7 +230,7 @@ private:
     GrProgramInfo* fProgramInfo = nullptr;
 };
 
-GR_MAKE_BITFIELD_CLASS_OPS(FillRRectOpImpl::ProcessorFlags)
+SK_MAKE_BITFIELD_CLASS_OPS(FillRRectOpImpl::ProcessorFlags)
 
 // Hardware derivatives are not always accurate enough for highly elliptical corners. This method
 // checks to make sure the corners will still all look good if we use HW derivatives.

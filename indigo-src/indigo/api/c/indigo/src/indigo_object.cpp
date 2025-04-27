@@ -22,6 +22,7 @@
 
 #include "base_cpp/output.h"
 #include "base_cpp/properties_map.h"
+#include "reaction/pathway_reaction.h"
 #include "reaction/reaction.h"
 
 #include "indigo_internal.h"
@@ -225,6 +226,11 @@ Reaction& IndigoObject::getReaction()
     throw IndigoError("%s is not a reaction", debugInfo());
 }
 
+PathwayReaction& IndigoObject::getPathwayReaction()
+{
+    throw IndigoError("%s is not a pathway reaction", debugInfo());
+}
+
 BaseReaction& IndigoObject::getBaseReaction()
 {
     throw IndigoError("%s is not a base reaction", debugInfo());
@@ -233,6 +239,11 @@ BaseReaction& IndigoObject::getBaseReaction()
 QueryReaction& IndigoObject::getQueryReaction()
 {
     throw IndigoError("%s is not a query reaction", debugInfo());
+}
+
+KetDocument& IndigoObject::getKetDocument()
+{
+    throw IndigoError("%s is not a ket document", debugInfo());
 }
 
 IndigoObject* IndigoObject::next()

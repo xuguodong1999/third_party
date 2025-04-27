@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,9 @@
  **************************************************************************************************/
 #pragma once
 
+#include <cute/arch/copy.hpp>         // cute::DefaultCopy
+#include <cute/util/type_traits.hpp>  // cute::is_base_of_v
+
 #include "cutlass/detail/dependent_false.hpp"
 #include "cutlass/epilogue/fusion/callbacks.hpp"
 
@@ -45,7 +48,6 @@ struct EpilogueTileAuto {};
 // Used to let the builder pick the epilogue schedule automatically.
 // Can be overridden with kernel schedule tags in cutlass/gemm/dispatch_policy.hpp
 struct EpilogueScheduleAuto {};
-struct EpilogueIm2ColScheduleAuto {};
 
 template <
   class ArchTag,
@@ -80,6 +82,7 @@ template<
   class TileShape_MNK,
   class EpilogueTile_MN,
   class ElementAccumulator,
+  class AccLoadOp = cute::DefaultCopy,
   class = void
 >
 struct CallbacksBuilder {
@@ -92,6 +95,7 @@ template <
   class FusionCallbacks,
   class TileShape_MNK,
   class EpilogueTile_MN,
+  class AccLoadOp,
   class ElementAccumulator
 >
 struct CallbacksBuilder<
@@ -100,7 +104,8 @@ struct CallbacksBuilder<
   TileShape_MNK,
   EpilogueTile_MN,
   ElementAccumulator,
-  cute::enable_if_t<not is_base_of_v<fusion::FusionOperation, FusionCallbacks>>
+  AccLoadOp,
+  cute::enable_if_t<not cute::is_base_of_v<fusion::FusionOperation, FusionCallbacks>>
 > {
   using Callbacks = FusionCallbacks;
 };
@@ -114,4 +119,7 @@ struct CallbacksBuilder<
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "builders/sm90_builder.inl"
+#include "builders/sm100_builder.inl"  
+#include "builders/sm120_builder.inl"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -71,8 +71,8 @@ void Message::MergeImpl(MessageLite& to, const MessageLite& from) {
                        DownCastMessage<Message>(&to));
 }
 
-void Message::ClearImpl(MessageLite& msg) {
-  ReflectionOps::Clear(&DownCastMessage<Message>(msg));
+void Message::ClearImpl() {
+  ReflectionOps::Clear(DownCastMessage<Message>(this));
 }
 
 size_t Message::ByteSizeLongImpl(const MessageLite& msg) {
@@ -156,7 +156,7 @@ Metadata Message::GetMetadata() const {
   return GetMetadataImpl(GetClassData()->full());
 }
 
-Metadata Message::GetMetadataImpl(const ClassDataFull& data) {
+Metadata Message::GetMetadataImpl(const internal::ClassDataFull& data) {
   auto* table = data.descriptor_table;
   // Only codegen types provide a table. DynamicMessage does not provide a table
   // and instead eagerly initializes the descriptor/reflection members.
@@ -185,7 +185,7 @@ size_t Message::ByteSizeLong() const {
 #endif  // !PROTOBUF_CUSTOM_VTABLE
 
 size_t Message::ComputeUnknownFieldsSize(
-    size_t total_size, internal::CachedSize* cached_size) const {
+    size_t total_size, const internal::CachedSize* cached_size) const {
   total_size += WireFormat::ComputeUnknownFieldsSize(
       _internal_metadata_.unknown_fields<UnknownFieldSet>(
           UnknownFieldSet::default_instance));
@@ -194,7 +194,7 @@ size_t Message::ComputeUnknownFieldsSize(
 }
 
 size_t Message::MaybeComputeUnknownFieldsSize(
-    size_t total_size, internal::CachedSize* cached_size) const {
+    size_t total_size, const internal::CachedSize* cached_size) const {
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     return ComputeUnknownFieldsSize(total_size, cached_size);
   }
@@ -206,7 +206,7 @@ size_t Message::SpaceUsedLong() const {
   return GetClassData()->full().descriptor_methods->space_used_long(*this);
 }
 
-absl::string_view Message::GetTypeNameImpl(const ClassData* data) {
+absl::string_view Message::GetTypeNameImpl(const internal::ClassData* data) {
   return GetMetadataImpl(data->full()).descriptor->full_name();
 }
 
@@ -228,7 +228,7 @@ static std::string DebugStringImpl(const MessageLite& msg) {
   return DownCastMessage<Message>(msg).DebugString();
 }
 
-PROTOBUF_CONSTINIT const MessageLite::DescriptorMethods
+PROTOBUF_CONSTINIT const internal::DescriptorMethods
     Message::kDescriptorMethods = {
         GetTypeNameImpl,     InitializationErrorStringImpl,
         GetTcParseTableImpl, SpaceUsedLongImpl,

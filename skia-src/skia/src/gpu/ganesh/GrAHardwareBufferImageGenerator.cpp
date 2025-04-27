@@ -14,10 +14,10 @@
 #include "include/android/AHardwareBufferUtils.h"
 #include "include/android/GrAHardwareBufferUtils.h"
 #include "include/core/SkColorSpace.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrDirectContext.h"
-#include "include/gpu/GrRecordingContext.h"
-#include "include/gpu/gl/GrGLTypes.h"
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/GrRecordingContext.h"
+#include "include/gpu/ganesh/gl/GrGLTypes.h"
 #include "src/core/SkMessageBus.h"
 #include "src/gpu/ganesh/GrCaps.h"
 #include "src/gpu/ganesh/GrDirectContextPriv.h"
@@ -32,7 +32,7 @@
 
 #include <android/hardware_buffer.h>
 
-std::unique_ptr<SkImageGenerator> GrAHardwareBufferImageGenerator::Make(
+std::unique_ptr<GrAHardwareBufferImageGenerator> GrAHardwareBufferImageGenerator::Make(
         AHardwareBuffer* graphicBuffer, SkAlphaType alphaType, sk_sp<SkColorSpace> colorSpace,
         GrSurfaceOrigin surfaceOrigin) {
     AHardwareBuffer_Desc bufferDesc;
@@ -44,7 +44,7 @@ std::unique_ptr<SkImageGenerator> GrAHardwareBufferImageGenerator::Make(
                                          alphaType, std::move(colorSpace));
 
     bool createProtectedImage = 0 != (bufferDesc.usage & AHARDWAREBUFFER_USAGE_PROTECTED_CONTENT);
-    return std::unique_ptr<SkImageGenerator>(new GrAHardwareBufferImageGenerator(
+    return std::unique_ptr<GrAHardwareBufferImageGenerator>(new GrAHardwareBufferImageGenerator(
             info, graphicBuffer, alphaType, createProtectedImage,
             bufferDesc.format, surfaceOrigin));
 }

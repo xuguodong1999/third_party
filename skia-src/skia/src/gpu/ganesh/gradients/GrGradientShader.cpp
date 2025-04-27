@@ -18,10 +18,9 @@
 #include "include/effects/SkGradientShader.h"
 #include "include/effects/SkRuntimeEffect.h"
 #include "include/gpu/GpuTypes.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrRecordingContext.h"
-#include "include/gpu/GrTypes.h"
-#include "include/private/SkColorData.h"
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrRecordingContext.h"
+#include "include/gpu/ganesh/GrTypes.h"
 #include "include/private/base/SkAssert.h"
 #include "include/private/base/SkDebug.h"
 #include "include/private/base/SkMath.h"
@@ -32,6 +31,7 @@
 #include "src/base/SkArenaAlloc.h"
 #include "src/base/SkMathPriv.h"
 #include "src/base/SkVx.h"
+#include "src/core/SkColorData.h"
 #include "src/core/SkColorSpacePriv.h"
 #include "src/core/SkRasterPipeline.h"
 #include "src/core/SkRasterPipelineOpContexts.h"
@@ -342,12 +342,12 @@ static std::unique_ptr<GrFragmentProcessor> make_looping_colorizer(int intervalC
         int loopCount = SkNextLog2(intervalChunks);
         sksl.appendf(
         "#version 300\n" // important space to separate token.
-        "uniform half4 thresholds[%d];"
+        "uniform float4 thresholds[%d];"
         "uniform float4 scale[%d];"
         "uniform float4 bias[%d];"
 
         "half4 main(float2 coord) {"
-            "half t = half(coord.x);"
+            "float t = coord.x;"
 
             // Choose a chunk from thresholds via binary search in a loop.
             "int low = 0;"
@@ -668,7 +668,7 @@ static std::unique_ptr<GrFragmentProcessor> make_tiled_gradient(
         "uniform int useFloorAbsWorkaround;"   // specialized
 
         "half4 main(float2 coord) {"
-            "half4 t = gradLayout.eval(coord);"
+            "float4 t = gradLayout.eval(coord);"
 
             "if (!bool(layoutPreservesOpacity) && t.y < 0) {"
                 // layout has rejected this fragment (rely on sksl to remove this branch if the
@@ -676,8 +676,8 @@ static std::unique_ptr<GrFragmentProcessor> make_tiled_gradient(
                 "return half4(0);"
             "} else {"
                 "if (bool(mirror)) {"
-                    "half t_1 = t.x - 1;"
-                    "half tiled_t = t_1 - 2 * floor(t_1 * 0.5) - 1;"
+                    "float t_1 = t.x - 1;"
+                    "float tiled_t = t_1 - 2 * floor(t_1 * 0.5) - 1;"
                     "if (bool(useFloorAbsWorkaround)) {"
                         // At this point the expected value of tiled_t should between -1 and 1, so
                         // this clamp has no effect other than to break up the floor and abs calls
@@ -930,7 +930,7 @@ std::unique_ptr<GrFragmentProcessor> MakeGradientFP(const SkGradientBaseShader& 
             SkPMColor4f borderColors[2] = { colors[0], colors[colorCount - 1] };
             SkArenaAlloc alloc(/*firstHeapAllocation=*/0);
             SkRasterPipeline p(&alloc);
-            SkRasterPipeline_MemoryCtx ctx = { borderColors, 0 };
+            SkRasterPipelineContexts::MemoryCtx ctx = {borderColors, 0};
 
             p.append(SkRasterPipelineOp::load_f32, &ctx);
             SkGradientBaseShader::AppendInterpolatedToDstStages(

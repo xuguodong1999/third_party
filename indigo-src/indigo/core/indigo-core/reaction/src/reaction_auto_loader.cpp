@@ -24,6 +24,7 @@
 #include "reaction/icr_loader.h"
 #include "reaction/icr_saver.h"
 #include "reaction/pathway_reaction.h"
+#include "reaction/pathway_reaction_builder.h"
 #include "reaction/query_reaction.h"
 #include "reaction/reaction.h"
 #include "reaction/reaction_cdxml_loader.h"
@@ -31,8 +32,6 @@
 #include "reaction/reaction_json_loader.h"
 #include "reaction/rsmiles_loader.h"
 #include "reaction/rxnfile_loader.h"
-
-#include <string>
 
 using namespace indigo;
 
@@ -284,6 +283,8 @@ std::unique_ptr<BaseReaction> ReactionAutoLoader::_loadReaction(bool query)
         {
             if (_scanner->findWord("arrow"))
             {
+                _scanner->seek(pos, SEEK_SET);
+                bool is_pathway = _scanner->findWord("multi-tailed-arrow");
                 using namespace rapidjson;
                 _scanner->seek(pos, SEEK_SET);
                 {
@@ -299,23 +300,35 @@ std::unique_ptr<BaseReaction> ReactionAutoLoader::_loadReaction(bool query)
                     {
                         if (data.HasMember("root") && data["root"].HasMember("nodes"))
                         {
-                            ReactionJsonLoader loader(data);
+                            ReactionJsonLoader loader(data, layout_options);
                             loader.stereochemistry_options = stereochemistry_options;
                             loader.ignore_noncritical_query_features = ignore_noncritical_query_features;
                             loader.treat_x_as_pseudoatom = treat_x_as_pseudoatom;
                             loader.ignore_no_chiral_flag = ignore_no_chiral_flag;
-                            if (query)
+                            std::unique_ptr<BaseReaction> reaction;
+                            if (is_pathway)
                             {
-                                auto reaction = std::make_unique<QueryReaction>();
+                                auto pwr = std::make_unique<PathwayReaction>();
+                                loader.loadReaction(*pwr);
+                                if (pwr->reactionsCount() == 0) // something went wrong
+                                {
+                                    reaction = std::make_unique<Reaction>();
+                                    reaction->clone(*pwr);
+                                }
+                                else
+                                    reaction = std::move(pwr);
+                            }
+                            else if (query)
+                            {
+                                reaction = std::make_unique<QueryReaction>();
                                 loader.loadReaction(*reaction);
-                                return reaction;
                             }
                             else
                             {
-                                auto reaction = std::make_unique<Reaction>();
+                                reaction = std::make_unique<Reaction>();
                                 loader.loadReaction(*reaction);
-                                return reaction;
                             }
+                            return reaction;
                         }
                     }
                     return nullptr;
@@ -342,7 +355,6 @@ std::unique_ptr<BaseReaction> ReactionAutoLoader::_loadReaction(bool query)
             {
                 rdf_loader.readNext();
                 BufferScanner reaction_scanner(rdf_loader.data);
-
                 RxnfileLoader loader(reaction_scanner);
                 loader.stereochemistry_options = stereochemistry_options;
                 loader.treat_x_as_pseudoatom = treat_x_as_pseudoatom;
@@ -350,11 +362,12 @@ std::unique_ptr<BaseReaction> ReactionAutoLoader::_loadReaction(bool query)
                 loader.ignore_no_chiral_flag = ignore_no_chiral_flag;
                 loader.treat_stereo_as = treat_stereo_as;
                 loader.ignore_bad_valence = ignore_bad_valence;
-
                 reactions.emplace_back();
-                loader.loadReaction(reactions.back());
+                loader.loadReaction(reactions.back(), rdf_loader.properties);
             }
-            return std::make_unique<PathwayReaction>(reactions);
+
+            PathwayReactionBuilder builder;
+            return builder.buildPathwayReaction(reactions, layout_options);
         }
     }
 

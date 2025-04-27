@@ -265,10 +265,10 @@ static bool is_axis_aligned(const SkScalerContextRec& rec) {
 
 }  //namespace
 
-SkScalerContext_DW::SkScalerContext_DW(sk_sp<DWriteFontTypeface> typefaceRef,
+SkScalerContext_DW::SkScalerContext_DW(DWriteFontTypeface& typefaceRef,
                                        const SkScalerContextEffects& effects,
                                        const SkDescriptor* desc)
-        : SkScalerContext(std::move(typefaceRef), effects, desc)
+        : SkScalerContext(typefaceRef, effects, desc)
 {
     DWriteFontTypeface* typeface = this->getDWriteTypeface();
     fGlyphCount = typeface->fDWriteFontFace->GetGlyphCount();
@@ -1476,7 +1476,7 @@ bool SkScalerContext_DW::drawColorV1Image(const SkGlyph&, SkCanvas&) { return fa
 
 bool SkScalerContext_DW::setAdvance(const SkGlyph& glyph, SkVector* advance) {
     *advance = {0, 0};
-    uint16_t glyphId = glyph.getGlyphID();
+    UINT16 glyphId = glyph.getGlyphID();
     DWriteFontTypeface* typeface = this->getDWriteTypeface();
 
     // DirectWrite treats all out of bounds glyph ids as having the same data as glyph 0.
@@ -1744,10 +1744,7 @@ bool SkScalerContext_DW::generatePngMetrics(const SkGlyph& glyph, SkRect* bounds
     }
 
     SkImageInfo info = codec->getInfo();
-    *bounds = SkRect::MakeLTRB(SkIntToScalar(info.bounds().fLeft),
-                               SkIntToScalar(info.bounds().fTop),
-                               SkIntToScalar(info.bounds().fRight),
-                               SkIntToScalar(info.bounds().fBottom));
+    *bounds = SkRect::Make(info.bounds());
 
     SkMatrix matrix = fSkXform;
     SkScalar scale = fTextSizeRender / glyphData.pixelsPerEm;
@@ -1912,7 +1909,7 @@ void SkScalerContext_DW::generateFontMetrics(SkFontMetrics* metrics) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "include/private/SkColorData.h"
+#include "src/core/SkColorData.h"
 
 void SkScalerContext_DW::BilevelToBW(const uint8_t* SK_RESTRICT src,
                                      const SkGlyph& glyph, void* imageBuffer) {
@@ -2416,7 +2413,7 @@ void SkScalerContext_DW::generateImage(const SkGlyph& glyph, void* imageBuffer) 
     }
 }
 
-bool SkScalerContext_DW::generatePath(const SkGlyph& glyph, SkPath* path) {
+bool SkScalerContext_DW::generatePath(const SkGlyph& glyph, SkPath* path, bool* modified) {
     SkASSERT(path);
     path->reset();
 

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
+#include "cutlass/conv/convnd_problem_shape.hpp"
 #include "cutlass/detail/dependent_false.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,6 +44,7 @@ namespace cutlass::conv::kernel {
  * a composition of a collective mainloop and a collective epilogue.
 **/
 template <
+  class ProblemShape_,
   class CollectiveMainloop_,
   class CollectiveEpilogue_,
   class TileSchedulerTag_ = void,
@@ -58,6 +60,6 @@ class ConvUniversal {
 } // namespace cutlass::conv::kernel
 
 ////////////////////////////////////////////////////////////////////////////////
-
 #include "cutlass/conv/kernel/sm90_implicit_gemm_tma_warpspecialized.hpp"
+#include "cutlass/conv/kernel/sm100_implicit_gemm_tma_warpspecialized.hpp" 
 ////////////////////////////////////////////////////////////////////////////////

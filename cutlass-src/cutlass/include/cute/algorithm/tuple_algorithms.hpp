@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #include <cute/config.hpp>
 
 #include <cute/util/type_traits.hpp>
+#include <cute/container/type_list.hpp>
 #include <cute/container/tuple.hpp>
 #include <cute/algorithm/functional.hpp>
 #include <cute/numeric/integer_sequence.hpp>
@@ -44,7 +45,7 @@
 /// Code guidelines and style preferences:
 ///
 /// For perfect forwarding, don't use std::forward, because it may not
-/// be defined in device code when compiling with NVRTC.  Instead, use
+/// be defined in device code when compiling with NVRTC. Instead, use
 /// `static_cast<ParameterType&&>(parameter_name)`.
 ///
 /// CuTe generally does not bother forwarding functions, as
@@ -52,24 +53,9 @@
 ///
 /// Throughout CUTLASS, cute::make_tuple always needs to be called
 /// namespace-qualified, EVEN If inside the cute namespace and/or in
-/// scope of a "using namespace cute" declaration.  Otherwise, the
+/// scope of a "using namespace cute" declaration. Otherwise, the
 /// compiler may select std::make_tuple instead of cute::make_tuple,
-/// due to argument-dependent lookup.  Two problems may result from
-/// that.
-///
-/// 1. Functions have an unexpected return type (std::tuple instead of
-///    cute::tuple), so functions that take cute::tuple parameters
-///    fail to compile (generally inside functions that have template
-///    parameters expected to be cute::tuple).
-///
-/// 2. std::tuple does not have the required __host__ __device__
-///    markings, so the CUDA compiler complains if you use it in
-///    device code.
-///
-/// cute::make_tuple will occur more often than std::make_tuple would
-/// in modern C++ code, because cute::tuple's design deprioritizes
-/// correct operation of CTAD (constructor template argument
-/// deduction) in favor of implementation simplicity.
+/// due to argument-dependent lookup.
 
 namespace cute
 {
@@ -145,6 +131,8 @@ transform_apply(T&& t, F&& f, G&& g)
   } else {
     return g(f(static_cast<T&&>(t)));
   }
+
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class F, class G>
@@ -157,6 +145,8 @@ transform_apply(T0&& t0, T1&& t1, F&& f, G&& g)
   } else {
     return g(f(static_cast<T0&&>(t0), static_cast<T1&&>(t1)));
   }
+
+  CUTE_GCC_UNREACHABLE;
 }
 
 template <class T0, class T1, class T2, class F, class G>
@@ -169,6 +159,8 @@ transform_apply(T0&& t0, T1&& t1, T2&& t2, F&& f, G&& g)
   } else {
     return g(f(static_cast<T0&&>(t0), static_cast<T1&&>(t1), static_cast<T2&&>(t2)));
   }
+
+  CUTE_GCC_UNREACHABLE;
 }
 
 //
@@ -286,34 +278,13 @@ transform_leaf(T0 const& t0, T1 const& t1, F&& f)
 // find and find_if
 //
 
-namespace detail {
-
-template <class T, class F, int I, int... Is>
-CUTE_HOST_DEVICE constexpr
-auto
-find_if(T const& t, F&& f, seq<I,Is...>)
-{
-  if constexpr (decltype(f(get<I>(t)))::value) {
-    return cute::C<I>{};
-  } else
-  if constexpr (sizeof...(Is) == 0) {
-    return cute::C<I+1>{};
-  } else {
-    return find_if(t, f, seq<Is...>{});
-  }
-
-  CUTE_GCC_UNREACHABLE;
-}
-
-} // end namespace detail
-
 template <class T, class F>
 CUTE_HOST_DEVICE constexpr
 auto
 find_if(T const& t, F&& f)
 {
   if constexpr (is_tuple<T>::value) {
-    return detail::find_if(t, f, tuple_seq<T>{});
+    return detail::tapply(t, f, [] (auto... a) { return cute::C<find_true_v<decltype(a)::value...>>{}; }, tuple_seq<T>{});
   } else {
     return cute::C<decltype(f(t))::value ? 0 : 1>{};
   }
@@ -335,7 +306,7 @@ auto
 any_of(T const& t, F&& f)
 {
   if constexpr (is_tuple<T>::value) {
-    return detail::apply(cute::transform(t, f), [&] (auto const&... a) { return (false_type{} || ... || a); }, tuple_seq<T>{});
+    return detail::tapply(t, f, [] (auto... a) { return (false_type{} || ... || a); }, tuple_seq<T>{});
   } else {
     return f(t);
   }
@@ -349,7 +320,7 @@ auto
 all_of(T const& t, F&& f)
 {
   if constexpr (is_tuple<T>::value) {
-    return detail::apply(t, [&] (auto const&... a) { return (true_type{} && ... && f(a)); }, tuple_seq<T>{});
+    return detail::tapply(t, f, [] (auto... a) { return (true_type{} && ... && a); }, tuple_seq<T>{});
   } else {
     return f(t);
   }
@@ -401,71 +372,36 @@ filter_tuple(T0 const& t0, T1 const& t1, T2 const& t2, F&& f)
 
 namespace detail {
 
-// This impl compiles much faster than cute::apply and variadic args
-template <class T, class V, class F>
+template <class Fn, class Val>
+struct FoldAdaptor {
+  template <class X>
+  CUTE_HOST_DEVICE constexpr auto operator|(X&& x) {
+    auto r = fn_(val_, static_cast<X&&>(x));
+    return FoldAdaptor<Fn, decltype(r)>{fn_, r};
+  }
+  Fn fn_;
+  Val val_;
+};
+
+template <class T, class V, class F, int... Is>
 CUTE_HOST_DEVICE constexpr
 auto
-fold(T&&, V&& v, F&&, seq<>)
+fold(T&& t, V const& v, F&& f, seq<Is...>)
 {
-  return v;
+  return (FoldAdaptor<F,V>{f,v} | ... | get<Is>(static_cast<T&&>(t))).val_;
 }
 
-template <class T, class V, class F, int I0>
-CUTE_HOST_DEVICE constexpr
-auto
-fold(T&& t, V&& v, F&& f, seq<I0>)
-{
-  return f(static_cast<V&&>(v), get<I0>(static_cast<T&&>(t)));
-}
-
-template <class T, class V, class F, int I0, int I1>
-CUTE_HOST_DEVICE constexpr
-auto
-fold(T&& t, V&& v, F&& f, seq<I0,I1>)
-{
-  return f(f(static_cast<V&&>(v), get<I0>(static_cast<T&&>(t))), get<I1>(static_cast<T&&>(t)));
-}
-
-template <class T, class V, class F, int I0, int I1, int I2>
-CUTE_HOST_DEVICE constexpr
-auto
-fold(T&& t, V&& v, F&& f, seq<I0,I1,I2>)
-{
-  return f(f(f(static_cast<V&&>(v), get<I0>(static_cast<T&&>(t))), get<I1>(static_cast<T&&>(t))), get<I2>(static_cast<T&&>(t)));
-}
-
-template <class T, class V, class F, int I0, int I1, int I2, int I3>
-CUTE_HOST_DEVICE constexpr
-auto
-fold(T&& t, V&& v, F&& f, seq<I0,I1,I2,I3>)
-{
-  return f(f(f(f(static_cast<V&&>(v), get<I0>(static_cast<T&&>(t))), get<I1>(static_cast<T&&>(t))), get<I2>(static_cast<T&&>(t))), get<I3>(static_cast<T&&>(t)));
-}
-
-template <class T, class V, class F, int I0, int I1, int I2, int I3, int... Is>
-CUTE_HOST_DEVICE constexpr
-auto
-fold(T&& t, V&& v, F&& f, seq<I0,I1,I2,I3,Is...>)
-{
-  return fold(static_cast<T&&>(t),
-              f(f(f(f(static_cast<V&&>(v), get<I0>(static_cast<T&&>(t))), get<I1>(static_cast<T&&>(t))), get<I2>(static_cast<T&&>(t))), get<I3>(static_cast<T&&>(t))),
-              f,
-              seq<Is...>{});
-}
 } // end namespace detail
 
 template <class T, class V, class F>
 CUTE_HOST_DEVICE constexpr
 auto
-fold(T&& t, V&& v, F&& f)
+fold(T&& t, V const& v, F&& f)
 {
   if constexpr (is_tuple<remove_cvref_t<T>>::value) {
-    return detail::fold(static_cast<T&&>(t),
-                        static_cast<V&&>(v),
-                        f,
-                        tuple_seq<T>{});
+    return detail::fold(static_cast<T&&>(t), v, f, tuple_seq<T>{});
   } else {
-    return f(static_cast<V&&>(v), static_cast<T&&>(t));
+    return f(v, static_cast<T&&>(t));
   }
 
   CUTE_GCC_UNREACHABLE;
@@ -477,10 +413,7 @@ auto
 fold_first(T&& t, F&& f)
 {
   if constexpr (is_tuple<remove_cvref_t<T>>::value) {
-    return detail::fold(static_cast<T&&>(t),
-                        get<0>(static_cast<T&&>(t)),
-                        f,
-                        make_range<1,tuple_size<remove_cvref_t<T>>::value>{});
+    return detail::fold(static_cast<T&&>(t), get<0>(t), f, make_range<1,tuple_size<remove_cvref_t<T>>::value>{});
   } else {
     return t;
   }
@@ -536,32 +469,29 @@ CUTE_HOST_DEVICE constexpr
 auto
 take(T const& t)
 {
-  return detail::apply(t, [](auto const&... a) { return cute::make_tuple(a...); }, make_range<B,E>{});
+  if constexpr (E == -1) {
+    if constexpr (is_tuple<T>::value) {
+      return take<B,tuple_size<T>::value>(t);
+    } else {
+      return take<B,1>(t);
+    }
+  } else
+  if constexpr (B <= E) {
+    return detail::apply(t, [](auto const&... a) { return cute::make_tuple(a...); }, make_range<B,E>{});
+  } else {
+    static_assert(B <= E);
+  }
+
+  CUTE_GCC_UNREACHABLE;
 }
 
-//
 // Select tuple elements with given indices.
-//
-
 template <int... I, class T>
 CUTE_HOST_DEVICE constexpr
 auto
 select(T const& t)
 {
   return cute::make_tuple(get<I>(t)...);
-}
-
-template <class T, class Indices>
-CUTE_HOST_DEVICE constexpr
-auto
-select(T const& t, Indices const& indices)
-{
-  if constexpr (is_tuple<Indices>::value) {
-    return cute::transform(indices, [&t](auto i) { return select(t, i); });
-  } else {
-    static_assert(is_static<Indices>::value, "Order must be static");
-    return get<Indices::value>(t);
-  }
 }
 
 // Wrap non-tuples into rank-1 tuples or forward

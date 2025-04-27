@@ -7,6 +7,7 @@
 
 #include "src/gpu/graphite/task/RenderPassTask.h"
 
+#include "src/gpu/SkBackingFit.h"
 #include "src/gpu/graphite/Caps.h"
 #include "src/gpu/graphite/CommandBuffer.h"
 #include "src/gpu/graphite/ContextPriv.h"
@@ -19,11 +20,30 @@
 
 namespace skgpu::graphite {
 
+namespace {
+
+SkISize get_msaa_size(const SkISize& targetSize, const Caps& caps) {
+    if (caps.differentResolveAttachmentSizeSupport()) {
+        // Use approx size for better reuse.
+        return GetApproxSize(targetSize);
+    }
+
+    return targetSize;
+}
+
+}  // anonymous namespace
+
 sk_sp<RenderPassTask> RenderPassTask::Make(DrawPassList passes,
                                            const RenderPassDesc& desc,
-                                           sk_sp<TextureProxy> target) {
+                                           sk_sp<TextureProxy> target,
+                                           sk_sp<TextureProxy> dstCopy,
+                                           SkIRect dstReadBounds) {
     // For now we have one DrawPass per RenderPassTask
     SkASSERT(passes.size() == 1);
+    // If we have a dst copy texture, ensure it is big enough to cover the copy bounds that
+    // will be sampled.
+    SkASSERT(!dstCopy || (dstCopy->dimensions().width() >= dstReadBounds.width() &&
+                          dstCopy->dimensions().height() >= dstReadBounds.height()));
     if (!target) {
         return nullptr;
     }
@@ -39,13 +59,23 @@ sk_sp<RenderPassTask> RenderPassTask::Make(DrawPassList passes,
         SkASSERT(desc.fSampleCount == desc.fDepthStencilAttachment.fTextureInfo.numSamples());
     }
 
-    return sk_sp<RenderPassTask>(new RenderPassTask(std::move(passes), desc, target));
+    return sk_sp<RenderPassTask>(new RenderPassTask(std::move(passes),
+                                                    desc,
+                                                    std::move(target),
+                                                    std::move(dstCopy),
+                                                    dstReadBounds));
 }
 
 RenderPassTask::RenderPassTask(DrawPassList passes,
                                const RenderPassDesc& desc,
-                               sk_sp<TextureProxy> target)
-        : fDrawPasses(std::move(passes)), fRenderPassDesc(desc), fTarget(std::move(target)) {}
+                               sk_sp<TextureProxy> target,
+                               sk_sp<TextureProxy> dstCopy,
+                               SkIRect dstReadBounds)
+        : fDrawPasses(std::move(passes))
+        , fRenderPassDesc(desc)
+        , fTarget(std::move(target))
+        , fDstCopy(std::move(dstCopy))
+        , fDstReadBounds(dstReadBounds) {}
 
 RenderPassTask::~RenderPassTask() = default;
 
@@ -53,7 +83,22 @@ Task::Status RenderPassTask::prepareResources(ResourceProvider* resourceProvider
                                               ScratchResourceManager* scratchManager,
                                               const RuntimeEffectDictionary* runtimeDict) {
     SkASSERT(fTarget);
-    if (!TextureProxy::InstantiateIfNotLazy(scratchManager, fTarget.get())) {
+
+    bool instantiated;
+    if (scratchManager->pendingReadCount(fTarget.get()) == 0) {
+        // TODO(b/389908339, b/338976898): If there are no pending reads on a scratch texture
+        // instantiation request, it means that the scratch Device was caught by a
+        // Recorder::flushTrackedDevices() event but hasn't actually been restored to its parent. In
+        // this case, the eventual read of the surface will be in another Recording and it can't be
+        // allocated as a true scratch resource.
+        //
+        // Without pending reads, DrawTask does not track its lifecycle to return the scratch
+        // resource, so we need to match that and instantiate with a regular non-shareable resource.
+        instantiated = TextureProxy::InstantiateIfNotLazy(resourceProvider, fTarget.get());
+    } else {
+        instantiated = TextureProxy::InstantiateIfNotLazy(scratchManager, fTarget.get());
+    }
+    if (!instantiated) {
         SKGPU_LOG_W("Failed to instantiate RenderPassTask target. Will not create renderpass!");
         SKGPU_LOG_W("Dimensions are (%d, %d).",
                     fTarget->dimensions().width(), fTarget->dimensions().height());
@@ -81,17 +126,27 @@ Task::Status RenderPassTask::addCommands(Context* context,
                                          ReplayTargetData replayData) {
     // TBD: Expose the surfaces that will need to be attached within the renderpass?
 
-    // TODO: for task execution, start the render pass, then iterate passes and
-    // possibly(?) start each subpass, and call DrawPass::addCommands() on the command buffer
-    // provided to the task. Then close the render pass and we should have pixels..
-
     // Instantiate the target
     SkASSERT(fTarget && fTarget->isInstantiated());
+    SkASSERT(!fDstCopy || fDstCopy->isInstantiated());
 
+    // Only apply the replay translation and clip if we're drawing to the final replay target.
+    const SkIRect renderTargetBounds = SkIRect::MakeSize(fTarget->dimensions());
     if (fTarget->texture() == replayData.fTarget) {
-        commandBuffer->setReplayTranslation(replayData.fTranslation);
+        // The clip set here will intersect with the render target bounds, and then any scissor set
+        // during this render pass. If there is no intersection between the clip and the render
+        // target bounds, we can skip this entire render pass.
+        if (!commandBuffer->setReplayTranslationAndClip(
+                    replayData.fTranslation, replayData.fClip, renderTargetBounds)) {
+            return Status::kSuccess;
+        }
+
     } else {
-        commandBuffer->clearReplayTranslation();
+        // An empty clip is ignored, and will default to the render target bounds.
+        constexpr SkIVector kNoReplayTranslation = {0, 0};
+        constexpr SkIRect kNoReplayClip = SkIRect::MakeEmpty();
+        commandBuffer->setReplayTranslationAndClip(
+                kNoReplayTranslation, kNoReplayClip, renderTargetBounds);
     }
 
     // We don't instantiate the MSAA or DS attachments in prepareResources because we want to use
@@ -103,7 +158,8 @@ Task::Status RenderPassTask::addCommands(Context* context,
         SkASSERT(fTarget->numSamples() == 1 &&
                  fRenderPassDesc.fColorAttachment.fTextureInfo.numSamples() > 1);
         colorAttachment = resourceProvider->findOrCreateDiscardableMSAAAttachment(
-                fTarget->dimensions(), fRenderPassDesc.fColorAttachment.fTextureInfo);
+                get_msaa_size(fTarget->dimensions(), *context->priv().caps()),
+                fRenderPassDesc.fColorAttachment.fTextureInfo);
         if (!colorAttachment) {
             SKGPU_LOG_W("Could not get Color attachment for RenderPassTask");
             return Status::kFail;
@@ -118,7 +174,8 @@ Task::Status RenderPassTask::addCommands(Context* context,
         // TODO: ensure this is a scratch/recycled texture
         SkASSERT(fTarget->isInstantiated());
         SkISize dimensions = context->priv().caps()->getDepthAttachmentDimensions(
-                fTarget->texture()->textureInfo(), fTarget->dimensions());
+                colorAttachment->textureInfo(), colorAttachment->dimensions());
+
         depthStencilAttachment = resourceProvider->findOrCreateDepthStencilAttachment(
                 dimensions, fRenderPassDesc.fDepthStencilAttachment.fTextureInfo);
         if (!depthStencilAttachment) {
@@ -134,7 +191,9 @@ Task::Status RenderPassTask::addCommands(Context* context,
                                      std::move(colorAttachment),
                                      std::move(resolveAttachment),
                                      std::move(depthStencilAttachment),
-                                     SkRect::Make(fTarget->dimensions()),
+                                     fDstCopy ? fDstCopy->texture() : nullptr,
+                                     fDstReadBounds,
+                                     fTarget->dimensions(),
                                      fDrawPasses)) {
         return Status::kSuccess;
     } else {

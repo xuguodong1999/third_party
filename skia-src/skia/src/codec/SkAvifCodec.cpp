@@ -188,6 +188,13 @@ bool SkAvifCodec::onGetFrameInfo(int i, FrameInfo* frameInfo) const {
 
 int SkAvifCodec::onGetRepetitionCount() { return kRepetitionCountInfinite; }
 
+SkCodec::IsAnimated SkAvifCodec::onIsAnimated() {
+    if (!fUseAnimation || fAvifDecoder->imageCount <= 1) {
+        return IsAnimated::kNo;
+    }
+    return IsAnimated::kYes;
+}
+
 SkCodec::Result SkAvifCodec::onGetPixels(const SkImageInfo& dstInfo,
                                          void* dst,
                                          size_t dstRowBytes,
@@ -242,6 +249,8 @@ SkCodec::Result SkAvifCodec::onGetPixels(const SkImageInfo& dstInfo,
 }
 
 namespace SkAvifDecoder {
+namespace LibAvif {
+
 bool IsAvif(const void* data, size_t len) {
     return SkAvifCodec::IsAvif(data, len);
 }
@@ -267,4 +276,6 @@ std::unique_ptr<SkCodec> Decode(sk_sp<SkData> data,
     }
     return Decode(SkMemoryStream::Make(std::move(data)), outResult, nullptr);
 }
+
+}  // namespace LibAvif
 }  // namespace SkAvifDecoder

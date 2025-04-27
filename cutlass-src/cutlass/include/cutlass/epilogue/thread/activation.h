@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,18 @@
 namespace cutlass {
 namespace epilogue {
 namespace thread {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+// If kIsHeavy is a member, use it.  Otherwise, assume that it's false.
+template<class Op, class Enable = void>
+struct kIsHeavy_member_or_false {
+  static constexpr bool value = false;
+};
+template<class Op>
+struct kIsHeavy_member_or_false<Op, typename cutlass::platform::enable_if<Op::kIsHeavy>::type> {
+  static constexpr bool value = Op::kIsHeavy;
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -113,6 +125,8 @@ template <template <class> class Activation, typename T>
 struct Scale<Activation<T>> {
   using Arguments = typename Scale<T>::Arguments;
 
+  static const bool kIsHeavy = Activation<T>::kIsHeavy;
+
   CUTLASS_HOST_DEVICE
   T operator()(T value, typename Arguments::scale_type scale) const {
     multiplies<T> mul;
@@ -127,21 +141,22 @@ struct Scale<Activation<T>> {
 };
 
 /// ReLu operator - propagates NaNs
-/// Always put threshold in the right hand side of max to propagate NaN.
 template <typename T>
 struct ReLu {
   static const bool kIsHeavy = false;
 
   CUTLASS_HOST_DEVICE
   T operator()(T threshold, T value) const {
-    maximum<T> mx;
+    constexpr bool PropagateNaN = true;
+    maximum<T, PropagateNaN> mx;
 
     return mx(value, threshold);
   }
 
   CUTLASS_HOST_DEVICE
   T operator()(T value) const {
-    maximum<T> mx;
+    constexpr bool PropagateNaN = true;
+    maximum<T, PropagateNaN> mx;
 
     return mx(value, T(0));
   }
@@ -156,14 +171,16 @@ struct ReLu<Array<T, N>> {
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(T const & threshold, Array<T, N> const &frag) const {
-    maximum<Array<T, N>> mx;
+    constexpr bool PropagateNaN = true;
+    maximum<Array<T, N>, PropagateNaN> mx;
 
     return mx(frag, threshold);
   }
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const &frag) const {
-    maximum<Array<T, N>> mx;
+    constexpr bool PropagateNaN = true;
+    maximum<Array<T, N>, PropagateNaN> mx;
     return mx(frag, T(0));
   }
 };
@@ -178,8 +195,9 @@ struct Clamp {
 
   CUTLASS_HOST_DEVICE
   T operator()(T const& value, T const& lower_bound, T const& upper_bound) const {
-    maximum<T> mx;
-    minimum<T> mn;
+    constexpr bool PropagateNaN = true;
+    maximum<T, PropagateNaN> mx;
+    minimum<T, PropagateNaN> mn;
 
     return mn(mx(value, lower_bound), upper_bound);
   }
@@ -196,8 +214,9 @@ struct Clamp<Array<T,N>> {
 
   CUTLASS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, T const& lower_bound, T const& upper_bound) const {
-    maximum<Array<T,N>> mx;
-    minimum<Array<T,N>> mn;
+    constexpr bool PropagateNaN = true;
+    maximum<Array<T,N>, PropagateNaN> mx;
+    minimum<Array<T,N>, PropagateNaN> mn;
 
     return mn(mx(values, lower_bound), upper_bound);
   }
@@ -205,6 +224,45 @@ struct Clamp<Array<T,N>> {
   CUTLASS_HOST_DEVICE
   Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.lower_bound, args.upper_bound);
+  }
+};
+
+// Lower Bound
+template <typename T>
+struct LowerBound {
+  struct Arguments {
+    T lower_bound;
+  };
+
+  CUTLASS_HOST_DEVICE
+  T operator()(T const& value, T const& lower_bound) const {
+    constexpr bool PropagateNaN = true;
+    maximum<T, PropagateNaN> mx;
+
+    return mx(value, lower_bound);
+  }
+
+  CUTLASS_HOST_DEVICE
+  T operator()(T const& value, Arguments const& args = Arguments()) const {
+    return this->operator()(value, args.lower_bound);
+  }
+};
+
+template <typename T, int N>
+struct LowerBound<Array<T,N>> {
+  using Arguments = typename LowerBound<T>::Arguments;
+
+  CUTLASS_HOST_DEVICE
+  Array<T,N> operator()(Array<T,N> const& values, T const& lower_bound) const {
+    constexpr bool PropagateNaN = true;
+    maximum<Array<T,N>, PropagateNaN> mx;
+
+    return mx(values, lower_bound);
+  }
+
+  CUTLASS_HOST_DEVICE
+  Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
+    return this->operator()(values, args.lower_bound);
   }
 };
 
@@ -226,7 +284,7 @@ struct LeakyReLU {
 
   CUTLASS_HOST_DEVICE
   T operator()(T const& value, Arguments const& args = Arguments()) const {
-    this->operator()(value, args.leaky_alpha);
+    return this->operator()(value, args.leaky_alpha);
   }
 };
 
@@ -253,6 +311,54 @@ struct LeakyReLU<Array<T, N> > {
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& values, Arguments const& args = Arguments()) const {
     return this->operator()(values, args.leaky_alpha);
+  }
+};
+
+// Y = min((X <= threshold ? 0 : X), upper_bound)
+template <typename T>
+struct ThresholdReLU {
+  static constexpr bool kIsHeavy = false;
+
+  struct Arguments {
+    T threshold = T(0);
+    T upper_bound = CUTLASS_STL_NAMESPACE::numeric_limits<T>::max();
+  };
+
+  CUTLASS_HOST_DEVICE
+  T operator()(T value, T threshold, T upper_bound) const {
+    minimum_with_nan_propagation<T> mn;
+    
+    return mn((value <= threshold ? T(0) : value), upper_bound);
+  }
+
+  CUTLASS_HOST_DEVICE
+  T operator()(T value, Arguments const& args = Arguments()) const {
+    return operator()(value, args.threshold, args.upper_bound);
+  }
+};
+
+template <typename T, int N>
+struct ThresholdReLU<Array<T,N>> {
+  static constexpr bool kIsHeavy = false;
+
+  using Arguments = typename ThresholdReLU<T>::Arguments;
+
+  CUTLASS_HOST_DEVICE
+  Array<T,N> operator()(Array<T,N> const& values, T threshold, T upper_bound) const {
+    ThresholdReLU<T> relu;
+
+    Array<T,N> retvals;
+    CUTLASS_PRAGMA_UNROLL
+    for (int i = 0; i < N; ++i) {
+      retvals[i] = relu(values[i], threshold, upper_bound);    
+    }
+
+    return retvals;
+  }
+
+  CUTLASS_HOST_DEVICE
+  Array<T,N> operator()(Array<T,N> const& values, Arguments const& args = Arguments()) const {
+    return operator()(values, args.threshold, args.upper_bound);
   }
 };
 
@@ -304,43 +410,29 @@ struct Sigmoid {
 
   CUTLASS_HOST_DEVICE
   T operator()(T const &value) const {
+#if defined(CUTLASS_USE_TANH_FOR_SIGMOID)
+    return fast_tanh(value * T(0.5)) * T(0.5) + T(0.5);
+#else
     return T(1) / (T(1) + fast_exp(-value));
+#endif
   }
 };
 
 template <typename T, int N>
-struct Sigmoid<Array<T, N> > {
-  static const bool kIsHeavy = true;
-
-  CUTLASS_HOST_DEVICE
-  Array<T, N> operator()(Array<T, N> const &value) const {
-    Array<T, N> y;
-    Sigmoid<T> sigmoid_op;
-
-    CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < N; ++i) {
-      y[i] = sigmoid_op(value[i]);
-    }
-
-    return y;
-  }
-};
-
-template <int N>
-struct Sigmoid<Array<half_t, N>> {
-  using T = half_t;
+struct Sigmoid<Array<T, N>> {
   static const bool kIsHeavy = true;
 
   CUTLASS_HOST_DEVICE
   Array<T, N> operator()(Array<T, N> const& z) const {
-    plus<Array<T, N>> add;
-
 #if defined(CUTLASS_USE_TANH_FOR_SIGMOID)
     multiplies<Array<T, N>> mul;
+    multiply_add<Array<T, N>> fma;
     fast_tanh_op<Array<T, N>> tanh;
-    return mul(add(tanh(mul(z, cutlass::constants::half<T>())), cutlass::constants::one<T>()),
+    return fma(tanh(mul(z, cutlass::constants::half<T>())),
+               cutlass::constants::half<T>(),
                cutlass::constants::half<T>());
 #else
+    plus<Array<T, N>> add;
     divides<Array<T, N>> div;
     negate<Array<T, N>> neg;
     fast_exp_op<Array<T, N>> fast_exp;
@@ -448,6 +540,9 @@ struct HardSwish<Array<half_t, N> > {
   }
 };
 
+template <typename T>
+using ScaledHardSwish = Scale<HardSwish<T>>;
+
 //
 // GELU function definitions implemented as described by
 //   Hendrycks, D., and Gimpel, K. in
@@ -528,6 +623,28 @@ struct GELU_taylor {
   }
 };
 
+template <>
+struct GELU_taylor <float>{
+  static const bool kIsHeavy = true;
+  using T = float;
+  CUTLASS_HOST_DEVICE
+  T operator()(T const &z) const {
+    // 0.5f * (x + x * tanh(x * (0.797885f + 0.0356774f * x * x)));
+    T k0 = T(0.7978845608028654);
+    T tmp = T(0.044715);
+    T k1 = T(k0*tmp);
+    multiply_add<T> fma;
+    multiplies<T> mul;
+    T v0 = mul(k1, z);
+    T v1 = fma(v0, z, k0);
+    T v2 = mul(z, v1);
+    T v3 = fast_tanh(v2);
+    T v4 = fma(z, v3, z);
+    T v5 = mul(cutlass::constants::half<T>(), v4);
+    return v5;
+  }
+};
+
 template <int N>
 struct GELU_taylor<Array<half_t, N> > {
   static const bool kIsHeavy = true;
@@ -552,6 +669,30 @@ struct GELU_taylor<Array<half_t, N> > {
     y = mul(mul(z, cutlass::constants::half<T>()), add(cutlass::constants::one<T>(), tanh(u)));
 
     return y;
+  }
+};
+
+template <int N>
+struct GELU_taylor<Array<float, N> > {
+  static const bool kIsHeavy = true;
+
+  CUTLASS_HOST_DEVICE
+  Array<float, N> operator()(Array<float, N> const &value) const {
+    multiply_add<Array<float, N>> fma;
+    multiplies<Array<float, N>> mul;
+    fast_tanh_op<Array<float, N>> tanh;
+    // 0.5f * (x + x * tanh(x * (0.797885f + 0.0356774f * x * x)));
+    float k0 = float(0.7978845608028654);
+    float tmp = float(0.044715);
+    float k1 = float(k0*tmp);
+
+    Array<float, N> v0 = mul(k1, value);
+    Array<float, N> v1 = fma(v0, value, k0);
+    Array<float, N> v2 = mul(value, v1);
+    Array<float, N> v3 = tanh(v2);
+    Array<float, N> v4 = fma(value, v3, value);
+    Array<float, N> v5 = mul(cutlass::constants::half<float>(), v4);
+    return v5;
   }
 };
 
@@ -693,6 +834,57 @@ struct dReLU_Z<Array<T, N>> {
     }
 
     return y;
+  }
+};
+
+// ElementwiseFilter operator
+// Filters by a specific value and maps it to 0.0
+// Used in GEMM + comm
+template <typename T>
+struct ElementwiseFilter {
+
+  static const bool kIsHeavy = false;
+
+  struct Arguments {
+    T value_to_filter = T(-0.0);
+    T filtered_value = T(0.0);
+  };
+
+  CUTLASS_HOST_DEVICE
+  T operator()(T const& value, T const& value_to_filter, T const& filtered_value) const {
+    T res = value == value_to_filter ? filtered_value : value;
+    return res;
+  }
+
+  CUTLASS_HOST_DEVICE
+  T operator()(T const& value, Arguments const& args = Arguments()) const {
+    return this->operator()(value, args.value_to_filter, args.filtered_value);
+  }
+};
+
+template <typename T, int N>
+struct ElementwiseFilter<Array<T, N> > {
+
+  static const bool kIsHeavy = false;
+
+  using Arguments = typename ElementwiseFilter<T>::Arguments;
+
+  CUTLASS_HOST_DEVICE
+  Array<T, N> operator()(Array<T, N> const& values, T const& value_to_filter, T const& filtered_value) const {
+    Array<T, N> y;
+    ElementwiseFilter<T> filter_op;
+
+    CUTLASS_PRAGMA_UNROLL
+    for (int i = 0; i < int(values.size()); ++i) {
+      y[i] = filter_op(values[i], value_to_filter, filtered_value);
+    }
+
+    return y;
+  }
+
+  CUTLASS_HOST_DEVICE
+  Array<T, N> operator()(Array<T, N> const& values, Arguments const& args = Arguments()) const {
+    return this->operator()(values, args.value_to_filter, args.filtered_value);
   }
 };
 

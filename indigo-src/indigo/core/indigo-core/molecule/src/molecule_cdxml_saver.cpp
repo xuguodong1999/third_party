@@ -29,6 +29,7 @@
 #include "molecule/molecule_cdxml_loader.h"
 #include "molecule/parse_utils.h"
 #include "molecule/query_molecule.h"
+#include "utils/image_not_supported.h"
 
 #include <codecvt>
 #include <fstream>
@@ -590,8 +591,8 @@ void MoleculeCdxmlSaver::addNodeToFragment(BaseMolecule& mol, XMLElement* fragme
     bool have_z = BaseMolecule::hasZCoord(mol);
     if (have_z)
     {
-        Vec3f offset(1, -1, -1);
-        pos3.add(offset);
+        pos3.x += offset.x;
+        pos3.y += offset.y;
         pos3.scale(_scale);
     }
 
@@ -1260,11 +1261,81 @@ void MoleculeCdxmlSaver::saveMoleculeFragment(BaseMolecule& bmol, const Vec2f& o
         _current = fragment;
     }
 
-    for (int i = 0; i < mol->meta().metaData().size(); ++i)
-        addMetaObject(*mol->meta().metaData()[i], ++_id);
-
     _current = parent;
     id = _id;
+}
+
+void MoleculeCdxmlSaver::addRetrosynteticArrow(int graphic_obj_id, int arrow_id, const Vec2f& arrow_beg, const Vec2f& arrow_end)
+{
+    PropertiesMap attrs;
+    attrs.insert("FillType", "None");
+    attrs.insert("ArrowheadHead", "Full");
+    attrs.insert("ArrowheadType", "Angle");
+    attrs.insert("HeadSize", "600");
+    attrs.insert("ArrowheadCenterSize", "600");
+    attrs.insert("ArrowheadWidth", "150");
+    attrs.insert("ArrowShaftSpacing", "600");
+
+    Vec3f ar_beg(arrow_beg.x, -arrow_beg.y, 0);
+    Vec3f ar_end(arrow_end.x, -arrow_end.y, 0);
+    ar_beg.scale(_bond_length);
+    ar_end.scale(_bond_length);
+
+    attrs.insert("Head3D", std::to_string(ar_end.x) + " " + std::to_string(ar_end.y) + " " + std::to_string(ar_end.z));
+    attrs.insert("Tail3D", std::to_string(ar_beg.x) + " " + std::to_string(ar_beg.y) + " " + std::to_string(ar_beg.z));
+
+    addElement("arrow", arrow_id, arrow_end, arrow_beg, attrs);
+
+    attrs.clear();
+
+    attrs.insert("SupersededBy", std::to_string(arrow_id));
+    attrs.insert("GraphicType", "Line");
+    attrs.insert("ArrowType", "RetroSynthetic");
+    attrs.insert("HeadSize", "600");
+
+    QS_DEF(Array<char>, buf);
+    ArrayOutput out(buf);
+    out.printf("%f %f %f %f", ar_end.x, ar_end.y, ar_beg.x, ar_beg.y);
+    buf.push(0);
+
+    attrs.insert("BoundingBox", buf.ptr());
+
+    QS_DEF(Array<char>, name);
+    name.clear();
+    name.readString("graphic", true);
+
+    addCustomElement(graphic_obj_id, name, attrs);
+}
+
+std::string stringToHex(const std::string& input)
+{
+    std::stringstream hexStream;
+    hexStream << std::hex << std::setfill('0');
+
+    for (uint8_t val : input)
+        hexStream << std::setw(2) << static_cast<int>(val);
+
+    return hexStream.str();
+}
+
+void MoleculeCdxmlSaver::addImage(int id, const EmbeddedImageObject& image)
+{
+    PropertiesMap attrs;
+    Array<char> emb_object;
+    QS_DEF(Array<char>, buf);
+    ArrayOutput out(buf);
+    const auto& bbox = image.getBoundingBox();
+    out.printf("%f %f %f %f", _bond_length * bbox.left(), -_bond_length * bbox.bottom(), _bond_length * bbox.right(), -_bond_length * bbox.top());
+    buf.push(0);
+    attrs.insert("BoundingBox", buf.ptr());
+    if (image.getFormat() == EmbeddedImageObject::EKETPNG)
+        attrs.insert("PNG", stringToHex(image.getData()));
+    else if (image.getFormat() == EmbeddedImageObject::EKETSVG)
+        attrs.insert("PNG", IMAGE_NOT_SUPPORTED_PNG);
+    else
+        throw Error("MoleculeCdxmlSaver::addImage: Unknown image format");
+    emb_object.readString("embeddedobject", true);
+    addCustomElement(id, emb_object, attrs);
 }
 
 void MoleculeCdxmlSaver::addArrow(int id, int arrow_type, const Vec2f& beg, const Vec2f& end)
@@ -1276,81 +1347,81 @@ void MoleculeCdxmlSaver::addArrow(int id, int arrow_type, const Vec2f& beg, cons
     attrs.insert("ArrowheadWidth", "563");
     switch (arrow_type)
     {
-    case KETReactionArrow::EOpenAngle:
+    case ReactionArrowObject::EOpenAngle:
         attrs.insert("ArrowheadHead", "Full");
         attrs.insert("ArrowheadCenterSize", "25");
         break;
-    case KETReactionArrow::EFilledTriangle:
+    case ReactionArrowObject::EFilledTriangle:
         attrs.insert("ArrowheadHead", "Full");
         attrs.insert("ArrowheadCenterSize", "2250");
         break;
 
-    case KETReactionArrow::EFilledBow:
+    case ReactionArrowObject::EFilledBow:
         attrs.insert("ArrowheadHead", "Full");
         attrs.insert("ArrowheadCenterSize", "1125");
         break;
 
-    case KETReactionArrow::EDashedOpenAngle:
+    case ReactionArrowObject::EDashedOpenAngle:
         attrs.insert("ArrowheadHead", "Full");
         attrs.insert("ArrowheadCenterSize", "25");
         attrs.insert("LineType", "Dashed");
         break;
 
-    case KETReactionArrow::EFailed:
+    case ReactionArrowObject::EFailed:
         attrs.insert("ArrowheadHead", "Full");
         attrs.insert("ArrowheadCenterSize", "1125");
         attrs.insert("NoGo", "Cross");
         break;
 
-    case KETReactionArrow::EBothEndsFilledTriangle:
+    case ReactionArrowObject::EBothEndsFilledTriangle:
         attrs.insert("ArrowheadCenterSize", "2250");
         attrs.insert("ArrowheadHead", "Full");
         attrs.insert("ArrowheadTail", "Full");
         break;
 
-    case KETReactionArrow::EEquilibriumFilledHalfBow:
+    case ReactionArrowObject::EEquilibriumFilledHalfBow:
         attrs.insert("ArrowheadHead", "HalfLeft");
         attrs.insert("ArrowheadTail", "HalfLeft");
         attrs.insert("ArrowheadCenterSize", "1125");
         attrs.insert("ArrowShaftSpacing", "300");
         break;
 
-    case KETReactionArrow::EEquilibriumFilledTriangle:
+    case ReactionArrowObject::EEquilibriumFilledTriangle:
         attrs.insert("ArrowheadHead", "HalfLeft");
         attrs.insert("ArrowheadTail", "HalfLeft");
         attrs.insert("ArrowheadCenterSize", "2250");
         attrs.insert("ArrowShaftSpacing", "300");
         break;
 
-    case KETReactionArrow::EEquilibriumOpenAngle:
+    case ReactionArrowObject::EEquilibriumOpenAngle:
         attrs.insert("ArrowheadHead", "HalfLeft");
         attrs.insert("ArrowheadTail", "HalfLeft");
         attrs.insert("ArrowheadCenterSize", "25");
         attrs.insert("ArrowShaftSpacing", "300");
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumFilledHalfBow:
+    case ReactionArrowObject::EUnbalancedEquilibriumFilledHalfBow:
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumLargeFilledHalfBow:
+    case ReactionArrowObject::EUnbalancedEquilibriumLargeFilledHalfBow:
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumOpenHalfAngle:
+    case ReactionArrowObject::EUnbalancedEquilibriumOpenHalfAngle:
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumFilledHalfTriangle:
+    case ReactionArrowObject::EUnbalancedEquilibriumFilledHalfTriangle:
         break;
 
-    case KETReactionArrow::EEllipticalArcFilledBow:
+    case ReactionArrowObject::EEllipticalArcFilledBow:
         break;
 
-    case KETReactionArrow::EEllipticalArcFilledTriangle:
+    case ReactionArrowObject::EEllipticalArcFilledTriangle:
         break;
 
-    case KETReactionArrow::EEllipticalArcOpenAngle:
+    case ReactionArrowObject::EEllipticalArcOpenAngle:
         break;
 
-    case KETReactionArrow::EEllipticalArcOpenHalfAngle:
+    case ReactionArrowObject::EEllipticalArcOpenHalfAngle:
         break;
 
     default:
@@ -1367,19 +1438,22 @@ void MoleculeCdxmlSaver::addArrow(int id, int arrow_type, const Vec2f& beg, cons
     addElement("arrow", id, end, beg, attrs);
 }
 
-void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
+void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id, const Vec2f& offset)
 {
     PropertiesMap attrs;
     attrs.clear();
-    switch (obj._class_id)
+    auto& cp_obj = *(obj.clone());
+    cp_obj.offset(offset);
+
+    switch (cp_obj._class_id)
     {
-    case KETReactionArrow::CID: {
-        KETReactionArrow& ar = (KETReactionArrow&)(obj);
+    case ReactionArrowObject::CID: {
+        ReactionArrowObject& ar = (ReactionArrowObject&)(cp_obj);
         addArrow(id, ar.getArrowType(), ar.getTail(), ar.getHead());
     }
     break;
-    case KETReactionPlus::CID: {
-        KETReactionPlus& rp = (KETReactionPlus&)(obj);
+    case ReactionPlusObject::CID: {
+        ReactionPlusObject& rp = (ReactionPlusObject&)(cp_obj);
         attrs.insert("GraphicType", "Symbol");
         attrs.insert("SymbolType", "Plus");
         Vec2f v1(rp.getPos().x, rp.getPos().y - PLUS_HALF_HEIGHT / _bond_length);
@@ -1387,12 +1461,12 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
         addElement("graphic", id, v1, v2, attrs);
     }
     break;
-    case KETSimpleObject::CID: {
-        KETSimpleObject& simple_obj = (KETSimpleObject&)obj;
+    case SimpleGraphicsObject::CID: {
+        SimpleGraphicsObject& simple_obj = (SimpleGraphicsObject&)cp_obj;
         Rect2f bbox(simple_obj._coordinates.first, simple_obj._coordinates.second);
         switch (simple_obj._mode)
         {
-        case KETSimpleObject::EKETEllipse: {
+        case SimpleGraphicsObject::EEllipse: {
             auto ecenter = bbox.center();
             Vec2f maj_axis, min_axis;
             if (bbox.width() > bbox.height())
@@ -1419,20 +1493,20 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
             attrs.insert("GraphicType", "Oval");
         }
         break;
-        case KETSimpleObject::EKETRectangle:
+        case SimpleGraphicsObject::ERectangle:
             attrs.insert("GraphicType", "Rectangle");
             break;
-        case KETSimpleObject::EKETLine:
+        case SimpleGraphicsObject::ELine:
             attrs.insert("GraphicType", "Line");
             break;
         }
         addElement("graphic", id, bbox.leftBottom(), bbox.rightTop(), attrs);
     }
     break;
-    case KETTextObject::CID: {
-        const KETTextObject& ko = static_cast<const KETTextObject&>(obj);
+    case SimpleTextObject::CID: {
+        const SimpleTextObject& ko = static_cast<const SimpleTextObject&>(cp_obj);
         // double text_offset_y = 0;
-        int font_size = static_cast<int>(KETDefaultFontSize);
+        int font_size = static_cast<int>(KDefaultFontSize);
         CDXMLFontStyle font_face(0);
         for (auto& text_item : ko._block)
         {
@@ -1469,22 +1543,22 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
                 {
                     switch (text_style.first)
                     {
-                    case KETTextObject::EPlain:
+                    case SimpleTextObject::EPlain:
                         break;
-                    case KETTextObject::EBold:
+                    case SimpleTextObject::EBold:
                         font_face.is_bold = text_style.second;
                         break;
-                    case KETTextObject::EItalic:
+                    case SimpleTextObject::EItalic:
                         font_face.is_italic = text_style.second;
                         break;
-                    case KETTextObject::ESuperScript:
+                    case SimpleTextObject::ESuperScript:
                         font_face.is_superscript = text_style.second;
                         break;
-                    case KETTextObject::ESubScript:
+                    case SimpleTextObject::ESubScript:
                         font_face.is_subscript = text_style.second;
                         break;
                     default:
-                        font_size = text_style.second ? text_style.first : static_cast<int>(KETDefaultFontSize);
+                        font_size = text_style.second ? text_style.first : static_cast<int>(KDefaultFontSize);
                         break;
                     }
                 }
@@ -1506,6 +1580,11 @@ void MoleculeCdxmlSaver::addMetaObject(const MetaObject& obj, int id)
                 first_index = second_index;
             }
         }
+    }
+    break;
+    case EmbeddedImageObject::CID: {
+        const EmbeddedImageObject& image = static_cast<const EmbeddedImageObject&>(cp_obj);
+        addImage(id, image);
     }
     break;
     }
@@ -1901,31 +1980,22 @@ void MoleculeCdxmlSaver::_validate(BaseMolecule& bmol)
 void MoleculeCdxmlSaver::saveMolecule(BaseMolecule& bmol)
 {
     _validate(bmol);
-    Vec3f min_coord, max_coord;
+    Vec2f min_coord, max_coord;
 
     _id = 0;
 
     if (bmol.have_xyz)
     {
-        for (int i = bmol.vertexBegin(); i != bmol.vertexEnd(); i = bmol.vertexNext(i))
-        {
-            Vec3f& pos = bmol.getAtomXyz(i);
-            if (i == bmol.vertexBegin())
-                min_coord = max_coord = pos;
-            else
-            {
-                min_coord.min(pos);
-                max_coord.max(pos);
-            }
-        }
-        // Add margins
-        max_coord.add(Vec3f(1, 1, 1));
-        min_coord.sub(Vec3f(1, 1, 1));
+        bmol.getBoundingBox(min_coord, max_coord);
     }
-    else
+
+    for (int i = 0; i < bmol.meta().metaData().size(); ++i)
     {
-        min_coord.set(0, 0, 0);
-        max_coord.set(0, 0, 0);
+        Rect2f bb;
+        auto& mo = *bmol.meta().metaData()[i];
+        mo.getBoundingBox(bb);
+        min_coord.min(bb.leftBottom());
+        max_coord.max(bb.rightTop());
     }
 
     beginDocument(NULL);
@@ -1934,7 +2004,6 @@ void MoleculeCdxmlSaver::saveMolecule(BaseMolecule& bmol)
     beginPage(NULL);
 
     Vec2f offset(-min_coord.x, -max_coord.y);
-
     saveMoleculeFragment(bmol, offset, 1);
     for (int i = 1; i <= bmol.rgroups.getRGroupCount(); i++)
     {
@@ -1943,6 +2012,17 @@ void MoleculeCdxmlSaver::saveMolecule(BaseMolecule& bmol)
             saveRGroup(rgrp.fragments, offset, i);
     }
 
+    for (int i = 0; i < bmol.meta().metaData().size(); ++i)
+    {
+        auto& mo = *bmol.meta().metaData()[i];
+        addMetaObject(*bmol.meta().metaData()[i], ++_id, offset);
+    }
+
+    QS_DEF(Array<char>, buf);
+    ArrayOutput out(buf);
+    out.printf("%f %f %f %f", _scale * min_coord.x, -_scale * min_coord.y, _scale * max_coord.x, -_scale * max_coord.y);
+    buf.push(0);
+    _page->SetAttribute("BoundingBox", buf.ptr());
     endPage();
     endDocument();
 }

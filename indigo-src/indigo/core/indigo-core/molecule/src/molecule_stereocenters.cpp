@@ -38,6 +38,7 @@ MoleculeStereocenters::MoleculeStereocenters()
 void MoleculeStereocenters::clear()
 {
     _stereocenters.clear();
+    _atropocenters.clear();
 }
 
 void MoleculeStereocenters::buildFromBonds(BaseMolecule& baseMolecule, const StereocentersOptions& options, int* sensible_bonds_out)
@@ -1498,7 +1499,14 @@ void MoleculeStereocenters::add(BaseMolecule& /* baseMolecule */, int atom_idx, 
 void MoleculeStereocenters::add_ignore(BaseMolecule& baseMolecule, int atom_idx, int type, int group, bool inverse_pyramid)
 {
     int pyramid[4];
-    _restorePyramid(baseMolecule, atom_idx, pyramid, inverse_pyramid);
+    try
+    {
+        _restorePyramid(baseMolecule, atom_idx, pyramid, inverse_pyramid);
+    }
+    catch (Exception&)
+    {
+        return;
+    }
     add_ignore(baseMolecule, atom_idx, type, group, pyramid);
 }
 

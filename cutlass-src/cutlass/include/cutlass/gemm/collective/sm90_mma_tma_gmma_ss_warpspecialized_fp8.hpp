@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@
 #include "cute/atom/mma_atom.hpp"
 #include "cute/algorithm/gemm.hpp"
 #include "cute/tensor_predicate.hpp"
+#include "cute/tensor.hpp"
 #include "cute/numeric/arithmetic_tuple.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,6 +116,9 @@ struct CollectiveMma<
 
   using PipelineParams = typename MainloopPipeline::Params;
 
+  // One threads per CTA are producers (1 for operand tile)
+  static constexpr int NumProducerThreadEvents = 1;
+
   static_assert(cute::rank(SmemLayoutAtomA{}) == 2, "SmemLayoutAtom must be rank 2 (M/N, K)");
   static_assert((size<0>(TileShape{}) % size<0>(SmemLayoutAtomA{})) == 0, "SmemLayoutAtom must evenly divide tile shape.");
   static_assert((size<2>(TileShape{}) % size<1>(SmemLayoutAtomA{})) == 0, "SmemLayoutAtom must evenly divide tile shape.");
@@ -144,7 +148,7 @@ struct CollectiveMma<
 
   struct SharedStorage
   {
-    struct TensorStorage : cute::aligned_struct<128> {
+    struct TensorStorage : cute::aligned_struct<128, _0> {
       cute::array_aligned<typename TiledMma::ValTypeA, cute::cosize_v<SmemLayoutA>> smem_A;
       cute::array_aligned<typename TiledMma::ValTypeB, cute::cosize_v<SmemLayoutB>> smem_B;
     } tensors;
@@ -246,8 +250,8 @@ struct CollectiveMma<
     implementable = implementable && cutlass::detail::check_alignment<min_tma_aligned_elements_A>(cute::make_shape(M,K,L), StrideA{});
     constexpr int min_tma_aligned_elements_B = tma_alignment_bits / cutlass::sizeof_bits<ElementB>::value;
     implementable = implementable && cutlass::detail::check_alignment<min_tma_aligned_elements_B>(cute::make_shape(N,K,L), StrideB{});
-    /* MMA promotion interval should be a multiple of 4, since each mainloop iteration would issue 4 MMA instructions. */
-    implementable = implementable && (args.mma_promotion_interval % 4 == 0);
+    /* MMA promotion interval should be a multiple of the number of MMA instructions issued by each mainloop iteration. */
+    implementable = implementable && (args.mma_promotion_interval % (size<2>(TileShape{})() / TiledMma().template tile_size_mnk<2>()()) == 0);
 
     if (!implementable) {
       CUTLASS_TRACE_HOST("  CAN IMPLEMENT: Problem Size doesn't meet the minimum alignment requirements for TMA.\n");

@@ -20,40 +20,7 @@ namespace indigo
     class MonomerTemplateLibrary;
     class TGroup;
 
-    class DLLEXPORT MonomerTemplateAttachmentPoint : public KetObjWithProps
-    {
-    public:
-        DECL_ERROR;
-        MonomerTemplateAttachmentPoint(int attachment_atom) : _attachment_atom(attachment_atom){};
-
-        const std::map<std::string, int>& getStringPropStrToIdx() const override;
-
-        int attachment_atom() const
-        {
-            return _attachment_atom;
-        };
-
-        void setLeavingGroup(std::vector<int>& leaving_group)
-        {
-            _leaving_group = leaving_group;
-        };
-
-        const std::optional<std::vector<int>> leavingGroup() const
-        {
-            return _leaving_group;
-        };
-
-    private:
-        enum class StringProps
-        {
-            type,
-            label,
-        };
-        int _attachment_atom;
-        std::optional<std::vector<int>> _leaving_group;
-    };
-
-    class DLLEXPORT MonomerTemplate : public KetObjWithProps
+    class DLLEXPORT MonomerTemplate : public KetBaseMonomerTemplate
     {
     public:
         DECL_ERROR;
@@ -63,9 +30,10 @@ namespace indigo
         MonomerTemplate& operator=(const MonomerTemplate&) = delete;
 
         MonomerTemplate(const std::string& id, MonomerClass mt_class, IdtAlias idt_alias, bool unresolved)
-            : _id(id), _class(mt_class), _idt_alias(idt_alias), _unresolved(unresolved)
-        {
-        }
+            : KetBaseMonomerTemplate(TemplateType::MonomerTemplate, id, mt_class, idt_alias), _unresolved(unresolved){};
+
+        MonomerTemplate(const std::string& id, std::string mt_class, IdtAlias idt_alias, bool unresolved)
+            : KetBaseMonomerTemplate(TemplateType::MonomerTemplate, id, MonomerTemplate::StrToMonomerClass(mt_class), idt_alias), _unresolved(unresolved){};
 
         MonomerTemplate(MonomerTemplate&& other) = default;
 
@@ -92,27 +60,31 @@ namespace indigo
         static const MonomerClass StrToMonomerClass(const std::string& monomer_type)
         {
             static const std::map<std::string, MonomerClass> _str_to_type = {
-                {"AminoAcid", MonomerClass::AminoAcid},
-                {"Sugar", MonomerClass::Sugar},
-                {"Phosphate", MonomerClass::Phosphate},
-                {"Base", MonomerClass::Base},
-                {"Terminator", MonomerClass::Terminator},
-                {"Linker", MonomerClass::Linker},
-                {"Unknown", MonomerClass::Unknown},
-                {"CHEM", MonomerClass::CHEM},
-                {"DNA", MonomerClass::DNA},
-                {"RNA", MonomerClass::RNA},
+                {"aminoacid", MonomerClass::AminoAcid},
+                {"sugar", MonomerClass::Sugar},
+                {"phosphate", MonomerClass::Phosphate},
+                {"base", MonomerClass::Base},
+                {"terminator", MonomerClass::Terminator},
+                {"linker", MonomerClass::Linker},
+                {"unknown", MonomerClass::Unknown},
+                {"chem", MonomerClass::CHEM},
+                {"dna", MonomerClass::DNA},
+                {"rna", MonomerClass::RNA},
             };
-            if (_str_to_type.count(monomer_type))
-                return _str_to_type.at(monomer_type);
+            std::string mt = monomer_type;
+            std::transform(mt.begin(), mt.end(), mt.begin(), [](unsigned char c) { return std::tolower(c); });
+            if (_str_to_type.count(mt))
+                return _str_to_type.at(mt);
             return MonomerClass::Unknown;
         }
 
         const std::map<std::string, int>& getStringPropStrToIdx() const override;
 
-        MonomerTemplateAttachmentPoint& AddAttachmentPoint(const std::string& label, int att_atom);
+        KetAttachmentPoint& AddAttachmentPoint(const std::string& label, int att_atom);
 
-        const MonomerTemplateAttachmentPoint& getAttachmenPointById(const std::string& att_point_id);
+        KetAttachmentPoint& AddAttachmentPointId(const std::string& id, int att_atom);
+
+        const KetAttachmentPoint& getAttachmenPointById(const std::string& att_point_id);
 
         std::unique_ptr<TGroup> getTGroup() const;
 
@@ -121,44 +93,15 @@ namespace indigo
             return _attachment_points.count(att_point_id) != 0;
         };
 
-        inline const std::string& id() const
-        {
-            return _id;
-        };
-
-        inline MonomerClass monomerClass() const
-        {
-            return _class;
-        }
-
         inline const std::string& monomerClassStr() const
         {
-            return MonomerClassToStr(_class);
+            return MonomerClassToStr(_monomer_class);
         }
-
-        inline const IdtAlias& idtAlias() const
-        {
-            return _idt_alias;
-        }
-
-        inline void setIdtAlias(const IdtAlias& idt_alias)
-        {
-            _idt_alias = idt_alias;
-        }
-
-        bool hasIdtAlias(const std::string& alias, IdtModification mod);
-
-        bool hasIdtAliasBase(const std::string& alias_base);
 
         inline bool unresolved() const
         {
             return _unresolved;
         };
-
-        const std::map<std::string, MonomerTemplateAttachmentPoint>& attachemntPoints() const
-        {
-            return _attachment_points;
-        }
 
         using atom_ptr = std::shared_ptr<KetBaseAtomType>;
         using atoms_type = std::vector<atom_ptr>;
@@ -185,15 +128,15 @@ namespace indigo
 
         void copy(const MonomerTemplate& other)
         {
-            KetObjWithProps::copy(other);
-            _id = other._id;
-            _class = other._class;
-            _attachment_points = other._attachment_points;
-            _idt_alias = other._idt_alias;
+            KetBaseMonomerTemplate::copy(other);
             _unresolved = other._unresolved;
             _atoms = other._atoms;
             _bonds = other._bonds;
         }
+
+        int AddAtom(const std::string& label, Vec3f location);
+
+        int AddBond(int bond_type, int atom1, int atom2);
 
     private:
         enum class StringProps
@@ -204,11 +147,6 @@ namespace indigo
             naturalAnalog,
             naturalAnalogShort
         };
-        std::string _id;
-        MonomerClass _class;
-
-        std::map<std::string, MonomerTemplateAttachmentPoint> _attachment_points;
-        IdtAlias _idt_alias;
         bool _unresolved;
         atoms_type _atoms;
         std::vector<KetBond> _bonds;
@@ -284,7 +222,8 @@ namespace indigo
     public:
         DECL_ERROR;
 
-        MonomerTemplateLibrary(){};
+        MonomerTemplateLibrary() = default;
+        virtual ~MonomerTemplateLibrary() = default;
 
         MonomerTemplateLibrary(const MonomerTemplateLibrary&) = delete;
         MonomerTemplateLibrary(MonomerTemplateLibrary&&) = delete;
@@ -319,6 +258,11 @@ namespace indigo
 
         const std::string& getIdtAliasByModification(IdtModification modification, const std::string sugar_id, const std::string base_id,
                                                      const std::string phosphate_id);
+
+        const std::map<std::string, MonomerTemplate>& monomerTemplates()
+        {
+            return _monomer_templates;
+        };
 
     private:
         std::map<std::string, MonomerTemplate> _monomer_templates;

@@ -8,6 +8,7 @@
 #include "google/protobuf/map_field.h"
 
 #include <atomic>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -243,7 +244,8 @@ void MapFieldBase::SyncRepeatedFieldWithMapNoLock() {
     const MapKey& map_key = it.GetKey();
     switch (key_des->cpp_type()) {
       case FieldDescriptor::CPPTYPE_STRING:
-        reflection->SetString(new_entry, key_des, map_key.GetStringValue());
+        reflection->SetString(new_entry, key_des,
+                              std::string(map_key.GetStringValue()));
         break;
       case FieldDescriptor::CPPTYPE_INT64:
         reflection->SetInt64(new_entry, key_des, map_key.GetInt64Value());
@@ -336,10 +338,12 @@ void MapFieldBase::SyncMapWithRepeatedFieldNoLock() {
 
   for (const Message& elem : rep) {
     // MapKey type will be set later.
+    Reflection::ScratchSpace map_key_scratch_space;
     MapKey map_key;
     switch (key_des->cpp_type()) {
       case FieldDescriptor::CPPTYPE_STRING:
-        map_key.SetStringValue(reflection->GetString(elem, key_des));
+        map_key.SetStringValue(
+            reflection->GetStringView(elem, key_des, map_key_scratch_space));
         break;
       case FieldDescriptor::CPPTYPE_INT64:
         map_key.SetInt64Value(reflection->GetInt64(elem, key_des));

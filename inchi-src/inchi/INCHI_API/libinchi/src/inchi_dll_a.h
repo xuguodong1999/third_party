@@ -128,6 +128,27 @@ Exported functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
 
+#if 0
+#if (defined( _WIN32 ) && defined( _MSC_VER ) && defined(BUILD_LINK_AS_DLL) )
+    /* Win32 & MS VC ++, compile and link as a DLL */
+#ifdef _USRDLL
+    /* InChI library dll */
+#define INCHI_API __declspec(dllexport)
+#define EXPIMP_TEMPLATE
+#define INCHI_DECL
+#else
+   /* calling the InChI dll program */
+#define INCHI_API __declspec(dllimport)
+#define EXPIMP_TEMPLATE extern
+#define INCHI_DECL
+#endif
+#else
+    /* create a statically linked InChI library or link to an executable */
+#define INCHI_API
+#define EXPIMP_TEMPLATE
+#define INCHI_DECL
+#endif
+#endif
 
 
 

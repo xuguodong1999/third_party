@@ -41,9 +41,9 @@
 
 #ifndef CEXPORT
 #ifndef __cplusplus
-#define CEXPORT EXPORT_SYMBOL
+#define INDIGO_EXPORT EXPORT_SYMBOL
 #else
-#define CEXPORT extern "C" EXPORT_SYMBOL
+#define INDIGO_EXPORT extern "C" EXPORT_SYMBOL
 #endif
 #endif
 #endif
@@ -204,6 +204,12 @@ INDIGO_EXPORT int indigoLoadSmartsFromBuffer(const char* buffer, int size);
 INDIGO_EXPORT int indigoLoadMonomerLibrary(int source);
 INDIGO_EXPORT int indigoLoadMonomerLibraryFromString(const char* string);
 INDIGO_EXPORT int indigoLoadMonomerLibraryFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadMonomerLibraryFromBuffer(const char* buffer, int size);
+
+INDIGO_EXPORT int indigoLoadKetDocument(int source);
+INDIGO_EXPORT int indigoLoadKetDocumentFromString(const char* string);
+INDIGO_EXPORT int indigoLoadKetDocumentFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadKetDocumentFromBuffer(const char* buffer, int size);
 
 INDIGO_EXPORT int indigoLoadSequence(int source, const char* seq_type, int library);
 INDIGO_EXPORT int indigoLoadSequenceFromString(const char* string, const char* seq_type, int library);
@@ -228,6 +234,10 @@ INDIGO_EXPORT const char* indigoMolfile(int molecule);
 INDIGO_EXPORT int indigoSaveSequence(int molecule, int output, int library);
 INDIGO_EXPORT int indigoSaveSequenceToFile(int molecule, const char* filename, int library);
 INDIGO_EXPORT const char* indigoSequence(int molecule, int library);
+
+INDIGO_EXPORT int indigoSaveSequence3Letter(int molecule, int output, int library);
+INDIGO_EXPORT int indigoSaveSequence3LetterToFile(int molecule, const char* filename, int library);
+INDIGO_EXPORT const char* indigoSequence3Letter(int molecule, int library);
 
 INDIGO_EXPORT int indigoSaveFasta(int molecule, int output, int library);
 INDIGO_EXPORT int indigoSaveFastaToFile(int molecule, const char* filename, int library);
@@ -290,19 +300,19 @@ enum
     INDIGO_RC_ORDER_CHANGED = 8
 };
 INDIGO_EXPORT int indigoLoadReaction(int source);
-INDIGO_EXPORT int indigoLoadReactionFromString(const char *string);
-INDIGO_EXPORT int indigoLoadReactionFromFile(const char *filename);
-INDIGO_EXPORT int indigoLoadReactionFromBuffer(const char *buffer, int size);
+INDIGO_EXPORT int indigoLoadReactionFromString(const char* string);
+INDIGO_EXPORT int indigoLoadReactionFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadReactionFromBuffer(const char* buffer, int size);
 
 INDIGO_EXPORT int indigoLoadQueryReaction(int source);
-INDIGO_EXPORT int indigoLoadQueryReactionFromString(const char *string);
-INDIGO_EXPORT int indigoLoadQueryReactionFromFile(const char *filename);
-INDIGO_EXPORT int indigoLoadQueryReactionFromBuffer(const char *buffer, int size);
+INDIGO_EXPORT int indigoLoadQueryReactionFromString(const char* string);
+INDIGO_EXPORT int indigoLoadQueryReactionFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadQueryReactionFromBuffer(const char* buffer, int size);
 
 INDIGO_EXPORT int indigoLoadReactionSmarts(int source);
-INDIGO_EXPORT int indigoLoadReactionSmartsFromString(const char *string);
-INDIGO_EXPORT int indigoLoadReactionSmartsFromFile(const char *filename);
-INDIGO_EXPORT int indigoLoadReactionSmartsFromBuffer(const char *buffer, int size);
+INDIGO_EXPORT int indigoLoadReactionSmartsFromString(const char* string);
+INDIGO_EXPORT int indigoLoadReactionSmartsFromFile(const char* filename);
+INDIGO_EXPORT int indigoLoadReactionSmartsFromBuffer(const char* buffer, int size);
 
 INDIGO_EXPORT int indigoCreateReaction(void);
 INDIGO_EXPORT int indigoCreateQueryReaction(void);
@@ -323,19 +333,20 @@ INDIGO_EXPORT int indigoIterateProducts(int reaction);
 INDIGO_EXPORT int indigoIterateCatalysts(int reaction);
 // Returns an iterator for reactants, products, and catalysts.
 INDIGO_EXPORT int indigoIterateMolecules(int reaction);
+INDIGO_EXPORT int indigoIterateReactions(int reaction);
 
 INDIGO_EXPORT int indigoSaveRxnfile(int reaction, int output);
-INDIGO_EXPORT int indigoSaveRxnfileToFile(int reaction, const char *filename);
-INDIGO_EXPORT const char *indigoRxnfile(int reaction);
+INDIGO_EXPORT int indigoSaveRxnfileToFile(int reaction, const char* filename);
+INDIGO_EXPORT const char* indigoRxnfile(int reaction);
 
 // Method for query optimizations for faster substructure search
 // (works for both query molecules and query reactions)
-INDIGO_EXPORT int indigoOptimize(int query, const char *options);
+INDIGO_EXPORT int indigoOptimize(int query, const char* options);
 
 // Methods for structure normalization
 // It neutrailzes charges, resolves 5-valence Nitrogen, removes hydrogens and etc.
 // Default options is empty.
-INDIGO_EXPORT int indigoNormalize(int structure, const char *options);
+INDIGO_EXPORT int indigoNormalize(int structure, const char* options);
 
 // Method for molecule and query standardizing
 // It stadrdize charges, stereo and etc.
@@ -345,10 +356,10 @@ INDIGO_EXPORT int indigoStandardize(int item);
 INDIGO_EXPORT int indigoIonize(int item, float pH, float pH_toll);
 
 // Method for building PKA model
-INDIGO_EXPORT int indigoBuildPkaModel(int max_level, float threshold, const char *filename);
+INDIGO_EXPORT int indigoBuildPkaModel(int max_level, float threshold, const char* filename);
 
-INDIGO_EXPORT float *indigoGetAcidPkaValue(int item, int atom, int level, int min_level);
-INDIGO_EXPORT float *indigoGetBasicPkaValue(int item, int atom, int level, int min_level);
+INDIGO_EXPORT float* indigoGetAcidPkaValue(int item, int atom, int level, int min_level);
+INDIGO_EXPORT float* indigoGetBasicPkaValue(int item, int atom, int level, int min_level);
 
 // Automatic reaction atom-to-atom mapping
 // mode is one of the following (separated by a space):
@@ -495,6 +506,9 @@ INDIGO_EXPORT int indigoCountHydrogens(int item, int* hydro);
 
 // Applicable to non-query molecules and atoms.
 INDIGO_EXPORT int indigoCountImplicitHydrogens(int item);
+
+// Calculate macromolecule properties. Return Json string with properties.
+INDIGO_EXPORT const char* indigoMacroProperties(int object);
 
 // On success, returns always the same pointer to a 3-element array;
 // you should not free() it, but rather memcpy() it if you want to keep it.

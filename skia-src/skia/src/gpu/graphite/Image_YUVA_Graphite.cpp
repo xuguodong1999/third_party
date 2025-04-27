@@ -23,6 +23,7 @@
 #include "src/gpu/graphite/RecorderPriv.h"
 #include "src/gpu/graphite/ResourceProvider.h"
 #include "src/gpu/graphite/Texture.h"
+#include "src/gpu/graphite/TextureInfoPriv.h"
 #include "src/gpu/graphite/TextureProxy.h"
 #include "src/gpu/graphite/TextureProxyView.h"
 #include "src/gpu/graphite/TextureUtils.h"
@@ -42,8 +43,8 @@ static constexpr int kA = static_cast<int>(SkYUVAInfo::kA);
 
 static SkAlphaType yuva_alpha_type(const SkYUVAInfo& yuvaInfo) {
     // If an alpha channel is present we always use kPremul. This is because, although the planar
-    // data is always un-premul, the final interleaved RGBA sample produced in the shader is premul
-    // (and similar if flattened).
+    // data is always un-premul and the final interleaved RGBA sample produced in the shader is
+    // unpremul (and similar if flattened), the client is expecting premul.
     return yuvaInfo.hasAlpha() ? kPremul_SkAlphaType : kOpaque_SkAlphaType;
 }
 
@@ -70,7 +71,7 @@ Image_YUVA::Image_YUVA(const YUVAProxies& proxies,
         if (fProxies[i].proxy()->mipmapped() == Mipmapped::kNo) {
             fMipmapped = Mipmapped::kNo;
         }
-        if (fProxies[i].proxy()->isProtected()) {
+        if (fProxies[i].proxy()->isProtected() == Protected::kYes) {
             fProtected = Protected::kYes;
         }
     }
@@ -105,7 +106,7 @@ sk_sp<Image_YUVA> Image_YUVA::Make(const Caps* caps,
         if (planes[i].dimensions() != planeDimensions[i]) {
             return nullptr;
         }
-        pixmapChannelmasks[i] = caps->channelMask(planes[i].proxy()->textureInfo());
+        pixmapChannelmasks[i] = TextureInfoPriv::ChannelMask(planes[i].proxy()->textureInfo());
     }
 
     // Re-arrange the proxies from planes to channels
@@ -204,7 +205,7 @@ size_t Image_YUVA::textureSize() const {
             continue; // Null channels (A) have no size.
         }
         bool repeat = false;
-        for (int j = 0; j < i - 1; ++j) {
+        for (int j = i - 1; j >= 0; --j) {
             if (fProxies[i].proxy() == fProxies[j].proxy()) {
                 repeat = true;
                 break;

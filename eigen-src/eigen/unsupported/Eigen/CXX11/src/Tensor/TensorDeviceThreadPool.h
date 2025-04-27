@@ -207,11 +207,7 @@ struct ThreadPoolDevice {
     // block_count leaves that do actual computations.
     Barrier barrier(static_cast<unsigned int>(block.count));
     std::function<void(Index, Index)> handleRange;
-#if __cplusplus >= 202002L
     handleRange = [=, &handleRange, &barrier, &f, this](Index firstIdx,
-#else
-    handleRange = [=, &handleRange, &barrier, &f](Index firstIdx,
-#endif
                                                   Index lastIdx) {
       while (lastIdx - firstIdx > block.size) {
         // Split into halves and schedule the second half on a different thread.

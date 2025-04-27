@@ -121,7 +121,10 @@ private:
 
         SkSpan<const SkRuntimeEffect::Child> childInfo = fEffect->children();
 
-        RuntimeEffectBlock::BeginBlock(keyContext, builder, gatherer, { fEffect });
+        if (!RuntimeEffectBlock::BeginBlock(keyContext, builder, gatherer, { fEffect })) {
+            RuntimeEffectBlock::AddNoOpEffect(keyContext, builder, gatherer, fEffect.get());
+            return;
+        }
 
         KeyContextWithScope childContext(keyContext, KeyContext::Scope::kRuntimeEffect);
 
@@ -159,7 +162,7 @@ private:
 
                     case SkRuntimeEffect::ChildType::kBlender:
                         // A "passthrough" blender performs `blend_src_over(src, dest)`.
-                        AddKnownModeBlend(childContext, builder, gatherer, SkBlendMode::kSrcOver);
+                        AddFixedBlendMode(childContext, builder, gatherer, SkBlendMode::kSrcOver);
                         break;
                 }
             }

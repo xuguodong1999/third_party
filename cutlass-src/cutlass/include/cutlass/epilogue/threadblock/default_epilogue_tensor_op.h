@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -216,6 +216,44 @@ struct DefaultIteratorsTensorOp<
   using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIteratorMixed<
     ThreadMap,
     float,
+    32,
+    16,
+    8,
+    8
+  >;
+
+  static int const kFragmentsPerIteration = 2;
+};
+
+/// Partial specialization for half <= int32_t x 8 epilogues avoids shared memory bank conflicts.
+template <
+  typename ThreadblockShape,
+  typename WarpShape,
+  typename InstructionShape,
+  typename ThreadMap
+>
+struct DefaultIteratorsTensorOp<
+  bfloat16_t,
+  int32_t,
+  8,
+  ThreadblockShape,
+  WarpShape,
+  InstructionShape,
+  ThreadMap> {
+
+  using WarpTileIterator = cutlass::epilogue::warp::TileIteratorTensorOpMixed<
+    WarpShape,
+    InstructionShape,
+    int32_t,
+    32,
+    16,
+    8,
+    8
+  >;
+
+  using SharedLoadIterator = cutlass::epilogue::threadblock::SharedLoadIteratorMixed<
+    ThreadMap,
+    int32_t,
     32,
     16,
     8,

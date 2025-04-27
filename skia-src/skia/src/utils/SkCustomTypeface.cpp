@@ -242,10 +242,10 @@ SkTypeface::LocalizedStrings* SkUserTypeface::onCreateFamilyNameIterator() const
 
 class SkUserScalerContext : public SkScalerContext {
 public:
-    SkUserScalerContext(sk_sp<SkUserTypeface>           face,
+    SkUserScalerContext(SkUserTypeface& face,
                         const SkScalerContextEffects& effects,
-                        const SkDescriptor*           desc)
-            : SkScalerContext(std::move(face), effects, desc) {
+                        const SkDescriptor* desc)
+            : SkScalerContext(face, effects, desc) {
         fRec.getSingleMatrix(&fMatrix);
         this->forceGenerateImageFromPath();
     }
@@ -259,9 +259,15 @@ protected:
         GlyphMetrics mx(glyph.maskFormat());
 
         const SkUserTypeface* tf = this->userTF();
-        mx.advance = fMatrix.mapXY(tf->fGlyphRecs[glyph.getGlyphID()].fAdvance, 0);
+        const SkGlyphID gid = glyph.getGlyphID();
+        if (gid >= tf->fGlyphRecs.size()) {
+            mx.neverRequestPath = true;
+            return mx;
+        }
 
-        const auto& rec = tf->fGlyphRecs[glyph.getGlyphID()];
+        const auto& rec = tf->fGlyphRecs[gid];
+        mx.advance = fMatrix.mapXY(rec.fAdvance, 0);
+
         if (rec.isDrawable()) {
             mx.maskFormat = SkMask::kARGB32_Format;
 
@@ -295,7 +301,7 @@ protected:
         canvas->drawDrawable(rec.fDrawable.get(), &fMatrix);
     }
 
-    bool generatePath(const SkGlyph& glyph, SkPath* path) override {
+    bool generatePath(const SkGlyph& glyph, SkPath* path, bool* modified) override {
         const auto& rec = this->userTF()->fGlyphRecs[glyph.getGlyphID()];
 
         SkASSERT(!rec.isDrawable());
@@ -354,8 +360,7 @@ private:
 std::unique_ptr<SkScalerContext> SkUserTypeface::onCreateScalerContext(
     const SkScalerContextEffects& effects, const SkDescriptor* desc) const
 {
-    return std::make_unique<SkUserScalerContext>(
-            sk_ref_sp(const_cast<SkUserTypeface*>(this)), effects, desc);
+    return std::make_unique<SkUserScalerContext>(*const_cast<SkUserTypeface*>(this), effects, desc);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

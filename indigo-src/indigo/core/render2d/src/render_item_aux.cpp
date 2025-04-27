@@ -28,7 +28,10 @@
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4251)
 #endif
+
+#include <lunasvg.h>
 
 using namespace indigo;
 
@@ -171,7 +174,7 @@ void RenderItemAuxiliary::_drawPlus()
     _rc.drawPlus(Vec2f(_settings.plusSize / 2, 0), _settings.metaLineWidth, _settings.plusSize);
 }
 
-void RenderItemAuxiliary::_drawArrow(const KETReactionArrow& ar)
+void RenderItemAuxiliary::_drawArrow(const ReactionArrowObject& ar)
 {
     _rc.setSingleSource(CWC_BASE);
     Vec2f beg = ar.getTail();
@@ -180,78 +183,112 @@ void RenderItemAuxiliary::_drawArrow(const KETReactionArrow& ar)
     scale(end);
     switch (ar.getArrowType())
     {
-    case KETReactionArrow::EOpenAngle:
+    case ReactionArrowObject::EOpenAngle:
         _rc.drawCustomArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, false, false);
         break;
 
-    case KETReactionArrow::EFilledBow:
+    case ReactionArrowObject::EFilledBow:
         _rc.drawCustomArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, true, false);
         break;
 
-    case KETReactionArrow::EFailed:
+    case ReactionArrowObject::EFailed:
         _rc.drawCustomArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, true, true);
         break;
 
-    case KETReactionArrow::EDashedOpenAngle:
+    case ReactionArrowObject::EDashedOpenAngle:
         _rc.drawDashedArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize);
         break;
 
-    case KETReactionArrow::EBothEndsFilledTriangle:
+    case ReactionArrowObject::EBothEndsFilledTriangle:
         _rc.drawBothEndsArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize);
         break;
 
-    case KETReactionArrow::EEquilibriumFilledHalfBow:
+    case ReactionArrowObject::EEquilibriumFilledHalfBow:
         _rc.drawEquillibriumHalf(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, RenderContext::ArrowType::EBowArray);
         break;
 
-    case KETReactionArrow::EEquilibriumFilledTriangle:
+    case ReactionArrowObject::EEquilibriumFilledTriangle:
         _rc.drawEquillibriumFilledTriangle(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize);
         break;
 
-    case KETReactionArrow::EEquilibriumOpenAngle:
+    case ReactionArrowObject::EEquilibriumOpenAngle:
         _rc.drawEquillibriumHalf(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize);
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumLargeFilledHalfBow:
+    case ReactionArrowObject::EUnbalancedEquilibriumLargeFilledHalfBow:
         _rc.drawEquillibriumHalf(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, RenderContext::ArrowType::EBowArray,
                                  true, true);
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumFilledHalfBow:
+    case ReactionArrowObject::EUnbalancedEquilibriumFilledHalfBow:
         _rc.drawEquillibriumHalf(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, RenderContext::ArrowType::EBowArray,
                                  false, true);
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumOpenHalfAngle:
+    case ReactionArrowObject::EUnbalancedEquilibriumOpenHalfAngle:
         _rc.drawEquillibriumHalf(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, RenderContext::ArrowType::EOpenArrow,
                                  false, true);
         break;
 
-    case KETReactionArrow::EUnbalancedEquilibriumFilledHalfTriangle:
+    case ReactionArrowObject::EUnbalancedEquilibriumFilledHalfTriangle:
         _rc.drawEquillibriumHalf(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, RenderContext::ArrowType::ETriangleArrow,
                                  false, true);
         break;
 
-    case KETReactionArrow::EEllipticalArcFilledBow:
+    case ReactionArrowObject::EEllipticalArcFilledBow:
         _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
         break;
 
-    case KETReactionArrow::EEllipticalArcFilledTriangle:
+    case ReactionArrowObject::EEllipticalArcFilledTriangle:
         _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
         break;
 
-    case KETReactionArrow::EEllipticalArcOpenAngle:
+    case ReactionArrowObject::EEllipticalArcOpenAngle:
         _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
         break;
 
-    case KETReactionArrow::EEllipticalArcOpenHalfAngle:
+    case ReactionArrowObject::EEllipticalArcOpenHalfAngle:
         _rc.drawEllipticalArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize, ar.getHeight(), ar.getArrowType());
+        break;
+
+    case ReactionArrowObject::ERetrosynthetic:
+        _rc.drawRetroSynthArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize);
         break;
 
     default:
         _rc.drawArrow(beg, end, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize);
         break;
     }
+}
+
+void RenderItemAuxiliary::_drawArrow(const ReactionMultitailArrowObject& ar)
+{
+    _rc.setLineWidth(_settings.bondLineWidth);
+    const float radius = ReactionMultitailArrowObject::TAIL_ARC_RADIUS;
+    // In order to avoid a slight gap, that becomes apparent with the highest zoom.
+    const float gap = .01f;
+
+    Vec2f arrowBeg = {ar.getSpineBegin().x, ar.getHead().y}, arrowEnd = ar.getHead();
+    scale(arrowBeg);
+    scale(arrowEnd);
+    _rc.drawArrow(arrowBeg, arrowEnd, _settings.metaLineWidth, _settings.arrowHeadWidth, _settings.arrowHeadSize);
+
+    Vec2f spineBeg = ar.getSpineBegin(), spineEnd = ar.getSpineEnd();
+    scale(spineBeg);
+    scale(spineEnd);
+    _rc.drawLine(spineBeg + Vec2f(.0, radius - gap), spineEnd + Vec2f(.0, -radius + gap));
+
+    for (int i = 0; i < ar.getTails().size(); i++)
+    {
+        auto tail = ar.getTails().at(i);
+        scale(tail);
+        _rc.drawLine(tail, {spineBeg.x - (i == 0 || i == ar.getTails().size() - 1 ? radius - gap : 0), tail.y});
+    }
+
+    spineBeg += Vec2f(-radius, radius);
+    _rc.drawArc(spineBeg, radius, -static_cast<float>(M_PI) / 2.f, .0f);
+    spineEnd += Vec2f(-radius, -radius);
+    _rc.drawArc(spineEnd, radius, .0f, static_cast<float>(M_PI) / 2.f);
 }
 
 void RenderItemAuxiliary::_drawArrow()
@@ -266,21 +303,21 @@ void RenderItemAuxiliary::fillKETStyle(TextItem& ti, const FONT_STYLE_SET& style
     {
         switch (text_style.first)
         {
-        case KETTextObject::EBold:
+        case SimpleTextObject::EBold:
             ti.bold = text_style.second;
             break;
-        case KETTextObject::EItalic:
+        case SimpleTextObject::EItalic:
             ti.italic = text_style.second;
             break;
-        case KETTextObject::ESuperScript:
+        case SimpleTextObject::ESuperScript:
             ti.script_type = text_style.second ? 1 : 0;
             break;
-        case KETTextObject::ESubScript:
+        case SimpleTextObject::ESubScript:
             ti.script_type = text_style.second ? 2 : 0;
             break;
         default:
-            ti.size = text_style.second ? text_style.first : KETDefaultFontSize;
-            ti.size /= KETFontScaleFactor;
+            ti.size = text_style.second ? text_style.first : KDefaultFontSize;
+            ti.size /= KFontScaleFactor;
             break;
         }
     }
@@ -297,7 +334,7 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
         for (int i = 0; i < md.size(); ++i)
         {
             const auto& mobj = *md[i];
-            if (mobj._class_id == KETImage::CID)
+            if (mobj._class_id == EmbeddedImageObject::CID)
                 order_indexes.push_back(i);
             else
                 back_indexes.push_back(i);
@@ -309,13 +346,13 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
             const auto& mobj = *md[i];
             switch (mobj._class_id)
             {
-            case KETSimpleObject::CID: {
-                const KETSimpleObject& ko = static_cast<const KETSimpleObject&>(mobj);
+            case SimpleGraphicsObject::CID: {
+                const SimpleGraphicsObject& ko = static_cast<const SimpleGraphicsObject&>(mobj);
                 _renderSimpleObject(ko);
             }
             break;
-            case KETTextObject::CID: {
-                const KETTextObject& ko = static_cast<const KETTextObject&>(mobj);
+            case SimpleTextObject::CID: {
+                const SimpleTextObject& ko = static_cast<const SimpleTextObject&>(mobj);
                 double text_offset_y = 0;
                 for (auto& text_item : ko._block)
                 {
@@ -325,7 +362,7 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
                     double text_offset_x = 0;
                     FONT_STYLE_SET current_styles;
                     TextItem ti;
-                    ti.size = KETDefaultFontSize / KETFontScaleFactor; // default size
+                    ti.size = KDefaultFontSize / KFontScaleFactor; // default size
                     ti.ritype = RenderItem::RIT_TITLE;
                     Vec2f text_origin(ko._pos.x, ko._pos.y);
                     scale(text_origin);
@@ -359,21 +396,26 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
                 }
             }
             break;
-            case KETReactionPlus::CID: {
-                const KETReactionPlus& rp = static_cast<const KETReactionPlus&>(mobj);
+            case ReactionPlusObject::CID: {
+                const ReactionPlusObject& rp = static_cast<const ReactionPlusObject&>(mobj);
                 _rc.setSingleSource(CWC_BASE);
                 Vec2f plus_pos = rp.getPos();
                 scale(plus_pos);
                 _rc.drawPlus(plus_pos, _settings.metaLineWidth, _settings.plusSize);
             }
             break;
-            case KETReactionArrow::CID: {
-                const KETReactionArrow& ar = static_cast<const KETReactionArrow&>(mobj);
+            case ReactionArrowObject::CID: {
+                const ReactionArrowObject& ar = static_cast<const ReactionArrowObject&>(mobj);
                 _drawArrow(ar);
             }
             break;
-            case KETImage::CID: {
-                const KETImage& img = static_cast<const KETImage&>(mobj);
+            case ReactionMultitailArrowObject::CID: {
+                const ReactionMultitailArrowObject& ar = static_cast<const ReactionMultitailArrowObject&>(mobj);
+                _drawArrow(ar);
+            }
+            break;
+            case EmbeddedImageObject::CID: {
+                const EmbeddedImageObject& img = static_cast<const EmbeddedImageObject&>(mobj);
                 _drawImage(img);
             }
             break;
@@ -382,22 +424,39 @@ void RenderItemAuxiliary::_drawMeta(bool idle)
     }
 }
 
-void RenderItemAuxiliary::_drawImage(const KETImage& img)
+void lunasvgWrite(void* context, void* data, int size)
+{
+    static_cast<std::string*>(context)->assign(static_cast<const char*>(data), size);
+}
+
+void RenderItemAuxiliary::_drawImage(const EmbeddedImageObject& img)
 {
     auto& bb = img.getBoundingBox();
     auto v1 = bb.leftBottom();
     auto v2 = bb.rightTop();
     scale(v1);
     scale(v2);
-    if (img.getFormat() == KETImage::EKETPNG)
+    if (img.getFormat() == EmbeddedImageObject::EKETPNG)
         _rc.drawPng(img.getData(), Rect2f(v1, v2));
-    else if (img.getFormat() == KETImage::EKETPNG)
+    else if (img.getFormat() == EmbeddedImageObject::EKETSVG)
     {
-        // TODO: implement SVG-rendering
+        auto document = lunasvg::Document::loadFromData(img.getData());
+        if (!document)
+            throw Error("RenderItemAuxiliary::_drawImage: loadFromData error");
+
+        auto bitmap = document->renderToBitmap();
+        if (bitmap.isNull())
+            throw Error("RenderItemAuxiliary::_drawImage: renderToBitmap error");
+
+        std::string lunasvgClosure;
+        if (!bitmap.writeToPng(lunasvgWrite, &lunasvgClosure))
+            throw Error("RenderItemAuxiliary::_drawImage: writeToPng error");
+
+        _rc.drawPng(lunasvgClosure, Rect2f(v1, v2));
     }
 }
 
-void RenderItemAuxiliary::_renderSimpleObject(const KETSimpleObject& simple)
+void RenderItemAuxiliary::_renderSimpleObject(const SimpleGraphicsObject& simple)
 {
     _rc.setLineWidth(_settings.bondLineWidth);
 
@@ -409,11 +468,11 @@ void RenderItemAuxiliary::_renderSimpleObject(const KETSimpleObject& simple)
 
     switch (simple._mode)
     {
-    case KETSimpleObject::EKETEllipse:
+    case SimpleGraphicsObject::EEllipse:
         _rc.drawEllipse(v1, v2);
         break;
 
-    case KETSimpleObject::EKETRectangle: {
+    case SimpleGraphicsObject::ERectangle: {
         Array<Vec2f> pts;
         pts.push() = rc.leftTop();
         pts.push() = rc.rightTop();
@@ -424,7 +483,7 @@ void RenderItemAuxiliary::_renderSimpleObject(const KETSimpleObject& simple)
     }
     break;
 
-    case KETSimpleObject::EKETLine: {
+    case SimpleGraphicsObject::ELine: {
         Array<Vec2f> pts;
         auto& vec1 = pts.push();
         auto& vec2 = pts.push();
@@ -482,15 +541,17 @@ void RenderItemAuxiliary::init()
 {
 }
 
-float RenderItemAuxiliary::_getMaxHeight(const KETTextObject::KETTextLine& tl)
+float RenderItemAuxiliary::_getMaxHeight(const SimpleTextObject::SimpleTextLine& tl)
 {
     int first_index = -1;
     int second_index = -1;
     FONT_STYLE_SET current_styles;
-    float sz = 0;
     TextItem ti;
-    ti.size = KETDefaultFontSize / KETFontScaleFactor; // default size
+    ti.size = KDefaultFontSize / KFontScaleFactor; // default size
     ti.ritype = RenderItem::RIT_TITLE;
+    // ti.text.readString("!", true);
+    _rc.setTextItemSize(ti);
+    float sz = (float)ti.bbsz.y;
     for (auto& kvp : tl.styles)
     {
         if (first_index == -1)

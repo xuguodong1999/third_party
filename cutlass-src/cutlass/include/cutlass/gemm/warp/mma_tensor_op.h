@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -138,7 +138,7 @@ struct ConvertAndPack<half_t, float, N, Round> {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Structure to compute the matrix product targeting CUDA cores and SIMT math instructions.
+/// Structure to compute the matrix product targeting Tensor Cores.
 template <
   /// Size of the Gemm problem - concept: gemm::GemmShape<>
   typename Shape_,
@@ -218,6 +218,8 @@ public:
   static int const kPartitionsK = PartitionsK_;
 
   #if defined(__CUDA_ARCH__) && ((__CUDA_ARCH__ < 800) || (__CUDA_ARCH__ == 890)) 
+    static int const kVerticalVisit = true;
+  #elif defined(__CUDA_ARCH__) && (__CUDA_ARCH__ == 1200) 
     static int const kVerticalVisit = true;
   #else
     static int const kVerticalVisit = false;

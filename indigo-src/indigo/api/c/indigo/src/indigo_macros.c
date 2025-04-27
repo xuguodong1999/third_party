@@ -84,6 +84,14 @@ WRAPPER_LOAD_FROM_STRING(indigoLoadReactionSmarts)
 WRAPPER_LOAD_FROM_FILE(indigoLoadReactionSmarts)
 WRAPPER_LOAD_FROM_BUFFER(indigoLoadReactionSmarts)
 
+WRAPPER_LOAD_FROM_STRING(indigoLoadMonomerLibrary)
+WRAPPER_LOAD_FROM_FILE(indigoLoadMonomerLibrary)
+WRAPPER_LOAD_FROM_BUFFER(indigoLoadMonomerLibrary)
+
+WRAPPER_LOAD_FROM_STRING(indigoLoadKetDocument)
+WRAPPER_LOAD_FROM_FILE(indigoLoadKetDocument)
+WRAPPER_LOAD_FROM_BUFFER(indigoLoadKetDocument)
+
 int indigoSaveMolfileToFile(int molecule, const char* filename)
 {
     int f = indigoWriteFile(filename);
@@ -121,6 +129,20 @@ int indigoSaveSequenceToFile(int item, const char* filename, int library)
         return -1;
 
     res = indigoSaveSequence(item, f, library);
+
+    indigoFree(f);
+    return res;
+}
+
+int indigoSaveSequence3LetterToFile(int item, const char* filename, int library)
+{
+    int f = indigoWriteFile(filename);
+    int res;
+
+    if (f == -1)
+        return -1;
+
+    res = indigoSaveSequence3Letter(item, f, library);
 
     indigoFree(f);
     return res;
@@ -207,6 +229,22 @@ const char* indigoSequence(int molecule, int library)
         return 0;
 
     if (indigoSaveSequence(molecule, b, library) == -1)
+        return 0;
+
+    res = indigoToString(b);
+    indigoFree(b);
+    return res;
+}
+
+const char* indigoSequence3Letter(int molecule, int library)
+{
+    int b = indigoWriteBuffer();
+    const char* res;
+
+    if (b == -1)
+        return 0;
+
+    if (indigoSaveSequence3Letter(molecule, b, library) == -1)
         return 0;
 
     res = indigoToString(b);

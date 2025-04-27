@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 #pragma once
 
 #include <cute/config.hpp>
+#include <cute/numeric/numeric_types.hpp>
 
 // Config
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 900) && \
@@ -150,7 +151,7 @@ CUTE_DEVICE dim3 cluster_shape()
 }
 
 // Get 1D ctaid in a cluster.
-CUTLASS_DEVICE uint32_t block_rank_in_cluster()
+CUTE_DEVICE uint32_t block_rank_in_cluster()
 {
 #if defined(CUTE_ARCH_CLUSTER_SM90_ENABLED)
   uint32_t rank;
@@ -162,7 +163,7 @@ CUTLASS_DEVICE uint32_t block_rank_in_cluster()
 }
 
 // Set the destination block-ID in cluster for a given SMEM Address
-CUTLASS_DEVICE uint32_t set_block_rank(uint32_t smemAddr, uint32_t rank)
+CUTE_DEVICE uint32_t set_block_rank(uint32_t smemAddr, uint32_t rank)
 {
 #if defined(CUTE_ARCH_CLUSTER_SM90_ENABLED)
   uint32_t result;

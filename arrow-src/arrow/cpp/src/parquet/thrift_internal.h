@@ -43,6 +43,7 @@
 #include "parquet/exception.h"
 #include "parquet/platform.h"
 #include "parquet/properties.h"
+#include "parquet/size_statistics.h"
 #include "parquet/statistics.h"
 #include "parquet/types.h"
 
@@ -254,6 +255,14 @@ static inline SortingColumn FromThrift(format::SortingColumn thrift_sorting_colu
   return sorting_column;
 }
 
+static inline SizeStatistics FromThrift(const format::SizeStatistics& size_stats) {
+  return SizeStatistics{
+      size_stats.definition_level_histogram, size_stats.repetition_level_histogram,
+      size_stats.__isset.unencoded_byte_array_data_bytes
+          ? std::make_optional(size_stats.unencoded_byte_array_data_bytes)
+          : std::nullopt};
+}
+
 // ----------------------------------------------------------------------
 // Convert Thrift enums from Parquet enums
 
@@ -383,6 +392,17 @@ static inline format::EncryptionAlgorithm ToThrift(EncryptionAlgorithm encryptio
   return encryption_algorithm;
 }
 
+static inline format::SizeStatistics ToThrift(const SizeStatistics& size_stats) {
+  format::SizeStatistics size_statistics;
+  size_statistics.__set_definition_level_histogram(size_stats.definition_level_histogram);
+  size_statistics.__set_repetition_level_histogram(size_stats.repetition_level_histogram);
+  if (size_stats.unencoded_byte_array_data_bytes.has_value()) {
+    size_statistics.__set_unencoded_byte_array_data_bytes(
+        size_stats.unencoded_byte_array_data_bytes.value());
+  }
+  return size_statistics;
+}
+
 // ----------------------------------------------------------------------
 // Thrift struct serialization / deserialization utilities
 
@@ -417,8 +437,8 @@ class ThriftDeserializer {
         throw ParquetException(ss.str());
       }
       // decrypt
-      auto decrypted_buffer = std::static_pointer_cast<ResizableBuffer>(AllocateBuffer(
-          decryptor->pool(), decryptor->PlaintextLength(static_cast<int32_t>(clen))));
+      auto decrypted_buffer = AllocateBuffer(
+          decryptor->pool(), decryptor->PlaintextLength(static_cast<int32_t>(clen)));
       ::arrow::util::span<const uint8_t> cipher_buf(buf, clen);
       uint32_t decrypted_buffer_len =
           decryptor->Decrypt(cipher_buf, decrypted_buffer->mutable_span_as<uint8_t>());
@@ -525,13 +545,13 @@ class ThriftSerializer {
     }
   }
 
-  int64_t SerializeEncryptedObj(ArrowOutputStream* out, uint8_t* out_buffer,
+  int64_t SerializeEncryptedObj(ArrowOutputStream* out, const uint8_t* out_buffer,
                                 uint32_t out_length, Encryptor* encryptor) {
-    auto cipher_buffer = std::static_pointer_cast<ResizableBuffer>(AllocateBuffer(
-        encryptor->pool(),
-        static_cast<int64_t>(encryptor->CiphertextSizeDelta() + out_length)));
-    int cipher_buffer_len =
-        encryptor->Encrypt(out_buffer, out_length, cipher_buffer->mutable_data());
+    auto cipher_buffer =
+        AllocateBuffer(encryptor->pool(), encryptor->CiphertextLength(out_length));
+    ::arrow::util::span<const uint8_t> out_span(out_buffer, out_length);
+    int32_t cipher_buffer_len =
+        encryptor->Encrypt(out_span, cipher_buffer->mutable_span_as<uint8_t>());
 
     PARQUET_THROW_NOT_OK(out->Write(cipher_buffer->data(), cipher_buffer_len));
     return static_cast<int64_t>(cipher_buffer_len);

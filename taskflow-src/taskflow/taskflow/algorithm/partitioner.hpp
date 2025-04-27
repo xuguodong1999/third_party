@@ -46,7 +46,7 @@ enum class PartitionerType : int {
 /**
 @struct DefaultClosureWrapper
 
-@brief default closure wrapper that simplies runs the given closure as is
+@brief default closure wrapper that simply runs the given closure as is
 */
 struct DefaultClosureWrapper {
 };
@@ -89,7 +89,7 @@ tf::GuidedPartitioner or tf::DynamicPartitioner can outperform tf::StaticPartiti
 In most situations, tf::GuidedPartitioner can deliver decent performance and
 is thus used as our default partitioner.
 
-@note
+@attention
 Giving the partition size of 0 lets the %Taskflow runtime automatically determines
 the partition size for the given partitioner.
 
@@ -121,7 +121,7 @@ taskflow.for_each_index(0, 100, 1,
 executor.run(taskflow).wait();
 @endcode
 
-@note
+@attention
 The default closure wrapper (tf::DefaultClosureWrapper) does nothing but invoke
 the partitioned task (closure).
 
@@ -130,6 +130,11 @@ template <typename C = DefaultClosureWrapper>
 class PartitionerBase : public IsPartitioner {
 
   public:
+  
+  /**
+  @brief indicating if the given closure wrapper is a default wrapper (i.e., empty)
+  */
+  constexpr static bool is_default_wrapper_v = std::is_same_v<C, DefaultClosureWrapper>;
   
   /** 
   @brief the closure type
@@ -170,10 +175,29 @@ class PartitionerBase : public IsPartitioner {
   const C& closure_wrapper() const { return _closure_wrapper; }
 
   /**
+  @brief acquire a mutable access to the closure wrapper object
+  */
+  C& closure_wrapper() { return _closure_wrapper; }
+
+  /**
   @brief modify the closure wrapper object
   */
   template <typename F>
   void closure_wrapper(F&& fn) { _closure_wrapper = std::forward<F>(fn); }
+
+  /**
+  @brief wraps the given callable with the associated closure wrapper
+  */
+  template <typename F>
+  TF_FORCE_INLINE decltype(auto) operator () (F&& callable) {
+    if constexpr(is_default_wrapper_v) {
+      return std::forward<F>(callable);
+    }
+    else {
+      // closure wrapper is stateful - capture it by reference
+      return [this, c=std::forward<F>(callable)]() mutable { _closure_wrapper(c); };
+    }
+  }
 
   protected:
   
@@ -790,8 +814,8 @@ class RandomPartitioner : public PartitionerBase<C> {
 /**
 @brief default partitioner set to tf::GuidedPartitioner
 
-Guided partitioner can achieve decent performance for most parallel algorithms,
-especially for those with irregular and unbalanced workload per iteration.
+Guided partitioning algorithm can achieve stable and decent performance
+for most parallel algorithms.
 */
 using DefaultPartitioner = GuidedPartitioner<>;
 

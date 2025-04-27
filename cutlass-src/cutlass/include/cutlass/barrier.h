@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -277,7 +277,7 @@ private:
   CUTLASS_DEVICE
   static void
   check_barrier_in_range([[maybe_unused]] uint32_t idx) {
-    assert((idx >= MaxNumNamedBarriers) && "Index exceeds barrier count");
+    assert((idx < MaxNumNamedBarriers) && "Index exceeds barrier count");
   }
 
   template <uint32_t... Idx>

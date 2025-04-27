@@ -22,6 +22,7 @@
 #include "src/gpu/graphite/RecorderPriv.h"
 #include "src/gpu/graphite/ResourceProvider.h"
 #include "src/gpu/graphite/Texture.h"
+#include "src/gpu/graphite/TextureInfoPriv.h"
 #include "src/gpu/graphite/TextureProxy.h"
 #include "src/gpu/graphite/UploadBufferManager.h"
 
@@ -245,7 +246,8 @@ UploadInstance UploadInstance::MakeCompressed(Recorder* recorder,
     const Caps* caps = recorder->priv().caps();
     SkASSERT(caps->isTexturable(texInfo));
 
-    SkTextureCompressionType compression = texInfo.compressionType();
+    SkTextureCompressionType compression =
+            TextureFormatCompressionType(TextureInfoPriv::ViewFormat(texInfo));
     if (compression == SkTextureCompressionType::kNone) {
         return Invalid();
     }
@@ -366,12 +368,24 @@ Task::Status UploadInstance::addCommand(Context* context,
         }
     } else {
         // Here we assume that multiple copies in a single UploadInstance are always used for
-        // mipmaps of a single image, and that we won't ever copy to a replay target with mipmaps.
+        // mipmaps of a single image, and that we won't ever upload to a replay target's mipmaps
+        // directly.
         SkASSERT(fCopyData.size() == 1);
         const BufferTextureCopyData& copyData = fCopyData[0];
         SkIRect dstRect = copyData.fRect;
         dstRect.offset(replayData.fTranslation);
         SkIRect croppedDstRect = dstRect;
+
+        if (!replayData.fClip.isEmpty()) {
+            SkIRect dstClip = replayData.fClip;
+            dstClip.offset(replayData.fTranslation);
+            if (!croppedDstRect.intersect(dstClip)) {
+                // The replay clip can change on each insert, so subsequent replays may actually
+                // intersect the copy rect.
+                return Status::kSuccess;
+            }
+        }
+
         if (!croppedDstRect.intersect(SkIRect::MakeSize(fTextureProxy->dimensions()))) {
             // The replay translation can change on each insert, so subsequent replays may
             // actually intersect the copy rect.

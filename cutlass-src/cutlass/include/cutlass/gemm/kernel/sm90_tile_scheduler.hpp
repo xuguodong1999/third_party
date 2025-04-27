@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@
  *
  **************************************************************************************************/
 #pragma once
-#include "cutlass/gemm/kernel/static_tile_scheduler.hpp"
 
+#include "cutlass/gemm/kernel/static_tile_scheduler.hpp"
 
 namespace cutlass::gemm::kernel::detail {
 
@@ -47,6 +47,22 @@ public:
   using RasterOrder = typename Params::RasterOrder;
   using RasterOrderOptions = typename Params::RasterOrderOptions;
   using Arguments = BaseScheduler::Arguments;
+
+  static constexpr bool IsDynamicPersistent = false;
+
+  using Pipeline = PipelineEmpty;
+  using PipelineStorage = typename Pipeline::SharedStorage;
+  using ThrottlePipeline = PipelineEmpty;
+  using ThrottlePipelineStorage = typename ThrottlePipeline::SharedStorage;
+
+  struct CLCResponse {};
+
+  class SharedStorage {
+  public:
+    CUTLASS_DEVICE PipelineStorage pipeline() { return PipelineStorage{}; }
+    CUTLASS_DEVICE ThrottlePipelineStorage throttle_pipeline() { return ThrottlePipelineStorage{}; }
+    CUTLASS_DEVICE CLCResponse* data() { return nullptr; }
+  };
 
   // get work_idx_m, work_idx_n from blk_per_grid_dim while applying swizzle
   static CUTLASS_DEVICE
@@ -121,27 +137,15 @@ public:
   // The basic tile scheduler does not require any additional workspace
   template <class ProblemShape, class ElementAccumulator>
   static size_t
-  get_workspace_size(Arguments const&, ProblemShape, KernelHardwareInfo const&, uint32_t, const uint32_t = 1) {
+  get_workspace_size(Arguments const&, ProblemShape, KernelHardwareInfo const&, uint32_t, const uint32_t = 1, uint32_t = 1) {
     return 0;
   }
 
   template <class ProblemShape, class ElementAccumulator>
   static cutlass::Status
   initialize_workspace(Arguments const&, void*, cudaStream_t, ProblemShape, KernelHardwareInfo const&,
-    uint32_t, const uint32_t = 1, CudaHostAdapter* cuda_adapter = nullptr) {
+    uint32_t, const uint32_t = 1, uint32_t = 1, CudaHostAdapter* cuda_adapter = nullptr) {
     return Status::kSuccess;
-  }
-
-  // Kernel helper function to get next work tile
-  CUTLASS_DEVICE
-  auto
-  fetch_next_work(WorkTileInfo work_tile_info) {
-    if (continue_current_work(work_tile_info)) {
-      return work_tile_info;
-    }
-
-    advance_to_next_work();
-    return get_current_work();
   }
 
 };

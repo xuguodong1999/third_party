@@ -7,17 +7,32 @@
 
 #include "src/gpu/graphite/render/TessellateWedgesRenderStep.h"
 
-#include "src/sksl/SkSLString.h"
-
+#include "include/core/SkPath.h"
+#include "include/core/SkPathTypes.h"
+#include "include/private/base/SkAssert.h"
+#include "include/private/base/SkDebug.h"
+#include "include/private/base/SkPoint_impl.h"
+#include "include/private/base/SkSpan_impl.h"
+#include "src/core/SkSLTypeShared.h"
+#include "src/gpu/BufferWriter.h"
+#include "src/gpu/graphite/Attribute.h"
 #include "src/gpu/graphite/BufferManager.h"
+#include "src/gpu/graphite/DrawOrder.h"
 #include "src/gpu/graphite/DrawParams.h"
-#include "src/gpu/graphite/DrawWriter.h"
+#include "src/gpu/graphite/DrawTypes.h"
 #include "src/gpu/graphite/PipelineData.h"
+#include "src/gpu/graphite/geom/Geometry.h"
+#include "src/gpu/graphite/geom/Shape.h"
+#include "src/gpu/graphite/geom/Transform.h"
 #include "src/gpu/graphite/render/DynamicInstancesPatchAllocator.h"
-
 #include "src/gpu/tessellate/FixedCountBufferUtils.h"
 #include "src/gpu/tessellate/MidpointContourParser.h"
 #include "src/gpu/tessellate/PatchWriter.h"
+#include "src/gpu/tessellate/Tessellation.h"
+#include "src/gpu/tessellate/WangsFormula.h"
+#include "src/sksl/SkSLString.h"
+
+#include <cstddef>
 
 namespace skgpu::graphite {
 
@@ -48,7 +63,7 @@ static constexpr Attribute kBaseAttributes[] = {
         {"p23", VertexAttribType::kFloat4, SkSLType::kFloat4},
         {"fanPointAttrib", VertexAttribType::kFloat2, SkSLType::kFloat2},
         {"depth", VertexAttribType::kFloat, SkSLType::kFloat},
-        {"ssboIndices", VertexAttribType::kUShort2, SkSLType::kUShort2}};
+        {"ssboIndices", VertexAttribType::kUInt2, SkSLType::kUInt2}};
 
 static constexpr Attribute kAttributesWithCurveType[] = {
         {"p01", VertexAttribType::kFloat4, SkSLType::kFloat4},
@@ -56,19 +71,18 @@ static constexpr Attribute kAttributesWithCurveType[] = {
         {"fanPointAttrib", VertexAttribType::kFloat2, SkSLType::kFloat2},
         {"depth", VertexAttribType::kFloat, SkSLType::kFloat},
         {"curveType", VertexAttribType::kFloat, SkSLType::kFloat},
-        {"ssboIndices", VertexAttribType::kUShort2, SkSLType::kUShort2}};
+        {"ssboIndices", VertexAttribType::kUInt2, SkSLType::kUInt2}};
 
 static constexpr SkSpan<const Attribute> kAttributes[2] = {kAttributesWithCurveType,
                                                            kBaseAttributes};
 
 }  // namespace
 
-TessellateWedgesRenderStep::TessellateWedgesRenderStep(std::string_view variantName,
+TessellateWedgesRenderStep::TessellateWedgesRenderStep(RenderStepID renderStepID,
                                                        bool infinitySupport,
                                                        DepthStencilSettings depthStencilSettings,
                                                        StaticBufferManager* bufferManager)
-        : RenderStep("TessellateWedgesRenderStep",
-                     variantName,
+        : RenderStep(renderStepID,
                      Flags::kRequiresMSAA |
                      (depthStencilSettings.fDepthWriteEnabled ? Flags::kPerformsShading
                                                               : Flags::kNone),
@@ -102,29 +116,27 @@ TessellateWedgesRenderStep::~TessellateWedgesRenderStep() {}
 
 std::string TessellateWedgesRenderStep::vertexSkSL() const {
     return SkSL::String::printf(
-            R"(
-                float2 localCoord;
-                if (resolveLevel_and_idx.x < 0) {
-                    // A negative resolve level means this is the fan point.
-                    localCoord = fanPointAttrib;
-                } else {
-                    // TODO: Approximate perspective scaling to match how PatchWriter is configured
-                    // (or provide explicit tessellation level in instance data instead of
-                    // replicating work)
-                    float2x2 vectorXform = float2x2(localToDevice[0].xy, localToDevice[1].xy);
-                    localCoord = tessellate_filled_curve(
-                        vectorXform, resolveLevel_and_idx.x, resolveLevel_and_idx.y, p01, p23, %s);
-                }
-                float4 devPosition = localToDevice * float4(localCoord, 0.0, 1.0);
-                devPosition.z = depth;
-                stepLocalCoords = localCoord;
-            )",
+            "float2 localCoord;\n"
+            "if (resolveLevel_and_idx.x < 0) {\n"
+                // A negative resolve level means this is the fan point.
+                "localCoord = fanPointAttrib;\n"
+            "} else {\n"
+                // TODO: Approximate perspective scaling to match how PatchWriter is configured
+                // (or provide explicit tessellation level in instance data instead of
+                // replicating work)
+                "float2x2 vectorXform = float2x2(localToDevice[0].xy, localToDevice[1].xy);\n"
+                "localCoord = tessellate_filled_curve("
+                    "vectorXform, resolveLevel_and_idx.x, resolveLevel_and_idx.y, p01, p23, %s);\n"
+            "}\n"
+            "float4 devPosition = localToDevice * float4(localCoord, 0.0, 1.0);\n"
+            "devPosition.z = depth;\n"
+            "stepLocalCoords = localCoord;\n",
             fInfinitySupport ? "curve_type_using_inf_support(p23)" : "curveType");
 }
 
 void TessellateWedgesRenderStep::writeVertices(DrawWriter* dw,
                                                const DrawParams& params,
-                                               skvx::ushort2 ssboIndices) const {
+                                               skvx::uint2 ssboIndices) const {
     SkPath path = params.geometry().shape().asPath(); // TODO: Iterate the Shape directly
 
     int patchReserveCount = FixedCountWedges::PreallocCount(path.countVerbs());

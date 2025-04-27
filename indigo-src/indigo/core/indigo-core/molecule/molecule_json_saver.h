@@ -31,7 +31,7 @@
 #include "molecule/base_molecule.h"
 #include "molecule/elements.h"
 #include "molecule/json_writer.h"
-#include "molecule/ket_commons.h"
+#include "molecule/meta_commons.h"
 #include "molecule/monomers_lib.h"
 #include "molecule/query_molecule.h"
 
@@ -50,7 +50,7 @@ namespace indigo
         void saveMolecule(BaseMolecule& bmol);
         void saveMolecule(BaseMolecule& bmol, JsonWriter& writer);
 
-        static void saveMetaData(JsonWriter& writer, MetaDataStorage& meta);
+        void saveMetaData(JsonWriter& writer, MetaDataStorage& meta);
         static std::string monomerId(const TGroup& tg);
         static std::string monomerKETClass(const std::string& class_name);
         static std::string monomerHELMClass(const std::string& class_name);
@@ -62,15 +62,18 @@ namespace indigo
     protected:
         void saveRoot(BaseMolecule& mol, JsonWriter& writer);
         void saveMoleculeReference(int mol_id, JsonWriter& writer);
-        void saveEndpoint(BaseMolecule& mol, const std::string& ep, int beg_idx, int end_idx, JsonWriter& writer);
+        void saveEndpoint(BaseMolecule& mol, const std::string& ep, int beg_idx, int end_idx, JsonWriter& writer, bool hydrogen = false);
         int getMonomerNumber(int mon_idx);
 
         void writeFloat(JsonWriter& writer, float f_value);
+        void writePos(JsonWriter& writer, const Vec3f& pos);
+
         void saveAtoms(BaseMolecule& mol, JsonWriter& writer);
         void saveBonds(BaseMolecule& mol, JsonWriter& writer);
-        void saveRGroup(PtrPool<BaseMolecule>& fragments, int rgnum, JsonWriter& writer);
+        void saveRGroup(RGroup& rgroup, int rgnum, JsonWriter& writer);
         void saveFragment(BaseMolecule& fragment, JsonWriter& writer);
         void saveMonomerTemplate(TGroup& tg, JsonWriter& writer);
+        void saveAmbiguousMonomerTemplate(TGroup& tg, JsonWriter& writer);
         void saveMonomerAttachmentPoints(TGroup& tg, JsonWriter& writer);
         void saveSuperatomAttachmentPoints(Superatom& sa, JsonWriter& writer);
 

@@ -19,6 +19,10 @@
 #include "molecule/ket_objects.h"
 #include "molecule/json_writer.h"
 
+#ifdef _MSC_VER
+#pragma warning(push, 4)
+#endif
+
 using namespace indigo;
 using namespace rapidjson;
 
@@ -473,9 +477,8 @@ void KetMolecule::parseKetAtoms(KetMolecule::atoms_type& ket_atoms, const rapidj
             }
             else
             {
-                auto& qProps = atom["queryProperties"];
                 KetQueryProperties q_props;
-                q_props.parseOptsFromKet(qProps);
+                q_props.parseOptsFromKet(atom["queryProperties"]);
                 query_props = q_props;
             }
         }
@@ -563,15 +566,47 @@ void KetMolecule::parseKetSGroups(rapidjson::Value& sgroups)
 {
     for (SizeType i = 0; i < sgroups.Size(); i++)
     {
-        const Value& sgroup = sgroups[i];
+        // const Value& sgroup = sgroups[i];
     }
+}
+
+IMPL_ERROR(KetAttachmentPoint, "Ket Attachment Point");
+
+const std::map<std::string, int>& KetAttachmentPoint::getStringPropStrToIdx() const
+{
+    static std::map<std::string, int> str_to_idx{
+        {"label", toUType(StringProps::label)},
+        {"type", toUType(StringProps::type)},
+    };
+    return str_to_idx;
+}
+
+IMPL_ERROR(KetBaseMonomer, "Ket Base Monomer")
+
+void KetBaseMonomer::connectAttachmentPointTo(const std::string& ap_id, const std::string& monomer_ref, const std::string& other_ap_id)
+{
+    if (_attachment_points.find(ap_id) == _attachment_points.end())
+        throw Error("Unknown attachment point '%s' in monomer %s", ap_id.c_str(), _alias.c_str());
+    auto it = _connections.find(ap_id);
+    if (it != _connections.end() && (it->second.first != monomer_ref || it->second.second != other_ap_id))
+        throw Error("Monomer '%s' attachment point '%s' already connected to monomer'%s' attachment point '%s'", _alias.c_str(), ap_id.c_str(),
+                    it->second.first.c_str(), it->second.second.c_str());
+    if (it == _connections.end())
+        _connections.try_emplace(ap_id, monomer_ref, other_ap_id);
 }
 
 IMPL_ERROR(KetMonomer, "Ket Monomer")
 
+const std::map<std::string, int>& KetMonomer::getBoolPropStrToIdx() const
+{
+    static std::map<std::string, int> str_to_idx{
+        {"expanded", toUType(BoolProps::expanded)},
+    };
+    return str_to_idx;
+}
+
 const std::map<std::string, int>& KetMonomer::getIntPropStrToIdx() const
 {
-
     static std::map<std::string, int> str_to_idx{
         {"seqid", toUType(IntProps::seqid)},
     };
@@ -585,12 +620,39 @@ const std::map<std::string, int>& KetConnectionEndPoint::getStringPropStrToIdx()
     static std::map<std::string, int> str_to_idx{
         {"groupId", toUType(StringProps::groupId)},
         {"monomerId", toUType(StringProps::monomerId)},
+        {"moleculeId", toUType(StringProps::moleculeId)},
+        {"atomId", toUType(StringProps::atomId)},
         {"attachmentPointId", toUType(StringProps::attachmentPointId)},
     };
     return str_to_idx;
 }
 
 IMPL_ERROR(KetConnection, "Ket Connection")
+
+KetConnection::KetConnection(KetConnection::TYPE conn_type, KetConnectionEndPoint ep1, KetConnectionEndPoint ep2) : _ep1(ep1), _ep2(ep2)
+{
+    switch (conn_type)
+    {
+    case TYPE::SINGLE:
+        _connection_type = KetConnectionSingle;
+        break;
+    case TYPE::HYDROGEN:
+        _connection_type = KetConnectionHydro;
+        break;
+    default:
+        throw Error("Unknown connection type %d.", conn_type);
+    }
+}
+
+const KetConnection::TYPE KetConnection::connType() const
+{
+    if (_connection_type == KetConnectionSingle)
+        return TYPE::SINGLE;
+    else if (_connection_type == KetConnectionHydro)
+        return TYPE::HYDROGEN;
+    else
+        throw Error("Unknown connection type '%s'.", _connection_type.c_str());
+}
 
 const std::map<std::string, int>& KetConnection::getStringPropStrToIdx() const
 {
@@ -600,12 +662,75 @@ const std::map<std::string, int>& KetConnection::getStringPropStrToIdx() const
     return str_to_idx;
 }
 
-IMPL_ERROR(KetVariantMonomer, "Ket Variant Monomer")
+IMPL_ERROR(KetAmbiguousMonomer, "Ket Ambiguous Monomer")
 
-const std::map<std::string, int>& KetVariantMonomer::getStringPropStrToIdx() const
+const std::map<std::string, int>& KetAmbiguousMonomer::getIntPropStrToIdx() const
+{
+    static std::map<std::string, int> str_to_idx{
+        {"seqid", toUType(IntProps::seqid)},
+    };
+    return str_to_idx;
+}
+
+const std::map<std::string, int>& KetAmbiguousMonomer::getStringPropStrToIdx() const
 {
     static std::map<std::string, int> str_to_idx{
         {"alias", toUType(StringProps::alias)},
     };
     return str_to_idx;
 }
+
+IMPL_ERROR(KetBaseMonomerTemplate, "Ket Base Monomer Template")
+
+bool KetBaseMonomerTemplate::hasIdtAlias(const std::string& alias, IdtModification mod)
+{
+    if (_idt_alias.hasModification(mod) && (_idt_alias.getModification(mod) == alias))
+        return true;
+    return false;
+}
+
+bool KetBaseMonomerTemplate::hasIdtAliasBase(const std::string& alias_base)
+{
+    if (_idt_alias.getBase() == alias_base)
+        return true;
+    return false;
+}
+
+IMPL_ERROR(KetMonomerShape, "Monomer Shape")
+
+KetMonomerShape::KetMonomerShape(const std::string& id, bool collapsed, const std::string& shape, Vec2f position, const std::vector<std::string>& monomers)
+    : KetObjWithProps(), _id(id), _collapsed(collapsed), _shape(strToShapeType(shape)), _position(position), _monomers(monomers)
+{
+}
+
+KetMonomerShape::shape_type KetMonomerShape::strToShapeType(std::string shape)
+{
+    static std::map<std::string, KetMonomerShape::shape_type> str_to_shape{
+        {"generic", shape_type::generic},
+        {"antibody", shape_type::antibody},
+        {"double helix", shape_type::double_helix},
+        {"globular protein", shape_type::globular_protein},
+    };
+    auto it = str_to_shape.find(shape);
+    if (it == str_to_shape.end())
+        throw Error("Unknown shape type %s", shape.c_str());
+    return it->second;
+}
+
+std::string KetMonomerShape::shapeTypeToStr(shape_type shape)
+{
+    static std::map<KetMonomerShape::shape_type, std::string> shape_to_str{
+        {shape_type::generic, "generic"},
+        {shape_type::antibody, "antibody"},
+        {shape_type::double_helix, "double helix"},
+        {shape_type::globular_protein, "globular protein"},
+    };
+    auto it = shape_to_str.find(shape);
+    if (it == shape_to_str.end())
+        throw Error("Unknown shape type %d", shape);
+    return it->second;
+}
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

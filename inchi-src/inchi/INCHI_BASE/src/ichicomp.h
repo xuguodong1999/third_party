@@ -54,6 +54,11 @@ extern "C" {
 
 /*  ANSI redefinitions */
 #ifdef COMPILE_ANSI_ONLY  /* { */
+#if 0
+#ifndef __isascii
+#define __isascii(val)  ((unsigned)(val) <= 0x7F)
+#endif
+#endif
 
 /* #ifndef __GNUC__ */
 /* these non-ANSI functions are implemented in gcc */

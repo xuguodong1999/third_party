@@ -13,6 +13,8 @@
 #include "src/base/SkSpinlock.h"
 #include "src/core/SkLRUCache.h"
 #include "src/gpu/ResourceKey.h"
+#include "src/gpu/graphite/GraphicsPipeline.h"
+
 
 #include <functional>
 
@@ -42,13 +44,21 @@ public:
     void deleteResources();
 
     // Find a cached GraphicsPipeline that matches the associated key.
-    sk_sp<GraphicsPipeline> findGraphicsPipeline(const UniqueKey&) SK_EXCLUDES(fSpinLock);
+    sk_sp<GraphicsPipeline> findGraphicsPipeline(
+        const UniqueKey&,
+        SkEnumBitMask<PipelineCreationFlags> = PipelineCreationFlags::kNone,
+        uint32_t* compilationID = nullptr) SK_EXCLUDES(fSpinLock);
 
     // Associate the given pipeline with the key. If the key has already had a separate pipeline
     // associated with the key, that pipeline is returned and the passed-in pipeline is discarded.
     // Otherwise, the passed-in pipeline is held by the GlobalCache and also returned back.
     sk_sp<GraphicsPipeline> addGraphicsPipeline(const UniqueKey&,
                                                 sk_sp<GraphicsPipeline>) SK_EXCLUDES(fSpinLock);
+
+    void purgePipelinesNotUsedSince(
+            StdSteadyClock::time_point purgeTime) SK_EXCLUDES(fSpinLock);
+
+    void reportPipelineStats() SK_EXCLUDES(fSpinLock);
 
 #if defined(GPU_TEST_UTILS)
     int numGraphicsPipelines() const SK_EXCLUDES(fSpinLock);
@@ -57,6 +67,24 @@ public:
             const std::function<void(const UniqueKey&, const GraphicsPipeline*)>& fn)
             SK_EXCLUDES(fSpinLock);
 #endif
+
+    struct PipelineStats {
+#if defined(GPU_TEST_UTILS)
+        int fGraphicsCacheHits = 0;
+        int fGraphicsCacheMisses = 0;
+        int fGraphicsCacheAdditions = 0;
+        int fGraphicsRaces = 0;
+        int fGraphicsPurges = 0;
+#endif
+        // Normally compiled Pipelines that were skipped bc of a preexisting Precompiled Pipeline
+        uint32_t fNormalPreemptedByPrecompile = 0;
+        // Precompiled Pipelines that made it into the cache
+        uint32_t fUnpreemptedPrecompilePipelines = 0;
+        // Precompiled Pipelines that were purged from the cache prior to use
+        uint32_t fPurgedUnusedPrecompiledPipelines = 0;
+    };
+
+    PipelineStats getStats() const SK_EXCLUDES(fSpinLock);
 
     // Find and add operations for ComputePipelines, with the same pattern as GraphicsPipelines.
     sk_sp<ComputePipeline> findComputePipeline(const UniqueKey&) SK_EXCLUDES(fSpinLock);
@@ -69,12 +97,26 @@ public:
     // or reference tracking.
     void addStaticResource(sk_sp<Resource>) SK_EXCLUDES(fSpinLock);
 
+    using PipelineCallbackContext = void*;
+    using PipelineCallback = void (*)(PipelineCallbackContext context, sk_sp<SkData> pipelineData);
+    void setPipelineCallback(PipelineCallback, PipelineCallbackContext) SK_EXCLUDES(fSpinLock);
+
+    void invokePipelineCallback(SharedContext*,
+                                const GraphicsPipelineDesc&,
+                                const RenderPassDesc&);
 private:
     struct KeyHash {
         uint32_t operator()(const UniqueKey& key) const { return key.hash(); }
     };
 
-    using GraphicsPipelineCache = SkLRUCache<UniqueKey, sk_sp<GraphicsPipeline>, KeyHash>;
+    static void LogPurge(void* context, const UniqueKey& key, sk_sp<GraphicsPipeline>* p);
+    struct PurgeCB {
+        void operator()(void* context, const UniqueKey& k, sk_sp<GraphicsPipeline>* p) const {
+            LogPurge(context, k, p);
+        }
+    };
+
+    using GraphicsPipelineCache = SkLRUCache<UniqueKey, sk_sp<GraphicsPipeline>, KeyHash, PurgeCB>;
     using ComputePipelineCache  = SkLRUCache<UniqueKey, sk_sp<ComputePipeline>,  KeyHash>;
 
     // TODO: can we do something better given this should have write-seldom/read-often behavior?
@@ -87,6 +129,11 @@ private:
     ComputePipelineCache  fComputePipelineCache  SK_GUARDED_BY(fSpinLock);
 
     skia_private::TArray<sk_sp<Resource>> fStaticResource SK_GUARDED_BY(fSpinLock);
+
+    PipelineCallback fPipelineCallback SK_GUARDED_BY(fSpinLock) = nullptr;
+    PipelineCallbackContext fPipelineCallbackContext SK_GUARDED_BY(fSpinLock) = nullptr;
+
+    PipelineStats fStats SK_GUARDED_BY(fSpinLock);
 };
 
 }  // namespace skgpu::graphite

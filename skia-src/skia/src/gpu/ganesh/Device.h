@@ -18,8 +18,9 @@
 #include "include/core/SkSamplingOptions.h"
 #include "include/core/SkShader.h"
 #include "include/core/SkSurface.h"
-#include "include/gpu/GrTypes.h"
+#include "include/gpu/ganesh/GrTypes.h"
 #include "include/private/base/SkAssert.h"
+#include "include/private/base/SkMacros.h"
 #include "src/core/SkDevice.h"
 #include "src/core/SkMatrixPriv.h"
 #include "src/gpu/ganesh/ClipStack.h"
@@ -36,7 +37,6 @@ class GrClip;
 class GrRecordingContext;
 class GrRenderTargetProxy;
 class GrSurfaceProxy;
-class SkBitmap;
 class SkBlender;
 class SkColorSpace;
 class SkDrawable;
@@ -246,8 +246,6 @@ public:
 
     void drawSlug(SkCanvas*, const sktext::gpu::Slug* slug, const SkPaint& paint) override;
 
-    sk_sp<SkSpecialImage> makeSpecial(const SkBitmap&) override;
-    sk_sp<SkSpecialImage> makeSpecial(const SkImage*) override;
     sk_sp<SkSpecialImage> snapSpecial(const SkIRect& subset, bool forceCopy = false) override;
     sk_sp<SkSpecialImage> snapSpecialScaled(const SkIRect& subset, const SkISize& dstDims) override;
 
@@ -304,7 +302,7 @@ private:
         kIsOpaque  = 1 << 1,  //!< Hint from client that rendering to this device will be
         //   opaque even if the config supports alpha.
     };
-    GR_DECL_BITFIELD_CLASS_OPS_FRIENDS(DeviceFlags);
+    SK_DECL_BITFIELD_CLASS_OPS_FRIENDS(DeviceFlags);
 
     static SkImageInfo MakeInfo(SurfaceContext*,  DeviceFlags);
     static bool CheckAlphaTypeAndGetFlags(SkAlphaType, InitContents, DeviceFlags*);
@@ -363,7 +361,7 @@ private:
     friend class skgpu::TiledTextureUtils;   // for access to clip()
 };
 
-GR_MAKE_BITFIELD_CLASS_OPS(Device::DeviceFlags)
+SK_MAKE_BITFIELD_CLASS_OPS(Device::DeviceFlags)
 
 }  // namespace skgpu::ganesh
 

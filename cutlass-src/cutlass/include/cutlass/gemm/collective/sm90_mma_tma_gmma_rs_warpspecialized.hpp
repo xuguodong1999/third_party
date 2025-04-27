@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,6 +142,9 @@ struct CollectiveMma<
 
   using PipelineParams = typename MainloopPipeline::Params;
 
+  // One threads per CTA are producers (1 for operand tile)
+  static constexpr int NumProducerThreadEvents = 1;
+
   static_assert(cute::rank(InternalSmemLayoutAtomA{}) == 2, "SmemLayoutAtom must be rank 2 (M/N, K)");
   static_assert((size<0>(TileShape{}) % size<0>(InternalSmemLayoutAtomA{})) == 0, "SmemLayoutAtom must evenly divide tile shape.");
   static_assert((size<2>(TileShape{}) % size<1>(InternalSmemLayoutAtomA{})) == 0, "SmemLayoutAtom must evenly divide tile shape.");
@@ -213,7 +216,7 @@ struct CollectiveMma<
 
   struct SharedStorage
   {
-    struct TensorStorage : cute::aligned_struct<cute::max(SmemAlignmentA, SmemAlignmentB)> { 
+    struct TensorStorage : cute::aligned_struct<cute::max(SmemAlignmentA, SmemAlignmentB), _0> { 
       cute::array_aligned<typename TiledMma::ValTypeA, cute::cosize_v<SmemLayoutA>, SmemAlignmentA> smem_A;
       cute::array_aligned<typename TiledMma::ValTypeB, cute::cosize_v<SmemLayoutB>, SmemAlignmentB> smem_B;
     } tensors;

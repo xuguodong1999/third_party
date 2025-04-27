@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,11 @@
 
 #pragma once
 
+#include <cutlass/detail/helper_macros.hpp> // CUTLASS_HOST_DEVICE
+#include <cutlass/platform/platform.h> // uint64_t
+
 // __grid_constant__ was introduced in CUDA 11.7.
-#if ((__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 7)))
+#if ((__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 7))) && !CUTLASS_CLANG_CUDA
 #  define CUTLASS_GRID_CONSTANT_SUPPORTED
 #endif
 
@@ -56,6 +59,13 @@
 
 namespace cutlass {
 
+template <typename T>   struct Type2Type  {  using type=T;                    };
+// using the simple type to replace the complex type to reduce this symbol size
+template <typename  T>                                                                        struct GetUnderlyingKernel                              : public Type2Type<T>               {};
+template <uint64_t shader_guid, unsigned index, template <uint64_t, unsigned> class Wrapper > struct GetUnderlyingKernel<Wrapper<shader_guid,index>>  : public Wrapper<shader_guid,index> {};
+template <typename  T>                                                                        using  GetUnderlyingKernel_t                            = typename GetUnderlyingKernel<T>::type;
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Generic CUTLASS kernel template.
@@ -71,6 +81,7 @@ void Kernel(typename Operator::Params params) {
   Operator op;
 
   op(params, *shared_storage);
+  cutlass::arch::synclog_print();
 }
 
 
@@ -85,6 +96,8 @@ void Kernel2(typename Operator::Params params) {
       reinterpret_cast<typename Operator::SharedStorage *>(SharedStorageBase);
 
   Operator::invoke(params, *shared_storage);
+  cutlass::arch::synclog_print();
+
 }
 
 
@@ -107,6 +120,8 @@ void device_kernel(CUTLASS_GRID_CONSTANT typename Operator::Params const params)
   extern __shared__ char smem[];
   Operator op;
   op(params, smem);
+  cutlass::arch::synclog_print();
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -450,7 +450,9 @@ make_im2col_tma_copy_desc(
   CUtensorMapInterleave   tma_interleave  = CU_TENSOR_MAP_INTERLEAVE_NONE;
   CUtensorMapL2promotion  tma_l2Promotion = to_CUtensorMapL2promotion(aux_params.l2promo_);
   CUtensorMapFloatOOBfill tma_oob_fill    = to_CUtensorMapFloatOOBfill(aux_params.oobfill_);
-  CUtensorMapSwizzle      tma_swizzle     = TMA::to_CUtensorMapSwizzle(detail::get_tma_swizzle_bits(smem_swizzle));
+  TMA::SmemSwizzleBits    swizzle_bits    = detail::get_tma_swizzle_bits(smem_swizzle);
+  TMA::SmemSwizzleBase    swizzle_base    = detail::get_tma_swizzle_base(smem_swizzle);
+  CUtensorMapSwizzle      tma_swizzle     = TMA::to_CUtensorMapSwizzle(swizzle_bits, swizzle_base);
 
   CUresult encode_result = CUTLASS_CUDA_DRIVER_WRAPPER_CALL(cuTensorMapEncodeIm2col)(
       &tma_desc,
@@ -624,7 +626,7 @@ make_tma_atom_im2col(CopyOp,
   auto tma_layout_trunc = take<0,smem_tma_rank>(tma_layout_full);
 
   // Split according to the portion each multicast CTA will be responsible for
-  auto tma_layout_vt = logical_divide(tma_layout_trunc, shape_div(size(tma_layout_trunc), num_multicast));
+  auto tma_layout_vt = logical_divide(tma_layout_trunc, safe_div(size(tma_layout_trunc), num_multicast));
 
 #if 0
   print("glayout_basis   : "); print(glayout_basis); print("\n");
@@ -636,16 +638,16 @@ make_tma_atom_im2col(CopyOp,
 
   auto range_c    = size<0,0>(tma_layout_vt);
   auto range_whdn = size<0,1>(tma_layout_vt);
-
   Tensor gtensor_cwhdn = make_tensor(gtensor.data(),
-                                     flatten(make_layout(basis_get(stride<0,0>(tma_layout_vt), gtensor.layout()),
-                                                         basis_get(stride<0,1>(tma_layout_vt), gtensor.layout()))));
-
+                                     flatten(make_layout(make_layout(basis_get(stride<0,0>(tma_layout_vt), gtensor.shape()),
+                                                                     basis_get(stride<0,0>(tma_layout_vt), gtensor.stride())),
+                                                         make_layout(basis_get(stride<0,1>(tma_layout_vt), gtensor.shape()),
+                                                                     basis_get(stride<0,1>(tma_layout_vt), gtensor.stride())))));
   auto [tma_desc, tma_tensor] = make_im2col_tma_copy_desc(
       gtensor_cwhdn,
       range_c,
       range_whdn,
-      detail::get_swizzle_portion(slayout),
+      get_swizzle_portion(slayout),
       tma_layout_vt,
       lower_corner_whd,
       upper_corner_whd,
@@ -746,7 +748,7 @@ make_tma_copy_im2col(CopyOp                       const& copy_op,
   // Scale that up to cover all of the smem_coords
   auto layout_V = tile_to_shape(make_layout(layout_v), size(cta_v_map));
   // CTA T -> smem idx
-  auto layout_t = make_layout(cosize(cta_t_map), shape_div(num_elems_per_tma, cosize(cta_t_map)));
+  auto layout_t = make_layout(cosize(cta_t_map), safe_div(num_elems_per_tma, cosize(cta_t_map)));
   // CTA TID -> smem coord
   auto layout_T = composition(inv_smem_layout, composition(layout_t, cta_t_map));
   // Combine with the T mapping

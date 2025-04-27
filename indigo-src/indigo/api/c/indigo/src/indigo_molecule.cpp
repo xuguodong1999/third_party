@@ -28,12 +28,14 @@
 #include "molecule/canonical_smiles_saver.h"
 #include "molecule/elements.h"
 #include "molecule/hybridization.h"
+#include "molecule/ket_document_json_loader.h"
 #include "molecule/molecule_auto_loader.h"
 #include "molecule/molecule_automorphism_search.h"
 #include "molecule/molecule_fingerprint.h"
 #include "molecule/molecule_gross_formula.h"
 #include "molecule/molecule_inchi.h"
 #include "molecule/molecule_json_loader.h"
+#include "molecule/molecule_json_saver.h"
 #include "molecule/molecule_mass.h"
 #include "molecule/molecule_name_parser.h"
 #include "molecule/molecule_savers.h"
@@ -99,6 +101,11 @@ const Molecule& IndigoMolecule::getMolecule() const
 BaseMolecule& IndigoMolecule::getBaseMolecule()
 {
     return mol;
+}
+
+KetDocument& IndigoMolecule::getKetDocument()
+{
+    return getBaseMolecule().getKetDocument();
 }
 
 const char* IndigoMolecule::getName()
@@ -543,36 +550,25 @@ CEXPORT int indigoLoadMonomerLibrary(int source)
     INDIGO_END(-1);
 }
 
-CEXPORT int indigoLoadMonomerLibraryFromString(const char* string)
+CEXPORT int indigoLoadKetDocument(int source)
 {
     INDIGO_BEGIN
     {
-        int source = indigoReadString(string);
-        int result;
-
-        if (source <= 0)
-            return -1;
-
-        result = indigoLoadMonomerLibrary(source);
-        indigoFree(source);
-        return result;
-    }
-    INDIGO_END(-1);
-}
-
-CEXPORT int indigoLoadMonomerLibraryFromFile(const char* filename)
-{
-    INDIGO_BEGIN
-    {
-        int source = indigoReadFile(filename);
-        int result;
-
-        if (source < 0)
-            return -1;
-
-        result = indigoLoadMonomerLibrary(source);
-        indigoFree(source);
-        return result;
+        IndigoObject& obj = self.getObject(source);
+        std::string json_str;
+        if (IndigoBaseMolecule::is(obj))
+        {
+            json_str = indigoJson(source);
+        }
+        else
+        {
+            auto& scanner = IndigoScanner::get(obj);
+            scanner.readAll(json_str);
+        }
+        std::unique_ptr<IndigoKetDocument> docptr = std::make_unique<IndigoKetDocument>();
+        KetDocumentJsonLoader loader{};
+        loader.parseJson(json_str, docptr->get());
+        return self.addObject(docptr.release());
     }
     INDIGO_END(-1);
 }
@@ -585,11 +581,10 @@ CEXPORT int indigoLoadSequence(int source, const char* seq_type, int library)
         IndigoObject& lib_obj = self.getObject(library);
         SequenceLoader loader(IndigoScanner::get(obj), IndigoMonomerLibrary::get(lib_obj));
 
-        std::unique_ptr<IndigoMolecule> molptr = std::make_unique<IndigoMolecule>();
+        std::unique_ptr<IndigoKetDocument> docptr = std::make_unique<IndigoKetDocument>();
 
-        Molecule& mol = molptr->mol;
-        loader.loadSequence(mol, seq_type);
-        return self.addObject(molptr.release());
+        loader.loadSequence(docptr->get(), seq_type);
+        return self.addObject(docptr.release());
     }
     INDIGO_END(-1);
 }
@@ -636,11 +631,10 @@ CEXPORT int indigoLoadFasta(int source, const char* seq_type, int library)
         IndigoObject& lib_obj = self.getObject(library);
         SequenceLoader loader(IndigoScanner::get(obj), IndigoMonomerLibrary::get(lib_obj));
 
-        std::unique_ptr<IndigoMolecule> molptr = std::make_unique<IndigoMolecule>();
+        std::unique_ptr<IndigoKetDocument> docptr = std::make_unique<IndigoKetDocument>();
 
-        Molecule& mol = molptr->mol;
-        loader.loadFasta(mol, seq_type);
-        return self.addObject(molptr.release());
+        loader.loadFasta(docptr->get(), seq_type);
+        return self.addObject(docptr.release());
     }
     INDIGO_END(-1);
 }
@@ -688,11 +682,8 @@ CEXPORT int indigoLoadIdt(int source, int library)
         MonomerTemplateLibrary& lib = IndigoMonomerLibrary::get(lib_obj);
         SequenceLoader loader(IndigoScanner::get(obj), lib);
 
-        // std::unique_ptr<IndigoMolecule> molptr = std::make_unique<IndigoMolecule>();
         std::unique_ptr<IndigoKetDocument> docptr = std::make_unique<IndigoKetDocument>();
 
-        // Molecule& mol = molptr->mol;
-        // loader.loadIdt(mol);
         loader.loadIdt(docptr->get());
         return self.addObject(docptr.release());
     }
@@ -741,11 +732,10 @@ CEXPORT int indigoLoadHelm(int source, int library)
         IndigoObject& lib_obj = self.getObject(library);
         SequenceLoader loader(IndigoScanner::get(obj), IndigoMonomerLibrary::get(lib_obj));
 
-        std::unique_ptr<IndigoMolecule> molptr = std::make_unique<IndigoMolecule>();
+        std::unique_ptr<IndigoKetDocument> docptr = std::make_unique<IndigoKetDocument>();
 
-        Molecule& mol = molptr->mol;
-        loader.loadHELM(mol);
-        return self.addObject(molptr.release());
+        loader.loadHELM(docptr->get());
+        return self.addObject(docptr.release());
     }
     INDIGO_END(-1);
 }
@@ -3084,7 +3074,6 @@ int indigoAddDataSGroup(int molecule, int natoms, int* atoms, int nbonds, int* b
         BaseMolecule& mol = self.getObject(molecule).getBaseMolecule();
         int idx = mol.sgroups.addSGroup(SGroup::SG_TYPE_DAT);
         DataSGroup& dsg = (DataSGroup&)mol.sgroups.getSGroup(idx);
-        int i;
         if (atoms != nullptr)
             dsg.atoms.concat(atoms, natoms);
 

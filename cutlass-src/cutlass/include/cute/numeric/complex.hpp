@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cutlass/complex.h>
-#include <cute/util/type_traits.hpp>
-#include <cute/numeric/numeric_types.hpp>
+#include <cute/config.hpp>    // CUTE_HOST_DEVICE
+
+#include <cutlass/complex.h>  // cutlass::complexm, cutlass::real, cutlass::imag, cutlass::is_complex
 
 namespace cute
 {

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,9 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
-
-#include <cute/container/tuple.hpp>
-#include <cute/algorithm/tuple_algorithms.hpp>
-#include <cute/numeric/integral_constant.hpp>
-#include <cute/numeric/integer_sequence.hpp>
+#include <cute/config.hpp>                     // CUTE_INLINE_CONSTANT, CUTE_HOST_DEVICE
+#include <cute/container/tuple.hpp>            // cute::is_tuple
+#include <cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
 
 namespace cute
 {

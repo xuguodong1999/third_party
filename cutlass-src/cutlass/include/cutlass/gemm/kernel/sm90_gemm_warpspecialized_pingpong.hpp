@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,7 @@ public:
   using ProblemShape = ProblemShape_;
   static_assert(cute::rank(ProblemShape{}) == 3 or cute::rank(ProblemShape{}) == 4,
     "ProblemShape{} should be <M,N,K> or <M,N,K,L>");
+  static constexpr bool IsGdcEnabled = false;
   // Mainloop derived types
   using CollectiveMainloop = CollectiveMainloop_;
   using TileShape = typename CollectiveMainloop::TileShape;
@@ -123,7 +124,7 @@ public:
 
   // Kernel level shared memory storage
   struct SharedStorage {
-    struct TensorStorage : cute::aligned_struct<128> {
+    struct TensorStorage : cute::aligned_struct<128, _1> {
       using MainloopTensorStorage = typename CollectiveMainloop::TensorStorage;
       using EpilogueTensorStorage = typename CollectiveEpilogue::TensorStorage;
 
@@ -131,7 +132,7 @@ public:
       EpilogueTensorStorage epilogue;
     } tensors;
 
-    struct PipelineStorage : cute::aligned_struct<16> {
+    struct PipelineStorage : cute::aligned_struct<16, _1> {
       using MainloopPipelineStorage = typename CollectiveMainloop::PipelineStorage;
       using EpiLoadPipelineStorage = typename CollectiveEpilogue::PipelineStorage;
       using MathWarpGroupOrderBarrierStorage = typename MathWarpGroupOrderBarrier::SharedStorage;
@@ -190,10 +191,21 @@ public:
           "  For optimal performance, populate the arguments KernelHardwareInfo struct with the SM count.");
       sm_count = KernelHardwareInfo::query_device_multiprocessor_count(args.hw_info.device_id);
     }
-
     CUTLASS_TRACE_HOST("to_underlying_arguments(): Setting persistent grid SM count to " << sm_count);
 
-    KernelHardwareInfo hw_info{args.hw_info.device_id, sm_count};
+    // Get maximum number of clusters that could co-exist on the target device
+    int max_active_clusters = args.hw_info.max_active_clusters;
+    if (max_active_clusters <= 0) {
+      max_active_clusters = 0;
+      CUTLASS_TRACE_HOST("  WARNING: Arguments do not include a valid max cluster count.\n"
+          "  For optimal performance, populate the arguments KernelHardwareInfo struct with the max_active_clusters.");
+    }
+    else {
+      CUTLASS_TRACE_HOST("to_underlying_arguments(): Setting persistent grid cluster count to " << max_active_clusters);
+    }
+
+    KernelHardwareInfo hw_info{args.hw_info.device_id, sm_count, max_active_clusters};
+
     TileSchedulerParams scheduler = TileScheduler::to_underlying_arguments(
       problem_shape_MNKL, TileShape{}, ClusterShape{}, hw_info, args.scheduler, workspace);
 
@@ -243,7 +255,7 @@ public:
     if constexpr (!std::is_const_v<decltype(args.max_swizzle_size)>) {
       args.max_swizzle_size = 1 << params.scheduler.log_swizzle_size_;
     }
-    return TileScheduler::get_grid_shape(params.problem_shape, TileShape{}, ClusterShape{}, params.hw_info, args);
+    return TileScheduler::get_grid_shape(params.scheduler, params.problem_shape, TileShape{}, ClusterShape{}, params.hw_info, args);
   }
 
   static dim3

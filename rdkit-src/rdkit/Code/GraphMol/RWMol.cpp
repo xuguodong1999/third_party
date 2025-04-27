@@ -8,7 +8,9 @@
 //  of the RDKit source tree.
 //
 
+#include <RDGeneral/BoostStartInclude.h>
 #include <boost/tokenizer.hpp>
+#include <RDGeneral/BoostEndInclude.h>
 
 // our stuff
 #include <RDGeneral/Invariant.h>
@@ -25,6 +27,9 @@ namespace RDKit {
 namespace {
 void insertStereoGroups(RWMol &mol, const ROMol &other,
                         unsigned int origNumAtoms, unsigned int origNumBonds) {
+  if (other.getStereoGroups().empty()) {
+    return;
+  }
   std::vector<RDKit::Atom *> abs_atoms;
   std::vector<RDKit::Bond *> abs_bonds;
   std::vector<RDKit::StereoGroup> new_groups;
@@ -67,11 +72,13 @@ void insertStereoGroups(RWMol &mol, const ROMol &other,
       // default write ID to 0 to avoid id clashes. We can use
       // assignStereoGroupIds() later on to assign new IDs
       new_group.setWriteId(0);
-      new_groups.push_back(new_group);
+      new_groups.push_back(std::move(new_group));
     }
   }
-  new_groups.emplace_back(RDKit::StereoGroupType::STEREO_ABSOLUTE, abs_atoms,
-                          abs_bonds);
+  if (!abs_atoms.empty() || !abs_bonds.empty()) {
+    new_groups.emplace_back(RDKit::StereoGroupType::STEREO_ABSOLUTE, abs_atoms,
+                            abs_bonds);
+  }
   mol.setStereoGroups(new_groups);
 }
 

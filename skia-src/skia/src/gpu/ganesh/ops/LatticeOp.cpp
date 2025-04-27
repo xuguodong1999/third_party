@@ -17,10 +17,9 @@
 #include "include/core/SkSize.h"
 #include "include/core/SkString.h"
 #include "include/gpu/GpuTypes.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrRecordingContext.h"
-#include "include/gpu/GrTypes.h"
-#include "include/private/SkColorData.h"
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrRecordingContext.h"
+#include "include/gpu/ganesh/GrTypes.h"
 #include "include/private/base/SkAssert.h"
 #include "include/private/base/SkDebug.h"
 #include "include/private/base/SkPoint_impl.h"
@@ -29,6 +28,7 @@
 #include "src/base/SkArenaAlloc.h"
 #include "src/base/SkSafeMath.h"
 #include "src/base/SkVx.h"
+#include "src/core/SkColorData.h"
 #include "src/core/SkLatticeIter.h"
 #include "src/core/SkSLTypeShared.h"
 #include "src/gpu/BufferWriter.h"
@@ -399,7 +399,7 @@ private:
         if (fFilter != that->fFilter) {
             return CombineResult::kCannotCombine;
         }
-        if (GrColorSpaceXform::Equals(fColorSpaceXform.get(), that->fColorSpaceXform.get())) {
+        if (!GrColorSpaceXform::Equals(fColorSpaceXform.get(), that->fColorSpaceXform.get())) {
             return CombineResult::kCannotCombine;
         }
         if (!fHelper.isCompatible(that->fHelper, caps, this->bounds(), that->bounds())) {

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,6 +116,9 @@ struct CollectiveMma<
 
   using PipelineParams = typename MainloopPipeline::Params;
   using CtaShape_MNK = decltype(shape_div(TileShape{}, ClusterShape{}));
+
+  static constexpr int NumProducerThreadEvents = 1;
+
   static_assert(rank(SmemLayoutAtomA{}) == 2, "SmemLayoutAtom must be rank 2 (M/N, K)");
   static_assert((size<0>(TileShape{}) % size<0>(SmemLayoutAtomA{})) == 0, "SmemLayoutAtom must evenly divide tile shape.");
   static_assert((size<2>(TileShape{}) % size<1>(SmemLayoutAtomA{})) == 0, "SmemLayoutAtom must evenly divide tile shape.");
@@ -166,12 +169,12 @@ struct CollectiveMma<
       size<0>(ClusterShape{}))); // mcast along M mode for this N load, if any
 
   struct SharedStorage {
-    struct TensorStorage : cute::aligned_struct<128> {
+    struct TensorStorage : cute::aligned_struct<128, _0> {
       cute::array_aligned<typename TiledMma::ValTypeA, cute::cosize_v<SmemLayoutA>> smem_A;
       cute::array_aligned<typename TiledMma::ValTypeB, cute::cosize_v<SmemLayoutB>> smem_B;
     } tensors;
 
-    struct TensorMapStorage : cute::aligned_struct<128> {
+    struct TensorMapStorage : cute::aligned_struct<128, _0> {
       cute::TmaDescriptor smem_tensormap_A;
       cute::TmaDescriptor smem_tensormap_B;
     } tensormaps;
@@ -222,9 +225,10 @@ struct CollectiveMma<
     auto init_N = get<1>(init_shape);
     auto init_K = get<2>(init_shape);
     // Batches/Groups are managed by using appropriate pointers to input matrices
-    const uint32_t mock_L = 1;
-    InternalElementA const* ptr_A_first_batch = reinterpret_cast<InternalElementA const*>(args.ptr_A);
-    InternalElementB const* ptr_B_first_batch = reinterpret_cast<InternalElementB const*>(args.ptr_B);
+    const uint32_t init_L = 1;
+    // NOTE: Since TMA desc creation with nullptr not possible until 12.6, we use an initial address even when tensor addresses are on device. This address is never used.
+    InternalElementA const* ptr_A_first_batch = reinterpret_cast<InternalElementA const*>(reinterpret_cast<uint64_t>(args.ptr_A) & 0xFFFFFFFFFFFFFFF0);  // Address must be 16B-aligned
+    InternalElementB const* ptr_B_first_batch = reinterpret_cast<InternalElementB const*>(reinterpret_cast<uint64_t>(args.ptr_B) & 0xFFFFFFFFFFFFFFF0);  // Address must be 16B-aligned
 
     InternalStrideA stride_a;
     InternalStrideB stride_b;
@@ -243,8 +247,8 @@ struct CollectiveMma<
       stride_a = args.dA;
       stride_b = args.dB;
     }
-    Tensor tensor_a = make_tensor(ptr_A_first_batch, make_layout(make_shape(init_M,init_K,mock_L), stride_a));
-    Tensor tensor_b = make_tensor(ptr_B_first_batch, make_layout(make_shape(init_N,init_K,mock_L), stride_b));
+    Tensor tensor_a = make_tensor(ptr_A_first_batch, make_layout(make_shape(init_M,init_K,init_L), stride_a));
+    Tensor tensor_b = make_tensor(ptr_B_first_batch, make_layout(make_shape(init_N,init_K,init_L), stride_b));
     TMA_A tma_load_a = make_tma_copy(
         GmemTiledCopyA{},
         tensor_a,
@@ -331,12 +335,12 @@ struct CollectiveMma<
     using X = Underscore;
     // Separate out problem shape for convenience
     auto [M,N,K,L] = problem_shape_MNKL;
-    const int32_t mock_L = 1;
+    const int32_t init_L = 1;
 
     // TMA requires special handling of strides to deal with coord codomain mapping
     // Represent the full tensors -- get these from TMA
-    Tensor mA_mkl = mainloop_params.tma_load_a.get_tma_tensor(make_shape(M,K,mock_L));                            // (m,k,l)
-    Tensor mB_nkl = mainloop_params.tma_load_b.get_tma_tensor(make_shape(N,K,mock_L));                            // (n,k,l)
+    Tensor mA_mkl = mainloop_params.tma_load_a.get_tma_tensor(make_shape(M,K,init_L));                            // (m,k,l)
+    Tensor mB_nkl = mainloop_params.tma_load_b.get_tma_tensor(make_shape(N,K,init_L));                            // (n,k,l)
 
     // Make tiled views, defer the slice
     Tensor gA_mkl = local_tile(mA_mkl, TileShape{}, make_coord(_,_,_), Step<_1, X,_1>{});  // (BLK_M,BLK_K,m,k,l)
@@ -374,7 +378,7 @@ struct CollectiveMma<
       // Prepare the TMA loads for A and B
       //
 
-      constexpr uint32_t cluster_shape_x = get<0>(DispatchPolicy::ClusterShape());
+      constexpr uint32_t cluster_shape_x = get<0>(typename DispatchPolicy::ClusterShape());
       uint2 cluster_local_block_id = {block_rank_in_cluster % cluster_shape_x, block_rank_in_cluster / cluster_shape_x};
 
       Tensor gA_mkl = get<0>(load_inputs);
@@ -623,56 +627,42 @@ struct CollectiveMma<
   //
 
   CUTLASS_DEVICE auto
-  tensormaps_init(Params const& mainloop_params, int32_t const sm_count, int32_t const sm_idx) const {
+  tensormaps_init(
+      Params const& mainloop_params,
+      TensorMapStorage& shared_tensormaps,
+      int32_t sm_count,
+      int32_t sm_idx) {
     cute::TmaDescriptor* gmem_tensormap = reinterpret_cast<cute::TmaDescriptor*>(mainloop_params.tensormaps);
 
     cute::TmaDescriptor* tma_desc_a = &gmem_tensormap[sm_idx];
     cute::TmaDescriptor* tma_desc_b = &gmem_tensormap[sm_idx + sm_count];
 
     if (cute::elect_one_sync()) {
-      // Bringing tensormaps from params to gmem for modification later
+      // Bringing tensormaps from params to smem for modification later
       Tensor pA_tensormap = make_tensor(mainloop_params.tma_load_a.get_tma_descriptor(), Int<1>{}, Int<1>{});
-      Tensor gA_tensormap = make_tensor(tma_desc_a, Int<1>{}, Int<1>{});
+      Tensor sA_tensormap = make_tensor(make_smem_ptr(&shared_tensormaps.smem_tensormap_A), Int<1>{}, Int<1>{});
       Tensor pB_tensormap = make_tensor(mainloop_params.tma_load_b.get_tma_descriptor(), Int<1>{}, Int<1>{});
-      Tensor gB_tensormap = make_tensor(tma_desc_b, Int<1>{}, Int<1>{});
+      Tensor sB_tensormap = make_tensor(make_smem_ptr(&shared_tensormaps.smem_tensormap_B), Int<1>{}, Int<1>{});
 
-      copy(recast<uint128_t>(pA_tensormap), recast<uint128_t>(gA_tensormap));
-      copy(recast<uint128_t>(pB_tensormap), recast<uint128_t>(gB_tensormap));
+      copy(recast<uint128_t>(pA_tensormap), recast<uint128_t>(sA_tensormap));
+      copy(recast<uint128_t>(pB_tensormap), recast<uint128_t>(sB_tensormap));
     }
+    __syncwarp();
 
     return cute::make_tuple(tma_desc_a, tma_desc_b);
-  }
-
-  // Bringing tensormaps to smem (to be done by single thread)
-  template <class TensorMapA, class TensorMapB>
-  CUTLASS_DEVICE
-  void
-  tensormaps_fetch_to_smem(
-      TensorMapStorage& shared_tensormap,
-      cute::tuple<TensorMapA, TensorMapB> const& input_tensormaps) const {
-    Tensor gA_tensormap = make_tensor(make_gmem_ptr(get<0>(input_tensormaps)), Int<1>{}, Int<1>{});
-    Tensor sA_tensormap = make_tensor(make_smem_ptr(&shared_tensormap.smem_tensormap_A), Int<1>{}, Int<1>{});
-    Tensor gB_tensormap = make_tensor(make_gmem_ptr(get<1>(input_tensormaps)), Int<1>{}, Int<1>{});
-    Tensor sB_tensormap = make_tensor(make_smem_ptr(&shared_tensormap.smem_tensormap_B), Int<1>{}, Int<1>{});
-
-    copy(recast<uint128_t>(gA_tensormap), recast<uint128_t>(sA_tensormap));
-    copy(recast<uint128_t>(gB_tensormap), recast<uint128_t>(sB_tensormap));
-
-    cp_async_fence();
-    cp_async_wait<0>();
   }
 
   // Replace address for the global tensor (to be done by single thread)
   CUTLASS_DEVICE
   void
   tensormaps_replace_global_address(
-      TensorMapStorage& shared_tensormap,
+      TensorMapStorage& shared_tensormaps,
       Params const& mainloop_params,
       int32_t next_batch) {
     // Replacing global_address for the next batch
-    cute::tma_descriptor_replace_addr_in_shared_mem(shared_tensormap.smem_tensormap_A,
+    cute::tma_descriptor_replace_addr_in_shared_mem(shared_tensormaps.smem_tensormap_A,
                                                     mainloop_params.ptr_A[next_batch]);
-    cute::tma_descriptor_replace_addr_in_shared_mem(shared_tensormap.smem_tensormap_B,
+    cute::tma_descriptor_replace_addr_in_shared_mem(shared_tensormaps.smem_tensormap_B,
                                                     mainloop_params.ptr_B[next_batch]);
   }
 
@@ -681,21 +671,19 @@ struct CollectiveMma<
   CUTLASS_DEVICE
   void
   tensormaps_replace_global_tensor_properties(
-      TensorMapStorage& shared_tensormap,
+      TensorMapStorage& shared_tensormaps,
       Params const& mainloop_params,
       int32_t next_group,
       ProblemShape_MNKL problem_shape_mnkl) {
     const uint32_t M = get<0>(problem_shape_mnkl);
     const uint32_t N = get<1>(problem_shape_mnkl);
     const uint32_t K = get<2>(problem_shape_mnkl);
-    // Only consider dimensions and strides that we need to recalculate and replace for each group
-    constexpr int TensorRank = rank(ProblemShape_MNKL{}) - 1; // excluding either M or N
-    static_assert(TensorRank == Int<3>{},
-      "Descriptor modification for global dims & strides expects rank as 3.");
-    cute::array<uint32_t, TensorRank> prob_shape_A  = {1,1,1};
-    cute::array<uint64_t, TensorRank> prob_stride_A = {0,0,0};
-    cute::array<uint32_t, TensorRank> prob_shape_B  = {1,1,1};
-    cute::array<uint64_t, TensorRank> prob_stride_B = {0,0,0};
+    // Replace all dims for consistency
+    constexpr int MaxTensorRank = 5;
+    cute::array<uint32_t, MaxTensorRank> prob_shape_A  = {1,1,1,1,1};
+    cute::array<uint64_t, MaxTensorRank> prob_stride_A = {0,0,0,0,0};
+    cute::array<uint32_t, MaxTensorRank> prob_shape_B  = {1,1,1,1,1};
+    cute::array<uint64_t, MaxTensorRank> prob_stride_B = {0,0,0,0,0};
 
     InternalElementA const* ptr_A = nullptr;
     Tensor tensor_a = make_tensor(ptr_A, make_shape(M,K,Int<1>{}), mainloop_params.dA[next_group]);
@@ -716,10 +704,10 @@ struct CollectiveMma<
       stride = (stride * sizeof_bits_v<InternalElementB>) / 8;
     }
 
-    cute::tma_descriptor_replace_dims_strides_in_shared_mem(shared_tensormap.smem_tensormap_A,
+    cute::tma_descriptor_replace_dims_strides_in_shared_mem(shared_tensormaps.smem_tensormap_A,
                                                             prob_shape_A,
                                                             prob_stride_A);
-    cute::tma_descriptor_replace_dims_strides_in_shared_mem(shared_tensormap.smem_tensormap_B,
+    cute::tma_descriptor_replace_dims_strides_in_shared_mem(shared_tensormaps.smem_tensormap_B,
                                                             prob_shape_B,
                                                             prob_stride_B);
   }
@@ -728,21 +716,18 @@ struct CollectiveMma<
   CUTLASS_DEVICE
   void
   tensormaps_perform_update(
-      TensorMapStorage& shared_tensormap,
+      TensorMapStorage& shared_tensormaps,
       Params const& mainloop_params,
       cute::tuple<TensorMapA, TensorMapB> const& input_tensormaps,
       ProblemShape_MNKL problem_shape_mnkl,
       int32_t next_batch) {
     if (cute::elect_one_sync()) {
-      // Bringing tensormaps to smem
-      tensormaps_fetch_to_smem(shared_tensormap, input_tensormaps);
-
       // Replacing global_address for the next batch
-      tensormaps_replace_global_address(shared_tensormap, mainloop_params, next_batch);
+      tensormaps_replace_global_address(shared_tensormaps, mainloop_params, next_batch);
 
       if constexpr (IsGroupedGemmKernel) {
         // Replacing global dims and strides for the next batch
-        tensormaps_replace_global_tensor_properties(shared_tensormap,
+        tensormaps_replace_global_tensor_properties(shared_tensormaps,
           mainloop_params, next_batch, problem_shape_mnkl);
       }
     }
@@ -752,11 +737,11 @@ struct CollectiveMma<
   CUTLASS_DEVICE
   void
   tensormaps_cp_fence_release (
-      TensorMapStorage& shared_tensormap,
+      TensorMapStorage& shared_tensormaps,
       cute::tuple<TensorMapA, TensorMapB> const& input_tensormaps) {
     // Entire warp must do this (i.e. it's aligned)
-    tma_descriptor_cp_fence_release(get<0>(input_tensormaps), shared_tensormap.smem_tensormap_A);
-    tma_descriptor_cp_fence_release(get<1>(input_tensormaps), shared_tensormap.smem_tensormap_B);
+    tma_descriptor_cp_fence_release(get<0>(input_tensormaps), shared_tensormaps.smem_tensormap_A);
+    tma_descriptor_cp_fence_release(get<1>(input_tensormaps), shared_tensormaps.smem_tensormap_B);
   }
 
   // The entire warp must call this function collectively (that is, the instructions are aligned)
@@ -768,6 +753,16 @@ struct CollectiveMma<
     cute::tma_descriptor_fence_acquire(get<1>(input_tensormaps));
   }
 
+  template <class InputTensors, class ProblemShape_MNKL>
+  CUTLASS_DEVICE
+  InputTensors
+  tensors_perform_update(
+      InputTensors const& input_tensors,
+      [[maybe_unused]] Params const& mainloop_params,
+      [[maybe_unused]] ProblemShape_MNKL problem_shape_mnkl,
+      [[maybe_unused]] int32_t next_batch) {
+    return input_tensors;
+  }
 
 };
 

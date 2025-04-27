@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -495,6 +495,7 @@ public:
       }
     }
 
+    cutlass::arch::synclog_setup();
     cutlass::Kernel<TrmmKernel><<<grid, block, smem_size, stream>>>(params_);
 
     cudaError_t result = cudaGetLastError();

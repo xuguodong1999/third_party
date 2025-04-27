@@ -9,6 +9,7 @@
 #define SkScalerContext_DEFINED
 
 #include "include/core/SkColor.h"
+#include "include/core/SkFourByteTag.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkRect.h"
@@ -286,10 +287,10 @@ public:
         kHinting_Mask   = kHintingBit1_Flag | kHintingBit2_Flag,
     };
 
-    SkScalerContext(sk_sp<SkTypeface>, const SkScalerContextEffects&, const SkDescriptor*);
+    SkScalerContext(SkTypeface&, const SkScalerContextEffects&, const SkDescriptor*);
     virtual ~SkScalerContext();
 
-    SkTypeface* getTypeface() const { return fTypeface.get(); }
+    SkTypeface* getTypeface() const { return &fTypeface; }
 
     SkMask::Format getMaskFormat() const {
         return fRec.fMaskFormat;
@@ -342,7 +343,7 @@ public:
     }
 
     static std::unique_ptr<SkScalerContext> MakeEmpty(
-            sk_sp<SkTypeface> typeface, const SkScalerContextEffects& effects,
+            SkTypeface& typeface, const SkScalerContextEffects& effects,
             const SkDescriptor* desc);
 
     static SkDescriptor* AutoDescriptorGivenRecAndEffects(
@@ -427,7 +428,7 @@ protected:
      *  Does not apply subpixel positioning to the path.
      *  @return false if this glyph does not have any path.
      */
-    [[nodiscard]] virtual bool generatePath(const SkGlyph&, SkPath*) = 0;
+    [[nodiscard]] virtual bool generatePath(const SkGlyph&, SkPath*, bool* modified) = 0;
 
     /** Returns the drawable for the glyph (if any).
      *
@@ -449,13 +450,16 @@ private:
     friend class PathText;  // For debug purposes
     friend class PathTextBench;  // For debug purposes
     friend class RandomScalerContext;  // For debug purposes
+    friend class SkScalerContext_proxy;
 
     static SkScalerContextRec PreprocessRec(const SkTypeface&,
                                             const SkScalerContextEffects&,
                                             const SkDescriptor&);
 
-    // never null
-    sk_sp<SkTypeface> fTypeface;
+    // In order for a SkScalerContext to be in use this typeface must exist.
+    // The SkScalerContext does not keep a reference to this typeface, so this reference may be
+    // a dangling reference when the SkScalerContext is destroyed.
+    SkTypeface& fTypeface;
 
     // optional objects, which may be null
     sk_sp<SkPathEffect> fPathEffect;

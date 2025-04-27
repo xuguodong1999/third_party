@@ -12,6 +12,7 @@
 #include "include/core/SkTraceMemoryDump.h"
 #include "include/effects/SkRuntimeEffect.h"
 #include "include/gpu/graphite/BackendTexture.h"
+#include "include/gpu/graphite/PrecompileContext.h"
 #include "include/gpu/graphite/Recorder.h"
 #include "include/gpu/graphite/Recording.h"
 #include "include/gpu/graphite/Surface.h"
@@ -97,11 +98,14 @@ Context::Context(sk_sp<SharedContext> sharedContext,
         fStoreContextRefInRecorder = options.fOptionsPriv->fStoreContextRefInRecorder;
     }
 #endif
+
+    fSharedContext->globalCache()->setPipelineCallback(options.fPipelineCallback,
+                                                       options.fPipelineCallbackContext);
 }
 
 Context::~Context() {
 #if defined(GPU_TEST_UTILS)
-    ASSERT_SINGLE_OWNER
+    SkAutoMutexExclusive lock(fTestingLock);
     for (auto& recorder : fTrackedRecorders) {
         recorder->priv().setContext(nullptr);
     }
@@ -143,6 +147,12 @@ std::unique_ptr<Recorder> Context::makeRecorder(const RecorderOptions& options) 
     }
 #endif
     return recorder;
+}
+
+std::unique_ptr<PrecompileContext> Context::makePrecompileContext() {
+    ASSERT_SINGLE_OWNER
+
+    return std::unique_ptr<PrecompileContext>(new PrecompileContext(fSharedContext));
 }
 
 std::unique_ptr<Recorder> Context::makeInternalRecorder() const {
@@ -200,7 +210,10 @@ struct Context::AsyncParams {
         if (!fSrcImage) {
             return false;
         }
-        if (fSrcImage->isProtected()) {
+        // SkImage::isProtected() -> bool, TextureProxy::isProtected() -> Protected enum.
+        // The explicit cast makes this function work for both template instantiations since
+        // the Protected enum is backed by a bool.
+        if ((bool) fSrcImage->isProtected()) {
             return false;
         }
         if (!SkIRect::MakeSize(fSrcImage->dimensions()).contains(fSrcRect)) {
@@ -509,7 +522,7 @@ void Context::asyncReadPixelsYUV420(std::unique_ptr<Recorder> recorder,
 
     float baseM[20];
     SkColorMatrix_RGB2YUV(yuvColorSpace, baseM);
-    SkMatrix texMatrix = SkMatrix::Translate(params.fSrcRect.fLeft, params.fSrcRect.fTop);
+    SkMatrix texMatrix = SkMatrix::Translate(-params.fSrcRect.fLeft, -params.fSrcRect.fTop);
 
     // This matrix generates (r,g,b,a) = (0, 0, 0, y)
     float yM[20];
@@ -531,7 +544,7 @@ void Context::asyncReadPixelsYUV420(std::unique_ptr<Recorder> recorder,
     }
 
     // The UV planes are at half resolution compared to Y and A in 4:2:0
-    texMatrix.preScale(0.5f, 0.5f);
+    texMatrix.postScale(0.5f, 0.5f);
 
     // This matrix generates (r,g,b,a) = (0, 0, 0, u)
     float uM[20];
@@ -685,8 +698,10 @@ Context::PixelTransferResult Context::transferPixels(Recorder* recorder,
                                                                             /*bufferOffset=*/0,
                                                                             rowBytes);
     const bool addTasksDirectly = !SkToBool(recorder);
-
-    if (!copyTask || (addTasksDirectly && !fQueueManager->addTask(copyTask.get(), this))) {
+    Protected contextIsProtected = fSharedContext->isProtected();
+    if (!copyTask || (addTasksDirectly && !fQueueManager->addTask(copyTask.get(),
+                                                                  this,
+                                                                  contextIsProtected))) {
         return {};
     } else if (!addTasksDirectly) {
         // Add the task to the Recorder instead of the QueueManager if that's been required for
@@ -694,7 +709,9 @@ Context::PixelTransferResult Context::transferPixels(Recorder* recorder,
         recorder->priv().add(std::move(copyTask));
     }
     sk_sp<SynchronizeToCpuTask> syncTask = SynchronizeToCpuTask::Make(buffer);
-    if (!syncTask || (addTasksDirectly && !fQueueManager->addTask(syncTask.get(), this))) {
+    if (!syncTask || (addTasksDirectly && !fQueueManager->addTask(syncTask.get(),
+                                                                  this,
+                                                                  contextIsProtected))) {
         return {};
     } else if (!addTasksDirectly) {
         recorder->priv().add(std::move(syncTask));
@@ -747,6 +764,8 @@ void Context::checkForFinishedWork(SyncToCpu syncToCpu) {
 
     fQueueManager->checkForFinishedWork(syncToCpu);
     fMappedBufferManager->process();
+    // Process the return queue periodically to make sure it doesn't get too big
+    fResourceProvider->forceProcessReturnedResources();
 }
 
 void Context::checkAsyncWorkCompletion() {
@@ -794,6 +813,11 @@ size_t Context::maxBudgetedBytes() const {
     return fResourceProvider->getResourceCacheLimit();
 }
 
+void Context::setMaxBudgetedBytes(size_t bytes) {
+    ASSERT_SINGLE_OWNER
+    return fResourceProvider->setResourceCacheLimit(bytes);
+}
+
 void Context::dumpMemoryStatistics(SkTraceMemoryDump* traceMemoryDump) const {
     ASSERT_SINGLE_OWNER
     fResourceProvider->dumpMemoryStatistics(traceMemoryDump);
@@ -813,9 +837,25 @@ bool Context::supportsProtectedContent() const {
     return fSharedContext->isProtected() == Protected::kYes;
 }
 
+GpuStatsFlags Context::supportedGpuStats() const {
+    return fSharedContext->caps()->supportedGpuStats();
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 
 #if defined(GPU_TEST_UTILS)
+void Context::deregisterRecorder(const Recorder* recorder) {
+    SkAutoMutexExclusive lock(fTestingLock);
+    for (auto it = fTrackedRecorders.begin();
+         it != fTrackedRecorders.end();
+         it++) {
+        if (*it == recorder) {
+            fTrackedRecorders.erase(it);
+            return;
+        }
+    }
+}
+
 bool ContextPriv::readPixels(const SkPixmap& pm,
                              const TextureProxy* textureProxy,
                              const SkImageInfo& srcImageInfo,
@@ -877,18 +917,6 @@ bool ContextPriv::readPixels(const SkPixmap& pm,
     return true;
 }
 
-void ContextPriv::deregisterRecorder(const Recorder* recorder) {
-    SKGPU_ASSERT_SINGLE_OWNER(fContext->singleOwner())
-    for (auto it = fContext->fTrackedRecorders.begin();
-         it != fContext->fTrackedRecorders.end();
-         it++) {
-        if (*it == recorder) {
-            fContext->fTrackedRecorders.erase(it);
-            return;
-        }
-    }
-}
-
 bool ContextPriv::supportsPathRendererStrategy(PathRendererStrategy strategy) {
     AtlasProvider::PathAtlasFlagsBitMask pathAtlasFlags =
             AtlasProvider::QueryPathAtlasSupport(this->caps());
@@ -908,7 +936,7 @@ bool ContextPriv::supportsPathRendererStrategy(PathRendererStrategy strategy) {
     return false;
 }
 
-#endif
+#endif // GPU_TEST_UTILS
 
 ///////////////////////////////////////////////////////////////////////////////////
 

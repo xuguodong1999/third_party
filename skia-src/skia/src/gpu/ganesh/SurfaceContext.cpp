@@ -15,10 +15,10 @@
 #include "include/core/SkSamplingOptions.h"
 #include "include/core/SkSurface.h"
 #include "include/gpu/GpuTypes.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrDirectContext.h"
-#include "include/gpu/GrRecordingContext.h"
-#include "include/gpu/GrTypes.h"
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/GrRecordingContext.h"
+#include "include/gpu/ganesh/GrTypes.h"
 #include "include/private/base/SingleOwner.h"
 #include "include/private/base/SkAlign.h"
 #include "include/private/base/SkAssert.h"
@@ -136,7 +136,7 @@ bool SurfaceContext::readPixels(GrDirectContext* dContext, GrPixmap dst, SkIPoin
     GrSurface* srcSurface = srcProxy->peekSurface();
 
     SkColorSpaceXformSteps::Flags flags =
-            SkColorSpaceXformSteps{this->colorInfo(), dst.info()}.flags;
+            SkColorSpaceXformSteps{this->colorInfo(), dst.info()}.fFlags;
     bool unpremul            = flags.unpremul,
          needColorConversion = flags.linearize || flags.gamut_transform || flags.encode,
          premul              = flags.premul;
@@ -407,7 +407,7 @@ bool SurfaceContext::internalWritePixels(GrDirectContext* dContext,
     GrSurface* dstSurface = dstProxy->peekSurface();
 
     SkColorSpaceXformSteps::Flags flags =
-            SkColorSpaceXformSteps{src[0].colorInfo(), this->colorInfo()}.flags;
+            SkColorSpaceXformSteps{src[0].colorInfo(), this->colorInfo()}.fFlags;
     bool unpremul            = flags.unpremul,
          needColorConversion = flags.linearize || flags.gamut_transform || flags.encode,
          premul              = flags.premul;

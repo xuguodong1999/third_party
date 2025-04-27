@@ -39,16 +39,6 @@ namespace indigo
 {
     static std::string EMPTY_STRING;
 
-    IMPL_ERROR(MonomerTemplateAttachmentPoint, "MonomerTemplateAttachmentPoint");
-
-    const std::map<std::string, int>& MonomerTemplateAttachmentPoint::getStringPropStrToIdx() const
-    {
-        static std::map<std::string, int> str_to_idx{
-            {"label", toUType(StringProps::label)},
-            {"type", toUType(StringProps::type)},
-        };
-        return str_to_idx;
-    }
     IMPL_ERROR(MonomerTemplate, "MonomerTemplate");
 
     const std::map<std::string, int>& MonomerTemplate::getStringPropStrToIdx() const
@@ -63,12 +53,31 @@ namespace indigo
         return str_to_idx;
     };
 
-    MonomerTemplateAttachmentPoint& MonomerTemplate::AddAttachmentPoint(const std::string& label, int att_atom)
+    int MonomerTemplate::AddAtom(const std::string& label, Vec3f location)
+    {
+        _atoms.push_back(std::make_unique<KetAtom>(label));
+        (*_atoms.rbegin())->setLocation(location);
+        return static_cast<int>(_atoms.size() - 1);
+    }
+
+    int MonomerTemplate::AddBond(int bond_type, int atom1, int atom2)
+    {
+        _bonds.emplace_back(bond_type, atom1, atom2);
+        return static_cast<int>(_bonds.size() - 1);
+    }
+
+    KetAttachmentPoint& MonomerTemplate::AddAttachmentPoint(const std::string& label, int att_atom)
     {
         std::string ap_id = label.size() != 0 ? label : "R" + std::to_string(1 + _attachment_points.size());
-        auto it = _attachment_points.emplace(ap_id, att_atom);
+        auto& ap = AddAttachmentPointId(ap_id, att_atom);
         if (label.size())
-            it.first->second.setStringProp("label", label);
+            ap.setStringProp("label", label);
+        return ap;
+    }
+
+    KetAttachmentPoint& MonomerTemplate::AddAttachmentPointId(const std::string& id, int att_atom)
+    {
+        auto it = _attachment_points.emplace(id, att_atom);
         return it.first->second;
     }
 
@@ -87,7 +96,7 @@ namespace indigo
         JsonWriter writer;
         writer.Reset(string_buffer);
         writer.StartObject();
-        KetDocumentJsonSaver::saveMonomerTemplate(writer, ref_prefix + id(), *this);
+        KetDocumentJsonSaver::saveMonomerTemplate(writer, *this);
         writer.EndObject();
         std::string ket(string_buffer.GetString());
         // read TGroup
@@ -109,20 +118,6 @@ namespace indigo
         tgroup->copy(tg);
 
         return tgroup;
-    }
-
-    bool MonomerTemplate::hasIdtAlias(const std::string& alias, IdtModification mod)
-    {
-        if (_idt_alias.hasModification(mod) && (_idt_alias.getModification(mod) == alias))
-            return true;
-        return false;
-    }
-
-    bool MonomerTemplate::hasIdtAliasBase(const std::string& alias_base)
-    {
-        if (_idt_alias.getBase() == alias_base)
-            return true;
-        return false;
     }
 
     IMPL_ERROR(MonomerGroupTemplate, "MonomerGroupTemplate");
@@ -181,7 +176,7 @@ namespace indigo
 
     MonomerTemplate& MonomerTemplateLibrary::addMonomerTemplate(const std::string& id, const std::string& monomer_class, IdtAlias idt_alias, bool unresolved)
     {
-        auto res = _monomer_templates.try_emplace(id, id, MonomerTemplate::StrToMonomerClass(monomer_class), idt_alias, unresolved);
+        auto res = _monomer_templates.try_emplace(id, id, monomer_class, idt_alias, unresolved);
         if (!res.second)
             throw Error("Monomer template '%s' already exists", id.c_str());
         for (auto modification : {IdtModification::FIVE_PRIME_END, IdtModification::INTERNAL, IdtModification::THREE_PRIME_END})

@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2023 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2023 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,11 @@
  **************************************************************************************************/
 #pragma once
 
-#include <cute/config.hpp>
-
-#include <cute/container/tuple.hpp>
-#include <cute/algorithm/tuple_algorithms.hpp>
-#include <cute/numeric/integer_sequence.hpp>
-#include <cute/numeric/integral_constant.hpp>
-#include <cute/numeric/math.hpp>
+#include <cute/config.hpp>                      // CUTE_HOST_DEVICE
+#include <cute/container/tuple.hpp>             // cute::is_tuple
+#include <cute/numeric/integral_constant.hpp>   // cute::constant
+#include <cute/numeric/math.hpp>                // cute::max, cute::min
+#include <cute/algorithm/tuple_algorithms.hpp>  // cute::transform_apply
 
 namespace cute
 {
@@ -70,7 +68,7 @@ struct Swizzle
   using zzz_msk = cute::constant<int, bit_msk{} << (num_base - min(0,num_shft))>;
   using msk_sft = cute::constant<int, num_shft>;
 
-  static constexpr uint32_t swizzle_code = uint32_t(yyy_msk{} | zzz_msk{});
+  static constexpr uint32_t swizzle_code = uint32_t(yyy_msk::value | zzz_msk::value);
 
   template <class Offset>
   CUTE_HOST_DEVICE constexpr static
@@ -487,5 +485,14 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, MixedBits<S,F> const& m)
   return os << "M_" << S << "|(" << m.dynamic_int_ << "&" << F << ")=" << uint32_t(m);
 }
 #endif // !defined(__CUDACC_RTC__)
+
+//
+// Helper Function
+//
+template <class T, class = void>                      // Default No-Swizzle
+struct get_swizzle { using type = Swizzle<0,4,3>; };
+
+template <class T>
+using get_swizzle_t = typename get_swizzle<T>::type;
 
 } // end namespace cute

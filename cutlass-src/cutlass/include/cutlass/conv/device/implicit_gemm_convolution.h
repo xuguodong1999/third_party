@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Copyright (c) 2017 - 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2017 - 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ template<typename ImplicitGemmKernel_>
 class ImplicitGemmConvolution {
 public:
 
-  using UnderlyingKernel = ImplicitGemmKernel_;
+  using UnderlyingKernel = GetUnderlyingKernel_t<ImplicitGemmKernel_>;
 
   using ElementA = typename UnderlyingKernel::ElementA;
   using LayoutA = typename UnderlyingKernel::LayoutA;
@@ -103,7 +103,6 @@ public:
 
   /// Determines whether the Implicit GEMM can execute the given problem.
   static Status can_implement(Arguments const &args) {
-
     // dispatch to iterators
     Status status = UnderlyingKernel::Mma::IteratorA::can_implement(args.problem_size);
     if (Status::kSuccess != status) {
@@ -113,6 +112,33 @@ public:
     status = UnderlyingKernel::Mma::IteratorB::can_implement(args.problem_size);
     if (Status::kSuccess != status) {
       return status;
+    }
+
+    // Check that tensor sizes don't exceed maximum supported size
+    if (kConvolutionalOperator == conv::Operator::kFprop) {
+      if (args.problem_size.activation_size() * sizeof(ElementA) >=
+              (1ull << 31) ||
+          args.problem_size.filter_size() * sizeof(ElementB) >= (1ull << 31) ||
+          args.problem_size.output_size() * sizeof(ElementC) >= (1ull << 31)) {
+        return Status::kErrorInvalidProblem;
+      }
+    }
+    else if (kConvolutionalOperator == conv::Operator::kDgrad ||
+               kConvolutionalOperator == conv::Operator::kDeconv) {
+      if (args.problem_size.activation_size() * sizeof(ElementC) >=
+              (1ull << 31) ||
+          args.problem_size.filter_size() * sizeof(ElementB) >= (1ull << 31) ||
+          args.problem_size.output_size() * sizeof(ElementA) >= (1ull << 31)) {
+        return Status::kErrorInvalidProblem;
+      }
+    }
+    else if (kConvolutionalOperator == conv::Operator::kWgrad) {
+      if (args.problem_size.activation_size() * sizeof(ElementB) >=
+              (1ull << 31) ||
+          args.problem_size.filter_size() * sizeof(ElementC) >= (1ull << 31) ||
+          args.problem_size.output_size() * sizeof(ElementA) >= (1ull << 31)) {
+        return Status::kErrorInvalidProblem;
+      }
     }
 
     // check group conv constraint
@@ -164,9 +190,8 @@ public:
     // check for unsupported problem sizes for strided dgrad / deconv implementation
     if ((kConvolutionalOperator == conv::Operator::kDgrad || kConvolutionalOperator == conv::Operator::kDeconv) &&
       kStrideSupport == conv::StrideSupport::kStrided) {
-
       // split-k (serial or parallel) is not supported for strided dgrad / deconv
-      if(args.problem_size.split_k_slices > 1) {
+      if(args.problem_size.split_k_slices > 1 && (args.problem_size.stride().at(args.problem_size.stride().max_dim_index()) > 1)) {
         return Status::kErrorNotSupported;
       }
 
@@ -291,7 +316,7 @@ public:
   }
 
   /// Runs the kernel using initialized state.
-  Status run(cudaStream_t stream = nullptr, CudaHostAdapter *cuda_adapter = nullptr) {
+  Status run(cudaStream_t stream = nullptr, CudaHostAdapter *cuda_adapter = nullptr, int32_t kernel_index = 0) {
 
 
     ThreadblockSwizzle threadblock_swizzle;
@@ -311,7 +336,7 @@ public:
 
           void* kernel_params[] = {&params_};
           launch_result = cuda_adapter->launch(
-              grid, dim3(1,1,1), block, smem_size, stream, kernel_params, 0
+              grid, dim3(1,1,1), block, smem_size, stream, kernel_params, kernel_index
               );
         }
         else {
@@ -319,6 +344,7 @@ public:
         }
     }
     else {
+      cutlass::arch::synclog_setup();
       cutlass::Kernel<UnderlyingKernel><<<grid, block, smem_size, stream>>>(params_);      
     }
 
@@ -333,20 +359,20 @@ public:
   }
 
   /// Runs the kernel using initialized state.
-  Status operator()(cudaStream_t stream = nullptr, CudaHostAdapter *cuda_adapter = nullptr) {
-    return run(stream, cuda_adapter);
+  Status operator()(cudaStream_t stream = nullptr, CudaHostAdapter *cuda_adapter = nullptr, int32_t kernel_index = 0) {
+    return run(stream, cuda_adapter, kernel_index);
   }
 
   /// Runs the kernel using initialized state.
   Status operator()(
     Arguments const &args, 
     void *workspace = nullptr, 
-    cudaStream_t stream = nullptr, CudaHostAdapter *cuda_adapter = nullptr) {
+    cudaStream_t stream = nullptr, CudaHostAdapter *cuda_adapter = nullptr, int32_t kernel_index = 0) {
     
     Status status = initialize(args, workspace, stream, cuda_adapter);
     
     if (status == Status::kSuccess) {
-      status = run(stream, cuda_adapter);
+      status = run(stream, cuda_adapter, kernel_index);
     }
 
     return status;

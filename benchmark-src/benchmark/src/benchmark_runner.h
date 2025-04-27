@@ -19,18 +19,10 @@
 #include <vector>
 
 #include "benchmark_api_internal.h"
-#include "internal_macros.h"
 #include "perf_counters.h"
 #include "thread_manager.h"
 
 namespace benchmark {
-
-BM_DECLARE_string(benchmark_min_time);
-BM_DECLARE_double(benchmark_min_warmup_time);
-BM_DECLARE_int32(benchmark_repetitions);
-BM_DECLARE_bool(benchmark_report_aggregates_only);
-BM_DECLARE_bool(benchmark_display_aggregates_only);
-BM_DECLARE_string(benchmark_perf_counters);
 
 namespace internal {
 
@@ -46,7 +38,7 @@ struct RunResults {
 };
 
 struct BENCHMARK_EXPORT BenchTimeType {
-  enum { ITERS, TIME } tag;
+  enum { UNSPECIFIED, ITERS, TIME } tag;
   union {
     IterationCount iters;
     double time;
@@ -59,7 +51,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value);
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
-                  benchmark::internal::PerfCountersMeasurement* pmc_,
+                  benchmark::internal::PerfCountersMeasurement* pcm_,
                   BenchmarkReporter::PerFamilyRunReports* reports_for_family);
 
   int GetNumRepeats() const { return repeats; }
@@ -99,8 +91,6 @@ class BenchmarkRunner {
 
   std::vector<std::thread> pool;
 
-  std::vector<MemoryManager::Result> memory_results;
-
   IterationCount iters;  // preserved between repetitions!
   // So only the first repetition has to find/calculate it,
   // the other repetitions will just use that precomputed iteration count.
@@ -114,9 +104,9 @@ class BenchmarkRunner {
   };
   IterationResults DoNIterations();
 
-  MemoryManager::Result* RunMemoryManager(IterationCount memory_iterations);
+  MemoryManager::Result RunMemoryManager(IterationCount memory_iterations);
 
-  void RunProfilerManager();
+  void RunProfilerManager(IterationCount profile_iterations);
 
   IterationCount PredictNumItersNeeded(const IterationResults& i) const;
 
