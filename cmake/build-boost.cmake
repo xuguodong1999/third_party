@@ -554,6 +554,7 @@ xgd_create_boost_deps(optional INTERFACE assert config core detail move predef s
 xgd_create_boost_deps(outcome INTERFACE config exception system throw_exception)
 xgd_create_boost_deps(parameter INTERFACE config core function fusion mp11 mpl optional preprocessor type_traits utility)
 xgd_create_boost_deps(parameter_python INTERFACE mpl parameter preprocessor python)
+xgd_create_boost_deps(parser INTERFACE assert hana type_index)
 xgd_create_boost_deps(pfr)
 xgd_create_boost_deps(phoenix INTERFACE assert bind config core function fusion mpl predef preprocessor proto
         range smart_ptr type_traits utility)
