@@ -2,7 +2,7 @@ function(xgd_build_third_party)
     set(XGD_THIRD_PARTY_LIBS
             abseil ade agg avalontoolkit
             arrow
-            benchmark boost
+            benchmark better-enums boost
             cairo coordgen cppcoro cpufeatures cutlass
             eigen
             flatbuffers
@@ -12,11 +12,11 @@ function(xgd_build_third_party)
             ggml gtest
             inchi indigo
             # libexpat
-            lbfgs libpng libxml2
+            lbfgs libpng libxml2 lunasvg
             maeparser
             nanosvg ncnn
             openbabel opencv openssl
-            pixman protobuf
+            pixman plutovg protobuf
             quickjs
             rapidjson rdkit ringdecomposerlib rxcpp
             skia
@@ -33,5 +33,9 @@ function(xgd_build_third_party)
         include(${CMAKE_SOURCE_DIR}/cmake/build-${XGD_THIRD_PARTY_LIB}.cmake)
     endforeach ()
 endfunction()
+
+if (XGD_USE_CUDA)
+    enable_language(CUDA)
+endif ()
 
 xgd_build_third_party()
