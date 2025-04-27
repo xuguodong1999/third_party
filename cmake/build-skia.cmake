@@ -20,6 +20,7 @@ set(NO_ENCODE_JPEG_SRCS
         src/encode/SkJpegEncoder_none.cpp)
 
 set(ENCODE_PNG_SRCS
+        src/encode/SkPngEncoderBase.cpp
         src/encode/SkPngEncoderImpl.cpp)
 
 set(NO_ENCODE_PNG_SRCS
@@ -43,10 +44,12 @@ set(CODEC_SRCS_LIMITED
         src/codec/SkCodecImageGenerator.cpp
         src/codec/SkColorPalette.cpp
         src/codec/SkExif.cpp
+        src/codec/SkGainmapInfo.cpp
         src/codec/SkEncodedInfo.cpp
         src/codec/SkImageGenerator_FromEncoded.cpp
         src/codec/SkJpegCodec.cpp
         src/codec/SkJpegDecoderMgr.cpp
+        src/codec/SkJpegMetadataDecoderImpl.cpp
         src/codec/SkJpegSourceMgr.cpp
         src/codec/SkJpegUtility.cpp
         src/codec/SkMaskSwizzler.cpp
@@ -61,6 +64,8 @@ set(CODEC_SRCS_LIMITED
 set(CODEC_SRCS_ALL ${CODEC_SRCS_LIMITED}
         src/codec/SkIcoCodec.cpp
         src/codec/SkPngCodec.cpp
+        src/codec/SkPngCodecBase.cpp
+        src/codec/SkPngCompositeChunkReader.cpp
         src/codec/SkWebpCodec.cpp)
 
 set(TEXTUAL_HDRS

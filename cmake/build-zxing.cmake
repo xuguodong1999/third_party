@@ -4,7 +4,7 @@ set(INC_DIR ${ROOT_DIR}/src)
 set(SRC_DIR ${ROOT_DIR}/src)
 
 set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/zxing/include)
-configure_file(${ROOT_DIR}/ZXVersion.h.in ${GEN_DIR}/ZXVersion.h)
+configure_file(${ROOT_DIR}/Version.h.in ${GEN_DIR}/Version.h)
 
 xgd_add_library(ZXing STATIC
         SRC_DIRS ${SRC_DIR}

@@ -50,6 +50,7 @@ xgd_add_library(
         EXCLUDE_SRC_FILES
         ${SRC_DIR}/hash/internal/print_hash_of.cc
         EXCLUDE_REGEXES
+        "^(.*)test(.*)\\.c"
         "^(.*)test(.*)\\.cc"
         "^(.*)benchmark(.*)\\.cc"
         "^(.*)mock(.*)\\.cc"

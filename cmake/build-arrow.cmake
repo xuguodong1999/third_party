@@ -40,7 +40,7 @@ set(ARROW_SRC_DIRS
         ${SRC_DIR}/arrow/tensor
         ${SRC_DIR}/arrow/util
         ${SRC_DIR}/arrow/vendored
-        ${SRC_DIR}/arrow/vendored/datetime
+        #        ${SRC_DIR}/arrow/vendored/datetime
         ${SRC_DIR}/arrow/vendored/double-conversion
         ${SRC_DIR}/arrow/vendored/uriparser
         ${SRC_DIR}/arrow/vendored/xxhash

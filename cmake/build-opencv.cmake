@@ -680,6 +680,7 @@ function(xgd_build_opencv_highgui)
             SRC_FILES
             ${OPENCV_MODULE_${the_module}_SOURCES_DISPATCHED}
             EXCLUDE_SRC_FILES
+            ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_framebuffer.cpp
             ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_winrt.cpp
             ${OCV_MODULE_DIR}/${OCV_COMPONENT}/src/window_winrt_bridge.cpp
     )

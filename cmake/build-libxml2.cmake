@@ -6,8 +6,8 @@ set(SRC_DIR ${ROOT_DIR})
 set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/xml2/include)
 
 set(_XML_SRC_FILES buf.c c14n.c catalog.c chvalid.c debugXML.c dict.c encoding.c entities.c error.c
-        globals.c hash.c HTMLparser.c HTMLtree.c legacy.c list.c nanoftp.c nanohttp.c parser.c
-        parserInternals.c pattern.c relaxng.c SAX.c SAX2.c schematron.c threads.c tree.c uri.c
+        globals.c hash.c HTMLparser.c HTMLtree.c list.c nanohttp.c parser.c
+        parserInternals.c pattern.c relaxng.c SAX2.c schematron.c threads.c tree.c uri.c
         valid.c xinclude.c xlink.c xmlIO.c xmlmemory.c xmlmodule.c xmlreader.c xmlregexp.c xmlsave.c
         xmlschemas.c xmlschemastypes.c xmlstring.c xmlunicode.c xmlwriter.c xpath.c xpointer.c xzlib.c)
 set(SRC_FILES)
@@ -51,6 +51,7 @@ set(LIBXML2_WITH_PATTERN ON)
 set(LIBXML2_WITH_PUSH ON)
 set(LIBXML2_WITH_READER ON)
 set(LIBXML2_WITH_REGEXPS ON)
+set(LIBXML2_WITH_RELAXNG ON)
 set(LIBXML2_WITH_SAX1 ON)
 set(LIBXML2_WITH_SCHEMAS ON)
 set(LIBXML2_WITH_SCHEMATRON ON)
@@ -65,14 +66,13 @@ set(LIBXML2_WITH_XPTR ON)
 set(LIBXML2_WITH_XPTR_LOCS ON)
 set(LIBXML2_WITH_ZLIB ON)
 
-file(STRINGS "${SRC_DIR}/configure.ac" CONFIGURE_AC_LINES)
-foreach (line ${CONFIGURE_AC_LINES})
-    if (line MATCHES [[^m4_define\(\[(MAJOR_VERSION|MINOR_VERSION|MICRO_VERSION)\],[ \t]*([0-9]+)\)$]])
-        set(LIBXML_${CMAKE_MATCH_1} ${CMAKE_MATCH_2})
-    elseif (line MATCHES "^(LIBXML_MAJOR_VERSION|LIBXML_MINOR_VERSION|LIBXML_MICRO_VERSION)=([0-9]+)$")
-        set(${CMAKE_MATCH_1} ${CMAKE_MATCH_2})
-    endif ()
-endforeach ()
+file(READ "${SRC_DIR}/VERSION" VERSION)
+string(STRIP ${VERSION} VERSION)
+if(${VERSION} MATCHES [[([0-9]+)\.([0-9]+)\.([0-9]+)]])
+    set(LIBXML_MAJOR_VERSION ${CMAKE_MATCH_1})
+    set(LIBXML_MINOR_VERSION ${CMAKE_MATCH_2})
+    set(LIBXML_MICRO_VERSION ${CMAKE_MATCH_3})
+endif()
 set(VERSION "${LIBXML_MAJOR_VERSION}.${LIBXML_MINOR_VERSION}.${LIBXML_MICRO_VERSION}")
 set(LIBXML_VERSION ${VERSION})
 set(LIBXML_VERSION_EXTRA "")
@@ -107,12 +107,7 @@ if (NOT MSVC)
     endforeach ()
 endif ()
 
-foreach (VARIABLE IN ITEMS WITH_AUTOMATA WITH_C14N WITH_CATALOG WITH_DEBUG WITH_EXPR WITH_FTP
-        WITH_HTML WITH_HTTP WITH_ICONV WITH_ICU WITH_ISO8859X WITH_LEGACY WITH_LZMA
-        WITH_MEM_DEBUG WITH_MODULES WITH_OUTPUT WITH_PATTERN WITH_PUSH
-        WITH_READER WITH_REGEXPS WITH_RUN_DEBUG WITH_SAX1 WITH_SCHEMAS WITH_SCHEMATRON
-        WITH_THREAD_ALLOC WITH_THREADS WITH_TREE WITH_TRIO WITH_UNICODE WITH_VALID WITH_WRITER
-        WITH_XINCLUDE WITH_XPATH WITH_XPTR WITH_XPTR_LOCS WITH_ZLIB)
+foreach (VARIABLE IN ITEMS WITH_C14N WITH_CATALOG WITH_DEBUG WITH_HTML WITH_HTTP WITH_ICONV WITH_ICU WITH_ISO8859X WITH_LZMA WITH_MODULES WITH_OUTPUT WITH_PATTERN WITH_PUSH WITH_READER WITH_REGEXPS WITH_RELAXNG WITH_SAX1 WITH_SCHEMAS WITH_SCHEMATRON WITH_THREADS WITH_THREAD_ALLOC WITH_VALID WITH_WRITER WITH_XINCLUDE WITH_XPATH WITH_XPTR WITH_ZLIB)
     if (LIBXML2_${VARIABLE})
         set(${VARIABLE} 1)
     else ()
@@ -125,10 +120,13 @@ set(XML_CONF_DIR ${XML_GEN_DIR}/libxml)
 if (WIN32)
     target_link_libraries(xml2 PRIVATE bcrypt)
 endif()
-if (MSVC)
-    configure_file(${INC_DIR}/win32config.h ${XML_CONF_DIR}/config.h COPYONLY)
+
+if (CMAKE_INSTALL_FULL_SYSCONFDIR)
+    set(XML_SYSCONFDIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 else ()
-    configure_file(${SRC_DIR}/config.h.cmake.in ${XML_CONF_DIR}/config.h)
+    set(XML_SYSCONFDIR "xml_sysconfdir")
 endif ()
+
+configure_file(${SRC_DIR}/config.h.cmake.in ${XML_CONF_DIR}/config.h)
 configure_file(${INC_DIR}/libxml/xmlversion.h.in ${XML_CONF_DIR}/xmlversion.h)
 target_include_directories(xml2 PUBLIC ${XML_GEN_DIR} PRIVATE ${XML_CONF_DIR})

@@ -112,7 +112,7 @@ function(xgd_build_boost_charconv)
     set(BOOST_SRC_DIR ${XGD_THIRD_PARTY_DIR}/boost-src/boost/libs)
     set(BOOST_CHARCONV_SRC_FILES from_chars.cpp to_chars.cpp)
     xgd_internal_build_boost(charconv SRC_FILES ${BOOST_CHARCONV_SRC_FILES})
-    target_compile_definitions(boost_atomic
+    target_compile_definitions(boost_charconv
             PUBLIC BOOST_CHARCONV_NO_QUADMATH
             PRIVATE BOOST_CHARCONV_SOURCE
     )
@@ -248,11 +248,7 @@ function(xgd_build_boost_locale)
                 posix/numeric.cpp
                 posix/posix_backend.cpp)
     endif ()
-    set(_BOOST_LOCALE_SOURCES)
-    foreach (BOOST_LOCALE_SOURCE ${BOOST_LOCALE_SOURCES})
-        list(APPEND _BOOST_LOCALE_SOURCES boost/locale/${BOOST_LOCALE_SOURCE})
-    endforeach ()
-    xgd_internal_build_boost(locale SRC_FILES ${_BOOST_LOCALE_SOURCES})
+    xgd_internal_build_boost(locale SRC_FILES ${BOOST_LOCALE_SOURCES})
     if (NOT BOOST_LOCALE_ENABLE_POSIX)
         target_compile_definitions(boost_locale PRIVATE BOOST_LOCALE_NO_POSIX_BACKEND=1)
     endif ()
@@ -504,6 +500,7 @@ xgd_create_boost_deps(graph_parallel INTERFACE assert concept_check config conta
         detail dynamic_bitset filesystem foreach function graph iterator lexical_cast mpi mpl optional
         property_map property_map_parallel random serialization smart_ptr static_assert tuple type_traits variant)
 xgd_create_boost_deps(hana INTERFACE config core fusion mpl tuple)
+xgd_create_boost_deps(hash2 INTERFACE assert config container_hash describe mp11)
 xgd_create_boost_deps(heap INTERFACE array assert bind concept_check config core intrusive iterator parameter
         static_assert throw_exception type_traits)
 xgd_create_boost_deps(histogram INTERFACE config core mp11 throw_exception variant2 math)
@@ -524,7 +521,7 @@ xgd_create_boost_deps(leaf)
 xgd_create_boost_deps(lexical_cast INTERFACE array assert config container core integer numeric_conversion
         range static_assert throw_exception type_traits)
 xgd_create_boost_deps(local_function INTERFACE config mpl preprocessor scope_exit type_traits typeof utility scope)
-xgd_create_boost_deps(locale PRIVATE core predef thread PUBLIC assert config iterator)
+xgd_create_boost_deps(locale PRIVATE charconv core predef thread PUBLIC assert config iterator)
 xgd_create_boost_deps(lockfree INTERFACE align array assert atomic config core integer iterator mpl parameter predef
         static_assert tuple type_traits utility)
 xgd_create_boost_deps(log INTERFACE
@@ -540,6 +537,7 @@ xgd_create_boost_deps(mp11)
 xgd_create_boost_deps(mpi INTERFACE lexical_cast utility assert config core foreach function graph
         integer iterator mpl optional serialization smart_ptr static_assert throw_exception type_traits)
 xgd_create_boost_deps(mpl INTERFACE config core predef preprocessor static_assert type_traits utility)
+xgd_create_boost_deps(mqtt5 INTERFACE asio assert beast container core endian fusion optional random range smart_ptr spirit system type_traits)
 xgd_create_boost_deps(msm INTERFACE any assert bind circular_buffer config core function fusion
         mpl parameter phoenix preprocessor proto serialization tuple type_traits typeof)
 xgd_create_boost_deps(multi_array INTERFACE array assert concept_check config core functional
@@ -556,6 +554,7 @@ xgd_create_boost_deps(optional INTERFACE assert config core detail move predef s
 xgd_create_boost_deps(outcome INTERFACE config exception system throw_exception)
 xgd_create_boost_deps(parameter INTERFACE config core function fusion mp11 mpl optional preprocessor type_traits utility)
 xgd_create_boost_deps(parameter_python INTERFACE mpl parameter preprocessor python)
+xgd_create_boost_deps(pfr)
 xgd_create_boost_deps(phoenix INTERFACE assert bind config core function fusion mpl predef preprocessor proto
         range smart_ptr type_traits utility)
 xgd_create_boost_deps(poly_collection INTERFACE assert config core iterator mp11 mpl type_erasure type_traits)

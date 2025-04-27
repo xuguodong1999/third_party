@@ -20,6 +20,7 @@ xgd_add_library(
         ${CORE_LIB_DIR}/common/gzip
         ${CORE_LIB_DIR}/common/lzw
         ${CORE_LIB_DIR}/common/math
+        ${CORE_LIB_DIR}/common/utils
         ${CORE_LIB_DIR}/graph/src
         # ${CORE_LIB_DIR}/layout/patmake
         ${CORE_LIB_DIR}/layout/src
@@ -50,8 +51,8 @@ target_compile_definitions(indigo-render2d PRIVATE "USE_FONT_MANAGER")
 if (EMSCRIPTEN)
     target_compile_definitions(indigo-render2d PRIVATE "RENDER_EMSCRIPTEN")
 endif ()
-xgd_link_libraries(indigo-render2d PUBLIC freetype cairo indigo-core)
-xgd_link_libraries(indigo-core PRIVATE inchi zlib tinyxml2 PUBLIC rapidjson)
+xgd_link_libraries(indigo-render2d PUBLIC freetype cairo indigo-core PRIVATE lunasvg)
+xgd_link_libraries(indigo-core PRIVATE inchi zlib tinyxml2 png PUBLIC rapidjson)
 
 xgd_generate_export_header(indigo-core "indigo_core" ".h")
 
